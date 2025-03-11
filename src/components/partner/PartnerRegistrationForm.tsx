@@ -167,7 +167,7 @@ export const PartnerRegistrationForm = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className='space-y-4'>
-                <ul className='space-y-2 text-sm'>
+                <ul className='space-y-2 text-sm mb-12'>
                   <li className='flex items-center gap-2'>
                     <Check className='h-4 w-4 text-primary' />
                     Custom QR code for your property
@@ -224,7 +224,7 @@ export const PartnerRegistrationForm = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className='space-y-4'>
-                <ul className='space-y-2 text-sm'>
+                <ul className='space-y-2 text-sm mb-12'>
                   <li className='flex items-center gap-2'>
                     <Check className='h-4 w-4 text-primary' />
                     All Basic Package features
