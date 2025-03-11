@@ -25,7 +25,6 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Upload, Image as ImageIcon } from 'lucide-react'
-import { AvailabilityCalendar } from '@/components/activities/AvailabilityCalendar'
 import { WeeklyScheduleManager } from '@/components/activities/WeeklyScheduleManager'
 
 const categories = [
@@ -538,29 +537,6 @@ export const ActivityListingForm = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle className='text-base'>Manage Availability</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <AvailabilityCalendar 
-                onSave={(availability) => {
-                  console.log('Saved availability:', availability)
-                  // Handle saving availability to backend
-                }}
-              />
-              <div className='mt-4 p-4 bg-muted rounded-lg'>
-                <h4 className='font-medium mb-2'>Setting Your Schedule:</h4>
-                <ul className='list-disc list-inside space-y-2 text-sm text-muted-foreground'>
-                  <li>Select dates when your activity is available</li>
-                  <li>Add multiple time slots for each date</li>
-                  <li>Set maximum participants per time slot</li>
-                  <li>Customers will only be able to book available slots</li>
-                </ul>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
               <CardTitle className='text-base'>Manage Weekly Schedule</CardTitle>
             </CardHeader>
             <CardContent>
@@ -571,12 +547,12 @@ export const ActivityListingForm = () => {
                 }}
               />
               <div className='mt-4 p-4 bg-muted rounded-lg'>
-                <h4 className='font-medium mb-2'>Managing Your Schedule:</h4>
+                <h4 className='font-medium mb-2'>Managing Your Weekly Schedule:</h4>
                 <ul className='list-disc list-inside space-y-2 text-sm text-muted-foreground'>
-                  <li>Set your regular weekly schedule</li>
-                  <li>Add multiple time slots for each day</li>
-                  <li>Easily pause/resume specific days or the entire schedule</li>
-                  <li>Define maximum participants per time slot</li>
+                  <li>Set your standard weekly schedule - this will automatically repeat every week</li>
+                  <li>Select available hours for each day</li>
+                  <li>Easily pause specific days or your entire schedule when needed</li>
+                  <li>Your schedule will automatically renew unless you pause it</li>
                 </ul>
               </div>
             </CardContent>
