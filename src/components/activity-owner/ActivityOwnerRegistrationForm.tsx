@@ -1,4 +1,3 @@
-
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -26,18 +25,21 @@ import {
 } from "@/components/ui/select"
 
 const formSchema = z.object({
-  businessName: z.string().min(2, "Business name must be at least 2 characters"),
-  ownerName: z.string().min(2, "Owner name must be at least 2 characters"),
-  email: z.string().email("Invalid email address"),
-  phone: z.string().min(10, "Phone number must be at least 10 digits"),
+  businessName: z.string().min(2, 'Business name must be at least 2 characters'),
+  ownerName: z.string().min(2, 'Owner name must be at least 2 characters'),
+  email: z.string().email('Invalid email address'),
+  phone: z.string().min(10, 'Phone number must be at least 10 digits'),
   businessType: z.string(),
-  taxId: z.string().min(13, "Tax ID must be 13 digits"),
-  address: z.string().min(10, "Please enter a complete address"),
-  description: z.string().min(50, "Please provide a detailed description"),
-  tourGuideNumber: z.string().optional(),
-  insurancePolicy: z.string().min(1, "Insurance policy number is required"),
+  taxId: z.string().min(13, 'Tax ID must be 13 digits'),
+  address: z.string().min(10, 'Please enter a complete address'),
+  description: z.string().min(50, 'Please provide a detailed description'),
+  tourismLicenseNumber: z.string().min(1, 'Tourism Business License number is required'),
+  tatLicenseNumber: z.string().optional(),
+  guideCardNumber: z.string().optional(),
+  insurancePolicy: z.string().min(1, 'Insurance policy number is required'),
+  insuranceAmount: z.string().min(1, 'Insurance coverage amount is required'),
   termsAccepted: z.boolean().refine((val) => val === true, {
-    message: "You must accept the terms and conditions",
+    message: 'You must accept the terms and conditions',
   }),
 })
 
@@ -56,9 +58,19 @@ export const ActivityOwnerRegistrationForm = () => {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Business Information</h3>
+      <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
+        <div className='space-y-4'>
+          <div className='bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6'>
+            <h4 className='font-medium text-yellow-800 mb-2'>Thai Legal Requirements</h4>
+            <ul className='text-sm text-yellow-700 space-y-1'>
+              <li>• Tourism Business License from Ministry of Tourism</li>
+              <li>• TAT License for specific activities</li>
+              <li>• Minimum 1,000,000 THB liability insurance</li>
+              <li>• Guide Card for tour guides (if applicable)</li>
+            </ul>
+          </div>
+
+          <h3 className='text-lg font-medium'>Business Information</h3>
           <FormField
             control={form.control}
             name="businessName"
@@ -96,16 +108,19 @@ export const ActivityOwnerRegistrationForm = () => {
             )}
           />
 
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className='grid md:grid-cols-2 gap-4'>
             <FormField
               control={form.control}
-              name="taxId"
+              name='tourismLicenseNumber'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Tax ID</FormLabel>
+                  <FormLabel>Tourism Business License Number</FormLabel>
                   <FormControl>
-                    <Input placeholder="13-digit Tax ID" {...field} />
+                    <Input placeholder='License number from Ministry of Tourism' {...field} />
                   </FormControl>
+                  <FormDescription>
+                    Required for all tourism businesses in Thailand
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -113,13 +128,16 @@ export const ActivityOwnerRegistrationForm = () => {
 
             <FormField
               control={form.control}
-              name="insurancePolicy"
+              name='tatLicenseNumber'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Insurance Policy Number</FormLabel>
+                  <FormLabel>TAT License Number (if applicable)</FormLabel>
                   <FormControl>
-                    <Input placeholder="Insurance policy number" {...field} />
+                    <Input placeholder='Tourism Authority of Thailand License' {...field} />
                   </FormControl>
+                  <FormDescription>
+                    Required for specific tourism activities
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -129,9 +147,9 @@ export const ActivityOwnerRegistrationForm = () => {
 
         <Separator />
 
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Contact Information</h3>
-          <div className="grid md:grid-cols-2 gap-4">
+        <div className='space-y-4'>
+          <h3 className='text-lg font-medium'>Contact Information</h3>
+          <div className='grid md:grid-cols-2 gap-4'>
             <FormField
               control={form.control}
               name="ownerName"
@@ -196,42 +214,87 @@ export const ActivityOwnerRegistrationForm = () => {
 
         <Separator />
 
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Legal Requirements</h3>
+        <div className='space-y-4'>
+          <h3 className='text-lg font-medium'>Legal Requirements</h3>
+          <div className='grid md:grid-cols-2 gap-4'>
+            <FormField
+              control={form.control}
+              name='insurancePolicy'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Insurance Policy Number</FormLabel>
+                  <FormControl>
+                    <Input placeholder='Tourism liability insurance number' {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    Must be valid tourism liability insurance
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name='insuranceAmount'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Insurance Coverage Amount (THB)</FormLabel>
+                  <FormControl>
+                    <Input placeholder='Minimum 1,000,000 THB' {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    Minimum required coverage: 1,000,000 THB
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
           <FormField
             control={form.control}
-            name="tourGuideNumber"
+            name='guideCardNumber'
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Tour Guide License Number (if applicable)</FormLabel>
+                <FormLabel>Professional Guide Card Number</FormLabel>
                 <FormControl>
-                  <Input placeholder="License number" {...field} />
+                  <Input placeholder='Guide card number if applicable' {...field} />
                 </FormControl>
                 <FormDescription>
-                  Required for tour guides and certain activities
+                  Required for tour guides according to Thai Tourism Business and Guide Act
                 </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
 
+          <div className='bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4'>
+            <h4 className='font-medium text-blue-800 mb-2'>Legal Compliance</h4>
+            <p className='text-sm text-blue-700'>
+              All activities must comply with the Tourism Business and Guide Act B.E. 2551 (2008) and related regulations.
+              Failure to provide valid licenses or maintain required insurance may result in legal penalties.
+            </p>
+          </div>
+
           <FormField
             control={form.control}
-            name="termsAccepted"
+            name='termsAccepted'
             render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+              <FormItem className='flex flex-row items-start space-x-3 space-y-0'>
                 <FormControl>
                   <Checkbox
                     checked={field.value}
                     onCheckedChange={field.onChange}
                   />
                 </FormControl>
-                <div className="space-y-1 leading-none">
+                <div className='space-y-1 leading-none'>
                   <FormLabel>
                     I accept the terms and conditions
                   </FormLabel>
                   <FormDescription>
-                    By accepting, you agree to our service terms, privacy policy, and local tourism regulations
+                    By accepting, you agree to comply with all applicable Thai tourism laws and regulations,
+                    maintain valid licenses and insurance, and adhere to our platform's terms of service.
                   </FormDescription>
                 </div>
                 <FormMessage />
@@ -240,7 +303,7 @@ export const ActivityOwnerRegistrationForm = () => {
           />
         </div>
 
-        <Button type="submit" className="w-full">
+        <Button type='submit' className='w-full'>
           Submit Registration
         </Button>
       </form>
