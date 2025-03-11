@@ -1,15 +1,46 @@
 import Head from 'next/head'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
+import { CategoryNav } from '@/components/home/CategoryNav'
+import { ActivityCard } from '@/components/home/ActivityCard'
+import { Search } from 'lucide-react'
 
 export default function Home() {
+  const featuredActivities = [
+    {
+      title: 'Chiang Mai Elephant Sanctuary, Waterfall & Bamboo Rafting',
+      image: 'https://images.unsplash.com/photo-1559628233-100c798642d4',
+      price: 89,
+      location: 'Chiang Mai, Thailand',
+      rating: 5,
+      href: '/activities/elephant-sanctuary'
+    },
+    {
+      title: 'Colosseum, Roman Forum & Palatine Guided Tour',
+      image: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5',
+      price: 59,
+      location: 'Rome, Italy',
+      rating: 4,
+      href: '/activities/colosseum-tour'
+    },
+    {
+      title: 'Elephant Sanctuary Long Neck & White Temple',
+      image: 'https://images.unsplash.com/photo-1575872235826-d894d5177c6c',
+      price: 75,
+      location: 'Chiang Mai, Thailand',
+      rating: 5,
+      href: '/activities/elephant-temple'
+    }
+  ]
+
   return (
     <>
       <Head>
-        <title>TourConnect - Connect Tourism Activities with Industry Partners</title>
-        <meta name='description' content='Platform connecting tourism activity providers with hotels, restaurants, and Airbnb hosts through an automated commission system' />
+        <title>TourConnect - Discover Amazing Travel Experiences</title>
+        <meta name='description' content='Find and book unforgettable travel activities recommended by trusted local partners' />
         <link rel='icon' href='/favicon.ico' />
       </Head>
 
@@ -17,40 +48,43 @@ export default function Home() {
         <Navbar />
         
         <main className='flex-1'>
-          <section className='py-20 px-4 text-center bg-gradient-to-b from-background to-secondary/20'>
-            <div className='container mx-auto max-w-[800px]'>
-              <h1 className='text-4xl md:text-6xl font-bold mb-6'>
-                Connect Tourism Activities with Key Partners
+          <section className='relative h-[600px]'>
+            <div className='absolute inset-0'>
+              <Image
+                src='https://images.unsplash.com/photo-1469854523086-cc02fe5d8800'
+                alt='Hero background'
+                fill
+                className='object-cover brightness-75'
+                priority
+              />
+            </div>
+            <div className='relative container h-full flex flex-col items-center justify-center text-white'>
+              <h1 className='text-4xl md:text-6xl font-bold mb-6 text-center'>
+                Travel memories you'll never forget
               </h1>
-              <p className='text-xl text-muted-foreground mb-8'>
-                Streamline bookings and earn commissions through our automated platform connecting activity providers with hotels, restaurants, and Airbnb hosts.
-              </p>
-              <div className='flex flex-col sm:flex-row gap-4 justify-center'>
-                <Button size='lg' asChild>
-                  <Link href='/providers/register'>List Your Activity</Link>
-                </Button>
-                <Button size='lg' variant='outline' asChild>
-                  <Link href='/partners'>Become a Partner</Link>
+              <div className='w-full max-w-2xl flex gap-2 bg-white/10 backdrop-blur-md p-2 rounded-lg'>
+                <Input
+                  placeholder='Find places and things...'
+                  className='bg-white/80'
+                />
+                <Button>
+                  <Search className='h-5 w-5 mr-2' />
+                  Search
                 </Button>
               </div>
             </div>
           </section>
 
-          <section className='py-16 container'>
-            <h2 className='text-3xl font-bold text-center mb-12'>How It Works</h2>
-            <div className='grid md:grid-cols-3 gap-8'>
-              <div className='text-center'>
-                <h3 className='text-xl font-semibold mb-4'>For Activity Providers</h3>
-                <p className='text-muted-foreground'>List your activities and reach more customers through our network of tourism partners.</p>
-              </div>
-              <div className='text-center'>
-                <h3 className='text-xl font-semibold mb-4'>For Partners</h3>
-                <p className='text-muted-foreground'>Offer curated activities to your guests and earn commissions on every booking.</p>
-              </div>
-              <div className='text-center'>
-                <h3 className='text-xl font-semibold mb-4'>For Travelers</h3>
-                <p className='text-muted-foreground'>Discover and book amazing local experiences recommended by trusted hospitality providers.</p>
-              </div>
+          <section className='container py-8'>
+            <CategoryNav />
+          </section>
+
+          <section className='container py-8'>
+            <h2 className='text-2xl font-semibold mb-6'>Activities you may like</h2>
+            <div className='grid md:grid-cols-2 lg:grid-cols-3 gap-6'>
+              {featuredActivities.map((activity) => (
+                <ActivityCard key={activity.href} {...activity} />
+              ))}
             </div>
           </section>
         </main>
