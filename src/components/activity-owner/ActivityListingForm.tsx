@@ -25,6 +25,7 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Upload, Image as ImageIcon } from 'lucide-react'
+import { AvailabilityCalendar } from '@/components/activities/AvailabilityCalendar'
 
 const categories = [
   { value: "adventure", label: "Adventure" },
@@ -530,6 +531,29 @@ export const ActivityListingForm = () => {
                   <li>Copy your Calendly URL and paste it here</li>
                   <li>Customers will be able to book your activity based on your availability</li>
                 </ol>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className='text-base'>Manage Availability</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <AvailabilityCalendar 
+                onSave={(availability) => {
+                  console.log('Saved availability:', availability)
+                  // Handle saving availability to backend
+                }}
+              />
+              <div className='mt-4 p-4 bg-muted rounded-lg'>
+                <h4 className='font-medium mb-2'>Setting Your Schedule:</h4>
+                <ul className='list-disc list-inside space-y-2 text-sm text-muted-foreground'>
+                  <li>Select dates when your activity is available</li>
+                  <li>Add multiple time slots for each date</li>
+                  <li>Set maximum participants per time slot</li>
+                  <li>Customers will only be able to book available slots</li>
+                </ul>
               </div>
             </CardContent>
           </Card>
