@@ -1,6 +1,4 @@
-
 import { useEffect } from "react"
-import { loadScript } from "@calendly/embed-widget"
 
 interface CalendlyIntegrationProps {
   url: string // L'URL Calendly du propriétaire de l'activité
@@ -13,19 +11,30 @@ interface CalendlyIntegrationProps {
 
 export const CalendlyIntegration = ({ url, prefill }: CalendlyIntegrationProps) => {
   useEffect(() => {
-    loadScript();
-    // Initialise Calendly widget
-    (window as any).Calendly.initInlineWidget({
-      url: url,
-      parentElement: document.getElementById('calendly-booking-widget'),
-      prefill: prefill,
-      styles: {
-        height: '650px'
-      }
-    });
-  }, [url, prefill]);
+    const script = document.createElement('script')
+    script.src = 'https://assets.calendly.com/assets/external/widget.js'
+    script.async = true
+    document.body.appendChild(script)
+
+    return () => {
+      document.body.removeChild(script)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (window.Calendly) {
+      window.Calendly.initInlineWidget({
+        url: url,
+        parentElement: document.getElementById('calendly-booking-widget'),
+        prefill: prefill,
+        styles: {
+          height: '650px'
+        }
+      })
+    }
+  }, [url, prefill])
 
   return (
-    <div id="calendly-booking-widget" className="w-full min-h-[650px] rounded-lg overflow-hidden" />
+    <div id='calendly-booking-widget' className='w-full min-h-[650px] rounded-lg overflow-hidden' />
   )
 }
