@@ -338,7 +338,7 @@ export const PartnerRegistrationForm = () => {
             <ul className="text-sm text-blue-700 space-y-1">
               <li>• Basic Package: 10% commission with lobby promotion</li>
               <li>• Premium Package: 15% commission with full property integration</li>
-              <li>• All commissions are automatically calculated and paid monthly</li>
+              <li>• All commissions are calculated and paid monthly</li>
               <li>• Track your earnings in real-time through your partner dashboard</li>
             </ul>
           </div>
