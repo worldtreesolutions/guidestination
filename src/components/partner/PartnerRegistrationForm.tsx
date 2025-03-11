@@ -185,6 +185,25 @@ export const PartnerRegistrationForm = () => {
                     Monthly commission payments
                   </li>
                 </ul>
+                <FormField
+                  control={form.control}
+                  name='commissionPackage'
+                  render={({ field }) => (
+                    <FormItem className='pt-4'>
+                      <FormControl>
+                        <div className='flex items-center space-x-2'>
+                          <RadioGroupItem
+                            value='basic'
+                            id='basic'
+                            checked={field.value === 'basic'}
+                            onClick={() => field.onChange('basic')}
+                          />
+                          <Label htmlFor='basic'>Select Basic Package</Label>
+                        </div>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
               </CardContent>
             </Card>
 
@@ -220,6 +239,25 @@ export const PartnerRegistrationForm = () => {
                     Integration with welcome emails
                   </li>
                 </ul>
+                <FormField
+                  control={form.control}
+                  name='commissionPackage'
+                  render={({ field }) => (
+                    <FormItem className='pt-4'>
+                      <FormControl>
+                        <div className='flex items-center space-x-2'>
+                          <RadioGroupItem
+                            value='premium'
+                            id='premium'
+                            checked={field.value === 'premium'}
+                            onClick={() => field.onChange('premium')}
+                          />
+                          <Label htmlFor='premium'>Select Premium Package</Label>
+                        </div>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
               </CardContent>
             </Card>
           </div>
