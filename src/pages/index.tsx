@@ -12,36 +12,36 @@ import { Search } from 'lucide-react'
 export default function Home() {
   const featuredActivities = [
     {
-      title: 'Chiang Mai Elephant Sanctuary, Waterfall & Bamboo Rafting',
+      title: 'Doi Suthep Temple & Hmong Village Tour',
+      image: 'https://images.unsplash.com/photo-1598935898639-81586f7d2129',
+      price: 1500,
+      location: 'Chiang Mai, Thailand',
+      rating: 5,
+      href: '/activities/doi-suthep'
+    },
+    {
+      title: 'Traditional Thai Cooking Class with Organic Farm Visit',
+      image: 'https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7',
+      price: 1200,
+      location: 'Chiang Mai, Thailand',
+      rating: 5,
+      href: '/activities/cooking-class'
+    },
+    {
+      title: 'Elephant Nature Park Sanctuary Experience',
       image: 'https://images.unsplash.com/photo-1559628233-100c798642d4',
-      price: 89,
+      price: 2500,
       location: 'Chiang Mai, Thailand',
       rating: 5,
       href: '/activities/elephant-sanctuary'
-    },
-    {
-      title: 'Colosseum, Roman Forum & Palatine Guided Tour',
-      image: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5',
-      price: 59,
-      location: 'Rome, Italy',
-      rating: 4,
-      href: '/activities/colosseum-tour'
-    },
-    {
-      title: 'Elephant Sanctuary Long Neck & White Temple',
-      image: 'https://images.unsplash.com/photo-1575872235826-d894d5177c6c',
-      price: 75,
-      location: 'Chiang Mai, Thailand',
-      rating: 5,
-      href: '/activities/elephant-temple'
     }
   ]
 
   return (
     <>
       <Head>
-        <title>TourConnect - Discover Amazing Travel Experiences</title>
-        <meta name='description' content='Find and book unforgettable travel activities recommended by trusted local partners' />
+        <title>Guidestination Chiang Mai - Discover Amazing Local Experiences</title>
+        <meta name='description' content='Find and book unforgettable activities in Chiang Mai, recommended by trusted local partners' />
         <link rel='icon' href='/favicon.ico' />
       </Head>
 
@@ -52,8 +52,8 @@ export default function Home() {
           <section className='relative h-[600px]'>
             <div className='absolute inset-0'>
               <Image
-                src='https://images.unsplash.com/photo-1469854523086-cc02fe5d8800'
-                alt='Hero background'
+                src='https://images.unsplash.com/photo-1598935888738-cd2c5cbb7c9f'
+                alt='Chiang Mai Temple'
                 fill
                 className='object-cover brightness-75'
                 priority
@@ -61,11 +61,11 @@ export default function Home() {
             </div>
             <div className='relative container h-full flex flex-col items-center justify-center text-white'>
               <h1 className='text-4xl md:text-6xl font-bold mb-6 text-center'>
-                Travel memories you'll never forget
+                Discover the Magic of Chiang Mai
               </h1>
               <div className='w-full max-w-2xl flex gap-2 bg-white/10 backdrop-blur-md p-2 rounded-lg'>
                 <Input
-                  placeholder='Find places and things...'
+                  placeholder='Search for activities in Chiang Mai...'
                   className='bg-white/80'
                 />
                 <Button>
@@ -81,7 +81,7 @@ export default function Home() {
           </section>
 
           <section className='container py-8'>
-            <h2 className='text-2xl font-semibold mb-6'>Activities you may like</h2>
+            <h2 className='text-2xl font-semibold mb-6'>Popular Experiences in Chiang Mai</h2>
             <div className='grid md:grid-cols-2 lg:grid-cols-3 gap-6'>
               {featuredActivities.map((activity) => (
                 <ActivityCard key={activity.href} {...activity} />

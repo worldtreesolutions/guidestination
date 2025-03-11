@@ -8,7 +8,7 @@ export const Navbar = () => {
     <header className='border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50'>
       <div className='container flex h-16 items-center justify-between'>
         <Link href='/' className='flex items-center space-x-2'>
-          <span className='text-xl font-bold'>TourConnect</span>
+          <span className='text-xl font-bold text-primary'>Guidestination</span>
         </Link>
 
         <NavigationMenu>
@@ -16,14 +16,14 @@ export const Navbar = () => {
             <NavigationMenuItem>
               <Link href='/activities' legacyBehavior passHref>
                 <NavigationMenuLink className='group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50'>
-                  Activities
+                  Explore Chiang Mai
                 </NavigationMenuLink>
               </Link>
             </NavigationMenuItem>
             <NavigationMenuItem>
               <Link href='/destinations' legacyBehavior passHref>
                 <NavigationMenuLink className='group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50'>
-                  Destinations
+                  Local Guide
                 </NavigationMenuLink>
               </Link>
             </NavigationMenuItem>
