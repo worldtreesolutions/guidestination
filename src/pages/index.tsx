@@ -13,7 +13,7 @@ export default function Home() {
   const featuredActivities = [
     {
       title: 'Doi Suthep Temple & Hmong Village Tour',
-      image: 'https://images.unsplash.com/photo-1598935898639-81586f7d2129',
+      image: 'https://images.unsplash.com/photo-1563492065599-3520f775eeed',
       price: 1500,
       location: 'Chiang Mai, Thailand',
       rating: 5,
@@ -21,7 +21,7 @@ export default function Home() {
     },
     {
       title: 'Traditional Thai Cooking Class with Organic Farm Visit',
-      image: 'https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7',
+      image: 'https://images.unsplash.com/photo-1544025162-d76694265947',
       price: 1200,
       location: 'Chiang Mai, Thailand',
       rating: 5,
@@ -29,7 +29,7 @@ export default function Home() {
     },
     {
       title: 'Elephant Nature Park Sanctuary Experience',
-      image: 'https://images.unsplash.com/photo-1559628233-100c798642d4',
+      image: 'https://images.unsplash.com/photo-1585970480901-90d6bb2a48b5',
       price: 2500,
       location: 'Chiang Mai, Thailand',
       rating: 5,
@@ -52,8 +52,8 @@ export default function Home() {
           <section className='relative h-[600px]'>
             <div className='absolute inset-0'>
               <Image
-                src='https://images.unsplash.com/photo-1590177600178-c3e583cafbdf'
-                alt='Wat Phra Singh Temple in Chiang Mai'
+                src='https://images.unsplash.com/photo-1563492065599-3520f775eeed'
+                alt='Beautiful temple in Chiang Mai'
                 fill
                 className='object-cover brightness-75'
                 priority
