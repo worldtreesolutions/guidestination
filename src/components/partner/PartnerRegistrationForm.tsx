@@ -155,60 +155,44 @@ export const PartnerRegistrationForm = () => {
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Commission Package Selection</h3>
           
-          <div className="grid md:grid-cols-2 gap-6">
-            <Card className="relative">
+          <div className='grid md:grid-cols-2 gap-6'>
+            <Card 
+              className='relative cursor-pointer hover:border-primary transition-colors'
+              onClick={() => form.setValue('commissionPackage', 'basic')}
+            >
               <CardHeader>
                 <CardTitle>Basic Package - 10% Commission</CardTitle>
                 <CardDescription>
                   Perfect for hotels starting their partnership
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <ul className="space-y-2 text-sm">
-                  <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-primary" />
+              <CardContent className='space-y-4'>
+                <ul className='space-y-2 text-sm'>
+                  <li className='flex items-center gap-2'>
+                    <Check className='h-4 w-4 text-primary' />
                     Custom QR code for your property
                   </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-primary" />
+                  <li className='flex items-center gap-2'>
+                    <Check className='h-4 w-4 text-primary' />
                     Roll-up banner for lobby display
                   </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-primary" />
+                  <li className='flex items-center gap-2'>
+                    <Check className='h-4 w-4 text-primary' />
                     Promotional materials and brochures
                   </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-primary" />
+                  <li className='flex items-center gap-2'>
+                    <Check className='h-4 w-4 text-primary' />
                     Monthly commission payments
                   </li>
                 </ul>
-                <FormField
-                  control={form.control}
-                  name="commissionPackage"
-                  render={({ field }) => (
-                    <FormItem className="pt-4">
-                      <FormControl>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroup
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                            className="flex flex-col space-y-1"
-                          >
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="basic" id="basic" />
-                              <Label htmlFor="basic">Select Basic Package</Label>
-                            </div>
-                          </RadioGroup>
-                        </div>
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
               </CardContent>
             </Card>
 
-            <Card className="relative border-primary">
-              <div className="absolute -top-3 right-4 px-3 py-1 bg-primary text-primary-foreground text-sm rounded-full">
+            <Card 
+              className='relative cursor-pointer hover:border-primary transition-colors'
+              onClick={() => form.setValue('commissionPackage', 'premium')}
+            >
+              <div className='absolute -top-3 right-4 px-3 py-1 bg-primary text-primary-foreground text-sm rounded-full'>
                 Recommended
               </div>
               <CardHeader>
@@ -217,53 +201,54 @@ export const PartnerRegistrationForm = () => {
                   Maximize your earnings with enhanced promotion
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <ul className="space-y-2 text-sm">
-                  <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-primary" />
+              <CardContent className='space-y-4'>
+                <ul className='space-y-2 text-sm'>
+                  <li className='flex items-center gap-2'>
+                    <Check className='h-4 w-4 text-primary' />
                     All Basic Package features
                   </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-primary" />
+                  <li className='flex items-center gap-2'>
+                    <Check className='h-4 w-4 text-primary' />
                     QR codes in every room
                   </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-primary" />
+                  <li className='flex items-center gap-2'>
+                    <Check className='h-4 w-4 text-primary' />
                     QR codes in elevators and common areas
                   </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-primary" />
+                  <li className='flex items-center gap-2'>
+                    <Check className='h-4 w-4 text-primary' />
                     Integration with welcome emails
                   </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-primary" />
-                    Premium placement in our platform
-                  </li>
                 </ul>
-                <FormField
-                  control={form.control}
-                  name="commissionPackage"
-                  render={({ field }) => (
-                    <FormItem className="pt-4">
-                      <FormControl>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroup
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                            className="flex flex-col space-y-1"
-                          >
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="premium" id="premium" />
-                              <Label htmlFor="premium">Select Premium Package</Label>
-                            </div>
-                          </RadioGroup>
-                        </div>
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
               </CardContent>
             </Card>
+          </div>
+
+          <div className='flex justify-center gap-8 mt-6'>
+            <FormField
+              control={form.control}
+              name='commissionPackage'
+              render={({ field }) => (
+                <FormItem className='space-x-6'>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      className='flex gap-8'
+                    >
+                      <div className='flex items-center space-x-2'>
+                        <RadioGroupItem value='basic' id='basic' />
+                        <Label htmlFor='basic'>Select Basic Package</Label>
+                      </div>
+                      <div className='flex items-center space-x-2'>
+                        <RadioGroupItem value='premium' id='premium' />
+                        <Label htmlFor='premium'>Select Premium Package</Label>
+                      </div>
+                    </RadioGroup>
+                  </FormControl>
+                </FormItem>
+              )}
+            />
           </div>
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
