@@ -157,7 +157,7 @@ export const PartnerRegistrationForm = () => {
           
           <div className='grid md:grid-cols-2 gap-6'>
             <Card 
-              className='relative cursor-pointer hover:border-primary transition-colors'
+              className={`relative cursor-pointer transition-colors ${form.watch('commissionPackage') === 'basic' ? 'border-primary' : 'hover:border-primary/50'}`}
               onClick={() => form.setValue('commissionPackage', 'basic')}
             >
               <CardHeader>
@@ -185,30 +185,32 @@ export const PartnerRegistrationForm = () => {
                     Monthly commission payments
                   </li>
                 </ul>
-                <FormField
-                  control={form.control}
-                  name='commissionPackage'
-                  render={({ field }) => (
-                    <FormItem className='pt-4'>
-                      <FormControl>
-                        <div className='flex items-center space-x-2'>
-                          <RadioGroupItem
-                            value='basic'
-                            id='basic'
-                            checked={field.value === 'basic'}
-                            onClick={() => field.onChange('basic')}
-                          />
-                          <Label htmlFor='basic'>Select Basic Package</Label>
-                        </div>
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
+                <div className='absolute bottom-4 left-4'>
+                  <FormField
+                    control={form.control}
+                    name='commissionPackage'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <div className='flex items-center space-x-2'>
+                            <RadioGroupItem
+                              value='basic'
+                              id='basic'
+                              checked={field.value === 'basic'}
+                              onClick={() => field.onChange('basic')}
+                            />
+                            <Label htmlFor='basic'>Select Basic Package</Label>
+                          </div>
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </CardContent>
             </Card>
 
             <Card 
-              className='relative cursor-pointer hover:border-primary transition-colors'
+              className={`relative cursor-pointer transition-colors ${form.watch('commissionPackage') === 'premium' ? 'border-primary' : 'hover:border-primary/50'}`}
               onClick={() => form.setValue('commissionPackage', 'premium')}
             >
               <div className='absolute -top-3 right-4 px-3 py-1 bg-primary text-primary-foreground text-sm rounded-full'>
@@ -239,54 +241,29 @@ export const PartnerRegistrationForm = () => {
                     Integration with welcome emails
                   </li>
                 </ul>
-                <FormField
-                  control={form.control}
-                  name='commissionPackage'
-                  render={({ field }) => (
-                    <FormItem className='pt-4'>
-                      <FormControl>
-                        <div className='flex items-center space-x-2'>
-                          <RadioGroupItem
-                            value='premium'
-                            id='premium'
-                            checked={field.value === 'premium'}
-                            onClick={() => field.onChange('premium')}
-                          />
-                          <Label htmlFor='premium'>Select Premium Package</Label>
-                        </div>
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
+                <div className='absolute bottom-4 left-4'>
+                  <FormField
+                    control={form.control}
+                    name='commissionPackage'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <div className='flex items-center space-x-2'>
+                            <RadioGroupItem
+                              value='premium'
+                              id='premium'
+                              checked={field.value === 'premium'}
+                              onClick={() => field.onChange('premium')}
+                            />
+                            <Label htmlFor='premium'>Select Premium Package</Label>
+                          </div>
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </CardContent>
             </Card>
-          </div>
-
-          <div className='flex justify-center gap-8 mt-6'>
-            <FormField
-              control={form.control}
-              name='commissionPackage'
-              render={({ field }) => (
-                <FormItem className='space-x-6'>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      value={field.value}
-                      className='flex gap-8'
-                    >
-                      <div className='flex items-center space-x-2'>
-                        <RadioGroupItem value='basic' id='basic' />
-                        <Label htmlFor='basic'>Select Basic Package</Label>
-                      </div>
-                      <div className='flex items-center space-x-2'>
-                        <RadioGroupItem value='premium' id='premium' />
-                        <Label htmlFor='premium'>Select Premium Package</Label>
-                      </div>
-                    </RadioGroup>
-                  </FormControl>
-                </FormItem>
-              )}
-            />
           </div>
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
