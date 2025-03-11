@@ -26,6 +26,7 @@ import { Separator } from "@/components/ui/separator"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Upload, Image as ImageIcon } from 'lucide-react'
 import { AvailabilityCalendar } from '@/components/activities/AvailabilityCalendar'
+import { WeeklyScheduleManager } from '@/components/activities/WeeklyScheduleManager'
 
 const categories = [
   { value: "adventure", label: "Adventure" },
@@ -553,6 +554,29 @@ export const ActivityListingForm = () => {
                   <li>Add multiple time slots for each date</li>
                   <li>Set maximum participants per time slot</li>
                   <li>Customers will only be able to book available slots</li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className='text-base'>Manage Weekly Schedule</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <WeeklyScheduleManager 
+                onSave={(schedule) => {
+                  console.log('Saved schedule:', schedule)
+                  // Handle saving schedule to backend
+                }}
+              />
+              <div className='mt-4 p-4 bg-muted rounded-lg'>
+                <h4 className='font-medium mb-2'>Managing Your Schedule:</h4>
+                <ul className='list-disc list-inside space-y-2 text-sm text-muted-foreground'>
+                  <li>Set your regular weekly schedule</li>
+                  <li>Add multiple time slots for each day</li>
+                  <li>Easily pause/resume specific days or the entire schedule</li>
+                  <li>Define maximum participants per time slot</li>
                 </ul>
               </div>
             </CardContent>
