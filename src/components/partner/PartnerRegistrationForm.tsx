@@ -1,4 +1,3 @@
-
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -24,6 +23,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Check } from "lucide-react"
 
 const formSchema = z.object({
   businessName: z.string().min(2, 'Business name must be at least 2 characters'),
@@ -41,6 +43,7 @@ const formSchema = z.object({
   termsAccepted: z.boolean().refine((val) => val === true, {
     message: 'You must accept the terms and conditions',
   }),
+  commissionPackage: z.enum(['basic', 'premium']),
 })
 
 export const PartnerRegistrationForm = () => {
@@ -149,82 +152,131 @@ export const PartnerRegistrationForm = () => {
         <Separator />
 
         <div className="space-y-4">
-          <h3 className="text-lg font-medium">Contact Information</h3>
-          <div className="grid md:grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="ownerName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Owner/Manager Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Full name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <h3 className="text-lg font-medium">Commission Package Selection</h3>
+          
+          <div className="grid md:grid-cols-2 gap-6">
+            <Card className="relative">
+              <CardHeader>
+                <CardTitle>Basic Package - 10% Commission</CardTitle>
+                <CardDescription>
+                  Perfect for hotels starting their partnership
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-primary" />
+                    Custom QR code for your property
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-primary" />
+                    Roll-up banner for lobby display
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-primary" />
+                    Promotional materials and brochures
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-primary" />
+                    Monthly commission payments
+                  </li>
+                </ul>
+                <FormField
+                  control={form.control}
+                  name="commissionPackage"
+                  render={({ field }) => (
+                    <FormItem className="pt-4">
+                      <FormControl>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroup
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            className="flex flex-col space-y-1"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="basic" id="basic" />
+                              <Label htmlFor="basic">Select Basic Package</Label>
+                            </div>
+                          </RadioGroup>
+                        </div>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
 
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input placeholder="your@email.com" type="email" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <Card className="relative border-primary">
+              <div className="absolute -top-3 right-4 px-3 py-1 bg-primary text-primary-foreground text-sm rounded-full">
+                Recommended
+              </div>
+              <CardHeader>
+                <CardTitle>Premium Package - 15% Commission</CardTitle>
+                <CardDescription>
+                  Maximize your earnings with enhanced promotion
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-primary" />
+                    All Basic Package features
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-primary" />
+                    QR codes in every room
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-primary" />
+                    QR codes in elevators and common areas
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-primary" />
+                    Integration with welcome emails
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-primary" />
+                    Premium placement in our platform
+                  </li>
+                </ul>
+                <FormField
+                  control={form.control}
+                  name="commissionPackage"
+                  render={({ field }) => (
+                    <FormItem className="pt-4">
+                      <FormControl>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroup
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            className="flex flex-col space-y-1"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="premium" id="premium" />
+                              <Label htmlFor="premium">Select Premium Package</Label>
+                            </div>
+                          </RadioGroup>
+                        </div>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
           </div>
 
-          <FormField
-            control={form.control}
-            name="phone"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Phone Number</FormLabel>
-                <FormControl>
-                  <Input placeholder="+66" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="address"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Business Address</FormLabel>
-                <FormControl>
-                  <Textarea 
-                    placeholder="Full address in Chiang Mai"
-                    className="min-h-[100px]"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="roomCount"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Number of Rooms</FormLabel>
-                <FormControl>
-                  <Input type="number" placeholder="Total number of rooms" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+            <h4 className="font-medium text-blue-800 mb-2">Promotional Materials Included</h4>
+            <p className="text-sm text-blue-700 mb-2">
+              We provide all necessary promotional materials for both packages:
+            </p>
+            <ul className="text-sm text-blue-700 space-y-1">
+              <li>• Professional roll-up banners for lobby display</li>
+              <li>• High-quality QR code stickers and displays</li>
+              <li>• Digital assets for email marketing</li>
+              <li>• Brochures and information cards</li>
+            </ul>
+          </div>
         </div>
 
         <Separator />
@@ -279,10 +331,15 @@ export const PartnerRegistrationForm = () => {
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
             <h4 className="font-medium text-blue-800 mb-2">Commission Structure</h4>
-            <p className="text-sm text-blue-700">
-              Partners receive 15% commission on all activity bookings made through their unique QR code or referral link.
-              Commissions are calculated automatically and paid monthly to your registered bank account.
+            <p className="text-sm text-blue-700 mb-2">
+              Choose between two partnership levels:
             </p>
+            <ul className="text-sm text-blue-700 space-y-1">
+              <li>• Basic Package: 10% commission with lobby promotion</li>
+              <li>• Premium Package: 15% commission with full property integration</li>
+              <li>• All commissions are automatically calculated and paid monthly</li>
+              <li>• Track your earnings in real-time through your partner dashboard</li>
+            </ul>
           </div>
 
           <FormField
