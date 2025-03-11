@@ -1,4 +1,3 @@
-
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -24,7 +23,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Upload, Image as ImageIcon } from 'lucide-react'
 
 const categories = [
   { value: "adventure", label: "Adventure" },
@@ -59,13 +59,17 @@ const formSchema = z.object({
   notIncluded: z.string(),
   meetingPoint: z.string(),
   languages: z.string(),
+  images: z.array(z.string()).min(1, 'At least one image is required'),
+  tripadvisorUrl: z.string().optional(),
+  googleBusinessUrl: z.string().optional(),
 })
 
 export const ActivityListingForm = () => {
   const [showPickupDetails, setShowPickupDetails] = useState(false)
   const [showMealDetails, setShowMealDetails] = useState(false)
   const [basePrice, setBasePrice] = useState("")
-  
+  const [images, setImages] = useState<string[]>([])
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -82,6 +86,14 @@ export const ActivityListingForm = () => {
     const price = parseFloat(basePrice) || 0
     const commission = price * 0.2
     return (price + commission).toFixed(2)
+  }
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (files) {
+      // Handle image upload logic here
+      console.log('Images to upload:', files)
+    }
   }
 
   return (
@@ -406,6 +418,84 @@ export const ActivityListingForm = () => {
               </FormItem>
             )}
           />
+        </div>
+
+        <Separator />
+
+        <div className='space-y-4'>
+          <h3 className='text-lg font-medium'>Photos & Reviews</h3>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle className='text-base'>Activity Photos</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className='grid grid-cols-2 md:grid-cols-4 gap-4 mb-4'>
+                {images.map((image, index) => (
+                  <div key={index} className='relative aspect-square rounded-lg overflow-hidden bg-muted'>
+                    <ImageIcon className='w-8 h-8 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-muted-foreground' />
+                  </div>
+                ))}
+                <label className='relative aspect-square rounded-lg border-2 border-dashed border-muted-foreground/25 hover:border-muted-foreground/50 cursor-pointer flex items-center justify-center'>
+                  <input
+                    type='file'
+                    accept='image/*'
+                    multiple
+                    className='absolute inset-0 w-full h-full opacity-0 cursor-pointer'
+                    onChange={handleImageUpload}
+                  />
+                  <div className='text-center'>
+                    <Upload className='w-8 h-8 mx-auto mb-2 text-muted-foreground' />
+                    <span className='text-sm text-muted-foreground'>Upload Photos</span>
+                  </div>
+                </label>
+              </div>
+              <p className='text-sm text-muted-foreground'>
+                Upload high-quality photos that showcase your activity. Minimum 1 photo required.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className='text-base'>Reviews Integration</CardTitle>
+            </CardHeader>
+            <CardContent className='space-y-4'>
+              <FormField
+                control={form.control}
+                name='tripadvisorUrl'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>TripAdvisor Page URL</FormLabel>
+                    <FormControl>
+                      <Input placeholder='https://www.tripadvisor.com/your-activity' {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      We'll display your TripAdvisor reviews on your activity page
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='googleBusinessUrl'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Google Business Profile URL</FormLabel>
+                    <FormControl>
+                      <Input placeholder='https://g.page/your-business' {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Link your Google Business profile to show Google reviews
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
         </div>
 
         <Button type="submit" className="w-full">
