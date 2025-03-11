@@ -107,8 +107,8 @@ export default function Home() {
                 priority
               />
             </div>
-            <div className='relative container h-full flex flex-col items-center justify-center text-white'>
-              <h1 className='text-4xl md:text-6xl font-bold mb-6 text-center'>
+            <div className='relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-full flex flex-col items-center justify-center text-white'>
+              <h1 className='text-4xl md:text-6xl font-bold mb-6 text-center max-w-4xl'>
                 Discover the Magic of Chiang Mai
               </h1>
               <div className='w-full max-w-2xl flex gap-2 bg-white/10 backdrop-blur-md p-2 rounded-lg'>
@@ -124,11 +124,11 @@ export default function Home() {
             </div>
           </section>
 
-          <section className='container py-12'>
+          <section className='py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
             <CategoryNav />
           </section>
 
-          <section className='container py-12'>
+          <section className='py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
             <h2 className='text-3xl font-bold text-center mb-8'>Popular Experiences in Chiang Mai</h2>
             <div className='grid md:grid-cols-2 lg:grid-cols-3 gap-6'>
               {featuredActivities.map((activity) => (
