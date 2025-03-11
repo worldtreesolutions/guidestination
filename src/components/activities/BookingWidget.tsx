@@ -2,7 +2,6 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { CalendlyIntegration } from './CalendlyIntegration'
 
 export const BookingWidget = () => {
   const [participants, setParticipants] = useState('1')

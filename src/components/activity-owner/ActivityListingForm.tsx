@@ -63,7 +63,6 @@ const formSchema = z.object({
   images: z.array(z.string()).min(1, 'At least one image is required'),
   tripadvisorUrl: z.string().optional(),
   googleBusinessUrl: z.string().optional(),
-  calendlyUrl: z.string().min(1, 'Calendly URL is required for managing bookings'),
 })
 
 export const ActivityListingForm = () => {
