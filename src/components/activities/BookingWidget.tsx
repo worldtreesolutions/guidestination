@@ -1,16 +1,11 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Calendar } from "@/components/ui/calendar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { CalendlyIntegration } from './CalendlyIntegration'
 
 export const BookingWidget = () => {
-  const [date, setDate] = useState<Date>()
   const [participants, setParticipants] = useState('1')
-  const [showCalendly, setShowCalendly] = useState(false)
-
-  const calendlyUrl = 'https://calendly.com/your-account' // À remplacer par l'URL Calendly du propriétaire
 
   return (
     <Card className='sticky top-24'>
@@ -38,24 +33,12 @@ export const BookingWidget = () => {
             </Select>
           </div>
 
-          {!showCalendly ? (
-            <Button 
-              className='w-full' 
-              size='lg'
-              onClick={() => setShowCalendly(true)}
-            >
-              Check availability
-            </Button>
-          ) : (
-            <CalendlyIntegration 
-              url={calendlyUrl}
-              prefill={{
-                name: '',
-                email: '',
-                guests: parseInt(participants)
-              }}
-            />
-          )}
+          <Button 
+            className='w-full' 
+            size='lg'
+          >
+            Check availability
+          </Button>
         </div>
 
         <div className='mt-6 pt-6 border-t space-y-4'>

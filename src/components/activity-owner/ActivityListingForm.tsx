@@ -501,42 +501,6 @@ export const ActivityListingForm = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle className='text-base'>Calendly Integration</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <FormField
-                control={form.control}
-                name='calendlyUrl'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Your Calendly URL</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder='https://calendly.com/your-account' 
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Connect your Calendly account to manage bookings and availability
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <div className='mt-4 p-4 bg-muted rounded-lg'>
-                <h4 className='font-medium mb-2'>How to set up Calendly:</h4>
-                <ol className='list-decimal list-inside space-y-2 text-sm text-muted-foreground'>
-                  <li>Create a free Calendly account at calendly.com</li>
-                  <li>Set up your availability and booking preferences</li>
-                  <li>Copy your Calendly URL and paste it here</li>
-                  <li>Customers will be able to book your activity based on your availability</li>
-                </ol>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
               <CardTitle className='text-base'>Manage Weekly Schedule</CardTitle>
             </CardHeader>
             <CardContent>
