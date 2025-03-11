@@ -1,26 +1,11 @@
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-
-interface TimeSlot {
-  startTime: string
-  endTime: string
-  maxParticipants: number
-}
 
 interface DaySchedule {
   isActive: boolean
-  timeSlots: TimeSlot[]
+  hours: boolean[]  // 24 slots pour chaque heure de la journée
 }
 
 type WeekSchedule = {
@@ -29,12 +14,6 @@ type WeekSchedule = {
 
 interface WeeklyScheduleManagerProps {
   onSave: (schedule: WeekSchedule) => void
-}
-
-const defaultTimeSlot: TimeSlot = {
-  startTime: "09:00",
-  endTime: "10:00",
-  maxParticipants: 10
 }
 
 const dayNames = {
@@ -49,13 +28,13 @@ const dayNames = {
 
 export const WeeklyScheduleManager = ({ onSave }: WeeklyScheduleManagerProps) => {
   const [schedule, setSchedule] = useState<WeekSchedule>({
-    monday: { isActive: true, timeSlots: [defaultTimeSlot] },
-    tuesday: { isActive: true, timeSlots: [defaultTimeSlot] },
-    wednesday: { isActive: true, timeSlots: [defaultTimeSlot] },
-    thursday: { isActive: true, timeSlots: [defaultTimeSlot] },
-    friday: { isActive: true, timeSlots: [defaultTimeSlot] },
-    saturday: { isActive: true, timeSlots: [defaultTimeSlot] },
-    sunday: { isActive: true, timeSlots: [defaultTimeSlot] }
+    monday: { isActive: true, hours: new Array(24).fill(false) },
+    tuesday: { isActive: true, hours: new Array(24).fill(false) },
+    wednesday: { isActive: true, hours: new Array(24).fill(false) },
+    thursday: { isActive: true, hours: new Array(24).fill(false) },
+    friday: { isActive: true, hours: new Array(24).fill(false) },
+    saturday: { isActive: true, hours: new Array(24).fill(false) },
+    sunday: { isActive: true, hours: new Array(24).fill(false) }
   })
 
   const [isScheduleActive, setIsScheduleActive] = useState(true)
@@ -70,41 +49,20 @@ export const WeeklyScheduleManager = ({ onSave }: WeeklyScheduleManagerProps) =>
     }))
   }
 
-  const addTimeSlot = (day: keyof WeekSchedule) => {
+  const toggleHour = (day: keyof WeekSchedule, hour: number) => {
     setSchedule(prev => ({
       ...prev,
       [day]: {
         ...prev[day],
-        timeSlots: [...prev[day].timeSlots, defaultTimeSlot]
-      }
-    }))
-  }
-
-  const updateTimeSlot = (
-    day: keyof WeekSchedule,
-    index: number,
-    field: keyof TimeSlot,
-    value: string | number
-  ) => {
-    setSchedule(prev => ({
-      ...prev,
-      [day]: {
-        ...prev[day],
-        timeSlots: prev[day].timeSlots.map((slot, i) =>
-          i === index ? { ...slot, [field]: value } : slot
+        hours: prev[day].hours.map((value, index) => 
+          index === hour ? !value : value
         )
       }
     }))
   }
 
-  const removeTimeSlot = (day: keyof WeekSchedule, index: number) => {
-    setSchedule(prev => ({
-      ...prev,
-      [day]: {
-        ...prev[day],
-        timeSlots: prev[day].timeSlots.filter((_, i) => i !== index)
-      }
-    }))
+  const formatHour = (hour: number) => {
+    return `${hour.toString().padStart(2, '0')}:00`
   }
 
   const handleSave = () => {
@@ -114,11 +72,11 @@ export const WeeklyScheduleManager = ({ onSave }: WeeklyScheduleManagerProps) =>
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className='flex items-center justify-between'>
           <CardTitle>Weekly Schedule</CardTitle>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">
-              {isScheduleActive ? "Active" : "Paused"}
+          <div className='flex items-center gap-2'>
+            <span className='text-sm text-muted-foreground'>
+              {isScheduleActive ? 'Active' : 'Paused'}
             </span>
             <Switch
               checked={isScheduleActive}
@@ -127,61 +85,51 @@ export const WeeklyScheduleManager = ({ onSave }: WeeklyScheduleManagerProps) =>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-6">
-        {(Object.keys(dayNames) as Array<keyof WeekSchedule>).map(day => (
-          <div key={day} className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-medium">{dayNames[day]}</h3>
-              <Switch
-                checked={schedule[day].isActive}
-                onCheckedChange={() => toggleDay(day)}
-              />
-            </div>
-
-            {schedule[day].isActive && (
-              <div className="space-y-4 pl-4">
-                {schedule[day].timeSlots.map((slot, index) => (
-                  <div key={index} className="flex gap-2 items-start">
-                    <div className="grid grid-cols-3 gap-2 flex-1">
-                      <Input
-                        type="time"
-                        value={slot.startTime}
-                        onChange={(e) => updateTimeSlot(day, index, "startTime", e.target.value)}
-                      />
-                      <Input
-                        type="time"
-                        value={slot.endTime}
-                        onChange={(e) => updateTimeSlot(day, index, "endTime", e.target.value)}
-                      />
-                      <Input
-                        type="number"
-                        placeholder="Max participants"
-                        value={slot.maxParticipants}
-                        onChange={(e) => updateTimeSlot(day, index, "maxParticipants", parseInt(e.target.value))}
+      <CardContent>
+        <div className='overflow-x-auto'>
+          <table className='w-full'>
+            <thead>
+              <tr>
+                <th className='p-2 border'></th>
+                {Array.from({ length: 24 }, (_, i) => (
+                  <th key={i} className='p-2 border text-center min-w-[60px]'>
+                    {formatHour(i)}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {(Object.keys(dayNames) as Array<keyof WeekSchedule>).map(day => (
+                <tr key={day}>
+                  <td className='p-2 border'>
+                    <div className='flex items-center justify-between gap-2'>
+                      <span>{dayNames[day]}</span>
+                      <Switch
+                        checked={schedule[day].isActive}
+                        onCheckedChange={() => toggleDay(day)}
+                        className='ml-2'
                       />
                     </div>
-                    <Button
-                      variant="destructive"
-                      size="icon"
-                      onClick={() => removeTimeSlot(day, index)}
-                    >
-                      ×
-                    </Button>
-                  </div>
-                ))}
-                <Button
-                  variant="outline"
-                  onClick={() => addTimeSlot(day)}
-                  className="w-full"
-                >
-                  Add Time Slot
-                </Button>
-              </div>
-            )}
-          </div>
-        ))}
-
-        <Button onClick={handleSave} className="w-full">
+                  </td>
+                  {schedule[day].hours.map((isActive, hour) => (
+                    <td key={hour} className='p-1 border text-center'>
+                      <Button
+                        variant={isActive ? 'default' : 'outline'}
+                        size='sm'
+                        className='w-full h-8'
+                        disabled={!schedule[day].isActive}
+                        onClick={() => toggleHour(day, hour)}
+                      >
+                        {isActive ? '✓' : ''}
+                      </Button>
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <Button onClick={handleSave} className='w-full mt-6'>
           Save Schedule
         </Button>
       </CardContent>
