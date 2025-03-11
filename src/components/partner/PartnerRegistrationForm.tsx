@@ -192,15 +192,16 @@ export const PartnerRegistrationForm = () => {
                     render={({ field }) => (
                       <FormItem>
                         <FormControl>
-                          <div className='flex items-center space-x-2'>
-                            <RadioGroupItem
-                              value='basic'
-                              id='basic'
-                              checked={field.value === 'basic'}
-                              onClick={() => field.onChange('basic')}
-                            />
-                            <Label htmlFor='basic'>Select Basic Package</Label>
-                          </div>
+                          <RadioGroup
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            value={field.value}
+                          >
+                            <div className='flex items-center space-x-2'>
+                              <RadioGroupItem value='basic' id='basic' />
+                              <Label htmlFor='basic'>Select Basic Package</Label>
+                            </div>
+                          </RadioGroup>
                         </FormControl>
                       </FormItem>
                     )}
@@ -248,15 +249,16 @@ export const PartnerRegistrationForm = () => {
                     render={({ field }) => (
                       <FormItem>
                         <FormControl>
-                          <div className='flex items-center space-x-2'>
-                            <RadioGroupItem
-                              value='premium'
-                              id='premium'
-                              checked={field.value === 'premium'}
-                              onClick={() => field.onChange('premium')}
-                            />
-                            <Label htmlFor='premium'>Select Premium Package</Label>
-                          </div>
+                          <RadioGroup
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            value={field.value}
+                          >
+                            <div className='flex items-center space-x-2'>
+                              <RadioGroupItem value='premium' id='premium' />
+                              <Label htmlFor='premium'>Select Premium Package</Label>
+                            </div>
+                          </RadioGroup>
                         </FormControl>
                       </FormItem>
                     )}
