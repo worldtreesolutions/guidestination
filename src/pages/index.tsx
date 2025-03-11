@@ -34,6 +34,54 @@ export default function Home() {
       location: 'Chiang Mai, Thailand',
       rating: 5,
       href: '/activities/elephant-sanctuary'
+    },
+    {
+      title: 'Thai Massage Workshop at Traditional Spa',
+      image: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874',
+      price: 1800,
+      location: 'Chiang Mai, Thailand',
+      rating: 5,
+      href: '/activities/massage-workshop'
+    },
+    {
+      title: 'Night Market Food Tour & Local Delicacies',
+      image: 'https://images.unsplash.com/photo-1516211881327-e5120a941edc',
+      price: 1000,
+      location: 'Chiang Mai, Thailand',
+      rating: 5,
+      href: '/activities/food-tour'
+    },
+    {
+      title: 'Mountain Biking Adventure in Doi Suthep',
+      image: 'https://images.unsplash.com/photo-1544198365-f5d60b6d8190',
+      price: 2200,
+      location: 'Chiang Mai, Thailand',
+      rating: 4,
+      href: '/activities/mountain-biking'
+    },
+    {
+      title: 'Traditional Ceramics Workshop in Sankamphaeng',
+      image: 'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261',
+      price: 1300,
+      location: 'Chiang Mai, Thailand',
+      rating: 5,
+      href: '/activities/ceramics-workshop'
+    },
+    {
+      title: 'Sunset Temple Tour by Bicycle',
+      image: 'https://images.unsplash.com/photo-1528181304800-259b08848526',
+      price: 800,
+      location: 'Chiang Mai, Thailand',
+      rating: 4,
+      href: '/activities/temple-bike-tour'
+    },
+    {
+      title: 'Meditation Retreat at Buddhist Temple',
+      image: 'https://images.unsplash.com/photo-1545389336-cf090694435e',
+      price: 1600,
+      location: 'Chiang Mai, Thailand',
+      rating: 5,
+      href: '/activities/meditation-retreat'
     }
   ]
 
@@ -76,12 +124,12 @@ export default function Home() {
             </div>
           </section>
 
-          <section className='container py-8'>
+          <section className='container py-12'>
             <CategoryNav />
           </section>
 
-          <section className='container py-8'>
-            <h2 className='text-2xl font-semibold mb-6'>Popular Experiences in Chiang Mai</h2>
+          <section className='container py-12'>
+            <h2 className='text-3xl font-bold text-center mb-8'>Popular Experiences in Chiang Mai</h2>
             <div className='grid md:grid-cols-2 lg:grid-cols-3 gap-6'>
               {featuredActivities.map((activity) => (
                 <ActivityCard key={activity.href} {...activity} />

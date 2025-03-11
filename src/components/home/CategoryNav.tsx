@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
@@ -14,17 +13,19 @@ const categories = [
 
 export const CategoryNav = () => {
   return (
-    <div className="flex gap-2 overflow-x-auto pb-4 px-4 md:px-0">
-      {categories.map((category) => (
-        <Button
-          key={category.name}
-          variant="outline"
-          className="whitespace-nowrap"
-          asChild
-        >
-          <Link href={category.href}>{category.name}</Link>
-        </Button>
-      ))}
+    <div className='flex flex-col items-center justify-center'>
+      <div className='flex flex-wrap justify-center gap-3 max-w-4xl mx-auto'>
+        {categories.map((category) => (
+          <Button
+            key={category.name}
+            variant='outline'
+            className='whitespace-nowrap'
+            asChild
+          >
+            <Link href={category.href}>{category.name}</Link>
+          </Button>
+        ))}
+      </div>
     </div>
   )
 }
