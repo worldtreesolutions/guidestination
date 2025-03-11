@@ -52,8 +52,8 @@ export default function Home() {
           <section className='relative h-[600px]'>
             <div className='absolute inset-0'>
               <Image
-                src='https://images.unsplash.com/photo-1598935888738-cd2c5cbb7c9f'
-                alt='Chiang Mai Temple'
+                src='https://images.unsplash.com/photo-1590177600178-c3e583cafbdf'
+                alt='Wat Phra Singh Temple in Chiang Mai'
                 fill
                 className='object-cover brightness-75'
                 priority
