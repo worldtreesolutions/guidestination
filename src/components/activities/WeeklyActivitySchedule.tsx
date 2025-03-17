@@ -1,68 +1,77 @@
-
-import { DndContext, DragEndEvent, DragOverlay, useSensor, useSensors, PointerSensor, DragStartEvent, useDroppable } from "@dnd-kit/core"
-import { restrictToWindowEdges } from "@dnd-kit/modifiers"
-import { useSortable } from "@dnd-kit/sortable"
+import { useDroppable, useDraggable } from "@dnd-kit/core"
 import { CSS } from "@dnd-kit/utilities"
 import Image from "next/image"
-import { useState } from "react"
+import { X } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { ScheduledActivity } from "./ExcursionPlanner"
 
 interface WeeklyActivityScheduleProps {
   scheduledActivities: ScheduledActivity[]
-  onActivitySelect: (activity: ScheduledActivity) => void
+  draggedActivity: ScheduledActivity | null
+  onActivitySelect: (activityId: string, updatedActivity: ScheduledActivity) => void
+  onActivityRemove: (activityId: string) => void
 }
 
 const days = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
 const dayKeys = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 const hours = Array.from({ length: 9 }, (_, i) => i + 9)
 
-const ActivityCard = ({ activity }: { activity: ScheduledActivity }) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging
-  } = useSortable({
+const HOUR_HEIGHT = 100
+
+const ActivityCard = ({ activity, onRemove }: { activity: ScheduledActivity; onRemove: (id: string) => void }) => {
+  const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id: activity.id,
     data: activity
   })
 
-  const gridRowSpan = activity.duration;
+  const style = transform ? {
+    transform: CSS.Translate.toString(transform)
+  } : undefined
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-    position: "absolute" as const,
-    top: 0,
-    left: 0,
-    right: 0,
-    height: `${gridRowSpan * 100}%`,
-    zIndex: 10
-  }
+  const height = activity.duration * HOUR_HEIGHT - 8
 
   return (
     <div
       ref={setNodeRef}
-      style={style}
-      {...attributes}
+      style={{
+        ...style,
+        height: `${height}px`,
+        position: 'absolute',
+        inset: '4px',
+        zIndex: 10
+      }}
+      className='cursor-move touch-none group transition-all duration-150'
       {...listeners}
-      className="cursor-move"
+      {...attributes}
     >
-      <div className="absolute inset-0 rounded-lg overflow-hidden border-2 border-primary bg-white">
-        <Image
-          src={activity.imageUrl}
-          alt={activity.title}
-          fill
-          className="object-cover"
-        />
-        <div className="absolute inset-0 bg-black/50">
-          <div className="p-3 text-white">
-            <div className="font-medium text-sm">{activity.title}</div>
-            <div className="text-xs mt-1">{activity.duration}h</div>
+      <div className='absolute inset-0 rounded-lg overflow-hidden border-2 border-primary bg-white shadow-lg'>
+        <div className='absolute inset-0'>
+          <Image
+            src={activity.imageUrl}
+            alt={activity.title}
+            fill
+            className='object-cover'
+          />
+          <div className='absolute inset-0 bg-black/50'>
+            <div className='p-3 text-white'>
+              <div className='font-medium text-sm line-clamp-2'>{activity.title}</div>
+              <div className='text-xs mt-1 bg-black/30 rounded px-2 py-1 inline-block'>
+                {activity.hour}:00 - {activity.hour + activity.duration}:00
+              </div>
+            </div>
           </div>
+          <Button
+            variant='ghost'
+            size='icon'
+            className='absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-red-500/20 hover:bg-red-500/40'
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              onRemove(activity.id)
+            }}
+          >
+            <X className='h-4 w-4 text-white' />
+          </Button>
         </div>
       </div>
     </div>
@@ -74,21 +83,29 @@ const TimeSlot = ({
   hour, 
   activity,
   isAvailable,
-  isFirstHourOfActivity 
+  isFirstHourOfActivity,
+  isPartOfActivity,
+  showUnavailable,
+  onActivityRemove
 }: { 
   day: string
   hour: number
   activity: ScheduledActivity | null
   isAvailable: boolean
   isFirstHourOfActivity: boolean
+  isPartOfActivity: boolean
+  showUnavailable: boolean
+  onActivityRemove: (id: string) => void
 }) => {
   const { setNodeRef } = useDroppable({
-    id: `${day}-${hour}`
+    id: `${day}-${hour}`,
+    data: { day, hour },
+    disabled: !isAvailable
   })
 
-  if (!isAvailable) {
+  if (!isAvailable && !activity && showUnavailable) {
     return (
-      <td className="p-1 border relative h-24 bg-gray-100">
+      <td className="p-1 border relative bg-gray-100" style={{ height: `${HOUR_HEIGHT}px` }}>
         <div className="h-full bg-gray-200 rounded-lg flex items-center justify-center text-sm text-gray-500">
           Indisponible
         </div>
@@ -99,14 +116,15 @@ const TimeSlot = ({
   return (
     <td 
       ref={setNodeRef}
-      className={`p-1 border relative h-24 ${activity ? "bg-primary/5" : "hover:bg-gray-50"}`}
+      className={`p-1 border relative ${isPartOfActivity ? "bg-primary/5" : "hover:bg-gray-50"}`}
       style={{
+        height: `${HOUR_HEIGHT}px`,
         position: "relative"
       }}
     >
-      {activity && isFirstHourOfActivity ? (
-        <ActivityCard activity={activity} />
-      ) : (
+      {isFirstHourOfActivity && activity ? (
+        <ActivityCard activity={activity} onRemove={onActivityRemove} />
+      ) : !isPartOfActivity && (
         <div className="h-full border-2 border-dashed border-gray-200 rounded-lg"></div>
       )}
     </td>
@@ -115,15 +133,10 @@ const TimeSlot = ({
 
 export const WeeklyActivitySchedule = ({
   scheduledActivities,
-  onActivitySelect
+  draggedActivity,
+  onActivitySelect,
+  onActivityRemove
 }: WeeklyActivityScheduleProps) => {
-  const [draggedActivity, setDraggedActivity] = useState<ScheduledActivity | null>(null)
-  const sensors = useSensors(useSensor(PointerSensor, {
-    activationConstraint: {
-      distance: 8,
-    },
-  }))
-
   const formatHour = (hour: number) => {
     return `${hour.toString().padStart(2, "0")}:00`
   }
@@ -136,125 +149,96 @@ export const WeeklyActivitySchedule = ({
     )
   }
 
-  const isSlotAvailable = (day: string, hour: number, activityDuration: number = 1) => {
-    const unavailableSlots = {
-      monday: [13, 14, 15],
-      wednesday: [9, 10, 11],
-      friday: [16, 17, 18],
-    }
+  const isSlotPartOfActivity = (day: string, hour: number) => {
+    return scheduledActivities.some(
+      activity => 
+        activity.day === day && 
+        hour >= activity.hour && 
+        hour < activity.hour + activity.duration
+    )
+  }
 
-    if (hour + activityDuration > 18) {
-      return false
-    }
+  const isSlotAvailable = (day: string, hour: number) => {
+    if (hour > 17) return false
 
-    for (let i = 0; i < activityDuration; i++) {
-      if (unavailableSlots[day as keyof typeof unavailableSlots]?.includes(hour + i)) {
-        return false
+    if (draggedActivity) {
+      // Check if there's enough continuous slots for the activity duration
+      for (let i = 0; i < draggedActivity.duration; i++) {
+        const currentHour = hour + i
+        if (currentHour > 17) return false
+        
+        const existingActivity = scheduledActivities.find(activity => {
+          if (activity.day !== day || activity.id === draggedActivity.id) return false
+          const activityEnd = activity.hour + activity.duration
+          return currentHour >= activity.hour && currentHour < activityEnd
+        })
+        
+        if (existingActivity) return false
       }
+
+      const providerUnavailability = {
+        monday: [13, 14, 15],
+        wednesday: [9, 10, 11],
+        friday: [16, 17, 18],
+      }
+
+      // Check if any hour in the activity duration is in provider unavailability
+      for (let i = 0; i < draggedActivity.duration; i++) {
+        const currentHour = hour + i
+        if (providerUnavailability[day as keyof typeof providerUnavailability]?.includes(currentHour)) {
+          return false
+        }
+      }
+
+      return true
     }
 
-    const conflictingActivity = scheduledActivities.find(activity => {
-      if (activity.day !== day) return false
-      if (activity.id === draggedActivity?.id) return false
-      
-      const activityEnd = activity.hour + activity.duration
-      const newActivityEnd = hour + activityDuration
-      
-      return !(hour >= activityEnd || activity.hour >= newActivityEnd)
-    })
-
-    return !conflictingActivity
-  }
-
-  const handleDragStart = (event: DragStartEvent) => {
-    const activity = scheduledActivities.find(a => a.id === event.active.id)
-    if (activity) {
-      setDraggedActivity(activity)
-    }
-  }
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    setDraggedActivity(null)
-    if (!event.over) return
-
-    const [day, hour] = event.over.id.toString().split("-")
-    const hourNum = parseInt(hour)
-    
-    const activity = scheduledActivities.find(a => a.id === event.active.id)
-    if (activity && isSlotAvailable(day, hourNum, activity.duration)) {
-      onActivitySelect({
-        ...activity,
-        day,
-        hour: hourNum
-      })
-    }
+    return !isSlotPartOfActivity(day, hour)
   }
 
   return (
-    <DndContext
-      sensors={sensors}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-      modifiers={[restrictToWindowEdges]}
-    >
-      <div className="w-full">
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="bg-muted">
-              <th className="p-2 border w-20"></th>
-              {days.map((day) => (
-                <th key={day} className="p-2 border text-center font-medium w-[14.28%]">
-                  {day}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {hours.map(hour => (
-              <tr key={hour}>
-                <td className="p-2 border font-medium bg-muted text-center">
-                  {formatHour(hour)}
-                </td>
-                {dayKeys.map(day => {
-                  const activity = getActivityForSlot(day, hour)
-                  const isAvailable = activity ? true : isSlotAvailable(day, hour)
-                  const isFirstHourOfActivity = activity?.hour === hour
-
-                  return (
-                    <TimeSlot
-                      key={`${day}-${hour}`}
-                      day={day}
-                      hour={hour}
-                      activity={activity || null}
-                      isAvailable={isAvailable}
-                      isFirstHourOfActivity={isFirstHourOfActivity}
-                    />
-                  )
-                })}
-              </tr>
+    <div className="w-full overflow-x-auto">
+      <table className="w-full border-collapse">
+        <thead>
+          <tr className="bg-muted">
+            <th className="p-2 border w-20"></th>
+            {days.map((day) => (
+              <th key={day} className="p-2 border text-center font-medium w-[14.28%]">
+                {day}
+              </th>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </tr>
+        </thead>
+        <tbody>
+          {hours.map(hour => (
+            <tr key={hour}>
+              <td className="p-2 border font-medium bg-muted text-center">
+                {formatHour(hour)}
+              </td>
+              {dayKeys.map(day => {
+                const activity = getActivityForSlot(day, hour)
+                const isPartOfActivity = isSlotPartOfActivity(day, hour)
+                const isAvailable = activity ? true : isSlotAvailable(day, hour)
+                const isFirstHourOfActivity = activity?.hour === hour
 
-      <DragOverlay>
-        {draggedActivity && (
-          <div className='relative h-[200px] w-[150px] rounded-lg overflow-hidden border-2 border-primary bg-white shadow-lg'>
-            <Image
-              src={draggedActivity.imageUrl}
-              alt={draggedActivity.title}
-              fill
-              className='object-cover'
-            />
-            <div className='absolute inset-0 bg-black/50'>
-              <div className='p-3 text-white'>
-                <div className='font-medium text-sm'>{draggedActivity.title}</div>
-                <div className='text-xs mt-1'>{draggedActivity.duration}h</div>
-              </div>
-            </div>
-          </div>
-        )}
-      </DragOverlay>
-    </DndContext>
+                return (
+                  <TimeSlot
+                    key={`${day}-${hour}`}
+                    day={day}
+                    hour={hour}
+                    activity={activity || null}
+                    isAvailable={isAvailable}
+                    isFirstHourOfActivity={isFirstHourOfActivity}
+                    isPartOfActivity={isPartOfActivity}
+                    showUnavailable={!!draggedActivity}
+                    onActivityRemove={onActivityRemove}
+                  />
+                )
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   )
 }

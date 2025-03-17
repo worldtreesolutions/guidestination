@@ -1,10 +1,9 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { WeeklyActivitySchedule } from "@/components/activities/WeeklyActivitySchedule"
 import { SelectedActivitiesList } from "@/components/activities/SelectedActivitiesList"
 import { BulkBookingWidget } from "@/components/activities/BulkBookingWidget"
 import { usePlanning } from "@/contexts/PlanningContext"
-import { DndContext, DragEndEvent, DragOverlay, useSensor, useSensors, PointerSensor } from "@dnd-kit/core"
+import { DndContext, DragEndEvent, DragOverlay, useSensor, useSensors, PointerSensor, DragStartEvent } from "@dnd-kit/core"
 import { useState } from "react"
 import Image from "next/image"
 
@@ -23,16 +22,20 @@ export interface ScheduledActivity {
 }
 
 export const ExcursionPlanner = () => {
-  const { selectedActivities, scheduledActivities, updateActivity, removeActivity, clearActivities, scheduleActivity } = usePlanning()
+  const { selectedActivities, scheduledActivities, updateActivity, removeActivity, clearActivities, scheduleActivity, setSelectedActivities, setScheduledActivities } = usePlanning()
   const [draggedActivity, setDraggedActivity] = useState<ScheduledActivity | null>(null)
 
   const sensors = useSensors(useSensor(PointerSensor, {
     activationConstraint: {
       distance: 8,
+      delay: 0,
+      tolerance: 0
     },
   }))
 
-  const handleDragStart = (event: any) => {
+  const handleDragStart = (event: DragStartEvent) => {
+    if (draggedActivity) return
+    
     const activity = [...selectedActivities, ...scheduledActivities].find(
       a => a.id === event.active.id
     )
@@ -42,19 +45,32 @@ export const ExcursionPlanner = () => {
   }
 
   const handleDragEnd = (event: DragEndEvent) => {
-    setDraggedActivity(null)
-    if (!event.over) return
+    if (!draggedActivity) return
+    
+    if (!event.over) {
+      setDraggedActivity(null)
+      return
+    }
 
-    const [day, hour] = event.over.id.toString().split("-")
+    const [day, hour] = event.over.id.toString().split('-')
     const hourNum = parseInt(hour)
     
-    const activity = [...selectedActivities, ...scheduledActivities].find(
-      a => a.id === event.active.id
-    )
-    
-    if (activity) {
-      scheduleActivity(activity.id, day, hourNum)
+    if (event.over.id === 'selected-list') {
+      // Move back to selected activities
+      const activity = scheduledActivities.find(a => a.id === draggedActivity.id)
+      if (activity) {
+        setSelectedActivities(prev => [...prev, { ...activity, day: '', hour: 0 }])
+        setScheduledActivities(prev => prev.filter(a => a.id !== activity.id))
+      }
+    } else {
+      // Schedule the activity
+      const endHour = hourNum + draggedActivity.duration
+      if (endHour <= 17) {
+        scheduleActivity(draggedActivity.id, day, hourNum)
+      }
     }
+    
+    setDraggedActivity(null)
   }
 
   return (
@@ -73,7 +89,9 @@ export const ExcursionPlanner = () => {
               <div className="lg:col-span-2">
                 <WeeklyActivitySchedule
                   scheduledActivities={scheduledActivities}
+                  draggedActivity={draggedActivity}
                   onActivitySelect={updateActivity}
+                  onActivityRemove={removeActivity}
                 />
               </div>
               <div className="space-y-6">
@@ -90,9 +108,9 @@ export const ExcursionPlanner = () => {
           </CardContent>
         </Card>
 
-        <DragOverlay>
+        <DragOverlay dropAnimation={null}>
           {draggedActivity && (
-            <div className="relative w-[200px] h-[120px] rounded-lg overflow-hidden border-2 border-primary bg-white shadow-lg">
+            <div className="relative w-[150px] h-[200px] rounded-lg overflow-hidden border-2 border-primary bg-white shadow-lg pointer-events-none">
               <Image
                 src={draggedActivity.imageUrl}
                 alt={draggedActivity.title}
@@ -101,8 +119,10 @@ export const ExcursionPlanner = () => {
               />
               <div className="absolute inset-0 bg-black/50">
                 <div className="p-3 text-white">
-                  <div className="font-medium text-sm">{draggedActivity.title}</div>
-                  <div className="text-xs mt-1">{draggedActivity.duration}h</div>
+                  <div className="font-medium text-sm line-clamp-2">{draggedActivity.title}</div>
+                  <div className="text-xs mt-1 bg-black/30 rounded px-2 py-1 inline-block">
+                    {draggedActivity.duration}h
+                  </div>
                 </div>
               </div>
             </div>
