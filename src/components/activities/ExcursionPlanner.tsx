@@ -1,9 +1,9 @@
-import { useState } from "react"
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { WeeklyActivitySchedule } from "@/components/activities/WeeklyActivitySchedule"
 import { SelectedActivitiesList } from "@/components/activities/SelectedActivitiesList"
 import { BulkBookingWidget } from "@/components/activities/BulkBookingWidget"
+import { usePlanning } from "@/contexts/PlanningContext"
 
 export interface ScheduledActivity {
   id: string
@@ -20,16 +20,10 @@ export interface ScheduledActivity {
 }
 
 export const ExcursionPlanner = () => {
-  const [selectedActivities, setSelectedActivities] = useState<ScheduledActivity[]>([])
+  const { selectedActivities, removeActivity, clearActivities, updateActivity } = usePlanning()
 
   const handleActivitySelect = (activity: ScheduledActivity) => {
-    setSelectedActivities(prev => 
-      prev.map(a => a.id === activity.id ? activity : a)
-    )
-  }
-
-  const handleActivityRemove = (activityId: string) => {
-    setSelectedActivities(prev => prev.filter(a => a.id !== activityId))
+    updateActivity(activity.id, activity)
   }
 
   return (
@@ -49,11 +43,11 @@ export const ExcursionPlanner = () => {
             <div className="space-y-6">
               <SelectedActivitiesList
                 activities={selectedActivities}
-                onActivityRemove={handleActivityRemove}
+                onActivityRemove={removeActivity}
               />
               <BulkBookingWidget
                 activities={selectedActivities}
-                onClearSelection={() => setSelectedActivities([])}
+                onClearSelection={clearActivities}
               />
             </div>
           </div>

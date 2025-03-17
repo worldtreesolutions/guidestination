@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScheduledActivity } from "./ExcursionPlanner"
@@ -14,28 +13,32 @@ export const BulkBookingWidget = ({
 }: BulkBookingWidgetProps) => {
   const totalPrice = activities.reduce((sum, activity) => sum + activity.price, 0)
 
+  const formatPrice = (price: number) => {
+    return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+  }
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Réserver mes activités</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <span className="text-muted-foreground">Total</span>
-            <span className="text-2xl font-bold">฿{totalPrice}</span>
+        <div className='space-y-4'>
+          <div className='flex justify-between items-center'>
+            <span className='text-muted-foreground'>Total</span>
+            <span className='text-2xl font-bold'>฿{formatPrice(totalPrice)}</span>
           </div>
           <Button
-            className="w-full"
-            size="lg"
+            className='w-full'
+            size='lg'
             disabled={activities.length === 0}
           >
-            Réserver {activities.length} activité{activities.length > 1 ? "s" : ""}
+            Réserver {activities.length} activité{activities.length > 1 ? 's' : ''}
           </Button>
           {activities.length > 0 && (
             <Button
-              variant="outline"
-              className="w-full"
+              variant='outline'
+              className='w-full'
               onClick={onClearSelection}
             >
               Effacer la sélection
