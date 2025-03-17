@@ -8,8 +8,12 @@ import { Footer } from '@/components/layout/Footer'
 import { CategoryNav } from '@/components/home/CategoryNav'
 import { ActivityCard } from '@/components/home/ActivityCard'
 import { Search } from 'lucide-react'
+import { Calendar } from 'lucide-react'
+import { usePlanning } from '@/contexts/PlanningContext'
 
 export default function Home() {
+  const { selectedActivities } = usePlanning()
+
   const featuredActivities = [
     {
       title: 'Doi Suthep Temple & Hmong Village Tour',
@@ -97,6 +101,16 @@ export default function Home() {
         <Navbar />
         
         <main className='flex-1'>
+          {selectedActivities.length > 0 && (
+            <div className='fixed bottom-4 right-4 z-50'>
+              <Link href='/planning'>
+                <Button size='lg' className='shadow-lg'>
+                  <Calendar className='h-5 w-5 mr-2' />
+                  Voir mon planning ({selectedActivities.length})
+                </Button>
+              </Link>
+            </div>
+          )}
           <section className='relative h-[600px]'>
             <div className='absolute inset-0'>
               <Image
