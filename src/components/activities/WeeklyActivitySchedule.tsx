@@ -133,6 +133,19 @@ const TimeSlot = ({
     )
   }
 
+  // If this is part of an activity but not the first hour, render an empty cell
+  // The activity card will span multiple rows from the first hour cell
+  if (isPartOfActivity && !isFirstHourOfActivity) {
+    return (
+      <td 
+        className='p-1 border relative bg-primary/5'
+        style={{ height: `${HOUR_HEIGHT}px` }}
+      >
+        {/* Empty cell - the activity is rendered from the first hour and spans multiple rows */}
+      </td>
+    )
+  }
+
   return (
     <td 
       ref={setNodeRef}
