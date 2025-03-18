@@ -36,25 +36,47 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
                     scheduledActivities.find(a => a.id === activityId)
     if (!activity) return
 
+    // If moving to selected list (empty day)
+    if (!day) {
+      setScheduledActivities(prev => prev.filter(a => a.id !== activityId))
+      setSelectedActivities(prev => {
+        if (!prev.find(a => a.id === activityId)) {
+          return [...prev, { ...activity, day: '', hour: 0 }]
+        }
+        return prev
+      })
+      return
+    }
+
     // Check if the new slot is available
     const endHour = hour + activity.duration
     const hasConflict = scheduledActivities.some(existingActivity => {
       if (existingActivity.id === activityId || existingActivity.day !== day) return false
+      
+      // Check for any overlap with existing activities
       const existingEnd = existingActivity.hour + existingActivity.duration
-      return !(hour >= existingEnd || endHour <= existingActivity.hour)
+      const overlap = !(hour >= existingEnd || endHour <= existingActivity.hour)
+      
+      // Check if activities are consecutive (no gap needed)
+      const isConsecutive = hour === existingEnd || endHour === existingActivity.hour
+      
+      return overlap && !isConsecutive
     })
 
     if (hasConflict) {
       // If there's a conflict, move back to selected activities
-      if (!selectedActivities.find(a => a.id === activityId)) {
-        setSelectedActivities(prev => [...prev, activity])
-      }
+      setScheduledActivities(prev => prev.filter(a => a.id !== activityId))
+      setSelectedActivities(prev => {
+        if (!prev.find(a => a.id === activityId)) {
+          return [...prev, { ...activity, day: '', hour: 0 }]
+        }
+        return prev
+      })
       return
     }
 
+    // Schedule the activity
     const updatedActivity = { ...activity, day, hour }
-    
-    // Remove from both lists first
     setSelectedActivities(prev => prev.filter(a => a.id !== activityId))
     setScheduledActivities(prev => {
       const withoutCurrent = prev.filter(a => a.id !== activityId)
@@ -80,9 +102,6 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
   }
 
   const removeActivity = (activityId: string) => {
-    const activity = [...selectedActivities, ...scheduledActivities].find(a => a.id === activityId)
-    if (!activity) return
-
     setScheduledActivities(prev => prev.filter(a => a.id !== activityId))
     setSelectedActivities(prev => prev.filter(a => a.id !== activityId))
   }

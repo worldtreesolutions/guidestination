@@ -22,7 +22,7 @@ export interface ScheduledActivity {
 }
 
 export const ExcursionPlanner = () => {
-  const { selectedActivities, scheduledActivities, updateActivity, removeActivity, clearActivities, scheduleActivity, setSelectedActivities, setScheduledActivities } = usePlanning()
+  const { selectedActivities, scheduledActivities, updateActivity, removeActivity, clearActivities, scheduleActivity } = usePlanning()
   const [draggedActivity, setDraggedActivity] = useState<ScheduledActivity | null>(null)
 
   const sensors = useSensors(useSensor(PointerSensor, {
@@ -34,8 +34,6 @@ export const ExcursionPlanner = () => {
   }))
 
   const handleDragStart = (event: DragStartEvent) => {
-    if (draggedActivity) return
-    
     const activity = [...selectedActivities, ...scheduledActivities].find(
       a => a.id === event.active.id
     )
@@ -45,36 +43,38 @@ export const ExcursionPlanner = () => {
   }
 
   const handleDragEnd = (event: DragEndEvent) => {
-    if (!draggedActivity) return
+    const dragged = draggedActivity
+    setDraggedActivity(null)
     
-    if (!event.over) {
-      setDraggedActivity(null)
+    if (!dragged || !event.over) return
+
+    if (event.over.id === 'selected-list') {
+      // Move activity back to selected list
+      const activity = scheduledActivities.find(a => a.id === dragged.id)
+      if (activity) {
+        scheduleActivity(dragged.id, '', 0)
+      }
       return
     }
 
     const [day, hour] = event.over.id.toString().split('-')
     const hourNum = parseInt(hour)
-    
-    if (event.over.id === 'selected-list') {
-      // Move back to selected activities
-      const activity = scheduledActivities.find(a => a.id === draggedActivity.id)
-      if (activity) {
-        setSelectedActivities(prev => [...prev, { ...activity, day: '', hour: 0 }])
-        setScheduledActivities(prev => prev.filter(a => a.id !== activity.id))
-      }
+    const endHour = hourNum + dragged.duration
+
+    // Only schedule if within time limits and no conflicts
+    if (endHour <= 17) {
+      scheduleActivity(dragged.id, day, hourNum)
     } else {
-      // Schedule the activity
-      const endHour = hourNum + draggedActivity.duration
-      if (endHour <= 17) {
-        scheduleActivity(draggedActivity.id, day, hourNum)
+      // If invalid placement, ensure activity stays in its original list
+      const activity = scheduledActivities.find(a => a.id === dragged.id)
+      if (activity) {
+        scheduleActivity(dragged.id, activity.day, activity.hour)
       }
     }
-    
-    setDraggedActivity(null)
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
       <DndContext
         sensors={sensors}
         onDragStart={handleDragStart}
@@ -82,11 +82,11 @@ export const ExcursionPlanner = () => {
       >
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl font-bold">Mon Planning Excursion</CardTitle>
+            <CardTitle className='text-2xl font-bold'>Mon Planning Excursion</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
+            <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
+              <div className='lg:col-span-2'>
                 <WeeklyActivitySchedule
                   scheduledActivities={scheduledActivities}
                   draggedActivity={draggedActivity}
@@ -94,7 +94,7 @@ export const ExcursionPlanner = () => {
                   onActivityRemove={removeActivity}
                 />
               </div>
-              <div className="space-y-6">
+              <div className='space-y-6'>
                 <SelectedActivitiesList
                   activities={selectedActivities}
                   onActivityRemove={removeActivity}
@@ -110,18 +110,23 @@ export const ExcursionPlanner = () => {
 
         <DragOverlay dropAnimation={null}>
           {draggedActivity && (
-            <div className="relative w-[150px] h-[200px] rounded-lg overflow-hidden border-2 border-primary bg-white shadow-lg pointer-events-none">
+            <div className='relative w-[150px] h-[200px] rounded-lg overflow-hidden border-2 border-primary bg-white shadow-lg pointer-events-none'>
               <Image
                 src={draggedActivity.imageUrl}
                 alt={draggedActivity.title}
                 fill
-                className="object-cover"
+                className='object-cover'
               />
-              <div className="absolute inset-0 bg-black/50">
-                <div className="p-3 text-white">
-                  <div className="font-medium text-sm line-clamp-2">{draggedActivity.title}</div>
-                  <div className="text-xs mt-1 bg-black/30 rounded px-2 py-1 inline-block">
-                    {draggedActivity.duration}h
+              <div className='absolute inset-0 bg-black/50'>
+                <div className='p-3 text-white'>
+                  <div className='font-medium text-sm line-clamp-2'>{draggedActivity.title}</div>
+                  <div className='flex flex-col gap-1 mt-1'>
+                    <div className='text-xs bg-black/30 rounded px-2 py-1 inline-block'>
+                      {draggedActivity.duration}h
+                    </div>
+                    <div className='text-xs bg-black/30 rounded px-2 py-1 inline-block'>
+                      ฿{draggedActivity.price.toLocaleString()}
+                    </div>
                   </div>
                 </div>
               </div>
