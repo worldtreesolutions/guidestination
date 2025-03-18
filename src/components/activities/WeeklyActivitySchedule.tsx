@@ -2,10 +2,10 @@
 import { useDroppable, useDraggable } from "@dnd-kit/core"
 import { CSS } from "@dnd-kit/utilities"
 import Image from "next/image"
-import { X } from "lucide-react"
+import { X, Clock, Calendar, MapPin } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ScheduledActivity } from "./ExcursionPlanner"
-import { useMemo, useCallback } from "react"
+import { useMemo, useCallback, useState } from "react"
 
 interface WeeklyActivityScheduleProps {
   scheduledActivities: ScheduledActivity[]
@@ -20,6 +20,40 @@ const hours = Array.from({ length: 9 }, (_, i) => i + 9)
 
 const HOUR_HEIGHT = 100
 
+// Completely separate component for the remove button
+const RemoveButton = ({ 
+  activityId, 
+  onRemove 
+}: { 
+  activityId: string
+  onRemove: (id: string) => void 
+}) => {
+  // Use a separate handler for the remove button
+  const handleClick = (e: React.MouseEvent) => {
+    // Prevent any event propagation
+    e.preventDefault()
+    e.stopPropagation()
+    
+    // Call the remove function directly
+    onRemove(activityId)
+  }
+  
+  return (
+    <button
+      className="absolute top-2 right-2 z-[200] rounded-full bg-red-500 hover:bg-red-600 p-1.5 cursor-pointer shadow-md transition-transform duration-150 hover:scale-110"
+      onClick={handleClick}
+      type="button"
+      aria-label="Remove activity"
+      // Prevent any dragging on this element
+      onMouseDown={(e) => e.stopPropagation()}
+      onTouchStart={(e) => e.stopPropagation()}
+      onPointerDown={(e) => e.stopPropagation()}
+    >
+      <X className="h-3.5 w-3.5 text-white" />
+    </button>
+  )
+}
+
 const ActivityCard = ({ activity, onRemove }: { activity: ScheduledActivity; onRemove: (id: string) => void }) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: activity.id,
@@ -30,69 +64,51 @@ const ActivityCard = ({ activity, onRemove }: { activity: ScheduledActivity; onR
     transform: CSS.Translate.toString(transform)
   } : undefined
 
-  // Isolate the remove button click handler to prevent event propagation issues
-  const handleRemoveClick = useCallback((e: React.MouseEvent) => {
-    // Stop propagation to prevent the drag event from being triggered
-    e.preventDefault()
-    e.stopPropagation()
-    
-    // Call the onRemove function with the activity ID
-    onRemove(activity.id)
-  }, [activity.id, onRemove])
-
   if (isDragging) {
     return <div ref={setNodeRef} style={{ height: `${HOUR_HEIGHT}px`, opacity: 0 }} />
   }
 
   return (
-    <div
-      ref={setNodeRef}
-      style={{
-        ...style,
-        height: "100%",
-        position: "relative"
-      }}
-      className="cursor-move touch-none group transition-all duration-150 h-full"
-      {...listeners}
-      {...attributes}
-    >
-      <div className="absolute inset-0 m-1 rounded-lg overflow-hidden border-2 border-primary bg-white shadow-lg">
-        <Image
-          src={activity.imageUrl}
-          alt={activity.title}
-          fill
-          className="object-cover"
-        />
-        <div className="absolute inset-0 bg-black/50">
-          <div className="p-3 text-white">
-            <div className="font-medium text-sm line-clamp-2">{activity.title}</div>
-            <div className="flex flex-col gap-1 mt-1">
-              <div className="text-xs bg-black/30 rounded px-2 py-1 inline-block">
-                {activity.hour}:00 - {activity.hour + activity.duration}:00
-              </div>
-              <div className="text-xs bg-black/30 rounded px-2 py-1 inline-block">
-                ฿{activity.price.toLocaleString()}
+    <div className="relative h-full">
+      {/* The draggable card */}
+      <div
+        ref={setNodeRef}
+        style={{
+          ...style,
+          height: "100%",
+          position: "relative"
+        }}
+        className="cursor-move touch-none group transition-all duration-150 h-full"
+        {...listeners}
+        {...attributes}
+      >
+        <div className="absolute inset-0 m-1 rounded-lg overflow-hidden border-2 border-primary bg-white shadow-lg hover:shadow-xl transition-all duration-200 hover:border-primary/80">
+          <Image
+            src={activity.imageUrl}
+            alt={activity.title}
+            fill
+            className="object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/30">
+            <div className="p-3 text-white h-full flex flex-col justify-between">
+              <div className="font-medium text-sm line-clamp-2">{activity.title}</div>
+              <div className="flex flex-col gap-1 mt-1">
+                <div className="text-xs bg-primary/80 rounded-full px-2 py-1 inline-flex items-center gap-1 w-fit">
+                  <Clock className="h-3 w-3" />
+                  {activity.hour}:00 - {activity.hour + activity.duration}:00
+                </div>
+                <div className="text-xs bg-primary/80 rounded-full px-2 py-1 inline-flex items-center gap-1 w-fit">
+                  <MapPin className="h-3 w-3" />
+                  ฿{activity.price.toLocaleString()}
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-      {/* Remove button positioned outside the draggable area's event handlers */}
-      <div 
-        className="absolute top-3 right-3 z-[200]"
-        onClick={(e) => e.stopPropagation()}
-        onMouseDown={(e) => e.stopPropagation()}
-        onTouchStart={(e) => e.stopPropagation()}
-      >
-        <button
-          className="rounded-full bg-red-500 hover:bg-red-600 p-1.5 cursor-pointer"
-          onClick={handleRemoveClick}
-          type="button"
-          aria-label="Remove activity"
-        >
-          <X className="h-4 w-4 text-white" />
-        </button>
-      </div>
+      
+      {/* Completely separate remove button */}
+      <RemoveButton activityId={activity.id} onRemove={onRemove} />
     </div>
   )
 }
@@ -119,11 +135,11 @@ const DroppableCell = ({
   if (!isAvailable && showUnavailable) {
     return (
       <td 
-        className="p-1 border relative bg-gray-100" 
+        className="p-1 border border-gray-200 relative bg-gray-50" 
         style={{ height: `${HOUR_HEIGHT}px` }}
       >
-        <div className="h-full bg-gray-200 rounded-lg flex items-center justify-center text-sm text-gray-500">
-          Indisponible
+        <div className="h-full bg-gray-100 rounded-lg flex items-center justify-center text-sm text-gray-500 border border-dashed border-gray-300">
+          <span className="bg-gray-200 px-2 py-1 rounded-full text-xs">Indisponible</span>
         </div>
       </td>
     )
@@ -132,7 +148,7 @@ const DroppableCell = ({
   return (
     <td 
       ref={setNodeRef}
-      className={`p-1 border relative ${isAvailable ? 'hover:bg-gray-50' : 'bg-primary/5'}`}
+      className={`p-1 border border-gray-200 relative ${isAvailable ? 'hover:bg-primary/5 transition-colors duration-200' : 'bg-primary/5'}`}
       style={{ height: `${HOUR_HEIGHT}px` }}
     >
       {children}
@@ -150,9 +166,9 @@ export const WeeklyActivitySchedule = ({
     return `${hour.toString().padStart(2, "0")}:00`
   }
 
-  // Enhanced activity removal handler to ensure proper removal
+  // Direct removal handler that bypasses any drag operations
   const handleActivityRemove = useCallback((activityId: string) => {
-    // Call the parent component's removal function
+    // Call the parent component's removal function directly
     onActivityRemove(activityId)
   }, [onActivityRemove])
 
@@ -256,23 +272,34 @@ export const WeeklyActivitySchedule = ({
   }
 
   return (
-    <div className="w-full overflow-x-auto">
+    <div className="w-full overflow-x-auto rounded-lg shadow-md border border-gray-200">
       <table className="w-full border-collapse">
         <thead>
-          <tr className="bg-muted">
-            <th className="p-2 border w-20"></th>
-            {days.map((day) => (
-              <th key={day} className="p-2 border text-center font-medium w-[14.28%]">
-                {day}
+          <tr className="bg-primary/10">
+            <th className="p-3 border-b border-r border-gray-200 w-20 text-primary-foreground">
+              <div className="flex items-center justify-center">
+                <Calendar className="h-4 w-4 mr-1" />
+                <span>Heure</span>
+              </div>
+            </th>
+            {days.map((day, index) => (
+              <th key={day} className="p-3 border-b border-r border-gray-200 text-center font-medium w-[14.28%] text-primary-foreground">
+                <div className="flex flex-col items-center">
+                  <span className="text-sm font-bold">{day}</span>
+                  <span className="text-xs opacity-75">Jour {index + 1}</span>
+                </div>
               </th>
             ))}
           </tr>
         </thead>
         <tbody>
           {hours.map(hour => (
-            <tr key={hour}>
-              <td className="p-2 border font-medium bg-muted text-center">
-                {formatHour(hour)}
+            <tr key={hour} className={hour % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+              <td className="p-2 border-r border-b border-gray-200 font-medium text-center">
+                <div className="flex items-center justify-center">
+                  <Clock className="h-3.5 w-3.5 mr-1 text-primary" />
+                  <span className="text-sm">{formatHour(hour)}</span>
+                </div>
               </td>
               {dayKeys.map(day => {
                 // Skip rendering this cell if it's covered by a rowspan
@@ -288,7 +315,7 @@ export const WeeklyActivitySchedule = ({
                   return (
                     <td 
                       key={`${day}-${hour}`}
-                      className="p-1 border relative bg-primary/5"
+                      className="p-1 border-r border-b border-gray-200 relative bg-primary/5"
                       style={{ height: `${HOUR_HEIGHT}px` }}
                       rowSpan={activity.duration}
                     >
@@ -309,7 +336,13 @@ export const WeeklyActivitySchedule = ({
                     isAvailable={isAvailable}
                     showUnavailable={!!draggedActivity}
                   >
-                    <div className="h-full border-2 border-dashed border-gray-200 rounded-lg"></div>
+                    <div className="h-full border-2 border-dashed border-gray-200 rounded-lg flex items-center justify-center">
+                      {isAvailable && !draggedActivity && (
+                        <div className="text-xs text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          Déposer ici
+                        </div>
+                      )}
+                    </div>
                   </DroppableCell>
                 )
               })}
