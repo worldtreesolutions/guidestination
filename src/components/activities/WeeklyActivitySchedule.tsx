@@ -1,9 +1,11 @@
+
 import { useDroppable, useDraggable } from "@dnd-kit/core"
 import { CSS } from "@dnd-kit/utilities"
 import Image from "next/image"
 import { X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ScheduledActivity } from "./ExcursionPlanner"
+import { useMemo } from "react"
 
 interface WeeklyActivityScheduleProps {
   scheduledActivities: ScheduledActivity[]
@@ -28,9 +30,6 @@ const ActivityCard = ({ activity, onRemove }: { activity: ScheduledActivity; onR
     transform: CSS.Translate.toString(transform)
   } : undefined
 
-  // Calculate exact height based on duration
-  const height = activity.duration * HOUR_HEIGHT - 8
-
   const handleRemove = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
@@ -38,81 +37,65 @@ const ActivityCard = ({ activity, onRemove }: { activity: ScheduledActivity; onR
   }
 
   if (isDragging) {
-    return <div ref={setNodeRef} style={{ height: `${height}px`, opacity: 0 }} />
+    return <div ref={setNodeRef} style={{ height: `${HOUR_HEIGHT}px`, opacity: 0 }} />
   }
 
   return (
-    <div 
-      className='relative' 
-      style={{ 
-        height: `${height}px`,
-        gridRow: `span ${activity.duration}`
+    <div
+      ref={setNodeRef}
+      style={{
+        ...style,
+        height: "100%",
+        position: "relative"
       }}
+      className="cursor-move touch-none group transition-all duration-150 h-full"
+      {...listeners}
+      {...attributes}
     >
-      <div
-        ref={setNodeRef}
-        style={{
-          ...style,
-          height: `${height}px`,
-          position: 'absolute',
-          inset: '4px',
-          zIndex: 10
-        }}
-        className='cursor-move touch-none group transition-all duration-150'
-        {...listeners}
-        {...attributes}
-      >
-        <div className='absolute inset-0 rounded-lg overflow-hidden border-2 border-primary bg-white shadow-lg'>
-          <Image
-            src={activity.imageUrl}
-            alt={activity.title}
-            fill
-            className='object-cover'
-          />
-          <div className='absolute inset-0 bg-black/50'>
-            <div className='p-3 text-white'>
-              <div className='font-medium text-sm line-clamp-2'>{activity.title}</div>
-              <div className='flex flex-col gap-1 mt-1'>
-                <div className='text-xs bg-black/30 rounded px-2 py-1 inline-block'>
-                  {activity.hour}:00 - {activity.hour + activity.duration}:00
-                </div>
-                <div className='text-xs bg-black/30 rounded px-2 py-1 inline-block'>
-                  ฿{activity.price.toLocaleString()}
-                </div>
+      <div className="absolute inset-0 m-1 rounded-lg overflow-hidden border-2 border-primary bg-white shadow-lg">
+        <Image
+          src={activity.imageUrl}
+          alt={activity.title}
+          fill
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-black/50">
+          <div className="p-3 text-white">
+            <div className="font-medium text-sm line-clamp-2">{activity.title}</div>
+            <div className="flex flex-col gap-1 mt-1">
+              <div className="text-xs bg-black/30 rounded px-2 py-1 inline-block">
+                {activity.hour}:00 - {activity.hour + activity.duration}:00
+              </div>
+              <div className="text-xs bg-black/30 rounded px-2 py-1 inline-block">
+                ฿{activity.price.toLocaleString()}
               </div>
             </div>
           </div>
         </div>
       </div>
       <button
-        className='absolute top-2 right-2 z-[200] rounded-full bg-red-500 hover:bg-red-600 p-1.5 cursor-pointer'
+        className="absolute top-3 right-3 z-[200] rounded-full bg-red-500 hover:bg-red-600 p-1.5 cursor-pointer"
         onClick={handleRemove}
-        type='button'
+        type="button"
       >
-        <X className='h-4 w-4 text-white' />
+        <X className="h-4 w-4 text-white" />
       </button>
     </div>
   )
 }
 
-const TimeSlot = ({ 
+const DroppableCell = ({ 
   day, 
   hour, 
-  activity,
   isAvailable,
-  isFirstHourOfActivity,
-  isPartOfActivity,
   showUnavailable,
-  onActivityRemove
+  children
 }: { 
   day: string
   hour: number
-  activity: ScheduledActivity | null
   isAvailable: boolean
-  isFirstHourOfActivity: boolean
-  isPartOfActivity: boolean
   showUnavailable: boolean
-  onActivityRemove: (id: string) => void
+  children: React.ReactNode
 }) => {
   const { setNodeRef } = useDroppable({
     id: `${day}-${hour}`,
@@ -120,28 +103,15 @@ const TimeSlot = ({
     disabled: !isAvailable
   })
 
-  if (!isAvailable && !activity && showUnavailable) {
+  if (!isAvailable && showUnavailable) {
     return (
       <td 
-        className='p-1 border relative bg-gray-100' 
+        className="p-1 border relative bg-gray-100" 
         style={{ height: `${HOUR_HEIGHT}px` }}
       >
-        <div className='h-full bg-gray-200 rounded-lg flex items-center justify-center text-sm text-gray-500'>
+        <div className="h-full bg-gray-200 rounded-lg flex items-center justify-center text-sm text-gray-500">
           Indisponible
         </div>
-      </td>
-    )
-  }
-
-  // If this is part of an activity but not the first hour, render an empty cell
-  // The activity card will span multiple rows from the first hour cell
-  if (isPartOfActivity && !isFirstHourOfActivity) {
-    return (
-      <td 
-        className='p-1 border relative bg-primary/5'
-        style={{ height: `${HOUR_HEIGHT}px` }}
-      >
-        {/* Empty cell - the activity is rendered from the first hour and spans multiple rows */}
       </td>
     )
   }
@@ -149,17 +119,10 @@ const TimeSlot = ({
   return (
     <td 
       ref={setNodeRef}
-      className={`p-1 border relative ${isPartOfActivity ? 'bg-primary/5' : 'hover:bg-gray-50'}`}
-      style={{
-        height: `${HOUR_HEIGHT}px`,
-        position: 'relative'
-      }}
+      className={`p-1 border relative ${isAvailable ? 'hover:bg-gray-50' : 'bg-primary/5'}`}
+      style={{ height: `${HOUR_HEIGHT}px` }}
     >
-      {isFirstHourOfActivity && activity ? (
-        <ActivityCard activity={activity} onRemove={onActivityRemove} />
-      ) : !isPartOfActivity && (
-        <div className='h-full border-2 border-dashed border-gray-200 rounded-lg'></div>
-      )}
+      {children}
     </td>
   )
 }
@@ -174,22 +137,52 @@ export const WeeklyActivitySchedule = ({
     return `${hour.toString().padStart(2, "0")}:00`
   }
 
-  const getActivityForSlot = (day: string, hour: number) => {
-    return scheduledActivities.find(
-      activity => activity.day === day && 
-      hour >= activity.hour && 
-      hour < activity.hour + activity.duration
-    )
-  }
+  // Organize activities by day and starting hour
+  const activitiesByDayAndHour = useMemo(() => {
+    const result: Record<string, Record<number, ScheduledActivity>> = {}
+    
+    dayKeys.forEach(day => {
+      result[day] = {}
+    })
+    
+    scheduledActivities.forEach(activity => {
+      if (!result[activity.day]) {
+        result[activity.day] = {}
+      }
+      result[activity.day][activity.hour] = activity
+    })
+    
+    return result
+  }, [scheduledActivities])
 
-  const isSlotPartOfActivity = (day: string, hour: number) => {
-    return scheduledActivities.some(
-      activity => 
-        activity.day === day && 
-        hour >= activity.hour && 
-        hour < activity.hour + activity.duration
-    )
-  }
+  // Track which cells should be skipped because they're covered by a rowspan
+  const skipCells = useMemo(() => {
+    const result: Record<string, Record<number, boolean>> = {}
+    
+    dayKeys.forEach(day => {
+      result[day] = {}
+      
+      // Initialize all hours as not skipped
+      hours.forEach(hour => {
+        result[day][hour] = false
+      })
+      
+      // Mark cells that should be skipped due to rowspan
+      scheduledActivities.forEach(activity => {
+        if (activity.day === day) {
+          // Skip cells after the first hour of the activity
+          for (let i = 1; i < activity.duration; i++) {
+            const hourToSkip = activity.hour + i
+            if (hourToSkip <= 17) {
+              result[day][hourToSkip] = true
+            }
+          }
+        }
+      })
+    })
+    
+    return result
+  }, [scheduledActivities])
 
   const isSlotAvailable = (day: string, hour: number) => {
     if (hour > 17) return false
@@ -234,7 +227,13 @@ export const WeeklyActivitySchedule = ({
       return true
     }
 
-    return !isSlotPartOfActivity(day, hour)
+    // Check if this slot is part of an existing activity
+    return !scheduledActivities.some(
+      activity => 
+        activity.day === day && 
+        hour >= activity.hour && 
+        hour < activity.hour + activity.duration
+    )
   }
 
   return (
@@ -257,23 +256,39 @@ export const WeeklyActivitySchedule = ({
                 {formatHour(hour)}
               </td>
               {dayKeys.map(day => {
-                const activity = getActivityForSlot(day, hour)
-                const isPartOfActivity = isSlotPartOfActivity(day, hour)
+                // Skip rendering this cell if it's covered by a rowspan
+                if (skipCells[day][hour]) {
+                  return null
+                }
+                
+                const activity = activitiesByDayAndHour[day][hour]
                 const isAvailable = activity ? true : isSlotAvailable(day, hour)
-                const isFirstHourOfActivity = activity?.hour === hour
-
+                
+                // If this is the first hour of an activity, render it with rowspan
+                if (activity) {
+                  return (
+                    <td 
+                      key={`${day}-${hour}`}
+                      className="p-1 border relative bg-primary/5"
+                      style={{ height: `${HOUR_HEIGHT}px` }}
+                      rowSpan={activity.duration}
+                    >
+                      <ActivityCard activity={activity} onRemove={onActivityRemove} />
+                    </td>
+                  )
+                }
+                
+                // Otherwise render a droppable cell
                 return (
-                  <TimeSlot
+                  <DroppableCell
                     key={`${day}-${hour}`}
                     day={day}
                     hour={hour}
-                    activity={activity || null}
                     isAvailable={isAvailable}
-                    isFirstHourOfActivity={isFirstHourOfActivity}
-                    isPartOfActivity={isPartOfActivity}
                     showUnavailable={!!draggedActivity}
-                    onActivityRemove={onActivityRemove}
-                  />
+                  >
+                    <div className="h-full border-2 border-dashed border-gray-200 rounded-lg"></div>
+                  </DroppableCell>
                 )
               })}
             </tr>
