@@ -5,7 +5,7 @@ import Image from "next/image"
 import { X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ScheduledActivity } from "./ExcursionPlanner"
-import { useMemo } from "react"
+import { useMemo, useCallback } from "react"
 
 interface WeeklyActivityScheduleProps {
   scheduledActivities: ScheduledActivity[]
@@ -30,11 +30,15 @@ const ActivityCard = ({ activity, onRemove }: { activity: ScheduledActivity; onR
     transform: CSS.Translate.toString(transform)
   } : undefined
 
-  const handleRemove = (e: React.MouseEvent) => {
+  // Isolate the remove button click handler to prevent event propagation issues
+  const handleRemoveClick = useCallback((e: React.MouseEvent) => {
+    // Stop propagation to prevent the drag event from being triggered
     e.preventDefault()
     e.stopPropagation()
+    
+    // Call the onRemove function with the activity ID
     onRemove(activity.id)
-  }
+  }, [activity.id, onRemove])
 
   if (isDragging) {
     return <div ref={setNodeRef} style={{ height: `${HOUR_HEIGHT}px`, opacity: 0 }} />
@@ -73,13 +77,22 @@ const ActivityCard = ({ activity, onRemove }: { activity: ScheduledActivity; onR
           </div>
         </div>
       </div>
-      <button
-        className="absolute top-3 right-3 z-[200] rounded-full bg-red-500 hover:bg-red-600 p-1.5 cursor-pointer"
-        onClick={handleRemove}
-        type="button"
+      {/* Remove button positioned outside the draggable area's event handlers */}
+      <div 
+        className="absolute top-3 right-3 z-[200]"
+        onClick={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
+        onTouchStart={(e) => e.stopPropagation()}
       >
-        <X className="h-4 w-4 text-white" />
-      </button>
+        <button
+          className="rounded-full bg-red-500 hover:bg-red-600 p-1.5 cursor-pointer"
+          onClick={handleRemoveClick}
+          type="button"
+          aria-label="Remove activity"
+        >
+          <X className="h-4 w-4 text-white" />
+        </button>
+      </div>
     </div>
   )
 }
@@ -136,6 +149,12 @@ export const WeeklyActivitySchedule = ({
   const formatHour = (hour: number) => {
     return `${hour.toString().padStart(2, "0")}:00`
   }
+
+  // Enhanced activity removal handler to ensure proper removal
+  const handleActivityRemove = useCallback((activityId: string) => {
+    // Call the parent component's removal function
+    onActivityRemove(activityId)
+  }, [onActivityRemove])
 
   // Organize activities by day and starting hour
   const activitiesByDayAndHour = useMemo(() => {
@@ -273,7 +292,10 @@ export const WeeklyActivitySchedule = ({
                       style={{ height: `${HOUR_HEIGHT}px` }}
                       rowSpan={activity.duration}
                     >
-                      <ActivityCard activity={activity} onRemove={onActivityRemove} />
+                      <ActivityCard 
+                        activity={activity} 
+                        onRemove={handleActivityRemove} 
+                      />
                     </td>
                   )
                 }
