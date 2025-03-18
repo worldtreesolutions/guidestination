@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useMemo } from "react"
 import { useDroppable, useDraggable } from "@dnd-kit/core"
 import { CSS } from "@dnd-kit/utilities"
@@ -132,7 +131,7 @@ const DroppableCell = ({
         className="p-1 border border-gray-200 relative bg-gray-50 rounded-lg" 
         style={{ height: `${HOUR_HEIGHT}px` }}
       >
-        <div className="h-full bg-gray-100 rounded-lg flex items-center justify-center text-sm text-gray-500 border border-dashed border-gray-300">
+        <div className="h-full bg-gray-100 rounded-lg flex items-center justify-center text-sm text-gray-500">
           <span className="bg-gray-200 px-2 py-1 rounded-full text-xs">Indisponible</span>
         </div>
       </div>
@@ -281,33 +280,35 @@ export const MobileWeeklyActivitySchedule = ({
   }
 
   return (
-    <div className="w-full">
-      <div className="flex items-center justify-between mb-4 bg-primary/10 rounded-lg p-2">
+    <div className='w-full'>
+      <div className='flex items-center justify-between mb-4 bg-primary/10 rounded-lg p-2'>
         <Button 
-          variant="ghost" 
-          size="icon" 
+          variant='ghost' 
+          size='icon' 
           onClick={goToPreviousDay}
-          className="h-8 w-8"
+          className='h-8 w-8'
+          aria-label='Jour précédent'
         >
-          <ChevronLeft className="h-5 w-5" />
+          <ChevronLeft className='h-5 w-5' />
         </Button>
         
-        <div className="text-center">
-          <h3 className="font-bold">{days[activeDayIndex]}</h3>
-          <p className="text-xs text-muted-foreground">Jour {activeDayIndex + 1}</p>
+        <div className='text-center'>
+          <h3 className='font-bold text-primary'>{days[activeDayIndex]}</h3>
+          <p className='text-xs text-muted-foreground'>Jour {activeDayIndex + 1}</p>
         </div>
         
         <Button 
-          variant="ghost" 
-          size="icon" 
+          variant='ghost' 
+          size='icon' 
           onClick={goToNextDay}
-          className="h-8 w-8"
+          className='h-8 w-8'
+          aria-label='Jour suivant'
         >
-          <ChevronRight className="h-5 w-5" />
+          <ChevronRight className='h-5 w-5' />
         </Button>
       </div>
 
-      <div className="space-y-2">
+      <div className='space-y-2'>
         {hours.map(hour => {
           // Skip rendering this cell if it's covered by a rowspan
           if (skipCells[activeDay][hour]) {
@@ -318,17 +319,17 @@ export const MobileWeeklyActivitySchedule = ({
           const isAvailable = activity ? true : isSlotAvailable(activeDay, hour)
           
           return (
-            <div key={hour} className="flex items-stretch gap-2">
-              <div className="w-16 flex items-center justify-center bg-primary/5 rounded-lg">
-                <div className="flex flex-col items-center">
-                  <Clock className="h-3.5 w-3.5 text-primary" />
-                  <span className="text-sm font-medium">{formatHour(hour)}</span>
+            <div key={hour} className='flex items-stretch gap-2'>
+              <div className='w-16 flex items-center justify-center bg-primary/5 rounded-lg'>
+                <div className='flex flex-col items-center'>
+                  <Clock className='h-3.5 w-3.5 text-primary' />
+                  <span className='text-sm font-medium'>{formatHour(hour)}</span>
                 </div>
               </div>
               
               {activity ? (
                 <div 
-                  className="flex-1 relative bg-primary/5 rounded-lg"
+                  className='flex-1 relative bg-primary/5 rounded-lg'
                   style={{ 
                     height: activity.duration > 1 
                       ? `${HOUR_HEIGHT * activity.duration + (activity.duration - 1) * 8}px` 
@@ -347,9 +348,9 @@ export const MobileWeeklyActivitySchedule = ({
                   isAvailable={isAvailable}
                   showUnavailable={!!draggedActivity}
                 >
-                  <div className="h-full border-2 border-dashed border-gray-200 rounded-lg flex items-center justify-center">
+                  <div className='h-full border-2 border-dashed border-gray-200 rounded-lg flex items-center justify-center'>
                     {isAvailable && !draggedActivity && (
-                      <div className="text-xs text-gray-400">
+                      <div className='text-xs text-gray-400'>
                         Déposer ici
                       </div>
                     )}
@@ -361,14 +362,14 @@ export const MobileWeeklyActivitySchedule = ({
         })}
       </div>
       
-      <div className="mt-4 flex justify-center">
-        <TabsList className="grid grid-cols-7 w-full">
+      <div className='mt-4 flex justify-center'>
+        <TabsList className='grid grid-cols-7 w-full'>
           {dayKeys.map((day, index) => (
             <TabsTrigger 
               key={day} 
               value={day}
               onClick={() => setActiveDay(day)}
-              className={activeDay === day ? "bg-primary text-primary-foreground" : ""}
+              className={activeDay === day ? 'bg-primary text-primary-foreground' : ''}
             >
               {days[index].substring(0, 2)}
             </TabsTrigger>

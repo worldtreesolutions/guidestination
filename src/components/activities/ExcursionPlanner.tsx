@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { WeeklyActivitySchedule } from "@/components/activities/WeeklyActivitySchedule"
 import { MobileWeeklyActivitySchedule } from "@/components/activities/MobileWeeklyActivitySchedule"
@@ -108,65 +107,65 @@ export const ExcursionPlanner = () => {
   const totalActivities = selectedActivities.length + scheduledActivities.length
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+    <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8'>
       <DndContext
         sensors={sensors}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="mb-4 sm:mb-6">
-          <h1 className="text-2xl sm:text-3xl font-bold text-primary">Mon Planning Excursion</h1>
-          <p className="text-muted-foreground mt-2 text-sm sm:text-base">
+        <div className='mb-4 sm:mb-6'>
+          <h1 className='text-2xl sm:text-3xl font-bold text-primary'>Mon Planning Excursion</h1>
+          <p className='text-muted-foreground mt-2 text-sm sm:text-base'>
             Organisez votre séjour en glissant-déposant les activités sur le calendrier
           </p>
         </div>
 
         {isMobile ? (
           // Mobile Layout
-          <div className="space-y-4">
+          <div className='space-y-4'>
             {/* Mobile Navigation Tabs */}
-            <div className="flex border-b border-gray-200">
+            <div className='flex border-b border-gray-200 rounded-t-lg overflow-hidden'>
               <button
-                className={`flex-1 py-2 text-center font-medium ${
-                  activeTab === "calendar" 
-                    ? "text-primary border-b-2 border-primary" 
-                    : "text-gray-500"
+                className={`flex-1 py-3 text-center font-medium transition-colors ${
+                  activeTab === 'calendar' 
+                    ? 'text-primary border-b-2 border-primary bg-primary/5' 
+                    : 'text-gray-500 hover:bg-gray-50'
                 }`}
-                onClick={() => setActiveTab("calendar")}
+                onClick={() => setActiveTab('calendar')}
               >
-                <div className="flex items-center justify-center">
-                  <Calendar className="h-4 w-4 mr-2" />
+                <div className='flex items-center justify-center'>
+                  <Calendar className='h-4 w-4 mr-2' />
                   Calendrier
                 </div>
               </button>
               <button
-                className={`flex-1 py-2 text-center font-medium ${
-                  activeTab === "activities" 
-                    ? "text-primary border-b-2 border-primary" 
-                    : "text-gray-500"
+                className={`flex-1 py-3 text-center font-medium transition-colors ${
+                  activeTab === 'activities' 
+                    ? 'text-primary border-b-2 border-primary bg-primary/5' 
+                    : 'text-gray-500 hover:bg-gray-50'
                 }`}
-                onClick={() => setActiveTab("activities")}
+                onClick={() => setActiveTab('activities')}
               >
-                <div className="flex items-center justify-center">
-                  <MapPin className="h-4 w-4 mr-2" />
+                <div className='flex items-center justify-center'>
+                  <MapPin className='h-4 w-4 mr-2' />
                   Activités ({totalActivities})
                 </div>
               </button>
             </div>
 
             {/* Mobile Calendar View */}
-            {activeTab === "calendar" && (
-              <Card className="border-primary/20 shadow-lg">
-                <CardHeader className="pb-2 bg-primary/5 rounded-t-lg">
-                  <div className="flex items-center">
-                    <Calendar className="h-5 w-5 mr-2 text-primary" />
-                    <CardTitle className="text-lg font-bold">Calendrier des Activités</CardTitle>
+            {activeTab === 'calendar' && (
+              <Card className='border-primary/20 shadow-lg'>
+                <CardHeader className='pb-2 bg-primary/5 rounded-t-lg'>
+                  <div className='flex items-center'>
+                    <Calendar className='h-5 w-5 mr-2 text-primary' />
+                    <CardTitle className='text-lg font-bold'>Calendrier des Activités</CardTitle>
                   </div>
-                  <CardDescription className="text-xs">
+                  <CardDescription className='text-xs'>
                     Glissez-déposez vos activités pour planifier votre semaine
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="pt-4">
+                <CardContent className='pt-4 pb-6'>
                   <MobileWeeklyActivitySchedule
                     scheduledActivities={scheduledActivities}
                     draggedActivity={draggedActivity}
@@ -178,19 +177,19 @@ export const ExcursionPlanner = () => {
             )}
 
             {/* Mobile Activities View */}
-            {activeTab === "activities" && (
-              <div className="space-y-4">
-                <Card className="border-primary/20 shadow-lg">
-                  <CardHeader className="pb-2 bg-primary/5 rounded-t-lg">
-                    <div className="flex items-center">
-                      <MapPin className="h-5 w-5 mr-2 text-primary" />
-                      <CardTitle className="text-lg font-bold">Activités Sélectionnées</CardTitle>
+            {activeTab === 'activities' && (
+              <div className='space-y-4'>
+                <Card className='border-primary/20 shadow-lg'>
+                  <CardHeader className='pb-2 bg-primary/5 rounded-t-lg'>
+                    <div className='flex items-center'>
+                      <MapPin className='h-5 w-5 mr-2 text-primary' />
+                      <CardTitle className='text-lg font-bold'>Activités Sélectionnées</CardTitle>
                     </div>
-                    <CardDescription className="text-xs">
+                    <CardDescription className='text-xs'>
                       {totalActivities} activité{totalActivities !== 1 ? 's' : ''} sélectionnée{totalActivities !== 1 ? 's' : ''}
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="pt-4">
+                  <CardContent className='pt-4 pb-6'>
                     <SelectedActivitiesList
                       activities={selectedActivities}
                       onActivityRemove={handleActivityRemove}
@@ -198,17 +197,17 @@ export const ExcursionPlanner = () => {
                   </CardContent>
                 </Card>
                 
-                <Card className="border-primary/20 shadow-lg">
-                  <CardHeader className="pb-2 bg-primary/5 rounded-t-lg">
-                    <div className="flex items-center">
-                      <DollarSign className="h-5 w-5 mr-2 text-primary" />
-                      <CardTitle className="text-lg font-bold">Réservation</CardTitle>
+                <Card className='border-primary/20 shadow-lg'>
+                  <CardHeader className='pb-2 bg-primary/5 rounded-t-lg'>
+                    <div className='flex items-center'>
+                      <DollarSign className='h-5 w-5 mr-2 text-primary' />
+                      <CardTitle className='text-lg font-bold'>Réservation</CardTitle>
                     </div>
-                    <CardDescription className="text-xs">
+                    <CardDescription className='text-xs'>
                       Réservez toutes vos activités en un clic
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="pt-4">
+                  <CardContent className='pt-4 pb-6'>
                     <BulkBookingWidget
                       activities={[...selectedActivities, ...scheduledActivities]}
                       onClearSelection={clearActivities}
@@ -285,23 +284,23 @@ export const ExcursionPlanner = () => {
 
         <DragOverlay dropAnimation={null}>
           {draggedActivity && !isRemoving && (
-            <div className="relative w-[120px] h-[160px] sm:w-[150px] sm:h-[200px] rounded-lg overflow-hidden border-2 border-primary bg-white shadow-xl pointer-events-none">
+            <div className='relative w-[120px] h-[160px] sm:w-[150px] sm:h-[200px] rounded-lg overflow-hidden border-2 border-primary bg-white shadow-xl pointer-events-none'>
               <Image
                 src={draggedActivity.imageUrl}
                 alt={draggedActivity.title}
                 fill
-                className="object-cover"
+                className='object-cover'
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/30">
-                <div className="p-2 sm:p-3 text-white">
-                  <div className="font-medium text-xs sm:text-sm line-clamp-2">{draggedActivity.title}</div>
-                  <div className="flex flex-col gap-1 mt-1">
-                    <div className="text-xs bg-primary/80 rounded-full px-2 py-1 inline-flex items-center gap-1 w-fit">
-                      <Clock className="h-3 w-3" />
+              <div className='absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/30'>
+                <div className='p-2 sm:p-3 text-white'>
+                  <div className='font-medium text-xs sm:text-sm line-clamp-2'>{draggedActivity.title}</div>
+                  <div className='flex flex-col gap-1 mt-1'>
+                    <div className='text-xs bg-primary/80 rounded-full px-2 py-1 inline-flex items-center gap-1 w-fit'>
+                      <Clock className='h-3 w-3' />
                       {draggedActivity.duration}h
                     </div>
-                    <div className="text-xs bg-primary/80 rounded-full px-2 py-1 inline-flex items-center gap-1 w-fit">
-                      <MapPin className="h-3 w-3" />
+                    <div className='text-xs bg-primary/80 rounded-full px-2 py-1 inline-flex items-center gap-1 w-fit'>
+                      <MapPin className='h-3 w-3' />
                       ฿{draggedActivity.price.toLocaleString()}
                     </div>
                   </div>
