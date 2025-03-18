@@ -276,17 +276,17 @@ export const WeeklyActivitySchedule = ({
       <table className="w-full border-collapse">
         <thead>
           <tr className="bg-primary/10">
-            <th className="p-3 border-b border-r border-gray-200 w-20 text-primary-foreground">
+            <th className="p-3 border-b border-r border-gray-200 w-20 text-gray-800">
               <div className="flex items-center justify-center">
                 <Calendar className="h-4 w-4 mr-1" />
-                <span>Heure</span>
+                <span className="font-bold">Heure</span>
               </div>
             </th>
             {days.map((day, index) => (
-              <th key={day} className="p-3 border-b border-r border-gray-200 text-center font-medium w-[14.28%] text-primary-foreground">
+              <th key={day} className="p-3 border-b border-r border-gray-200 text-center font-medium w-[14.28%] text-gray-800">
                 <div className="flex flex-col items-center">
-                  <span className="text-sm font-bold">{day}</span>
-                  <span className="text-xs opacity-75">Jour {index + 1}</span>
+                  <span className="text-base font-bold">{day}</span>
+                  <span className="text-xs text-gray-600">Jour {index + 1}</span>
                 </div>
               </th>
             ))}
