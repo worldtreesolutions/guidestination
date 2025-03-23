@@ -32,25 +32,25 @@ export function PreferencesForm({ onSubmit }: PreferencesFormProps) {
   })
 
   const interests = [
-    "Culture & Histoire",
-    "Nature & Aventure",
-    "Gastronomie",
-    "Bien-être",
-    "Artisanat",
-    "Sport",
-    "Photographie",
-    "Vie nocturne"
+    "Culture & History",
+    "Nature & Adventure",
+    "Gastronomy",
+    "Wellness",
+    "Crafts",
+    "Sports",
+    "Photography",
+    "Nightlife"
   ]
 
   const timeSlots = [
-    "Matinée (8h-12h)",
-    "Après-midi (12h-17h)",
-    "Soirée (17h-22h)"
+    "Morning (8am-12pm)",
+    "Afternoon (12pm-5pm)",
+    "Evening (5pm-10pm)"
   ]
 
   const weekDays = [
-    "Lundi", "Mardi", "Mercredi", "Jeudi",
-    "Vendredi", "Samedi", "Dimanche"
+    "Monday", "Tuesday", "Wednesday", "Thursday",
+    "Friday", "Saturday", "Sunday"
   ]
 
   const handleInterestChange = (interest: string) => {
@@ -89,7 +89,7 @@ export function PreferencesForm({ onSubmit }: PreferencesFormProps) {
     <form onSubmit={handleSubmit} className="space-y-8">
       <Card>
         <CardHeader>
-          <CardTitle>Vos Centres d'Intérêt</CardTitle>
+          <CardTitle>Your Interests</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {interests.map((interest) => (
@@ -107,7 +107,7 @@ export function PreferencesForm({ onSubmit }: PreferencesFormProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Style de Voyage</CardTitle>
+          <CardTitle>Travel Style</CardTitle>
         </CardHeader>
         <CardContent>
           <RadioGroup
@@ -116,15 +116,15 @@ export function PreferencesForm({ onSubmit }: PreferencesFormProps) {
           >
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="relaxed" id="relaxed" />
-              <Label htmlFor="relaxed">Relaxé (1-2 activités par jour)</Label>
+              <Label htmlFor="relaxed">Relaxed (1-2 activities per day)</Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="balanced" id="balanced" />
-              <Label htmlFor="balanced">Équilibré (2-3 activités par jour)</Label>
+              <Label htmlFor="balanced">Balanced (2-3 activities per day)</Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="intensive" id="intensive" />
-              <Label htmlFor="intensive">Intensif (3+ activités par jour)</Label>
+              <Label htmlFor="intensive">Intensive (3+ activities per day)</Label>
             </div>
           </RadioGroup>
         </CardContent>
@@ -132,7 +132,7 @@ export function PreferencesForm({ onSubmit }: PreferencesFormProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Budget par Jour</CardTitle>
+          <CardTitle>Daily Budget</CardTitle>
         </CardHeader>
         <CardContent>
           <RadioGroup
@@ -141,11 +141,11 @@ export function PreferencesForm({ onSubmit }: PreferencesFormProps) {
           >
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="low" id="low" />
-              <Label htmlFor="low">Économique (&lt; 1000 THB)</Label>
+              <Label htmlFor="low">Budget (&lt; 1000 THB)</Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="medium" id="medium" />
-              <Label htmlFor="medium">Moyen (1000-3000 THB)</Label>
+              <Label htmlFor="medium">Standard (1000-3000 THB)</Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="high" id="high" />
@@ -157,7 +157,7 @@ export function PreferencesForm({ onSubmit }: PreferencesFormProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Jours Indisponibles</CardTitle>
+          <CardTitle>Unavailable Days</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {weekDays.map((day) => (
@@ -175,7 +175,7 @@ export function PreferencesForm({ onSubmit }: PreferencesFormProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Créneaux Horaires Préférés</CardTitle>
+          <CardTitle>Preferred Time Slots</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {timeSlots.map((slot) => (
@@ -193,11 +193,11 @@ export function PreferencesForm({ onSubmit }: PreferencesFormProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Notes Additionnelles</CardTitle>
+          <CardTitle>Additional Notes</CardTitle>
         </CardHeader>
         <CardContent>
           <Textarea
-            placeholder="Partagez d'autres préférences ou besoins spécifiques..."
+            placeholder="Share any other preferences or specific needs..."
             value={formData.additionalNotes}
             onChange={(e) => setFormData(prev => ({ ...prev, additionalNotes: e.target.value }))}
             className="min-h-[100px]"
@@ -206,7 +206,7 @@ export function PreferencesForm({ onSubmit }: PreferencesFormProps) {
       </Card>
 
       <Button type="submit" className="w-full">
-        Obtenir mes recommandations
+        Get My Recommendations
       </Button>
     </form>
   )

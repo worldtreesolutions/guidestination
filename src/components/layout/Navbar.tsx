@@ -16,7 +16,7 @@ export function Navbar() {
               <NavigationMenuItem>
                 <Link href="/recommendation" legacyBehavior passHref>
                   <NavigationMenuLink className="inline-flex h-10 items-center justify-center rounded-md bg-transparent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#22C55E] hover:text-white focus:bg-[#22C55E] focus:text-white focus:outline-none disabled:pointer-events-none disabled:opacity-50">
-                    Planning IA
+                    AI Planning
                   </NavigationMenuLink>
                 </Link>
               </NavigationMenuItem>
