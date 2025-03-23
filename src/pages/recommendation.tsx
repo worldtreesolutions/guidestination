@@ -4,7 +4,7 @@ import Head from "next/head"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { PreferencesForm, PreferencesFormData } from "@/components/recommendation/PreferencesForm"
-import { recommendActivities, RecommendedPlan, RecommendedActivity } from "@/services/recommendationService"
+import { recommendActivities, RecommendedPlan } from "@/services/recommendationService"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Loader2 } from "lucide-react"
@@ -53,8 +53,8 @@ export default function RecommendationPage() {
   return (
     <>
       <Head>
-        <title>Recommandations Personnalisées - Guidestination</title>
-        <meta name="description" content="Obtenez des recommandations d'activités personnalisées pour votre séjour à Chiang Mai" />
+        <title>Personalized Recommendations - Guidestination</title>
+        <meta name="description" content="Get personalized activity recommendations for your stay in Chiang Mai" />
       </Head>
 
       <div className="min-h-screen flex flex-col">
@@ -63,13 +63,13 @@ export default function RecommendationPage() {
         <main className="flex-1 py-12">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <h1 className="text-4xl font-bold text-center mb-8">
-              Planification Personnalisée
+              Personalized Planning
             </h1>
 
             {!recommendations && !loading && (
               <div className="space-y-6">
                 <p className="text-center text-lg mb-8">
-                  Partagez vos préférences pour obtenir un planning sur mesure
+                  Share your preferences to get a customized schedule
                 </p>
                 <PreferencesForm onSubmit={handleSubmit} />
               </div>
@@ -78,7 +78,7 @@ export default function RecommendationPage() {
             {loading && (
               <div className="flex flex-col items-center justify-center py-12">
                 <Loader2 className="h-12 w-12 animate-spin mb-4" />
-                <p className="text-lg">Création de votre planning personnalisé...</p>
+                <p className="text-lg">Creating your personalized schedule...</p>
               </div>
             )}
 
@@ -86,10 +86,10 @@ export default function RecommendationPage() {
               <div className="space-y-8">
                 <div className="flex justify-between items-center">
                   <h2 className="text-2xl font-semibold">
-                    Votre Planning Recommandé
+                    Your Recommended Plan
                   </h2>
                   <Button onClick={handleAddAllToPlanning}>
-                    Ajouter tout au planning
+                    Add All to Planning
                   </Button>
                 </div>
 
@@ -133,7 +133,7 @@ export default function RecommendationPage() {
                                 participants: 1
                               })}
                             >
-                              Ajouter au planning
+                              Add to Planning
                             </Button>
                           </div>
                         </CardContent>
@@ -144,13 +144,13 @@ export default function RecommendationPage() {
 
                 <Card>
                   <CardHeader>
-                    <CardTitle>Résumé</CardTitle>
+                    <CardTitle>Summary</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
-                      <p>Nombre de jours : {recommendations.numberOfDays}</p>
-                      <p>Budget total : {recommendations.totalPrice.toLocaleString()} THB</p>
-                      <p>Nombre d'activités : {recommendations.activities.length}</p>
+                      <p>Number of days: {recommendations.numberOfDays}</p>
+                      <p>Total budget: {recommendations.totalPrice.toLocaleString()} THB</p>
+                      <p>Number of activities: {recommendations.activities.length}</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -160,7 +160,7 @@ export default function RecommendationPage() {
                     variant="outline"
                     onClick={() => setRecommendations(null)}
                   >
-                    Recommencer
+                    Start Over
                   </Button>
                 </div>
               </div>

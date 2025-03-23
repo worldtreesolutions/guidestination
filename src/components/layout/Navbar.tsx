@@ -1,7 +1,6 @@
 
 import Link from "next/link"
 import { NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList } from "@/components/ui/navigation-menu"
-import { LanguageSelector } from "./LanguageSelector"
 
 export function Navbar() {
   return (
@@ -37,10 +36,6 @@ export function Navbar() {
               </NavigationMenuItem>
             </NavigationMenuList>
           </NavigationMenu>
-
-          <div className="flex items-center space-x-4">
-            <LanguageSelector />
-          </div>
         </div>
       </div>
     </header>
