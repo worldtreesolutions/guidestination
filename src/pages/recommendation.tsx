@@ -9,17 +9,11 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Loader2 } from "lucide-react"
 import Image from "next/image"
-import Link from "next/link"
 import { usePlanning } from "@/contexts/PlanningContext"
 
-interface PlanningActivity {
-  id: string
-  title: string
-  image: string
-  price: number
-  duration: string
-  timeSlot: string
-  day: string
+const parseDuration = (duration: string): number => {
+  const hours = parseInt(duration.replace("h", ""))
+  return isNaN(hours) ? 2 : hours
 }
 
 export default function RecommendationPage() {
@@ -41,17 +35,17 @@ export default function RecommendationPage() {
 
   const handleAddAllToPlanning = () => {
     if (recommendations) {
-      recommendations.activities.forEach((activity: RecommendedActivity) => {
-        const planningActivity: PlanningActivity = {
+      recommendations.activities.forEach((activity) => {
+        addActivity({
           id: activity.id,
           title: activity.title,
-          image: activity.image,
+          imageUrl: activity.image,
           price: activity.price,
-          duration: activity.duration,
-          timeSlot: activity.timeSlot,
-          day: activity.day
-        }
-        addActivity(planningActivity)
+          duration: parseDuration(activity.duration),
+          day: activity.day,
+          hour: 0,
+          participants: 1
+        })
       })
     }
   }
@@ -131,11 +125,12 @@ export default function RecommendationPage() {
                               onClick={() => addActivity({
                                 id: activity.id,
                                 title: activity.title,
-                                image: activity.image,
+                                imageUrl: activity.image,
                                 price: activity.price,
-                                duration: activity.duration,
-                                timeSlot: activity.timeSlot,
-                                day: activity.day
+                                duration: parseDuration(activity.duration),
+                                day: activity.day,
+                                hour: 0,
+                                participants: 1
                               })}
                             >
                               Ajouter au planning
