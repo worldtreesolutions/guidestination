@@ -4,13 +4,23 @@ import Head from "next/head"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { PreferencesForm, PreferencesFormData } from "@/components/recommendation/PreferencesForm"
-import { recommendActivities, RecommendedPlan } from "@/services/recommendationService"
+import { recommendActivities, RecommendedPlan, RecommendedActivity } from "@/services/recommendationService"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Loader2 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { usePlanning } from "@/contexts/PlanningContext"
+
+interface PlanningActivity {
+  id: string
+  title: string
+  image: string
+  price: number
+  duration: string
+  timeSlot: string
+  day: string
+}
 
 export default function RecommendationPage() {
   const [loading, setLoading] = useState(false)
@@ -31,8 +41,8 @@ export default function RecommendationPage() {
 
   const handleAddAllToPlanning = () => {
     if (recommendations) {
-      recommendations.activities.forEach(activity => {
-        addActivity({
+      recommendations.activities.forEach((activity: RecommendedActivity) => {
+        const planningActivity: PlanningActivity = {
           id: activity.id,
           title: activity.title,
           image: activity.image,
@@ -40,7 +50,8 @@ export default function RecommendationPage() {
           duration: activity.duration,
           timeSlot: activity.timeSlot,
           day: activity.day
-        })
+        }
+        addActivity(planningActivity)
       })
     }
   }
@@ -107,7 +118,7 @@ export default function RecommendationPage() {
                               <p className="text-muted-foreground">{activity.description}</p>
                             </div>
                             <div className="text-right">
-                              <p className="font-semibold">{activity.price} THB</p>
+                              <p className="font-semibold">{activity.price.toLocaleString()} THB</p>
                               <p className="text-sm text-muted-foreground">{activity.duration}</p>
                             </div>
                           </div>
@@ -143,7 +154,7 @@ export default function RecommendationPage() {
                   <CardContent>
                     <div className="space-y-2">
                       <p>Nombre de jours : {recommendations.numberOfDays}</p>
-                      <p>Budget total : {recommendations.totalPrice} THB</p>
+                      <p>Budget total : {recommendations.totalPrice.toLocaleString()} THB</p>
                       <p>Nombre d'activités : {recommendations.activities.length}</p>
                     </div>
                   </CardContent>
