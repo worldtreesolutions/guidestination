@@ -39,8 +39,8 @@ export default function ListActivityPage() {
               <BreadcrumbItem>
                 <ChevronRight className="h-4 w-4" />
               </BreadcrumbItem>
-              <BreadcrumbItem isCurrentPage>
-                <BreadcrumbLink>List Your Activity</BreadcrumbLink>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="#" aria-current="page">List Your Activity</BreadcrumbLink>
               </BreadcrumbItem>
             </Breadcrumb>
 

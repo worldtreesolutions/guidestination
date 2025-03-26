@@ -27,6 +27,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Upload, Image as ImageIcon } from 'lucide-react'
 import { WeeklyScheduleManager } from '@/components/activities/WeeklyScheduleManager'
 
+interface ActivityListingFormProps {
+  onProgress?: (progress: number) => void;
+  isDraft?: boolean;
+}
+
 const categories = [
   { value: "adventure", label: "Adventure" },
   { value: "nature", label: "Nature" },
@@ -65,7 +70,7 @@ const formSchema = z.object({
   googleBusinessUrl: z.string().optional(),
 })
 
-export const ActivityListingForm = () => {
+export const ActivityListingForm = ({ onProgress = () => {}, isDraft = false }: ActivityListingFormProps) => {
   const [showPickupDetails, setShowPickupDetails] = useState(false)
   const [showMealDetails, setShowMealDetails] = useState(false)
   const [basePrice, setBasePrice] = useState("")
@@ -81,6 +86,7 @@ export const ActivityListingForm = () => {
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     console.log(values)
+    onProgress(100)
   }
 
   const calculateFinalPrice = (basePrice: string) => {
