@@ -1,3 +1,4 @@
+
 import Link from "next/link"
 import { NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList } from "@/components/ui/navigation-menu"
 
@@ -36,6 +37,12 @@ export function Navbar() {
                
             </NavigationMenuList>
           </NavigationMenu>
+          
+          <div className="flex items-center space-x-4">
+            <Link href="/activity-owner/login" className="inline-flex h-10 items-center justify-center rounded-md bg-[#22C55E] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#1EA34D] focus:outline-none focus:ring-2 focus:ring-[#22C55E] focus:ring-offset-2">
+              Login
+            </Link>
+          </div>
         </div>
       </div>
     </header>
