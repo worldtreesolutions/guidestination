@@ -1,4 +1,3 @@
-
 import { ReactNode } from "react"
 import { useRouter } from "next/router"
 import Link from "next/link"
@@ -6,7 +5,15 @@ import { useAuth } from "@/contexts/AuthContext"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { Button } from "@/components/ui/button"
-import { Sidebar } from "@/components/ui/sidebar"
+import { 
+  Sidebar, 
+  SidebarContent, 
+  SidebarMenu, 
+  SidebarMenuItem, 
+  SidebarMenuButton,
+  SidebarHeader,
+  SidebarFooter
+} from "@/components/ui/sidebar"
 import { 
   LayoutDashboard, 
   CalendarDays, 
