@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
@@ -13,13 +14,13 @@ const categories = [
 
 export const CategoryNav = () => {
   return (
-    <div className='flex flex-col items-center justify-center'>
-      <div className='flex flex-wrap justify-center gap-3 max-w-4xl mx-auto'>
+    <div className="flex flex-col items-center justify-center">
+      <div className="flex flex-wrap justify-center gap-2 sm:gap-3 max-w-4xl mx-auto">
         {categories.map((category) => (
           <Button
             key={category.name}
-            variant='outline'
-            className='whitespace-nowrap'
+            variant="outline"
+            className="whitespace-nowrap text-xs sm:text-sm px-2 sm:px-4 h-8 sm:h-10"
             asChild
           >
             <Link href={category.href}>{category.name}</Link>

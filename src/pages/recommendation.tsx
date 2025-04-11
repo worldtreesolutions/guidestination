@@ -55,20 +55,21 @@ export default function RecommendationPage() {
       <Head>
         <title>Personalized Recommendations - Guidestination</title>
         <meta name="description" content="Get personalized activity recommendations for your stay in Chiang Mai" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </Head>
 
       <div className="min-h-screen flex flex-col">
         <Navbar />
         
-        <main className="flex-1 py-12">
+        <main className="flex-1 py-8 sm:py-12">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h1 className="text-4xl font-bold text-center mb-8">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-6 sm:mb-8">
               Personalized Planning
             </h1>
 
             {!recommendations && !loading && (
               <div className="space-y-6">
-                <p className="text-center text-lg mb-8">
+                <p className="text-center text-base sm:text-lg mb-6 sm:mb-8">
                   Share your preferences to get a customized schedule
                 </p>
                 <PreferencesForm onSubmit={handleSubmit} />
@@ -76,16 +77,16 @@ export default function RecommendationPage() {
             )}
 
             {loading && (
-              <div className="flex flex-col items-center justify-center py-12">
-                <Loader2 className="h-12 w-12 animate-spin mb-4" />
-                <p className="text-lg">Creating your personalized schedule...</p>
+              <div className="flex flex-col items-center justify-center py-8 sm:py-12">
+                <Loader2 className="h-10 w-10 sm:h-12 sm:w-12 animate-spin mb-4" />
+                <p className="text-base sm:text-lg">Creating your personalized schedule...</p>
               </div>
             )}
 
             {recommendations && (
-              <div className="space-y-8">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-2xl font-semibold">
+              <div className="space-y-6 sm:space-y-8">
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-0">
+                  <h2 className="text-xl sm:text-2xl font-semibold">
                     Your Recommended Plan
                   </h2>
                   <Button onClick={handleAddAllToPlanning}>
@@ -93,7 +94,7 @@ export default function RecommendationPage() {
                   </Button>
                 </div>
 
-                <div className="grid gap-6">
+                <div className="grid gap-4 sm:gap-6">
                   {recommendations.activities.map((activity) => (
                     <Card key={activity.id}>
                       <div className="flex flex-col md:flex-row">
@@ -105,23 +106,24 @@ export default function RecommendationPage() {
                             className="object-cover rounded-t-lg md:rounded-l-lg md:rounded-t-none"
                           />
                         </div>
-                        <CardContent className="flex-1 p-6">
-                          <div className="flex justify-between items-start mb-4">
+                        <CardContent className="flex-1 p-4 sm:p-6">
+                          <div className="flex flex-col sm:flex-row justify-between items-start gap-2 sm:gap-4 mb-4">
                             <div>
-                              <h3 className="text-xl font-semibold mb-2">{activity.title}</h3>
-                              <p className="text-muted-foreground">{activity.description}</p>
+                              <h3 className="text-lg sm:text-xl font-semibold mb-1 sm:mb-2">{activity.title}</h3>
+                              <p className="text-sm text-muted-foreground">{activity.description}</p>
                             </div>
-                            <div className="text-right">
+                            <div className="text-left sm:text-right mt-2 sm:mt-0">
                               <p className="font-semibold">{activity.price.toLocaleString()} THB</p>
                               <p className="text-sm text-muted-foreground">{activity.duration}</p>
                             </div>
                           </div>
-                          <div className="flex justify-between items-center">
+                          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                             <div className="space-y-1">
                               <p className="text-sm">{activity.day}</p>
                               <p className="text-sm text-muted-foreground">{activity.timeSlot}</p>
                             </div>
                             <Button
+                              className="w-full sm:w-auto"
                               onClick={() => addActivity({
                                 id: activity.id,
                                 title: activity.title,

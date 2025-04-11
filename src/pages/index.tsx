@@ -1,91 +1,91 @@
-import Head from 'next/head'
-import Image from 'next/image'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Navbar } from '@/components/layout/Navbar'
-import { Footer } from '@/components/layout/Footer'
-import { CategoryNav } from '@/components/home/CategoryNav'
-import { ActivityCard } from '@/components/home/ActivityCard'
-import { Search } from 'lucide-react'
-import { Calendar } from 'lucide-react'
-import { usePlanning } from '@/contexts/PlanningContext'
+
+import Head from "next/head"
+import Image from "next/image"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Navbar } from "@/components/layout/Navbar"
+import { Footer } from "@/components/layout/Footer"
+import { CategoryNav } from "@/components/home/CategoryNav"
+import { ActivityCard } from "@/components/home/ActivityCard"
+import { Search, Calendar } from "lucide-react"
+import { usePlanning } from "@/contexts/PlanningContext"
 
 export default function Home() {
   const { selectedActivities } = usePlanning()
 
   const featuredActivities = [
     {
-      title: 'Doi Suthep Temple & Hmong Village Tour',
-      image: 'https://images.unsplash.com/photo-1563492065599-3520f775eeed',
+      title: "Doi Suthep Temple & Hmong Village Tour",
+      image: "https://images.unsplash.com/photo-1563492065599-3520f775eeed",
       price: 1500,
-      location: 'Chiang Mai, Thailand',
+      location: "Chiang Mai, Thailand",
       rating: 5,
-      href: '/activities/doi-suthep'
+      href: "/activities/doi-suthep"
     },
     {
-      title: 'Traditional Thai Cooking Class with Organic Farm Visit',
-      image: 'https://images.unsplash.com/photo-1544025162-d76694265947',
+      title: "Traditional Thai Cooking Class with Organic Farm Visit",
+      image: "https://images.unsplash.com/photo-1544025162-d76694265947",
       price: 1200,
-      location: 'Chiang Mai, Thailand',
+      location: "Chiang Mai, Thailand",
       rating: 5,
-      href: '/activities/cooking-class'
+      href: "/activities/cooking-class"
     },
     {
-      title: 'Elephant Nature Park Sanctuary Experience',
-      image: 'https://images.unsplash.com/photo-1585970480901-90d6bb2a48b5',
+      title: "Elephant Nature Park Sanctuary Experience",
+      image: "https://images.unsplash.com/photo-1585970480901-90d6bb2a48b5",
       price: 2500,
-      location: 'Chiang Mai, Thailand',
+      location: "Chiang Mai, Thailand",
       rating: 5,
-      href: '/activities/elephant-sanctuary'
+      href: "/activities/elephant-sanctuary"
     },
     {
-      title: 'Thai Massage Workshop at Traditional Spa',
-      image: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874',
+      title: "Thai Massage Workshop at Traditional Spa",
+      image: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874",
       price: 1800,
-      location: 'Chiang Mai, Thailand',
+      location: "Chiang Mai, Thailand",
       rating: 5,
-      href: '/activities/massage-workshop'
+      href: "/activities/massage-workshop"
     },
     {
-      title: 'Night Market Food Tour & Local Delicacies',
-      image: 'https://images.unsplash.com/photo-1516211881327-e5120a941edc',
+      title: "Night Market Food Tour & Local Delicacies",
+      image: "https://images.unsplash.com/photo-1516211881327-e5120a941edc",
       price: 1000,
-      location: 'Chiang Mai, Thailand',
+      location: "Chiang Mai, Thailand",
       rating: 5,
-      href: '/activities/food-tour'
+      href: "/activities/food-tour"
     },
     {
-      title: 'Mountain Biking Adventure in Doi Suthep',
-      image: 'https://images.unsplash.com/photo-1544198365-f5d60b6d8190',
+      title: "Mountain Biking Adventure in Doi Suthep",
+      image: "https://images.unsplash.com/photo-1544198365-f5d60b6d8190",
       price: 2200,
-      location: 'Chiang Mai, Thailand',
+      location: "Chiang Mai, Thailand",
       rating: 4,
-      href: '/activities/mountain-biking'
+      href: "/activities/mountain-biking"
     },
     {
-      title: 'Traditional Ceramics Workshop in Sankamphaeng',
-      image: 'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261',
+      title: "Traditional Ceramics Workshop in Sankamphaeng",
+      image: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261",
       price: 1300,
-      location: 'Chiang Mai, Thailand',
+      location: "Chiang Mai, Thailand",
       rating: 5,
-      href: '/activities/ceramics-workshop'
+      href: "/activities/ceramics-workshop"
     },
     {
-      title: 'Sunset Temple Tour by Bicycle',
-      image: 'https://images.unsplash.com/photo-1528181304800-259b08848526',
+      title: "Sunset Temple Tour by Bicycle",
+      image: "https://images.unsplash.com/photo-1528181304800-259b08848526",
       price: 800,
-      location: 'Chiang Mai, Thailand',
+      location: "Chiang Mai, Thailand",
       rating: 4,
-      href: '/activities/temple-bike-tour'
+      href: "/activities/temple-bike-tour"
     },
     {
-      title: 'Meditation Retreat at Buddhist Temple',
-      image: 'https://images.unsplash.com/photo-1545389336-cf090694435e',
+      title: "Meditation Retreat at Buddhist Temple",
+      image: "https://images.unsplash.com/photo-1545389336-cf090694435e",
       price: 1600,
-      location: 'Chiang Mai, Thailand',
+      location: "Chiang Mai, Thailand",
       rating: 5,
-      href: '/activities/meditation-retreat'
+      href: "/activities/meditation-retreat"
     }
   ]
 
@@ -93,58 +93,61 @@ export default function Home() {
     <>
       <Head>
         <title>Guidestination Chiang Mai - Discover Amazing Local Experiences</title>
-        <meta name='description' content='Find and book unforgettable activities in Chiang Mai, recommended by trusted local partners' />
-        <link rel='icon' href='/favicon.ico' />
+        <meta name="description" content="Find and book unforgettable activities in Chiang Mai, recommended by trusted local partners" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+        <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <div className='min-h-screen flex flex-col'>
+      <div className="min-h-screen flex flex-col">
         <Navbar />
         
-        <main className='flex-1'>
+        <main className="flex-1">
           {selectedActivities.length > 0 && (
-            <div className='fixed bottom-4 right-4 z-50'>
-              <Link href='/planning'>
-                <Button size='lg' className='shadow-lg'>
-                  <Calendar className='h-5 w-5 mr-2' />
-                  Voir mon planning ({selectedActivities.length})
+            <div className="fixed bottom-4 right-4 z-40">
+              <Link href="/planning">
+                <Button size="lg" className="shadow-lg">
+                  <Calendar className="h-5 w-5 mr-2" />
+                  <span className="hidden sm:inline">Voir mon planning</span>
+                  <span className="sm:hidden">Planning</span> ({selectedActivities.length})
                 </Button>
               </Link>
             </div>
           )}
-          <section className='relative h-[600px]'>
-            <div className='absolute inset-0'>
+          
+          <section className="relative h-[400px] sm:h-[500px] md:h-[600px]">
+            <div className="absolute inset-0">
               <Image
-                src='https://images.unsplash.com/photo-1563492065599-3520f775eeed'
-                alt='Beautiful temple in Chiang Mai'
+                src="https://images.unsplash.com/photo-1563492065599-3520f775eeed"
+                alt="Beautiful temple in Chiang Mai"
                 fill
-                className='object-cover brightness-75'
+                className="object-cover brightness-75"
                 priority
               />
             </div>
-            <div className='relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-full flex flex-col items-center justify-center text-white'>
-              <h1 className='text-4xl md:text-6xl font-bold mb-6 text-center max-w-4xl'>
+            <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-full flex flex-col items-center justify-center text-white">
+              <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-4 sm:mb-6 text-center max-w-4xl">
                 Discover the Magic of Chiang Mai
               </h1>
-              <div className='w-full max-w-2xl flex gap-2 bg-white/10 backdrop-blur-md p-2 rounded-lg'>
+              <div className="w-full max-w-2xl flex flex-col sm:flex-row gap-2 bg-white/10 backdrop-blur-md p-2 rounded-lg">
                 <Input
-                  placeholder='Search for activities in Chiang Mai...'
-                  className='bg-white/80'
+                  placeholder="Search for activities..."
+                  className="bg-white/80 flex-1"
                 />
-                <Button>
-                  <Search className='h-5 w-5 mr-2' />
+                <Button className="w-full sm:w-auto mt-2 sm:mt-0">
+                  <Search className="h-5 w-5 mr-2" />
                   Search
                 </Button>
               </div>
             </div>
           </section>
 
-          <section className='py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
+          <section className="py-8 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <CategoryNav />
           </section>
 
-          <section className='py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-            <h2 className='text-3xl font-bold text-center mb-8'>Popular Experiences in Chiang Mai</h2>
-            <div className='grid md:grid-cols-2 lg:grid-cols-3 gap-6'>
+          <section className="py-8 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-2xl sm:text-3xl font-bold text-center mb-6 sm:mb-8">Popular Experiences in Chiang Mai</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {featuredActivities.map((activity) => (
                 <ActivityCard key={activity.href} {...activity} />
               ))}
