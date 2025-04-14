@@ -15,48 +15,46 @@ export function Navbar() {
             <span className="text-xl font-bold text-[#22C55E]">Guidestination</span>
           </Link>
           
-          {!isMobile ? (
-            <NavigationMenu className="hidden md:flex flex-1 justify-center">
-              <NavigationMenuList className="space-x-1 lg:space-x-4">
-                <NavigationMenuItem>
-                  <Link href="/recommendation" legacyBehavior passHref>
-                    <NavigationMenuLink className="inline-flex h-10 items-center justify-center rounded-md bg-transparent px-2 lg:px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#22C55E] hover:text-white focus:bg-[#22C55E] focus:text-white focus:outline-none disabled:pointer-events-none disabled:opacity-50">
-                      AI Planning
-                    </NavigationMenuLink>
-                  </Link>
-                </NavigationMenuItem>
-                <NavigationMenuItem>
-                  <Link href="/activity-owner" legacyBehavior passHref>
-                    <NavigationMenuLink className="inline-flex h-10 items-center justify-center rounded-md bg-transparent px-2 lg:px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#22C55E] hover:text-white focus:bg-[#22C55E] focus:text-white focus:outline-none disabled:pointer-events-none disabled:opacity-50">
-                      List Your Activities
-                    </NavigationMenuLink>
-                  </Link>
-                </NavigationMenuItem>
-                <NavigationMenuItem>
-                  <Link href="/partner" legacyBehavior passHref>
-                    <NavigationMenuLink className="inline-flex h-10 items-center justify-center rounded-md bg-transparent px-2 lg:px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#22C55E] hover:text-white focus:bg-[#22C55E] focus:text-white focus:outline-none disabled:pointer-events-none disabled:opacity-50">
-                      Become a Partner
-                    </NavigationMenuLink>
-                  </Link>
-                </NavigationMenuItem>
-                <NavigationMenuItem>
-                  <Link href="/activity-owner/dashboard" legacyBehavior passHref>
-                    <NavigationMenuLink className="inline-flex h-10 items-center justify-center rounded-md bg-transparent px-2 lg:px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#22C55E] hover:text-white focus:bg-[#22C55E] focus:text-white focus:outline-none disabled:pointer-events-none disabled:opacity-50">
-                      Provider Dashboard
-                    </NavigationMenuLink>
-                  </Link>
-                </NavigationMenuItem>
-              </NavigationMenuList>
-            </NavigationMenu>
-          ) : null}
+          <NavigationMenu className="hidden md:flex flex-1 justify-center">
+            <NavigationMenuList className="space-x-1 lg:space-x-4">
+              <NavigationMenuItem>
+                <Link href="/recommendation" legacyBehavior passHref>
+                  <NavigationMenuLink className="inline-flex h-10 items-center justify-center rounded-md bg-transparent px-2 lg:px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#22C55E] hover:text-white focus:bg-[#22C55E] focus:text-white focus:outline-none disabled:pointer-events-none disabled:opacity-50">
+                    AI Planning
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <Link href="/activity-owner" legacyBehavior passHref>
+                  <NavigationMenuLink className="inline-flex h-10 items-center justify-center rounded-md bg-transparent px-2 lg:px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#22C55E] hover:text-white focus:bg-[#22C55E] focus:text-white focus:outline-none disabled:pointer-events-none disabled:opacity-50">
+                    List Your Activities
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <Link href="/partner" legacyBehavior passHref>
+                  <NavigationMenuLink className="inline-flex h-10 items-center justify-center rounded-md bg-transparent px-2 lg:px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#22C55E] hover:text-white focus:bg-[#22C55E] focus:text-white focus:outline-none disabled:pointer-events-none disabled:opacity-50">
+                    Become a Partner
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <Link href="/activity-owner/dashboard" legacyBehavior passHref>
+                  <NavigationMenuLink className="inline-flex h-10 items-center justify-center rounded-md bg-transparent px-2 lg:px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#22C55E] hover:text-white focus:bg-[#22C55E] focus:text-white focus:outline-none disabled:pointer-events-none disabled:opacity-50">
+                    Provider Dashboard
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+            </NavigationMenuList>
+          </NavigationMenu>
           
           <div className="flex items-center space-x-4">
-            {!isMobile ? (
-              <Link href="/activity-owner/login" className="hidden md:inline-flex h-10 items-center justify-center rounded-md bg-[#22C55E] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#1EA34D] focus:outline-none focus:ring-2 focus:ring-[#22C55E] focus:ring-offset-2">
-                Login
-              </Link>
-            ) : null}
-            <MobileMenu />
+            <Link href="/activity-owner/login" className="hidden md:inline-flex h-10 items-center justify-center rounded-md bg-[#22C55E] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#1EA34D] focus:outline-none focus:ring-2 focus:ring-[#22C55E] focus:ring-offset-2">
+              Login
+            </Link>
+            <div className="md:hidden">
+              <MobileMenu />
+            </div>
           </div>
         </div>
       </div>
