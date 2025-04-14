@@ -86,7 +86,7 @@ export function ProviderLayout({ children }: ProviderLayoutProps) {
               <Button 
                 variant='outline' 
                 size='icon' 
-                className='fixed left-4 top-20 z-40 md:hidden'
+                className='fixed left-4 top-4 z-40 md:hidden'
               >
                 <Menu className='h-5 w-5' />
                 <span className='sr-only'>Toggle menu</span>
@@ -98,7 +98,7 @@ export function ProviderLayout({ children }: ProviderLayoutProps) {
           </Sheet>
         ) : (
           <div className='hidden md:block w-[240px] shrink-0'>
-            <div className='sticky top-16 h-[calc(100vh-4rem)]'>
+            <div className='sticky top-0 h-screen'>
               <DashboardSidebar />
             </div>
           </div>
