@@ -11,79 +11,81 @@ import { ActivityList } from "@/components/activity-owner/dashboard/ActivityList
 import { activityService, Activity, Booking } from "@/services/activityService"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 export default function DashboardPage() {
-  const { user, isAuthenticated } = useAuth();
-  const router = useRouter();
-  const { toast } = useToast();
-  const [activities, setActivities] = useState<Activity[]>([]);
-  const [bookings, setBookings] = useState<Booking[]>([]);
+  const { user, isAuthenticated } = useAuth()
+  const router = useRouter()
+  const { toast } = useToast()
+  const isMobile = useIsMobile()
+  const [activities, setActivities] = useState<Activity[]>([])
+  const [bookings, setBookings] = useState<Booking[]>([])
   const [earnings, setEarnings] = useState<{
-    total: number;
-    monthly: { month: string; amount: number }[];
-    pending: number;
+    total: number
+    monthly: { month: string; amount: number }[]
+    pending: number
   }>({
     total: 0,
     monthly: [],
     pending: 0
-  });
-  const [loading, setLoading] = useState(true);
-  const [activityToDelete, setActivityToDelete] = useState<string | null>(null);
+  })
+  const [loading, setLoading] = useState(true)
+  const [activityToDelete, setActivityToDelete] = useState<string | null>(null)
 
   useEffect(() => {
     if (!isAuthenticated) {
-      router.push("/activity-owner/login");
-      return;
+      router.push("/activity-owner/login")
+      return
     }
 
     const fetchData = async () => {
-      if (!user) return;
+      if (!user) return
       
       try {
         const [activitiesData, bookingsData, earningsData] = await Promise.all([
           activityService.getActivitiesByProvider(user.id),
           activityService.getBookingsByProvider(user.id),
           activityService.getProviderEarnings(user.id)
-        ]);
+        ])
         
-        setActivities(activitiesData);
-        setBookings(bookingsData);
-        setEarnings(earningsData);
+        setActivities(activitiesData)
+        setBookings(bookingsData)
+        setEarnings(earningsData)
       } catch (error) {
-        console.error("Error fetching dashboard data:", error);
+        console.error("Error fetching dashboard data:", error)
         toast({
           title: "Error",
           description: "Failed to load dashboard data. Please try again.",
           variant: "destructive"
-        });
+        })
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    fetchData();
-  }, [user, isAuthenticated, router, toast]);
+    fetchData()
+  }, [user, isAuthenticated, router, toast])
 
   const handleDeleteActivity = async () => {
-    if (!activityToDelete) return;
+    if (!activityToDelete) return
     
     try {
-      await activityService.deleteActivity(activityToDelete);
-      setActivities(activities.filter(activity => activity.id !== activityToDelete));
+      await activityService.deleteActivity(activityToDelete)
+      setActivities(activities.filter(activity => activity.id !== activityToDelete))
       toast({
         title: "Activity deleted",
-        description: "The activity has been successfully deleted.",
-      });
+        description: "The activity has been successfully deleted."
+      })
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to delete activity. Please try again.",
         variant: "destructive"
-      });
+      })
     } finally {
-      setActivityToDelete(null);
+      setActivityToDelete(null)
     }
-  };
+  }
 
   if (loading || !user) {
     return (
@@ -92,7 +94,7 @@ export default function DashboardPage() {
           <p>Loading dashboard...</p>
         </div>
       </ProviderLayout>
-    );
+    )
   }
 
   return (
@@ -142,5 +144,5 @@ export default function DashboardPage() {
         </AlertDialog>
       </ProviderLayout>
     </>
-  );
+  )
 }

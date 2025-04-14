@@ -1,4 +1,4 @@
-import { ReactNode } from "react"
+import { ReactNode, useState } from "react"
 import { useRouter } from "next/router"
 import Link from "next/link"
 import { useAuth } from "@/contexts/AuthContext"
@@ -21,8 +21,12 @@ import {
   DollarSign, 
   Settings, 
   LogOut,
-  Users
+  Users,
+  Menu
 } from "lucide-react"
+import { DashboardSidebar } from './DashboardSidebar'
+import { useIsMobile } from '@/hooks/use-mobile'
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 
 interface ProviderLayoutProps {
   children: ReactNode;
@@ -31,6 +35,8 @@ interface ProviderLayoutProps {
 export function ProviderLayout({ children }: ProviderLayoutProps) {
   const { user, logout } = useAuth();
   const router = useRouter();
+  const isMobile = useIsMobile()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const handleLogout = async () => {
     await logout();
@@ -73,35 +79,34 @@ export function ProviderLayout({ children }: ProviderLayoutProps) {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      
       <div className="flex-1 flex">
-        <Sidebar
-          className="hidden md:flex"
-          navigationItems={navigationItems}
-          user={{
-            name: user?.businessName || "Activity Provider",
-            email: user?.email || "",
-            imageUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-          }}
-          accountNavigation={[
-            {
-              title: "Profile",
-              href: "/activity-owner/settings",
-              icon: <Settings className="h-5 w-5" />,
-            },
-            {
-              title: "Logout",
-              onClick: handleLogout,
-              icon: <LogOut className="h-5 w-5" />,
-            }
-          ]}
-        />
-        
-        <div className="flex-1 p-8">
+        {isMobile ? (
+          <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+            <SheetTrigger asChild>
+              <Button 
+                variant='outline' 
+                size='icon' 
+                className='fixed left-4 top-20 z-40 md:hidden'
+              >
+                <Menu className='h-5 w-5' />
+                <span className='sr-only'>Toggle menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side='left' className='p-0 w-[240px]'>
+              <DashboardSidebar />
+            </SheetContent>
+          </Sheet>
+        ) : (
+          <div className='hidden md:block w-[240px] shrink-0'>
+            <div className='sticky top-16 h-[calc(100vh-4rem)]'>
+              <DashboardSidebar />
+            </div>
+          </div>
+        )}
+        <main className='flex-1 py-6 px-4 sm:px-6 md:px-8'>
           {children}
-        </div>
+        </main>
       </div>
-      
       <Footer />
     </div>
   );
