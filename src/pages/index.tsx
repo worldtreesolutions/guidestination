@@ -1,4 +1,3 @@
-
 import Head from "next/head"
 import Image from "next/image"
 import Link from "next/link"
@@ -93,61 +92,61 @@ export default function Home() {
     <>
       <Head>
         <title>Guidestination Chiang Mai - Discover Amazing Local Experiences</title>
-        <meta name="description" content="Find and book unforgettable activities in Chiang Mai, recommended by trusted local partners" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
+        <meta name='description' content='Find and book unforgettable activities in Chiang Mai, recommended by trusted local partners' />
+        <meta name='viewport' content='width=device-width, initial-scale=1, maximum-scale=1' />
+        <link rel='icon' href='/favicon.ico' />
       </Head>
 
-      <div className="min-h-screen flex flex-col">
+      <div className='min-h-screen flex flex-col'>
         <Navbar />
         
-        <main className="flex-1">
+        <main className='flex-1'>
           {selectedActivities.length > 0 && (
-            <div className="fixed bottom-4 right-4 z-40">
-              <Link href="/planning">
-                <Button size="lg" className="shadow-lg">
-                  <Calendar className="h-5 w-5 mr-2" />
-                  <span className="hidden sm:inline">Voir mon planning</span>
-                  <span className="sm:hidden">Planning</span> ({selectedActivities.length})
+            <div className='fixed bottom-4 right-4 z-40'>
+              <Link href='/planning'>
+                <Button size='lg' className='shadow-lg'>
+                  <Calendar className='h-5 w-5 mr-2' />
+                  <span className='hidden sm:inline'>View planning</span>
+                  <span className='sm:hidden'>Planning</span> ({selectedActivities.length})
                 </Button>
               </Link>
             </div>
           )}
           
-          <section className="relative h-[400px] sm:h-[500px] md:h-[600px]">
-            <div className="absolute inset-0">
+          <section className='relative h-[350px] sm:h-[450px] md:h-[550px]'>
+            <div className='absolute inset-0'>
               <Image
-                src="https://images.unsplash.com/photo-1563492065599-3520f775eeed"
-                alt="Beautiful temple in Chiang Mai"
+                src='https://images.unsplash.com/photo-1563492065599-3520f775eeed'
+                alt='Beautiful temple in Chiang Mai'
                 fill
-                className="object-cover brightness-75"
+                className='object-cover brightness-75'
                 priority
               />
             </div>
-            <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-full flex flex-col items-center justify-center text-white">
-              <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-4 sm:mb-6 text-center max-w-4xl">
+            <div className='relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-full flex flex-col items-center justify-center text-white'>
+              <h1 className='text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 text-center max-w-4xl'>
                 Discover the Magic of Chiang Mai
               </h1>
-              <div className="w-full max-w-2xl flex flex-col sm:flex-row gap-2 bg-white/10 backdrop-blur-md p-2 rounded-lg">
+              <div className='w-full max-w-2xl flex flex-col sm:flex-row gap-2 bg-white/10 backdrop-blur-md p-2 rounded-lg'>
                 <Input
-                  placeholder="Search for activities..."
-                  className="bg-white/80 flex-1"
+                  placeholder='Search for activities...'
+                  className='bg-white/80 flex-1'
                 />
-                <Button className="w-full sm:w-auto mt-2 sm:mt-0">
-                  <Search className="h-5 w-5 mr-2" />
+                <Button className='w-full sm:w-auto mt-2 sm:mt-0'>
+                  <Search className='h-5 w-5 mr-2' />
                   Search
                 </Button>
               </div>
             </div>
           </section>
 
-          <section className="py-8 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <section className='py-6 sm:py-8 md:py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
             <CategoryNav />
           </section>
 
-          <section className="py-8 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-2xl sm:text-3xl font-bold text-center mb-6 sm:mb-8">Popular Experiences in Chiang Mai</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <section className='py-6 sm:py-8 md:py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
+            <h2 className='text-xl sm:text-2xl md:text-3xl font-bold text-center mb-4 sm:mb-6 md:mb-8'>Popular Experiences in Chiang Mai</h2>
+            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6'>
               {featuredActivities.map((activity) => (
                 <ActivityCard key={activity.href} {...activity} />
               ))}

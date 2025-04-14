@@ -1,6 +1,6 @@
-
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import { useIsMobile } from '@/hooks/use-mobile'
 
 const categories = [
   { name: "Adventure", href: "/category/adventure" },
@@ -13,9 +13,11 @@ const categories = [
 ]
 
 export const CategoryNav = () => {
+  const isMobile = useIsMobile()
+  
   return (
-    <div className="flex flex-col items-center justify-center">
-      <div className="flex flex-wrap justify-center gap-2 sm:gap-3 max-w-4xl mx-auto">
+    <div className='flex flex-col items-center justify-center w-full overflow-x-auto'>
+      <div className='flex flex-wrap justify-center gap-2 sm:gap-3 max-w-4xl mx-auto'>
         {categories.map((category) => (
           <Button
             key={category.name}
