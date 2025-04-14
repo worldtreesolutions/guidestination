@@ -1,4 +1,3 @@
-
 import { useState } from "react"
 import Head from "next/head"
 import Image from "next/image"
@@ -10,9 +9,11 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Heart, Share2, Clock, Users, Globe, MapPin } from "lucide-react"
 import { ActivityDetails } from "@/components/activities/ActivityDetails"
 import { BookingWidget } from "@/components/activities/BookingWidget"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 export default function ActivityPage() {
   const [selectedDate, setSelectedDate] = useState<Date>()
+  const isMobile = useIsMobile()
 
   return (
     <>
@@ -74,9 +75,15 @@ export default function ActivityPage() {
               </div>
 
               <div className="lg:col-span-1">
-                <div className="sticky top-20">
-                  <BookingWidget />
-                </div>
+                {isMobile ? (
+                  <div className="mt-6">
+                    <BookingWidget />
+                  </div>
+                ) : (
+                  <div className="sticky top-20">
+                    <BookingWidget />
+                  </div>
+                )}
               </div>
             </div>
           </div>

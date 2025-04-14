@@ -1,4 +1,3 @@
-
 import { useState } from "react"
 import Head from "next/head"
 import { Navbar } from "@/components/layout/Navbar"
@@ -10,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Loader2 } from "lucide-react"
 import Image from "next/image"
 import { usePlanning } from "@/contexts/PlanningContext"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 const parseDuration = (duration: string): number => {
   const hours = parseInt(duration.replace("h", ""))
@@ -20,6 +20,7 @@ export default function RecommendationPage() {
   const [loading, setLoading] = useState(false)
   const [recommendations, setRecommendations] = useState<RecommendedPlan | null>(null)
   const { addActivity } = usePlanning()
+  const isMobile = useIsMobile()
 
   const handleSubmit = async (data: PreferencesFormData) => {
     setLoading(true)

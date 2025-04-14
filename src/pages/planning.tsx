@@ -1,17 +1,19 @@
-
 import { ExcursionPlanner } from "@/components/activities/ExcursionPlanner"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import Head from "next/head"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 export default function PlanningPage() {
+  const isMobile = useIsMobile()
+  
   return (
     <>
       <Head>
-        <title>Mon Planning Excursion | Guidestination</title>
+        <title>Your Activity Planning | Guidestination</title>
         <meta
           name="description"
-          content="Planifiez vos activités et excursions à Chiang Mai avec notre planificateur hebdomadaire interactif"
+          content="Plan your activities and excursions in Chiang Mai with our interactive weekly planner"
         />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </Head>
