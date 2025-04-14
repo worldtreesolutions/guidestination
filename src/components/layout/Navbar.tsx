@@ -11,12 +11,14 @@ export function Navbar() {
     <header className="border-b bg-black sticky top-0 z-50 w-full">
       <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
-          <Link href="/" className="flex items-center space-x-2 shrink-0">
-            <span className="text-xl font-bold text-[#22C55E]">Guidestination</span>
-          </Link>
+          <div className="flex items-center">
+            <Link href="/" className="flex items-center space-x-2">
+              <span className="text-lg sm:text-xl font-bold text-[#22C55E]">Guidestination</span>
+            </Link>
+          </div>
           
-          <NavigationMenu className="hidden md:flex flex-1 justify-center">
-            <NavigationMenuList className="space-x-1 lg:space-x-4">
+          <NavigationMenu className="hidden md:flex flex-1 justify-center max-w-full overflow-x-auto">
+            <NavigationMenuList className="space-x-1 lg:space-x-4 flex-wrap justify-center">
               <NavigationMenuItem>
                 <Link href="/recommendation" legacyBehavior passHref>
                   <NavigationMenuLink className="inline-flex h-10 items-center justify-center rounded-md bg-transparent px-2 lg:px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#22C55E] hover:text-white focus:bg-[#22C55E] focus:text-white focus:outline-none disabled:pointer-events-none disabled:opacity-50">
@@ -48,7 +50,7 @@ export function Navbar() {
             </NavigationMenuList>
           </NavigationMenu>
           
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center">
             <Link href="/activity-owner/login" className="hidden md:inline-flex h-10 items-center justify-center rounded-md bg-[#22C55E] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#1EA34D] focus:outline-none focus:ring-2 focus:ring-[#22C55E] focus:ring-offset-2">
               Login
             </Link>

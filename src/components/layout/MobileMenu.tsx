@@ -22,7 +22,7 @@ export function MobileMenu() {
           <span className='sr-only'>Toggle menu</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side='right' className='w-[80vw] sm:w-[350px] bg-black border-l border-gray-800'>
+      <SheetContent side='right' className='w-[80vw] max-w-[350px] bg-black border-l border-gray-800 p-4'>
         <div className='flex flex-col h-full'>
           <div className='flex items-center justify-between mb-6'>
             <Link href='/' className='flex items-center' onClick={() => setOpen(false)}>
