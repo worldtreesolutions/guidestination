@@ -123,7 +123,7 @@ export default function ActivitiesPage() {
                               {activity.duration} hours
                             </span>
                             <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold">
-                              {activity.price.toLocaleString()} THB
+                              {activity.price} THB
                             </span>
                           </div>
                         </div>

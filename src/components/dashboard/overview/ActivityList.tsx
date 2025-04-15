@@ -49,7 +49,7 @@ export function ActivityList({ activities, onDelete }: ActivityListProps) {
                 <div>
                   <h3 className="font-medium">{activity.title}</h3>
                   <p className="text-sm text-muted-foreground mt-1">
-                    {activity.price.toLocaleString()} THB · {activity.duration} hours
+                    {activity.price} THB · {activity.duration} hours
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
