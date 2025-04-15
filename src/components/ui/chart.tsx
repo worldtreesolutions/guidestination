@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -391,7 +392,144 @@ export function BarChart({
         },
       }}
     >
-      <RechartsPrimitive.BarChart data={data} layout="horizontal" />
+      <RechartsPrimitive.BarChart data={data}>
+        <RechartsPrimitive.XAxis
+          dataKey={index}
+          stroke="#888888"
+          fontSize={12}
+          tickLine={false}
+          axisLine={false}
+        />
+        <RechartsPrimitive.YAxis
+          width={yAxisWidth}
+          stroke="#888888"
+          fontSize={12}
+          tickLine={false}
+          axisLine={false}
+          tickFormatter={(value) => valueFormatter?.(value) ?? value}
+        />
+        <RechartsPrimitive.CartesianGrid vertical={false} strokeDasharray="3 3" />
+        <RechartsPrimitive.Tooltip
+          content={({ active, payload }) => {
+            if (active && payload && payload.length) {
+              return (
+                <div className="rounded-lg border bg-background p-2 shadow-sm">
+                  <div className="grid grid-cols-2 gap-2">
+                    {payload.map((category, i) => (
+                      <div key={`item-${i}`} className="flex flex-col">
+                        <span className="text-[0.70rem] uppercase text-muted-foreground">
+                          {category.name}
+                        </span>
+                        <span className="font-bold text-muted-foreground">
+                          {valueFormatter
+                            ? valueFormatter(category.value as number)
+                            : category.value}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            }
+            return null
+          }}
+        />
+        {categories.map((category, i) => (
+          <RechartsPrimitive.Bar
+            key={`bar-${i}`}
+            dataKey={category}
+            fill={colors?.[i % colors.length] ?? "#22C55E"}
+            radius={4}
+            isAnimationActive={showAnimation}
+          />
+        ))}
+      </RechartsPrimitive.BarChart>
+    </ChartContainer>
+  )
+}
+
+// Add LineChart component
+export function LineChart({
+  data,
+  categories,
+  index,
+  colors,
+  valueFormatter,
+  yAxisWidth = 56,
+  showAnimation = true,
+}: {
+  data: any[]
+  categories: string[]
+  index: string
+  colors?: string[]
+  valueFormatter?: (value: number) => string
+  yAxisWidth?: number
+  showAnimation?: boolean
+}) {
+  return (
+    <ChartContainer
+      config={{
+        // Set up a default config
+        total: {
+          color: colors?.[0] ?? "#22C55E",
+        },
+      }}
+    >
+      <RechartsPrimitive.LineChart data={data}>
+        <RechartsPrimitive.XAxis
+          dataKey={index}
+          stroke="#888888"
+          fontSize={12}
+          tickLine={false}
+          axisLine={false}
+        />
+        <RechartsPrimitive.YAxis
+          width={yAxisWidth}
+          stroke="#888888"
+          fontSize={12}
+          tickLine={false}
+          axisLine={false}
+          tickFormatter={(value) => valueFormatter?.(value) ?? value}
+        />
+        <RechartsPrimitive.CartesianGrid vertical={false} strokeDasharray="3 3" />
+        <RechartsPrimitive.Tooltip
+          content={({ active, payload }) => {
+            if (active && payload && payload.length) {
+              return (
+                <div className="rounded-lg border bg-background p-2 shadow-sm">
+                  <div className="grid grid-cols-2 gap-2">
+                    {payload.map((category, i) => (
+                      <div key={`item-${i}`} className="flex flex-col">
+                        <span className="text-[0.70rem] uppercase text-muted-foreground">
+                          {category.name}
+                        </span>
+                        <span className="font-bold text-muted-foreground">
+                          {valueFormatter
+                            ? valueFormatter(category.value as number)
+                            : category.value}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            }
+            return null
+          }}
+        />
+        {categories.map((category, i) => (
+          <RechartsPrimitive.Line
+            key={`line-${i}`}
+            type="monotone"
+            dataKey={category}
+            stroke={colors?.[i % colors.length] ?? "#22C55E"}
+            strokeWidth={2}
+            dot={{ r: 4, strokeWidth: 2 }}
+            activeDot={{ r: 6, strokeWidth: 2 }}
+            isAnimationActive={showAnimation}
+          />
+        ))}
+      </RechartsPrimitive.LineChart>
     </ChartContainer>
   )
 }
