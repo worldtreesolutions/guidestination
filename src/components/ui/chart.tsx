@@ -363,3 +363,35 @@ export {
   ChartLegendContent,
   ChartStyle,
 }
+
+// Add BarChart component
+export function BarChart({
+  data,
+  categories,
+  index,
+  colors,
+  valueFormatter,
+  yAxisWidth = 56,
+  showAnimation = true,
+}: {
+  data: any[]
+  categories: string[]
+  index: string
+  colors?: string[]
+  valueFormatter?: (value: number) => string
+  yAxisWidth?: number
+  showAnimation?: boolean
+}) {
+  return (
+    <ChartContainer
+      config={{
+        // Set up a default config
+        total: {
+          color: colors?.[0] ?? "#22C55E",
+        },
+      }}
+    >
+      <RechartsPrimitive.BarChart data={data} layout="horizontal" />
+    </ChartContainer>
+  )
+}
