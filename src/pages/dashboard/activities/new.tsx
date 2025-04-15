@@ -1,4 +1,3 @@
-
 import { useState } from "react"
 import { useRouter } from "next/router"
 import Head from "next/head"
@@ -35,11 +34,14 @@ import {
 import { Switch } from "@/components/ui/switch"
 import { activityService, Activity } from "@/services/activityService"
 import { useToast } from "@/hooks/use-toast"
-import { ArrowLeft, Plus, Trash } from "lucide-react"
+import { ArrowLeft, Plus, Trash, CalendarIcon } from "lucide-react"
 import Link from "next/link"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { Calendar } from "@/components/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { format } from "date-fns"
 
 const formSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters"),
@@ -57,7 +59,10 @@ const formSchema = z.object({
   highlights: z.array(z.string()).min(1, "At least one highlight is required"),
   included: z.array(z.string()).min(1, "At least one included item is required"),
   notIncluded: z.array(z.string()).optional(),
-  images: z.array(z.string()).min(1, "At least one image is required")
+  images: z.array(z.string()).min(1, "At least one image is required"),
+  scheduleDates: z.array(z.date()).optional(),
+  startTime: z.string().optional(),
+  endTime: z.string().optional(),
 })
 
 type FormValues = z.infer<typeof formSchema>
@@ -86,7 +91,10 @@ export default function NewActivityPage() {
       highlights: [""],
       included: [""],
       notIncluded: [""],
-      images: ["https://images.unsplash.com/photo-1563492065599-3520f775eeed"]
+      images: ["https://images.unsplash.com/photo-1563492065599-3520f775eeed"],
+      scheduleDates: [],
+      startTime: "09:00",
+      endTime: "17:00",
     }
   })
 
@@ -592,6 +600,75 @@ export default function NewActivityPage() {
                         <FormDescription>
                           Enter one image URL per line. You can use images from Unsplash.com
                         </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Schedule</CardTitle>
+                  <CardDescription>
+                    Set available dates and times for your activity
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <FormField
+                    control={form.control}
+                    name="scheduleDates"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Available Dates</FormLabel>
+                        <FormControl>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button variant="outline" className="w-full justify-start">
+                                {field.value.length > 0 ? field.value.map(date => format(date, 'PP')).join(', ') : "Select dates"}
+                                <CalendarIcon className="ml-2 h-4 w-4" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent>
+                              <Calendar
+                                mode="multiple"
+                                selected={field.value}
+                                onSelect={(date) => {
+                                  const newDates = date ? [...field.value, date] : field.value;
+                                  field.onChange(newDates);
+                                }}
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="startTime"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Start Time</FormLabel>
+                        <FormControl>
+                          <Input type="time" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="endTime"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>End Time</FormLabel>
+                        <FormControl>
+                          <Input type="time" {...field} />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
