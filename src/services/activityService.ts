@@ -1,4 +1,3 @@
-
 // Mock data service for activities
 
 export interface Activity {
@@ -37,10 +36,12 @@ export interface Booking {
   customerEmail: string;
   date: string;
   time: string;
+  timeSlot?: string;
   participants: number;
   totalAmount: number;
   providerAmount: number;
   platformFee: number;
+  totalPrice?: number;
   status: "pending" | "confirmed" | "completed" | "cancelled";
   createdAt: string;
 }
@@ -141,10 +142,12 @@ const mockBookings: Booking[] = [
     customerEmail: "john@example.com",
     date: "2025-04-15",
     time: "09:00",
+    timeSlot: "Morning (9:00 AM)",
     participants: 2,
     totalAmount: 3600,
     providerAmount: 3000,
     platformFee: 600,
+    totalPrice: 3600,
     status: "confirmed",
     createdAt: "2025-04-01T14:30:00Z"
   },
@@ -157,10 +160,12 @@ const mockBookings: Booking[] = [
     customerEmail: "emma@example.com",
     date: "2025-04-16",
     time: "10:00",
+    timeSlot: "Morning (10:00 AM)",
     participants: 4,
     totalAmount: 5760,
     providerAmount: 4800,
     platformFee: 960,
+    totalPrice: 5760,
     status: "confirmed",
     createdAt: "2025-04-02T09:45:00Z"
   },
@@ -173,10 +178,12 @@ const mockBookings: Booking[] = [
     customerEmail: "michael@example.com",
     date: "2025-04-20",
     time: "09:00",
+    timeSlot: "Morning (9:00 AM)",
     participants: 3,
     totalAmount: 5400,
     providerAmount: 4500,
     platformFee: 900,
+    totalPrice: 5400,
     status: "pending",
     createdAt: "2025-04-03T16:20:00Z"
   }
@@ -310,5 +317,18 @@ export const activityService = {
       monthly: monthlyEarnings,
       pending: pendingEarnings
     };
+  },
+
+  // Update booking status
+  updateBookingStatus: async (bookingId: string, status: string): Promise<Booking> => {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    const index = mockBookings.findIndex(b => b.id === bookingId);
+    if (index === -1) {
+      throw new Error("Booking not found");
+    }
+    
+    mockBookings[index].status = status as "pending" | "confirmed" | "completed" | "cancelled";
+    return mockBookings[index];
   }
 };
