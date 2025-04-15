@@ -41,7 +41,7 @@ import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { format } from "date-fns"
+import { format, isValid } from "date-fns"
 
 const formSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters"),
