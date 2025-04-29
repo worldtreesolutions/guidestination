@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from "react"
 import { useRouter } from "next/router"
 import Head from "next/head"
 import Link from "next/link"
 import { useAuth } from "@/contexts/AuthContext"
-import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout" // Corrected import path
+import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout" // Updated import path
 import { activityService, Activity } from "@/services/activityService"
 import { useToast } from "@/hooks/use-toast"
 import {
