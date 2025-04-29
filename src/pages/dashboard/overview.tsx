@@ -7,9 +7,9 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { activityService, Booking, Activity } from "@/services/activityService";
 import { Loader2 } from "lucide-react";
 // Corrected import paths for dashboard components
-import EarningsChart from "@/components/activity-owner/dashboard/EarningsChart";
-import RecentBookings from "@/components/activity-owner/dashboard/RecentBookings";
-import ActivityList from "@/components/activity-owner/dashboard/ActivityList";
+import { EarningsChart } from "@/components/activity-owner/dashboard/EarningsChart"; // Changed to named import
+import { RecentBookings } from "@/components/activity-owner/dashboard/RecentBookings"; // Changed to named import
+import { ActivityList } from "@/components/activity-owner/dashboard/ActivityList"; // Changed to named import
 
 interface EarningsData {
   total: number;
