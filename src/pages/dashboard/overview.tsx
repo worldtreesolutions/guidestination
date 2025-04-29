@@ -201,7 +201,7 @@ export default function DashboardOverviewPage() {
               </CardHeader>
               <CardContent>
                  {activities.length > 0 ? (
-                   <ActivityList activities={activities} />
+                   <ActivityList activities={activities} onDelete={() => {}} /> {/* Pass dummy onDelete function */}
                  ) : (
                     <p className="text-muted-foreground">You haven't listed any activities yet.</p>
                  )}
