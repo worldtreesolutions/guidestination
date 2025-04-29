@@ -111,29 +111,36 @@ export default function NewActivityPage() {
   }, [isAuthenticated, router])
 
   // Handle form submission
-  const onSubmit = async ( FormValues) => {
+  const onSubmit = async (data: FormValues) => {
     if (!user) return
 
     setIsSubmitting(true)
 
     try {
-      const activityData: Omit<Activity, "id" | "providerId" | "createdAt" | "updatedAt" | "rating" | "reviewCount"> = {
+      const activityData: Omit<Activity, "id" | "finalPrice" | "createdAt" | "updatedAt" | "rating" | "reviewCount"> = {
         ...data,
-        providerId: user.id, // Add providerId from the authenticated user
+        providerId: user.id, // Assuming user object has id
         schedule: {
           availableDates: data.scheduleDates?.map(date => date.toISOString()) || [],
           startTime: data.startTime,
           endTime: data.endTime,
         },
-        // Ensure optional fields are handled correctly
+        // Ensure optional fields are handled correctly based on boolean flags
         pickupLocations: data.includesPickup ? data.pickupLocations : undefined,
         mealDescription: data.includesMeal ? data.mealDescription : undefined,
-        notIncluded: data.notIncluded?.length ? data.notIncluded : [],
+        notIncluded: data.notIncluded?.filter(item => item.trim() !== "") || [], // Filter empty strings
       }
       // Remove scheduleDates from top level as it's handled within schedule object
       delete (activityData as any).scheduleDates;
+      // Remove status if it's part of the data but not in the Omit list explicitly
+      // delete (activityData as any).status; // Keep status if it's part of the creation payload
 
-      await activityService.createActivity(activityData)
+      // Calculate finalPrice (example: basePrice + 20% commission)
+      // This logic might belong in the service or backend ideally
+      const finalPrice = data.basePrice * 1.2;
+      const creationData = { ...activityData, finalPrice };
+
+      await activityService.createActivity(creationData as Partial<Activity>); // Cast as Partial<Activity> for service
 
       toast({
         title: "Activity Created",
