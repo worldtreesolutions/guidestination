@@ -11,7 +11,7 @@ export function MobileMenu() {
     { href: '/recommendation', label: 'AI Planning' },
     { href: '/activity-owner', label: 'List Your Activities' },
     { href: '/partner', label: 'Become a Partner' },
-    { href: '/dashboard', label: 'Provider Dashboard' }
+    { href: '/activity-owner/dashboard', label: 'Provider Dashboard' }
   ]
 
   return (
@@ -52,7 +52,7 @@ export function MobileMenu() {
           
           <div className='mt-auto pt-6 border-t border-gray-800'>
             <Link 
-              href='/dashboard/login' 
+              href='/activity-owner/login' 
               className='block w-full py-3 text-center rounded-md bg-[#22C55E] text-white font-medium hover:bg-[#1EA34D] transition-colors'
               onClick={() => setOpen(false)}
             >
