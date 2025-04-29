@@ -169,7 +169,8 @@ export default function EditActivityPage() {
     }
   }, [activityId, isAuthenticated, router, toast, form])
 
-  const onSubmit = async ( FormValues) => {
+  // Add type annotation to the data parameter
+  const onSubmit = async (data: FormValues) => {
     if (!user || !activityId || typeof activityId !== "string") return
 
     setIsSubmitting(true)
