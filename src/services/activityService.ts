@@ -143,6 +143,91 @@ const mockActivities: Activity[] = [
     updatedAt: "2025-01-20T09:15:00Z",
     rating: 5,
     reviewCount: 36
+  },
+  {
+    id: "act-3",
+    providerId: "provider-123",
+    title: "Elephant Nature Park Sanctuary Experience",
+    description: "Spend a day ethically interacting with rescued elephants in a natural environment.",
+    category: "nature",
+    duration: "full_day",
+    basePrice: 2500,
+    finalPrice: 3000,
+    maxParticipants: 12,
+    includesPickup: true,
+    pickupLocations: "Designated meeting points in Chiang Mai",
+    includesMeal: true,
+    mealDescription: "Vegetarian buffet lunch",
+    highlights: [
+      "Ethical elephant interaction",
+      "Learn about elephant rescue and conservation",
+      "Bathe elephants in the river",
+      "Feed elephants"
+    ],
+    included: [
+      "Transportation",
+      "English-speaking guide",
+      "Lunch",
+      "Drinking water"
+    ],
+    notIncluded: [
+      "Gratuities",
+      "Souvenirs"
+    ],
+    meetingPoint: "Elephant Nature Park Office",
+    languages: ["English"],
+    images: ["https://images.unsplash.com/photo-1585970480901-90d6bb2a48b5"],
+    status: "draft", // DRAFT STATUS
+    schedule: {
+      availableDates: ["2025-06-01T00:00:00.000Z", "2025-06-02T00:00:00.000Z"],
+      startTime: "08:00",
+      endTime: "17:00"
+    },
+    createdAt: "2025-02-01T10:00:00Z",
+    updatedAt: "2025-02-01T10:00:00Z",
+    rating: 4.9,
+    reviewCount: 150
+  },
+  {
+    id: "act-4",
+    providerId: "provider-123",
+    title: "Thai Massage Workshop at Traditional Spa",
+    description: "Learn the basics of traditional Thai massage techniques from experienced practitioners.",
+    category: "wellness",
+    duration: "2_hours",
+    basePrice: 1800,
+    finalPrice: 2160,
+    maxParticipants: 6,
+    includesPickup: false,
+    includesMeal: false,
+    highlights: [
+      "Hands-on Thai massage instruction",
+      "Learn basic techniques for relaxation",
+      "Understand the principles of Thai massage",
+      "Practice on fellow participants"
+    ],
+    included: [
+      "Instruction",
+      "Massage oils and materials",
+      "Herbal tea"
+    ],
+    notIncluded: [
+      "Transportation",
+      "Gratuities"
+    ],
+    meetingPoint: "Lanna Traditional Spa, Old City",
+    languages: ["English", "Thai"],
+    images: ["https://images.unsplash.com/photo-1544161515-4ab6ce6db874"],
+    status: "archived", // ARCHIVED STATUS
+    schedule: {
+      availableDates: [], // No dates for archived
+      startTime: "14:00",
+      endTime: "16:00"
+    },
+    createdAt: "2025-02-10T11:00:00Z",
+    updatedAt: "2025-03-01T11:00:00Z", // Updated when archived
+    rating: 4.7,
+    reviewCount: 15
   }
 ];
 

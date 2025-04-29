@@ -1,210 +1,213 @@
-import { useState, useEffect } from "react"
-import { useRouter } from "next/router"
-import Head from "next/head"
-import Link from "next/link"
-import { useAuth } from "@/contexts/AuthContext"
-import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout" // Updated import path
-import { activityService, Activity } from "@/services/activityService"
-import { useToast } from "@/hooks/use-toast"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Edit, Trash, PlusCircle } from "lucide-react"
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 
-export default function ActivitiesPage() {
-  const { user, isAuthenticated } = useAuth()
-  const router = useRouter()
-  const { toast } = useToast()
-  const [activities, setActivities] = useState<Activity[]>([])
-  const [loading, setLoading] = useState(true)
-  const [activityToDelete, setActivityToDelete] = useState<string | null>(null)
+    import { useState, useEffect } from "react";
+    import Head from "next/head";
+    import Link from "next/link";
+    import { useAuth } from "@/contexts/AuthContext";
+    import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout";
+    import { activityService, Activity } from "@/services/activityService";
+    import { useToast } from "@/hooks/use-toast";
+    import { Button } from "@/components/ui/button";
+    import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+    import { Plus, Loader2, AlertCircle } from "lucide-react";
+    import ActivityCard from "@/components/dashboard/activities/ActivityCard"; // Import the new card component
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      router.push("/dashboard/login")
-      return
-    }
+    type ActivityStatus = "draft" | "published" | "archived";
 
-    const fetchActivities = async () => {
-      if (!user) return
+    export default function ActivitiesPage() {
+      const { user, isAuthenticated } = useAuth();
+      const { toast } = useToast();
+      const [activities, setActivities] = useState<Activity[]>([]);
+      const [isLoading, setIsLoading] = useState(true);
+      const [error, setError] = useState<string | null>(null);
+      const [activeTab, setActiveTab] = useState<ActivityStatus>("published");
 
-      try {
-        // Assuming user.id is the providerId
-        const activitiesData = await activityService.getActivitiesByProvider(user.id)
-        setActivities(activitiesData)
-      } catch (error) {
-        console.error("Error fetching activities:", error)
-        toast({
-          title: "Error",
-          description: "Failed to load activities. Please try again.",
-          variant: "destructive"
-        })
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    if (user?.id) { // Ensure user.id is available
-        fetchActivities()
-    // Change comparison from === false to !isAuthenticated
-    } else if (!isAuthenticated) {
-        // Handle case where user is not authenticated but useEffect ran
-        router.push("/dashboard/login")
-    } else {
-        // User object might still be loading, wait for it or handle appropriately
-        // For now, we can just set loading to false if user is null after auth check
-        if (user === null && isAuthenticated) {
-            setLoading(false)
-            // Optionally show a message or redirect if user data is expected but missing
-            console.warn("User authenticated but user object is null.")
+      useEffect(() => {
+        if (!isAuthenticated) {
+          // Redirect handled by DashboardLayout or AuthContext typically
+          setIsLoading(false);
+          return;
         }
-    }
 
-  }, [user, isAuthenticated, router, toast])
+        const fetchActivities = async () => {
+          if (user) {
+            setIsLoading(true);
+            setError(null);
+            try {
+              const fetchedActivities = await activityService.getActivitiesByProvider(user.id);
+              setActivities(fetchedActivities);
+            } catch (err) {
+              console.error("Error fetching activities:", err);
+              setError("Failed to load activities. Please try again.");
+              toast({
+                title: "Error",
+                description: "Could not fetch your activities.",
+                variant: "destructive",
+              });
+            } finally {
+              setIsLoading(false);
+            }
+          } else {
+             // Handle case where user is authenticated but object not ready
+             // This might briefly show loading or wait for user context
+             console.warn("User authenticated but user object not yet available for fetching activities.");
+             // Keep loading until user object is available or timeout
+          }
+        };
 
-  const handleDeleteActivity = async () => {
-    if (!activityToDelete) return
+        // Fetch only when user object is available
+        if (user) {
+           fetchActivities();
+        } else if (isAuthenticated) {
+           // If authenticated but user is null, wait for AuthContext to update
+           setIsLoading(true);
+        } else {
+            // Not authenticated and user is null
+            setIsLoading(false);
+        }
 
-    try {
-      await activityService.deleteActivity(activityToDelete)
-      setActivities(activities.filter(activity => activity.id !== activityToDelete))
-      toast({
-        title: "Activity deleted",
-        description: "The activity has been successfully deleted."
-      })
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete activity. Please try again.",
-        variant: "destructive"
-      })
-    } finally {
-      setActivityToDelete(null)
-    }
-  }
+      }, [user, isAuthenticated, toast]);
 
-  if (loading) {
-    return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-full">
-          <p>Loading activities...</p>
-        </div>
-      </DashboardLayout>
-    )
-  }
+      const handleStatusChange = async (activityId: string, newStatus: ActivityStatus) => {
+        const originalActivities = [...activities];
+        // Optimistically update UI
+        setActivities(prev =>
+          prev.map(act => (act.id === activityId ? { ...act, status: newStatus } : act))
+        );
 
-  return (
-    <>
-      <Head>
-        <title>Manage Activities - Provider Dashboard</title>
-        <meta name="description" content="Manage your listed activities" />
-      </Head>
+        try {
+          await activityService.updateActivity(activityId, { status: newStatus });
+          toast({
+            title: "Status Updated",
+            description: `Activity moved to ${newStatus}.`,
+          });
+        } catch (err) {
+          console.error("Error updating status:", err);
+          // Revert UI on error
+          setActivities(originalActivities);
+          toast({
+            title: "Error",
+            description: "Failed to update activity status.",
+            variant: "destructive",
+          });
+        }
+      };
 
-      <DashboardLayout>
-        <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight">Activities</h1>
-              <p className="text-muted-foreground">
-                View, edit, and manage all your listed activities.
-              </p>
+       const handleDeleteActivity = async (activityId: string) => {
+         if (!confirm("Are you sure you want to permanently delete this activity? This cannot be undone.")) {
+           return;
+         }
+
+         const originalActivities = [...activities];
+         // Optimistically update UI
+         setActivities(prev => prev.filter(act => act.id !== activityId));
+
+         try {
+           await activityService.deleteActivity(activityId);
+           toast({
+             title: "Activity Deleted",
+             description: "The activity has been permanently deleted.",
+           });
+         } catch (err) {
+           console.error("Error deleting activity:", err);
+           // Revert UI on error
+           setActivities(originalActivities);
+           toast({
+             title: "Error",
+             description: "Failed to delete activity.",
+             variant: "destructive",
+           });
+         }
+       };
+
+
+      const filteredActivities = activities.filter(activity => activity.status === activeTab);
+
+      const renderContent = () => {
+        if (isLoading) {
+          return (
+            <div className="flex items-center justify-center py-10">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <p className="ml-2 text-muted-foreground">Loading activities...</p>
             </div>
-            <Button asChild>
-              <Link href="/dashboard/activities/new">
-                <PlusCircle className="h-4 w-4 mr-2" />
-                Create New Activity
-              </Link>
-            </Button>
+          );
+        }
+
+        if (error) {
+          return (
+            <div className="flex flex-col items-center justify-center py-10 text-destructive">
+              <AlertCircle className="h-8 w-8 mb-2" />
+              <p>{error}</p>
+            </div>
+          );
+        }
+
+        if (filteredActivities.length === 0) {
+          return (
+            <div className="text-center py-10 text-muted-foreground">
+              <p>No activities found in the "{activeTab}" section.</p>
+              {activeTab === 'published' && activities.length === 0 && (
+                 <p className="mt-2">Click "Add New Activity" to get started!</p>
+              )}
+            </div>
+          );
+        }
+
+        return (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+            {filteredActivities.map(activity => (
+              <ActivityCard
+                key={activity.id}
+                activity={activity}
+                onStatusChange={handleStatusChange}
+                onDelete={handleDeleteActivity} // Pass delete handler
+              />
+            ))}
           </div>
+        );
+      };
 
-          {activities.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
-              <h3 className="mb-2 text-lg font-semibold">No activities yet</h3>
-              <p className="text-sm text-muted-foreground">
-                You haven't created any activities yet. Get started by creating one!
-              </p>
-              <Button className="mt-4" asChild>
-                <Link href="/dashboard/activities/new">
-                  Create New Activity
-                </Link>
-              </Button>
-            </div>
-          ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Price (THB)</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {activities.map((activity) => (
-                    <TableRow key={activity.id}>
-                      <TableCell className="font-medium">{activity.title}</TableCell>
-                      <TableCell>{activity.category ? activity.category.charAt(0).toUpperCase() + activity.category.slice(1) : 'N/A'}</TableCell>
-                      <TableCell>{activity.basePrice?.toLocaleString() ?? 'N/A'}</TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={activity.status === 'published' ? 'default' : 'secondary'}
-                          className={activity.status === 'published' ? 'bg-green-100 text-green-800 hover:bg-green-200' : ''}
-                        >
-                          {activity.status ? activity.status.charAt(0).toUpperCase() + activity.status.slice(1) : 'N/A'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <Button asChild variant="outline" size="sm">
-                            <Link href={`/dashboard/activities/${activity.id}`}>
-                              <Edit className="h-4 w-4 mr-1" />
-                              Edit
-                            </Link>
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-red-600 hover:bg-red-50 hover:text-red-700"
-                            onClick={() => setActivityToDelete(activity.id)}
-                          >
-                            <Trash className="h-4 w-4 mr-1" />
-                            Delete
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </div>
+      return (
+        <>
+          <Head>
+            <title>Manage Activities - Provider Dashboard</title>
+            <meta name="description" content="View, edit, and manage your activities" />
+          </Head>
 
-        <AlertDialog open={!!activityToDelete} onOpenChange={(open) => !open && setActivityToDelete(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete the activity and remove it from our servers.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDeleteActivity}>Delete</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </DashboardLayout>
-    </>
-  )
-}
+          <DashboardLayout>
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <h1 className="text-2xl font-bold tracking-tight">Manage Activities</h1>
+                  <p className="text-muted-foreground">
+                    View, edit, and manage your listed activities.
+                  </p>
+                </div>
+                <Button asChild>
+                  <Link href="/dashboard/activities/new">
+                    <Plus className="mr-2 h-4 w-4" /> Add New Activity
+                  </Link>
+                </Button>
+              </div>
+
+              <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as ActivityStatus)}>
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="published">Active</TabsTrigger>
+                  <TabsTrigger value="draft">Draft</TabsTrigger>
+                  <TabsTrigger value="archived">Archived</TabsTrigger>
+                </TabsList>
+                <TabsContent value="published" className="mt-6">
+                  {renderContent()}
+                </TabsContent>
+                <TabsContent value="draft" className="mt-6">
+                  {renderContent()}
+                </TabsContent>
+                <TabsContent value="archived" className="mt-6">
+                  {renderContent()}
+                </TabsContent>
+              </Tabs>
+            </div>
+          </DashboardLayout>
+        </>
+      );
+    }
+  
