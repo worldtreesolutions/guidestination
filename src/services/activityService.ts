@@ -1,4 +1,3 @@
-
 // Mock data service for activities
 
 export interface Activity {
@@ -9,7 +8,7 @@ export interface Activity {
   category: string;
   duration: string;
   basePrice: number;
-  finalPrice: number;
+  finalPrice: number; // Calculated: basePrice + commission
   maxParticipants: number;
   includesPickup: boolean;
   pickupLocations?: string;
@@ -22,10 +21,17 @@ export interface Activity {
   languages: string[];
   images: string[];
   status: "draft" | "published" | "archived";
+  schedule?: Schedule; // Add optional schedule property
   createdAt: string;
   updatedAt: string;
   rating?: number;
   reviewCount?: number;
+}
+
+export interface Schedule {
+  availableDates: string[]; // Store dates as ISO strings
+  startTime?: string;
+  endTime?: string;
 }
 
 export interface Booking {
@@ -45,7 +51,7 @@ export interface Booking {
   createdAt: string;
 }
 
-// Mock activities data
+// Mock activities data - Add schedule to mock data
 const mockActivities: Activity[] = [
   {
     id: "act-1",
@@ -83,6 +89,11 @@ const mockActivities: Activity[] = [
     languages: ["English", "Thai"],
     images: ["https://images.unsplash.com/photo-1563492065599-3520f775eeed"],
     status: "published",
+    schedule: { // Add schedule data
+      availableDates: ["2025-05-10T00:00:00.000Z", "2025-05-11T00:00:00.000Z", "2025-05-12T00:00:00.000Z"],
+      startTime: "09:00",
+      endTime: "13:00"
+    },
     createdAt: "2025-01-15T08:30:00Z",
     updatedAt: "2025-01-15T08:30:00Z",
     rating: 4.8,
@@ -123,6 +134,11 @@ const mockActivities: Activity[] = [
     languages: ["English", "Thai", "Chinese"],
     images: ["https://images.unsplash.com/photo-1544025162-d76694265947"],
     status: "published",
+    schedule: { // Add schedule data
+      availableDates: ["2025-05-15T00:00:00.000Z", "2025-05-16T00:00:00.000Z"],
+      startTime: "10:00",
+      endTime: "14:00"
+    },
     createdAt: "2025-01-20T09:15:00Z",
     updatedAt: "2025-01-20T09:15:00Z",
     rating: 5,
@@ -198,10 +214,10 @@ export const activityService = {
     return activity || null;
   },
 
-  // Create a new activity
+  // Create a new activity - Update to handle schedule
   createActivity: async (activityData: Partial<Activity>): Promise<Activity> => {
     await new Promise(resolve => setTimeout(resolve, 800));
-    
+
     const newActivity: Activity = {
       id: `act-${Date.now()}`,
       providerId: activityData.providerId || "provider-123",
@@ -210,7 +226,7 @@ export const activityService = {
       category: activityData.category || "adventure",
       duration: activityData.duration || "half_day",
       basePrice: activityData.basePrice || 0,
-      finalPrice: (activityData.basePrice || 0) * 1.2, // 20% commission
+      finalPrice: (activityData.basePrice || 0) * 1.2, // Example 20% commission
       maxParticipants: activityData.maxParticipants || 10,
       includesPickup: activityData.includesPickup || false,
       pickupLocations: activityData.pickupLocations,
@@ -223,29 +239,38 @@ export const activityService = {
       languages: activityData.languages || ["English"],
       images: activityData.images || [],
       status: activityData.status || "draft",
+      schedule: activityData.schedule, // Add schedule from input data
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
-    
+
     mockActivities.push(newActivity);
     return newActivity;
   },
 
-  // Update an activity
+  // Update an activity - Ensure schedule is handled
   updateActivity: async (activityId: string, updates: Partial<Activity>): Promise<Activity> => {
     await new Promise(resolve => setTimeout(resolve, 800));
-    
+
     const index = mockActivities.findIndex(a => a.id === activityId);
     if (index === -1) {
       throw new Error("Activity not found");
     }
-    
+
+    // Merge updates, including the schedule object if provided
     const updatedActivity = {
       ...mockActivities[index],
       ...updates,
+      // If updates include schedule, it will overwrite the existing one
+      schedule: updates.schedule !== undefined ? updates.schedule : mockActivities[index].schedule,
       updatedAt: new Date().toISOString()
     };
-    
+
+    // Recalculate finalPrice if basePrice changed
+    if (updates.basePrice !== undefined) {
+        updatedActivity.finalPrice = updates.basePrice * 1.2; // Example 20% commission
+    }
+
     mockActivities[index] = updatedActivity;
     return updatedActivity;
   },
