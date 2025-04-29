@@ -2,7 +2,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/router"
 import Head from "next/head"
 import { useAuth } from "@/contexts/AuthContext"
-import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout" // Corrected import path
+import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout" // Explicitly setting correct path
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
