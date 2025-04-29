@@ -593,7 +593,7 @@ export default function NewActivityPage() {
                 <CardHeader>
                   <CardTitle>Images</CardTitle>
                   <CardDescription>
-                    Add URLs for images showcasing your activity. The first image will be the main cover.
+                    Upload images showcasing your activity. The first image will be the main cover.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -602,21 +602,14 @@ export default function NewActivityPage() {
                     name="images"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Image URLs</FormLabel>
+                        <FormLabel>Activity Images</FormLabel>
                         <FormControl>
-                          <Textarea
-                            placeholder="Enter image URLs, one per line. e.g., https://images.unsplash.com/..."
-                            value={(field.value || []).join("\n")}
-                            onChange={(e) => {
-                              const urls = e.target.value.split("\n").filter(url => url.trim() !== "");
-                              field.onChange(urls);
-                            }}
-                            className="min-h-[100px]"
+                          <ImageUploader 
+                            value={field.value} 
+                            onChange={field.onChange}
+                            maxImages={8}
                           />
                         </FormControl>
-                        <FormDescription>
-                          Use high-quality images. You can use links from Unsplash.com.
-                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
