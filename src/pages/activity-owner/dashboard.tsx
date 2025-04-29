@@ -1,9 +1,10 @@
-
 import { useEffect, useState } from "react"
 import { useRouter } from "next/router"
 import Head from "next/head"
 import { useAuth } from "@/contexts/AuthContext"
-import { ProviderLayout } from "@/components/activity-owner/layout/ProviderLayout"
+// Remove ProviderLayout import
+// import { ProviderLayout } from "@/components/activity-owner/layout/ProviderLayout"
+import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout" // Add DashboardLayout import
 import { DashboardHeader } from "@/components/activity-owner/dashboard/DashboardHeader"
 import { EarningsChart } from "@/components/activity-owner/dashboard/EarningsChart"
 import { RecentBookings } from "@/components/activity-owner/dashboard/RecentBookings"
@@ -89,11 +90,12 @@ export default function DashboardPage() {
 
   if (loading || !user) {
     return (
-      <ProviderLayout>
+      // Use DashboardLayout instead of ProviderLayout
+      <DashboardLayout>
         <div className="flex items-center justify-center h-full">
           <p>Loading dashboard...</p>
         </div>
-      </ProviderLayout>
+      </DashboardLayout>
     )
   }
 
@@ -104,9 +106,10 @@ export default function DashboardPage() {
         <meta name="description" content="Manage your activities and bookings" />
       </Head>
 
-      <ProviderLayout>
+      {/* Use DashboardLayout instead of ProviderLayout */}
+      <DashboardLayout>
         <div className="space-y-8">
-          <DashboardHeader 
+          <DashboardHeader
             user={user}
             stats={{
               totalActivities: activities.length,
@@ -120,9 +123,9 @@ export default function DashboardPage() {
             <EarningsChart data={earnings.monthly} />
           </div>
 
-          <ActivityList 
-            activities={activities} 
-            onDelete={(id) => setActivityToDelete(id)} 
+          <ActivityList
+            activities={activities}
+            onDelete={(id) => setActivityToDelete(id)}
           />
 
           <RecentBookings bookings={bookings.slice(0, 5)} />
@@ -142,7 +145,7 @@ export default function DashboardPage() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-      </ProviderLayout>
+      </DashboardLayout>
     </>
   )
 }

@@ -1,9 +1,10 @@
-
 import { useEffect, useState } from "react"
 import { useRouter } from "next/router"
 import Head from "next/head"
 import { useAuth } from "@/contexts/AuthContext"
-import { ProviderLayout } from "@/components/activity-owner/layout/ProviderLayout"
+// Remove ProviderLayout import
+// import { ProviderLayout } from "@/components/activity-owner/layout/ProviderLayout"
+import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout" // Add DashboardLayout import
 import { activityService, Booking } from "@/services/activityService"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -89,11 +90,12 @@ export default function BookingsPage() {
 
   if (loading) {
     return (
-      <ProviderLayout>
+      // Use DashboardLayout instead of ProviderLayout
+      <DashboardLayout>
         <div className="flex items-center justify-center h-full">
           <p>Loading bookings...</p>
         </div>
-      </ProviderLayout>
+      </DashboardLayout>
     );
   }
 
@@ -104,7 +106,8 @@ export default function BookingsPage() {
         <meta name="description" content="Manage your activity bookings" />
       </Head>
 
-      <ProviderLayout>
+      {/* Use DashboardLayout instead of ProviderLayout */}
+      <DashboardLayout>
         <div className="space-y-6">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Bookings</h1>
@@ -171,7 +174,7 @@ export default function BookingsPage() {
             </TabsContent>
           </Tabs>
         </div>
-      </ProviderLayout>
+      </DashboardLayout>
     </>
   );
 }

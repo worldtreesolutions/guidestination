@@ -3,7 +3,7 @@ import { useRouter } from "next/router"
 import Head from "next/head"
 import Link from "next/link"
 import { useAuth } from "@/contexts/AuthContext"
-import { ProviderLayout } from "@/components/activity-owner/layout/ProviderLayout"
+import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout" // Add DashboardLayout import
 import { activityService, Activity } from "@/services/activityService"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast"
 import { Edit, Eye, Plus, Trash2 } from "lucide-react"
 import Image from "next/image" // Import next/image
 
-export default function ActivitiesPage() {
+export default function ActivityOwnerActivitiesPage() {
   const { user, isAuthenticated } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
@@ -89,79 +89,98 @@ export default function ActivitiesPage() {
 
   if (loading) {
     return (
-      <ProviderLayout>
+      <DashboardLayout>
         <div className="flex items-center justify-center h-full">
           <p>Loading activities...</p>
         </div>
-      </ProviderLayout>
+      </DashboardLayout>
     );
   }
 
   return (
     <>
       <Head>
-        <title>Manage Activities - Guidestination</title>
+        <title>Manage Activities - Activity Owner</title>
         <meta name="description" content="Manage your listed activities" />
       </Head>
 
-      <ProviderLayout>
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">Activities</h1>
-              <p className="text-muted-foreground">
-                Manage your experiences and listings
-              </p>
-            </div>
-            <Link href="/activity-owner/list-activity">
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Add New Activity
+      <DashboardLayout>
+        <Card>
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle>Manage Activities</CardTitle>
+                <CardDescription>
+                  View, edit, and manage all your listed activities.
+                </CardDescription>
+              </div>
+              <Button asChild>
+                <Link href="/activity-owner/list-activity">
+                  <Plus className="h-4 w-4 mr-2" />
+                  List New Activity
+                </Link>
               </Button>
-            </Link>
-          </div>
-
-          <Tabs defaultValue="all" className="w-full">
-            <TabsList>
-              <TabsTrigger value="all">All ({activities.length})</TabsTrigger>
-              <TabsTrigger value="published">Published ({publishedActivities.length})</TabsTrigger>
-              <TabsTrigger value="draft">Drafts ({draftActivities.length})</TabsTrigger>
-              <TabsTrigger value="archived">Archived ({archivedActivities.length})</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="all" className="mt-6">
-              <ActivityGrid 
-                activities={activities} 
-                onDelete={setActivityToDelete} 
-                getStatusColor={getStatusColor}
-              />
-            </TabsContent>
-            
-            <TabsContent value="published" className="mt-6">
-              <ActivityGrid 
-                activities={publishedActivities} 
-                onDelete={setActivityToDelete} 
-                getStatusColor={getStatusColor}
-              />
-            </TabsContent>
-            
-            <TabsContent value="draft" className="mt-6">
-              <ActivityGrid 
-                activities={draftActivities} 
-                onDelete={setActivityToDelete} 
-                getStatusColor={getStatusColor}
-              />
-            </TabsContent>
-            
-            <TabsContent value="archived" className="mt-6">
-              <ActivityGrid 
-                activities={archivedActivities} 
-                onDelete={setActivityToDelete} 
-                getStatusColor={getStatusColor}
-              />
-            </TabsContent>
-          </Tabs>
-        </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {activities.length === 0 ? (
+              <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
+                <h3 className="mb-2 text-lg font-semibold">No activities yet</h3>
+                <p className="text-sm text-muted-foreground">
+                  You haven't listed any activities yet. Get started by listing one!
+                </p>
+                <Button className="mt-4" asChild>
+                  <Link href="/activity-owner/list-activity">
+                    List New Activity
+                  </Link>
+                </Button>
+              </div>
+            ) : (
+              <div className="rounded-md border">
+                <Tabs defaultValue="all" className="w-full">
+                  <TabsList>
+                    <TabsTrigger value="all">All ({activities.length})</TabsTrigger>
+                    <TabsTrigger value="published">Published ({publishedActivities.length})</TabsTrigger>
+                    <TabsTrigger value="draft">Drafts ({draftActivities.length})</TabsTrigger>
+                    <TabsTrigger value="archived">Archived ({archivedActivities.length})</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="all" className="mt-6">
+                    <ActivityGrid 
+                      activities={activities} 
+                      onDelete={setActivityToDelete} 
+                      getStatusColor={getStatusColor}
+                    />
+                  </TabsContent>
+                  
+                  <TabsContent value="published" className="mt-6">
+                    <ActivityGrid 
+                      activities={publishedActivities} 
+                      onDelete={setActivityToDelete} 
+                      getStatusColor={getStatusColor}
+                    />
+                  </TabsContent>
+                  
+                  <TabsContent value="draft" className="mt-6">
+                    <ActivityGrid 
+                      activities={draftActivities} 
+                      onDelete={setActivityToDelete} 
+                      getStatusColor={getStatusColor}
+                    />
+                  </TabsContent>
+                  
+                  <TabsContent value="archived" className="mt-6">
+                    <ActivityGrid 
+                      activities={archivedActivities} 
+                      onDelete={setActivityToDelete} 
+                      getStatusColor={getStatusColor}
+                    />
+                  </TabsContent>
+                </Tabs>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         <AlertDialog open={!!activityToDelete} onOpenChange={(open) => !open && setActivityToDelete(null)}>
           <AlertDialogContent>
@@ -177,7 +196,7 @@ export default function ActivitiesPage() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-      </ProviderLayout>
+      </DashboardLayout>
     </>
   );
 }
