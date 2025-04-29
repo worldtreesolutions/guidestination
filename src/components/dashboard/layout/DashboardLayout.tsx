@@ -1,8 +1,7 @@
-
 import { ReactNode, useState } from "react"
 import { useRouter } from "next/router"
 import Link from "next/link"
-import { useAuth } from "@/contexts/AuthContext"
+import { useAuth, User } from "@/contexts/AuthContext" // Import User type
 import { Button } from "@/components/ui/button"
 import {
   Menu,
@@ -37,13 +36,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     router.push("/dashboard/login"); // Redirect to dashboard login
   };
 
+  // Updated getInitials to use ownerName
   const getInitials = (name?: string | null) => {
-    if (!name) return "U";
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase();
+    if (!name) return "U"; // Default to "U" if name is not available
+    const names = name.split(" ");
+    if (names.length === 1) return names[0][0].toUpperCase(); // Handle single name
+    return (names[0][0] + names[names.length - 1][0]).toUpperCase(); // First and Last initial
   };
 
   return (
@@ -109,14 +107,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               <DropdownMenuTrigger asChild>
                 <Button variant="secondary" size="icon" className="rounded-full">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={user.photoURL || ""} alt={user.displayName || "User"} />
-                    <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
+                    {/* Removed AvatarImage as photoURL is not available */}
+                    {/* <AvatarImage src={user.photoURL || ""} alt={user.ownerName || "User"} /> */}
+                    <AvatarFallback>{getInitials(user.ownerName)}</AvatarFallback> {/* Use ownerName */}
                   </Avatar>
                   <span className="sr-only">Toggle user menu</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuLabel>{user.ownerName || "My Account"}</DropdownMenuLabel> {/* Display ownerName */}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <Link href="/dashboard/settings">Settings</Link>
