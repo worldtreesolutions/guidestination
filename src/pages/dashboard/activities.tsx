@@ -54,7 +54,8 @@ export default function ActivitiesPage() {
 
     if (user?.id) { // Ensure user.id is available
         fetchActivities()
-    } else if (isAuthenticated === false) {
+    // Change comparison from === false to !isAuthenticated
+    } else if (!isAuthenticated) {
         // Handle case where user is not authenticated but useEffect ran
         router.push("/dashboard/login")
     } else {
