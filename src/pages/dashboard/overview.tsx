@@ -86,9 +86,9 @@ export default function DashboardOverviewPage() {
         </div>
       </DashboardLayout>
     );
-  }
+  } // Ensure this closing brace is correct
 
-  return (
+  return ( // Ensure this return is correctly placed
     <>
       <Head>
         <title>Dashboard Overview - Guidestination</title>
@@ -201,9 +201,9 @@ export default function DashboardOverviewPage() {
               </CardHeader>
               <CardContent>
                  {activities.length > 0 ? (
-                   <ActivityList activities={activities} onDelete={() => {}} /> {/* Pass dummy onDelete function */}
+                   <ActivityList activities={activities} onDelete={() => {}} />
                  ) : (
-                    <p className="text-muted-foreground">You haven't listed any activities yet.</p>
+                   <p className="text-muted-foreground">You haven&apos;t listed any activities yet.</p>
                  )}
               </CardContent>
             </Card>
