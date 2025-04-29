@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react"
 import { useRouter } from "next/router"
 import Head from "next/head"
@@ -13,6 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast"
 import { Edit, Eye, Plus, Trash2 } from "lucide-react"
+import Image from "next/image" // Import next/image
 
 export default function ActivitiesPage() {
   const { user, isAuthenticated } = useAuth();
@@ -203,10 +203,12 @@ function ActivityGrid({ activities, onDelete, getStatusColor }: ActivityGridProp
         <Card key={activity.id} className="overflow-hidden">
           <div className="aspect-video relative bg-muted">
             {activity.images && activity.images.length > 0 ? (
-              <img 
+              <Image 
                 src={activity.images[0]} 
                 alt={activity.title}
-                className="object-cover w-full h-full"
+                layout="fill"
+                objectFit="cover"
+                className="w-full h-full"
               />
             ) : (
               <div className="flex items-center justify-center h-full text-muted-foreground">

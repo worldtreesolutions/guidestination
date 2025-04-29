@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from "react"
 import { useRouter } from "next/router"
 import Head from "next/head"
 import { useAuth } from "@/contexts/AuthContext"
-import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout"
+import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout" // Corrected import path
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -163,14 +162,14 @@ export default function EditActivityPage() {
     }
   }, [activityId, isAuthenticated, router, toast, form])
 
-  const onSubmit = async ( FormValues) => {
+  const onSubmit = async (data: FormValues) => { // Added type annotation
     if (!user || !activityId || typeof activityId !== "string") return
     
     setIsSubmitting(true)
     
     try {
       const activityData: Partial<Activity> = {
-        ...data,
+        ...data, // Use the correct parameter name 'data'
         // Ensure schedule data is handled correctly if needed
       }
       
