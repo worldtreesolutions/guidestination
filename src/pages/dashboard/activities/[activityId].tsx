@@ -1,28 +1,29 @@
+
 import { useState, useEffect } from "react"
 import { useRouter } from "next/router"
 import Head from "next/head"
 import { useAuth } from "@/contexts/AuthContext"
-import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout" // Explicitly setting correct path
+import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout" // Corrected import path
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from "@/components/ui/select"
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle
 } from "@/components/ui/card"
-import { 
+import {
   Form,
   FormControl,
   FormDescription,
@@ -58,9 +59,9 @@ const formSchema = z.object({
   languages: z.array(z.string()).min(1, "At least one language is required"),
   highlights: z.array(z.string()).min(1, "At least one highlight is required"),
   included: z.array(z.string()).min(1, "At least one included item is required"),
-  notIncluded: z.array(z.string()).optional(),
+  notIncluded: z.array(z.string()).optional().default([]), // Added default
   images: z.array(z.string()).min(1, "At least one image is required"),
-  scheduleDates: z.array(z.date()).optional(),
+  scheduleDates: z.array(z.date()).optional().default([]), // Added default
   startTime: z.string().optional(),
   endTime: z.string().optional(),
 })
@@ -75,7 +76,7 @@ export default function EditActivityPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [activity, setActivity] = useState<Activity | null>(null)
-  
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -114,7 +115,7 @@ export default function EditActivityPage() {
           const fetchedActivity = await activityService.getActivityById(activityId)
           if (fetchedActivity) {
             setActivity(fetchedActivity)
-            // Populate form with fetched data
+            // Populate form with fetched data, ensuring defaults for arrays
             form.reset({
               ...fetchedActivity,
               basePrice: fetchedActivity.basePrice || 0,
@@ -123,10 +124,17 @@ export default function EditActivityPage() {
               included: fetchedActivity.included?.length ? fetchedActivity.included : [""],
               notIncluded: fetchedActivity.notIncluded?.length ? fetchedActivity.notIncluded : [""],
               images: fetchedActivity.images?.length ? fetchedActivity.images : [],
-              // Assuming schedule is stored differently, adjust as needed
-              // scheduleDates: fetchedActivity.schedule?.availableDates?.map(dateStr => parseISO(dateStr)) || [],
-              // startTime: fetchedActivity.schedule?.startTime || "09:00",
-              // endTime: fetchedActivity.schedule?.endTime || "17:00",
+              languages: fetchedActivity.languages?.length ? fetchedActivity.languages : ["English"],
+              // Handle schedule dates carefully - assuming they are stored as strings
+              scheduleDates: fetchedActivity.schedule?.availableDates?.map(dateStr => {
+                try {
+                  return parseISO(dateStr); // Attempt to parse ISO string
+                } catch {
+                  return new Date(); // Fallback if parsing fails
+                }
+              }).filter(isValid) || [], // Filter out invalid dates
+              startTime: fetchedActivity.schedule?.startTime || "09:00",
+              endTime: fetchedActivity.schedule?.endTime || "17:00",
             })
           } else {
             toast({
@@ -162,24 +170,34 @@ export default function EditActivityPage() {
     }
   }, [activityId, isAuthenticated, router, toast, form])
 
-  const onSubmit = async (data: FormValues) => { // Added type annotation
+  const onSubmit = async ( FormValues) => {
     if (!user || !activityId || typeof activityId !== "string") return
-    
+
     setIsSubmitting(true)
-    
+
     try {
+      // Prepare data for update, converting dates back to strings if needed
       const activityData: Partial<Activity> = {
-        ...data, // Use the correct parameter name 'data'
-        // Ensure schedule data is handled correctly if needed
+        ...data,
+        schedule: {
+            availableDates: data.scheduleDates?.map(date => date.toISOString()) || [], // Convert dates back to ISO strings
+            startTime: data.startTime,
+            endTime: data.endTime,
+        },
+        // Remove scheduleDates from top level if it's handled within schedule object
+        // scheduleDates: undefined,
       }
-      
+      // Remove scheduleDates if it's part of the schedule object to avoid duplication
+      delete (activityData as any).scheduleDates;
+
+
       await activityService.updateActivity(activityId, activityData)
-      
+
       toast({
         title: "Activity updated",
         description: "Your activity has been successfully updated."
       })
-      
+
       router.push("/dashboard/activities")
     } catch (error) {
       console.error("Error updating activity:", error)
@@ -193,7 +211,7 @@ export default function EditActivityPage() {
     }
   }
 
-  // Dynamic field arrays (same as in new.tsx)
+  // Dynamic field arrays
   const addListItem = (field: "highlights" | "included" | "notIncluded") => {
     const currentValues = form.getValues(field) || []
     form.setValue(field, [...currentValues, ""])
@@ -287,10 +305,10 @@ export default function EditActivityPage() {
                       <FormItem>
                         <FormLabel>Description</FormLabel>
                         <FormControl>
-                          <Textarea 
-                            placeholder="Describe your activity in detail..." 
+                          <Textarea
+                            placeholder="Describe your activity in detail..."
                             className="min-h-[120px]"
-                            {...field} 
+                            {...field}
                           />
                         </FormControl>
                         <FormMessage />
@@ -305,8 +323,8 @@ export default function EditActivityPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Category</FormLabel>
-                          <Select 
-                            onValueChange={field.onChange} 
+                          <Select
+                            onValueChange={field.onChange}
                             value={field.value} // Use value here for controlled component
                           >
                             <FormControl>
@@ -334,8 +352,8 @@ export default function EditActivityPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Duration</FormLabel>
-                          <Select 
-                            onValueChange={field.onChange} 
+                          <Select
+                            onValueChange={field.onChange}
                             value={field.value} // Use value here
                           >
                             <FormControl>
@@ -456,9 +474,9 @@ export default function EditActivityPage() {
                         <FormItem>
                           <FormLabel>Pickup Locations</FormLabel>
                           <FormControl>
-                            <Textarea 
-                              placeholder="e.g. All hotels in Chiang Mai Old City" 
-                              {...field} 
+                            <Textarea
+                              placeholder="e.g. All hotels in Chiang Mai Old City"
+                              {...field}
                             />
                           </FormControl>
                           <FormMessage />
@@ -475,9 +493,9 @@ export default function EditActivityPage() {
                         <FormItem>
                           <FormLabel>Meal Description</FormLabel>
                           <FormControl>
-                            <Textarea 
-                              placeholder="e.g. Traditional Thai lunch at a local restaurant" 
-                              {...field} 
+                            <Textarea
+                              placeholder="e.g. Traditional Thai lunch at a local restaurant"
+                              {...field}
                             />
                           </FormControl>
                           <FormMessage />
@@ -493,9 +511,9 @@ export default function EditActivityPage() {
                       <FormItem>
                         <FormLabel>Meeting Point</FormLabel>
                         <FormControl>
-                          <Input 
-                            placeholder="e.g. Your hotel lobby or Tha Phae Gate" 
-                            {...field} 
+                          <Input
+                            placeholder="e.g. Your hotel lobby or Tha Phae Gate"
+                            {...field}
                           />
                         </FormControl>
                         <FormMessage />
@@ -515,7 +533,7 @@ export default function EditActivityPage() {
                               <Button
                                 key={lang}
                                 type="button"
-                                variant={field.value?.includes(lang) ? "default" : "outline"}
+                                variant={(field.value || []).includes(lang) ? "default" : "outline"} // Safeguard with || []
                                 size="sm"
                                 onClick={() => {
                                   const currentLangs = field.value || [];
@@ -551,9 +569,9 @@ export default function EditActivityPage() {
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <Label>Highlights</Label>
-                      <Button 
-                        type="button" 
-                        variant="outline" 
+                      <Button
+                        type="button"
+                        variant="outline"
                         size="sm"
                         onClick={() => addListItem("highlights")}
                       >
@@ -562,7 +580,7 @@ export default function EditActivityPage() {
                       </Button>
                     </div>
                     <div className="space-y-2">
-                      {form.watch("highlights")?.map((_, index) => (
+                      {(form.watch("highlights") || []).map((_, index) => ( // Safeguard
                         <div key={index} className="flex gap-2">
                           <Input
                             placeholder={`e.g. Visit the sacred Doi Suthep temple`}
@@ -573,7 +591,7 @@ export default function EditActivityPage() {
                             variant="outline"
                             size="icon"
                             onClick={() => removeListItem("highlights", index)}
-                            disabled={form.watch("highlights")?.length <= 1}
+                            disabled={(form.watch("highlights") || []).length <= 1} // Safeguard
                           >
                             <Trash className="h-4 w-4" />
                           </Button>
@@ -591,9 +609,9 @@ export default function EditActivityPage() {
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <Label>What's Included</Label>
-                      <Button 
-                        type="button" 
-                        variant="outline" 
+                      <Button
+                        type="button"
+                        variant="outline"
                         size="sm"
                         onClick={() => addListItem("included")}
                       >
@@ -602,7 +620,7 @@ export default function EditActivityPage() {
                       </Button>
                     </div>
                     <div className="space-y-2">
-                      {form.watch("included")?.map((_, index) => (
+                      {(form.watch("included") || []).map((_, index) => ( // Safeguard
                         <div key={index} className="flex gap-2">
                           <Input
                             placeholder={`e.g. Hotel pickup and drop-off`}
@@ -613,7 +631,7 @@ export default function EditActivityPage() {
                             variant="outline"
                             size="icon"
                             onClick={() => removeListItem("included", index)}
-                            disabled={form.watch("included")?.length <= 1}
+                            disabled={(form.watch("included") || []).length <= 1} // Safeguard
                           >
                             <Trash className="h-4 w-4" />
                           </Button>
@@ -631,9 +649,9 @@ export default function EditActivityPage() {
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <Label>What's Not Included</Label>
-                      <Button 
-                        type="button" 
-                        variant="outline" 
+                      <Button
+                        type="button"
+                        variant="outline"
                         size="sm"
                         onClick={() => addListItem("notIncluded")}
                       >
@@ -642,7 +660,7 @@ export default function EditActivityPage() {
                       </Button>
                     </div>
                     <div className="space-y-2">
-                      {form.watch("notIncluded")?.map((_, index) => (
+                      {(form.watch("notIncluded") || []).map((_, index) => ( // Safeguard applied
                         <div key={index} className="flex gap-2">
                           <Input
                             placeholder={`e.g. Gratuities`}
@@ -653,13 +671,20 @@ export default function EditActivityPage() {
                             variant="outline"
                             size="icon"
                             onClick={() => removeListItem("notIncluded", index)}
-                            disabled={form.watch("notIncluded")?.length <= 1}
+                            disabled={(form.watch("notIncluded") || []).length <= 1} // Safeguard applied
                           >
                             <Trash className="h-4 w-4" />
                           </Button>
                         </div>
                       ))}
                     </div>
+                     {/* Optional: Add error message display for notIncluded if needed */}
+                     {form.formState.errors.notIncluded && (
+                      <p className="text-sm font-medium text-destructive mt-2">
+                        {/* Adjust message based on validation rules if any */}
+                        {typeof form.formState.errors.notIncluded === 'object' && 'message' in form.formState.errors.notIncluded ? form.formState.errors.notIncluded.message : 'Invalid input'}
+                      </p>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -680,9 +705,9 @@ export default function EditActivityPage() {
                       <FormItem>
                         <FormLabel>Image URLs</FormLabel>
                         <FormControl>
-                          <Textarea 
-                            placeholder="Enter image URLs (one per line)" 
-                            value={field.value?.join("\n") || ""}
+                          <Textarea
+                            placeholder="Enter image URLs (one per line)"
+                            value={(field.value || []).join("\n")} // Safeguard
                             onChange={(e) => {
                               const urls = e.target.value.split("\n").filter(url => url.trim() !== "")
                               field.onChange(urls)
@@ -740,7 +765,7 @@ export default function EditActivityPage() {
                               <Calendar
                                 mode="multiple"
                                 selected={field.value}
-                                onSelect={field.onChange}
+                                onSelect={field.onChange} // react-hook-form handles the array update
                                 initialFocus
                                 className="rounded-md border"
                               />
@@ -762,7 +787,7 @@ export default function EditActivityPage() {
                           <FormItem>
                             <FormLabel>Start Time</FormLabel>
                             <FormControl>
-                              <Input type="time" {...field} />
+                              <Input type="time" {...field} value={field.value || ""} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -776,7 +801,7 @@ export default function EditActivityPage() {
                           <FormItem>
                             <FormLabel>End Time</FormLabel>
                             <FormControl>
-                              <Input type="time" {...field} />
+                              <Input type="time" {...field} value={field.value || ""} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -789,15 +814,15 @@ export default function EditActivityPage() {
 
               {/* Action Buttons */}
               <div className="flex justify-end gap-4">
-                <Button 
-                  type="button" 
+                <Button
+                  type="button"
                   variant="outline"
                   onClick={() => router.push("/dashboard/activities")}
                 >
                   Cancel
                 </Button>
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? "Saving..." : "Save Changes"}

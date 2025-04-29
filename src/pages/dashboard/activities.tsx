@@ -1,18 +1,19 @@
+
 import { useState, useEffect } from "react"
 import { useRouter } from "next/router"
 import Head from "next/head"
 import Link from "next/link"
 import { useAuth } from "@/contexts/AuthContext"
-import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout" // Explicitly setting correct path
+import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout" // Corrected import path
 import { activityService, Activity } from "@/services/activityService"
 import { useToast } from "@/hooks/use-toast"
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -35,8 +36,9 @@ export default function ActivitiesPage() {
 
     const fetchActivities = async () => {
       if (!user) return
-      
+
       try {
+        // Assuming user.id is the providerId
         const activitiesData = await activityService.getActivitiesByProvider(user.id)
         setActivities(activitiesData)
       } catch (error) {
@@ -51,12 +53,26 @@ export default function ActivitiesPage() {
       }
     }
 
-    fetchActivities()
+    if (user?.id) { // Ensure user.id is available
+        fetchActivities()
+    } else if (isAuthenticated === false) {
+        // Handle case where user is not authenticated but useEffect ran
+        router.push("/dashboard/login")
+    } else {
+        // User object might still be loading, wait for it or handle appropriately
+        // For now, we can just set loading to false if user is null after auth check
+        if (user === null && isAuthenticated) {
+            setLoading(false)
+            // Optionally show a message or redirect if user data is expected but missing
+            console.warn("User authenticated but user object is null.")
+        }
+    }
+
   }, [user, isAuthenticated, router, toast])
 
   const handleDeleteActivity = async () => {
     if (!activityToDelete) return
-    
+
     try {
       await activityService.deleteActivity(activityToDelete)
       setActivities(activities.filter(activity => activity.id !== activityToDelete))
@@ -137,14 +153,14 @@ export default function ActivitiesPage() {
                   {activities.map((activity) => (
                     <TableRow key={activity.id}>
                       <TableCell className="font-medium">{activity.title}</TableCell>
-                      <TableCell>{activity.category.charAt(0).toUpperCase() + activity.category.slice(1)}</TableCell>
-                      <TableCell>{activity.basePrice.toLocaleString()}</TableCell>
+                      <TableCell>{activity.category ? activity.category.charAt(0).toUpperCase() + activity.category.slice(1) : 'N/A'}</TableCell>
+                      <TableCell>{activity.basePrice?.toLocaleString() ?? 'N/A'}</TableCell>
                       <TableCell>
-                        <Badge 
+                        <Badge
                           variant={activity.status === 'published' ? 'default' : 'secondary'}
                           className={activity.status === 'published' ? 'bg-green-100 text-green-800 hover:bg-green-200' : ''}
                         >
-                          {activity.status.charAt(0).toUpperCase() + activity.status.slice(1)}
+                          {activity.status ? activity.status.charAt(0).toUpperCase() + activity.status.slice(1) : 'N/A'}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -155,9 +171,9 @@ export default function ActivitiesPage() {
                               Edit
                             </Link>
                           </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
+                          <Button
+                            variant="outline"
+                            size="sm"
                             className="text-red-600 hover:bg-red-50 hover:text-red-700"
                             onClick={() => setActivityToDelete(activity.id)}
                           >
