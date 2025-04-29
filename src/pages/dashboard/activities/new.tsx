@@ -42,6 +42,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { format, isValid } from "date-fns"
+import { ImageUploader } from "@/components/dashboard/activities/ImageUploader" // Correctly import ImageUploader
 
 // Define the form schema using Zod
 const formSchema = z.object({
