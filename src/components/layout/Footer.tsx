@@ -5,9 +5,9 @@ export const Footer = () => {
   const isMobile = useIsMobile()
   
   return (
-    <footer className="border-t bg-background">
-      <div className="container py-6 sm:py-8 px-4 sm:px-6">
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
+    <footer className='w-full border-t bg-background'>
+      <div className='mx-auto w-full max-w-[2000px] px-4 sm:px-6 lg:px-8'>
+        <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 py-8 md:py-12'>
           <div>
             <h3 className="font-semibold mb-2 sm:mb-3 md:mb-4 text-sm sm:text-base">Guidestination</h3>
             <p className="text-xs sm:text-sm text-muted-foreground">
@@ -39,8 +39,11 @@ export const Footer = () => {
             </ul>
           </div>
         </div>
-        <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t text-center text-xs sm:text-sm text-muted-foreground">
-          <p>© {new Date().getFullYear()} Guidestination. All rights reserved.</p>
+        
+        <div className='border-t py-6 md:flex md:items-center md:justify-between'>
+          <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 text-center text-xs sm:text-sm text-muted-foreground">
+            <p>© {new Date().getFullYear()} Guidestination. All rights reserved.</p>
+          </div>
         </div>
       </div>
     </footer>

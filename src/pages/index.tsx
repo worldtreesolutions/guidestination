@@ -97,10 +97,10 @@ export default function Home() {
         <link rel='icon' href='/favicon.ico' />
       </Head>
 
-      <div className='min-h-screen flex flex-col'>
+      <div className='min-h-screen flex flex-col w-full'>
         <Navbar />
         
-        <main className='flex-1'>
+        <main className='flex-1 w-full'>
           {selectedActivities.length > 0 && (
             <div className='fixed bottom-4 right-4 z-40'>
               <Link href='/planning'>
@@ -113,7 +113,7 @@ export default function Home() {
             </div>
           )}
           
-          <section className='relative h-[350px] sm:h-[450px] md:h-[550px]'>
+          <section className='relative h-[350px] sm:h-[450px] md:h-[550px] w-full'>
             <div className='absolute inset-0'>
               <Image
                 src='https://images.unsplash.com/photo-1563492065599-3520f775eeed'
@@ -123,7 +123,7 @@ export default function Home() {
                 priority
               />
             </div>
-            <div className='relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-full flex flex-col items-center justify-center text-white'>
+            <div className='relative w-full h-full flex flex-col items-center justify-center text-white px-4 sm:px-6 lg:px-8'>
               <h1 className='text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 text-center max-w-4xl'>
                 Discover the Magic of Chiang Mai
               </h1>
@@ -140,16 +140,20 @@ export default function Home() {
             </div>
           </section>
 
-          <section className='py-6 sm:py-8 md:py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-            <CategoryNav />
+          <section className='py-6 sm:py-8 md:py-12 w-full px-4 sm:px-6 lg:px-8'>
+            <div className='max-w-7xl mx-auto w-full'>
+              <CategoryNav />
+            </div>
           </section>
 
-          <section className='py-6 sm:py-8 md:py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-            <h2 className='text-xl sm:text-2xl md:text-3xl font-bold text-center mb-4 sm:mb-6 md:mb-8'>Popular Experiences in Chiang Mai</h2>
-            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6'>
-              {featuredActivities.map((activity) => (
-                <ActivityCard key={activity.href} {...activity} />
-              ))}
+          <section className='py-6 sm:py-8 md:py-12 w-full px-4 sm:px-6 lg:px-8'>
+            <div className='max-w-7xl mx-auto w-full'>
+              <h2 className='text-xl sm:text-2xl md:text-3xl font-bold text-center mb-4 sm:mb-6 md:mb-8'>Popular Experiences in Chiang Mai</h2>
+              <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6'>
+                {featuredActivities.map((activity) => (
+                  <ActivityCard key={activity.href} {...activity} />
+                ))}
+              </div>
             </div>
           </section>
         </main>

@@ -53,7 +53,7 @@ export default function LoginPage() {
       </Head>
 
       <div className="min-h-screen w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 md:p-8">
-        <div className="w-full max-w-md">
+        <div className="w-full max-w-md mx-auto">
           <div className="flex justify-center mb-6">
             <Link href="/" className="flex items-center">
               <Image 

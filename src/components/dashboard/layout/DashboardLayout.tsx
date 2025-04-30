@@ -39,7 +39,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   if (isLoading) {
     return (
-      <div className='min-h-screen flex items-center justify-center'>
+      <div className='min-h-screen flex items-center justify-center w-full'>
         <div className='flex flex-col items-center gap-2'>
           <div className='h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent'></div>
           <p className='text-muted-foreground'>Loading...</p>
@@ -75,22 +75,17 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               {/* Optional: Add a small logo here */}
               <span className="">Provider Dashboard</span>
             </Link>
-            {/* Optional: Add notification bell */}
-            {/* <Button variant="outline" size="icon" className="ml-auto h-8 w-8">
-              <Bell className="h-4 w-4" />
-              <span className="sr-only">Toggle notifications</span>
-            </Button> */}
           </div>
-          <div className="flex-1">
+          <div className="flex-1 overflow-auto">
              <DashboardSidebar />
           </div>
         </div>
       </div>
 
       {/* Main Content Area */}
-      <div className="flex flex-col">
+      <div className="flex flex-col w-full">
         {/* Header */}
-        <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6 sticky top-0 z-30">
+        <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6 sticky top-0 z-30 w-full">
           {/* Mobile Sidebar Trigger */}
           <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
             <SheetTrigger asChild>
@@ -110,26 +105,16 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
           {/* Optional: Header Content (e.g., Search Bar) */}
           <div className="w-full flex-1">
-            {/* <form>
-              <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Search activities..."
-                  className="w-full appearance-none bg-background pl-8 shadow-none md:w-2/3 lg:w-1/3"
-                />
-              </div>
-            </form> */}
+            {/* Search bar could go here */}
           </div>
 
           {/* User Dropdown - Fixed the user check */}
-          {user !== null && (
+          {user && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="secondary" size="icon" className="rounded-full">
                   <Avatar className="h-8 w-8">
                     {/* Removed AvatarImage as photoURL is not available */}
-                    {/* <AvatarImage src={user.photoURL || ""} alt={user.name || "User"} /> */}
                     <AvatarFallback>{getInitials(user?.name)}</AvatarFallback>
                   </Avatar>
                   <span className="sr-only">Toggle user menu</span>
@@ -153,8 +138,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         </header>
 
         {/* Page Content */}
-        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-          {children}
+        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 w-full">
+          <div className="w-full max-w-[2000px] mx-auto">
+            {children}
+          </div>
         </main>
       </div>
     </div>
