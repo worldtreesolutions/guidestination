@@ -1,5 +1,5 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart } from "@/components/ui/chart";
 
 interface EarningsChartProps {
   data?: {
@@ -26,16 +26,16 @@ export function EarningsChart({ data }: EarningsChartProps) {
         <CardDescription>Your earnings over the past 6 months</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className='h-[300px] flex items-end justify-between'>
+        <div className="h-[300px] flex items-end justify-between">
           {chartData.map((month) => (
-            <div key={month.month} className='flex flex-col items-center'>
+            <div key={month.month} className="flex flex-col items-center">
               <div 
-                className='bg-primary w-12 rounded-t-md' 
+                className="bg-primary w-12 rounded-t-md" 
                 style={{ 
                   height: `${(month.earnings / Math.max(...chartData.map(m => m.earnings))) * 250}px` 
                 }}
               ></div>
-              <div className='mt-2 text-xs'>{month.month}</div>
+              <div className="mt-2 text-xs">{month.month}</div>
             </div>
           ))}
         </div>
