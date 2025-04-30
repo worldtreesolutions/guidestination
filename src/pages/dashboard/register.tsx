@@ -66,8 +66,8 @@ export default function RegisterPage() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
-      <div className="flex min-h-screen w-full items-center justify-center bg-gray-50 dark:bg-gray-900 px-4 py-8">
-        <div className="w-full max-w-md">
+      <div className="flex min-h-screen w-full items-center justify-center bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 md:p-8">
+        <div className="w-full max-w-md mx-auto">
           <div className="flex justify-center mb-8">
             <Link href="/" className="flex items-center">
               <Image 

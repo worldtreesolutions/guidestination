@@ -315,11 +315,14 @@ export default function SettingsPage() {
                     </div>
                     
                     {showPaymentForm && (
-                      <Card>
-                        <CardHeader>
+                      <Card className='border-primary'>
+                        <CardHeader className='bg-primary/5'>
                           <CardTitle className='text-lg'>Add New Payment Method</CardTitle>
+                          <CardDescription>
+                            Enter your card details to add a new payment method
+                          </CardDescription>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className='pt-6'>
                           <form id='paymentForm' onSubmit={handleAddPaymentMethod} className='space-y-4'>
                             <div className='space-y-2'>
                               <Label htmlFor='cardholderName'>Cardholder Name</Label>
@@ -328,6 +331,7 @@ export default function SettingsPage() {
                                 name='cardholderName'
                                 placeholder='John Doe' 
                                 required 
+                                autoComplete='cc-name'
                               />
                             </div>
                             <div className='space-y-2'>
@@ -338,6 +342,8 @@ export default function SettingsPage() {
                                 placeholder='1234 5678 9012 3456' 
                                 required 
                                 maxLength={19}
+                                autoComplete='cc-number'
+                                className='font-mono'
                               />
                             </div>
                             <div className='grid grid-cols-2 gap-4'>
@@ -349,6 +355,7 @@ export default function SettingsPage() {
                                   placeholder='MM/YY' 
                                   required 
                                   maxLength={5}
+                                  autoComplete='cc-exp'
                                 />
                               </div>
                               <div className='space-y-2'>
@@ -360,6 +367,7 @@ export default function SettingsPage() {
                                   placeholder='123' 
                                   required 
                                   maxLength={4}
+                                  autoComplete='cc-csc'
                                 />
                               </div>
                             </div>
@@ -383,7 +391,7 @@ export default function SettingsPage() {
                     {paymentMethods.length > 0 ? (
                       <div className='space-y-3'>
                         {paymentMethods.map((method) => (
-                          <div key={method.id} className='flex justify-between items-center border rounded-md p-4'>
+                          <div key={method.id} className='flex justify-between items-center border rounded-md p-4 hover:bg-muted/50 transition-colors'>
                             <div className='flex items-center gap-3'>
                               <CreditCard className='h-5 w-5 text-primary' />
                               <div>
@@ -391,22 +399,46 @@ export default function SettingsPage() {
                                 <p className='text-sm text-muted-foreground'>
                                   {method.cardNumber} • Expires {method.expiryDate}
                                 </p>
+                                <p className='text-xs text-muted-foreground mt-1'>
+                                  {method.cardholderName}
+                                </p>
                               </div>
                             </div>
-                            <Button 
-                              variant='ghost' 
-                              size='sm'
-                              onClick={() => handleRemovePaymentMethod(method.id)}
-                            >
-                              <X className='h-4 w-4' />
-                              <span className='sr-only'>Remove</span>
-                            </Button>
+                            <div className='flex gap-2'>
+                              <Button 
+                                variant='outline' 
+                                size='sm'
+                                className='hidden sm:flex'
+                              >
+                                Edit
+                              </Button>
+                              <Button 
+                                variant='ghost' 
+                                size='sm'
+                                onClick={() => handleRemovePaymentMethod(method.id)}
+                                className='text-red-500 hover:text-red-600 hover:bg-red-50'
+                              >
+                                <X className='h-4 w-4 sm:mr-1' />
+                                <span className='hidden sm:inline'>Remove</span>
+                              </Button>
+                            </div>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <div className='border rounded-md p-4'>
-                        <p className='text-muted-foreground text-center'>No payment methods added yet.</p>
+                      <div className='border rounded-md p-6 text-center'>
+                        <CreditCard className='h-10 w-10 text-muted-foreground mx-auto mb-3' />
+                        <p className='text-muted-foreground'>No payment methods added yet.</p>
+                        <p className='text-sm text-muted-foreground mt-1'>
+                          Add a payment method to receive payments for your bookings.
+                        </p>
+                        <Button 
+                          className='mt-4'
+                          onClick={() => setShowPaymentForm(true)}
+                        >
+                          <Plus className='h-4 w-4 mr-2' />
+                          Add Payment Method
+                        </Button>
                       </div>
                     )}
                   </div>
