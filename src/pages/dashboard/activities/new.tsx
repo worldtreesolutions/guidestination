@@ -112,7 +112,7 @@ export default function NewActivityPage() {
   }, [isAuthenticated, router])
 
   // Handle form submission
-  const onSubmit = async ( FormValues) => {
+  const onSubmit = async (data: FormValues) => { // Add type 'FormValues' to the data parameter
     if (!user) return
 
     setIsSubmitting(true)
@@ -138,7 +138,7 @@ export default function NewActivityPage() {
 
       // Calculate finalPrice (example: basePrice + 20% commission)
       // This logic might belong in the service or backend ideally
-      const finalPrice = data.basePrice * 1.2;
+      const finalPrice = data.basePrice * 1.2; // Use 'data' instead of 'FormValues'
       const creationData = { ...activityData, finalPrice };
 
       await activityService.createActivity(creationData as Partial<Activity>); // Cast as Partial<Activity> for service
