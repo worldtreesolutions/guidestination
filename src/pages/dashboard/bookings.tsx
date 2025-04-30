@@ -146,7 +146,7 @@ export default function BookingsPage() {
     
     // Date filter
     let matchesDate = true
-    if (dateRange.from) {
+    if (dateRange?.from) {
       matchesDate = booking.date >= dateRange.from
       if (dateRange.to) {
         matchesDate = matchesDate && booking.date <= dateRange.to

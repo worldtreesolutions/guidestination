@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart } from "@/components/ui/chart";
 
@@ -32,7 +31,7 @@ export function EarningsChart({ data }: EarningsChartProps) {
           index="month"
           categories={["earnings"]}
           colors={["primary"]}
-          valueFormatter={(value) => `฿${value.toLocaleString()}`}
+          valueFormatter={(value: number) => `฿${value.toLocaleString()}`}
           yAxisWidth={60}
           height={300}
         />
