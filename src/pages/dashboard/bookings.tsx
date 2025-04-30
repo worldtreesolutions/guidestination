@@ -156,16 +156,16 @@ export default function BookingsPage() {
     return matchesSearch && matchesStatus && matchesDate
   })
 
-  const getStatusBadgeVariant = (status: string) => {
+  const getStatusBadgeVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
     switch (status) {
       case "confirmed":
-        return "success"
+        return "default"
       case "pending":
-        return "warning"
+        return "secondary"
       case "cancelled":
         return "destructive"
       default:
-        return "secondary"
+        return "outline"
     }
   }
 
