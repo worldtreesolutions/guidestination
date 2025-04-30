@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react"
 import Head from "next/head"
 import { useRouter } from "next/router"
@@ -249,7 +248,11 @@ export default function BookingsPage() {
                         mode="range"
                         defaultMonth={new Date()}
                         selected={dateRange}
-                        onSelect={setDateRange}
+                        onSelect={(range) => {
+                          if (range) {
+                            setDateRange(range);
+                          }
+                        }}
                         numberOfMonths={2}
                       />
                     </PopoverContent>

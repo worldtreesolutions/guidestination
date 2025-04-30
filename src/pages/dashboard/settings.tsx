@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react"
 import Head from "next/head"
 import { useRouter } from "next/router"
@@ -18,6 +17,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Badge } from "@/components/ui/badge"
 import { 
   Select,
   SelectContent,
