@@ -1,7 +1,7 @@
 import { ReactNode, useState, useEffect } from "react"
 import { useRouter } from "next/router"
 import Link from "next/link"
-import { useAuth, User } from "@/contexts/AuthContext" // Import User type
+import { useAuth } from "@/contexts/AuthContext" // Import User type
 import { Button } from "@/components/ui/button"
 import {
   Menu,
@@ -26,7 +26,7 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
-  const { isAuthenticated, isLoading, logout } = useAuth();
+  const { user, isAuthenticated, isLoading, logout } = useAuth();
   const router = useRouter();
   const isMobile = useIsMobile()
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -57,7 +57,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     router.push("/dashboard/login"); // Redirect to dashboard login
   };
 
-  // Updated getInitials to use ownerName
+  // Updated getInitials to use name
   const getInitials = (name?: string | null) => {
     if (!name) return "U"; // Default to "U" if name is not available
     const names = name.split(" ");
@@ -129,14 +129,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 <Button variant="secondary" size="icon" className="rounded-full">
                   <Avatar className="h-8 w-8">
                     {/* Removed AvatarImage as photoURL is not available */}
-                    {/* <AvatarImage src={user.photoURL || ""} alt={user.ownerName || "User"} /> */}
-                    <AvatarFallback>{getInitials(user.ownerName)}</AvatarFallback> {/* Use ownerName */}
+                    {/* <AvatarImage src={user.photoURL || ""} alt={user.name || "User"} /> */}
+                    <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
                   </Avatar>
                   <span className="sr-only">Toggle user menu</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>{user.ownerName || "My Account"}</DropdownMenuLabel> {/* Display ownerName */}
+                <DropdownMenuLabel>{user.name || "My Account"}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <Link href="/dashboard/settings">Settings</Link>
