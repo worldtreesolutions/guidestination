@@ -1,10 +1,9 @@
-
 import { User } from "@/contexts/AuthContext"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { CalendarDays, Users, CreditCard, TrendingUp } from "lucide-react"
 
 interface DashboardHeaderProps {
-  user: User;
+  user?: User | null;
   stats: {
     totalActivities: number;
     totalBookings: number;
@@ -13,16 +12,29 @@ interface DashboardHeaderProps {
   };
 }
 
-export function DashboardHeader({ user, stats }: DashboardHeaderProps) {
+export function DashboardHeader({ user }: DashboardHeaderProps) {
   return (
-    <div className="space-y-6">
+    <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6'>
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Welcome back, {user.businessName}! Here's an overview of your business.
+        <h1 className='text-3xl font-bold tracking-tight'>Dashboard</h1>
+        <p className='text-muted-foreground'>
+          Welcome back, {user?.name || 'Provider'}! Here's an overview of your business.
         </p>
       </div>
-
+      <div className='flex gap-2 w-full sm:w-auto'>
+        <div className='flex flex-col sm:flex-row gap-2'>
+          <div className='grid grid-cols-2 gap-2'>
+            <div className='flex flex-col items-center justify-center p-3 bg-muted rounded-lg'>
+              <span className='text-sm text-muted-foreground'>Bookings</span>
+              <span className='text-2xl font-bold'>24</span>
+            </div>
+            <div className='flex flex-col items-center justify-center p-3 bg-muted rounded-lg'>
+              <span className='text-sm text-muted-foreground'>Revenue</span>
+              <span className='text-2xl font-bold'>฿48K</span>
+            </div>
+          </div>
+        </div>
+      </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
