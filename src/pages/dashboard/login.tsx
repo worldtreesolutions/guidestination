@@ -50,10 +50,11 @@ export default function LoginPage() {
       <Head>
         <title>Login - Dashboard</title>
         <meta name="description" content="Login to access your dashboard" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
-        <div className="w-full max-w-md">
+      <div className="flex min-h-screen w-full items-center justify-center bg-gray-50 dark:bg-gray-900 px-4 py-8">
+        <div className="w-full max-w-md mx-auto">
           <div className="flex justify-center mb-8">
             <Link href="/" className="flex items-center">
               <Image 
@@ -73,8 +74,8 @@ export default function LoginPage() {
             </Link>
           </div>
 
-          <Card className="w-full">
-            <CardHeader className="space-y-1">
+          <Card className="w-full shadow-lg">
+            <CardHeader className="space-y-1 pb-6">
               <CardTitle className="text-2xl font-bold text-center">Sign in to Dashboard</CardTitle>
               <CardDescription className="text-center">
                 Enter your credentials to access your account
@@ -82,12 +83,12 @@ export default function LoginPage() {
             </CardHeader>
             <CardContent>
               {error && (
-                <Alert variant="destructive" className="mb-4">
+                <Alert variant="destructive" className="mb-6">
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <Input 
@@ -98,6 +99,7 @@ export default function LoginPage() {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     disabled={isLoading}
+                    className="w-full"
                   />
                 </div>
                 <div className="space-y-2">
@@ -118,6 +120,7 @@ export default function LoginPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     disabled={isLoading}
+                    className="w-full"
                   />
                 </div>
                 <div className="flex items-center space-x-2">
@@ -134,10 +137,15 @@ export default function LoginPage() {
                     Remember me
                   </Label>
                 </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button 
+                  type="submit" 
+                  className="w-full py-6 mt-6" 
+                  disabled={isLoading}
+                  size="lg"
+                >
                   {isLoading ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                       Signing in...
                     </>
                   ) : (
@@ -146,10 +154,10 @@ export default function LoginPage() {
                 </Button>
               </form>
             </CardContent>
-            <CardFooter className="flex flex-col space-y-4">
-              <div className="text-center text-sm">
+            <CardFooter className="flex flex-col space-y-4 pt-4 pb-6 border-t">
+              <div className="text-center text-sm w-full">
                 Don't have an account?{" "}
-                <Link href="/dashboard/register" className="text-primary hover:underline">
+                <Link href="/dashboard/register" className="text-primary font-medium hover:underline">
                   Create an account
                 </Link>
               </div>

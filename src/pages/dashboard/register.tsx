@@ -64,10 +64,11 @@ export default function RegisterPage() {
       <Head>
         <title>Create Account - Dashboard</title>
         <meta name="description" content="Create a new account to access the dashboard" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
-        <div className="w-full max-w-md">
+      <div className="flex min-h-screen w-full items-center justify-center bg-gray-50 dark:bg-gray-900 px-4 py-8">
+        <div className="w-full max-w-md mx-auto">
           <div className="flex justify-center mb-8">
             <Link href="/" className="flex items-center">
               <Image 
@@ -87,8 +88,8 @@ export default function RegisterPage() {
             </Link>
           </div>
 
-          <Card className="w-full">
-            <CardHeader className="space-y-1">
+          <Card className="w-full shadow-lg">
+            <CardHeader className="space-y-1 pb-6">
               <CardTitle className="text-2xl font-bold text-center">Create an Account</CardTitle>
               <CardDescription className="text-center">
                 Enter your information to create your account
@@ -96,12 +97,12 @@ export default function RegisterPage() {
             </CardHeader>
             <CardContent>
               {error && (
-                <Alert variant="destructive" className="mb-4">
+                <Alert variant="destructive" className="mb-6">
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="space-y-2">
                   <Label htmlFor="name">Full Name</Label>
                   <Input 
@@ -111,6 +112,7 @@ export default function RegisterPage() {
                     onChange={(e) => setName(e.target.value)}
                     required
                     disabled={isLoading}
+                    className="w-full"
                   />
                 </div>
                 <div className="space-y-2">
@@ -123,6 +125,7 @@ export default function RegisterPage() {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     disabled={isLoading}
+                    className="w-full"
                   />
                 </div>
                 <div className="space-y-2">
@@ -135,6 +138,7 @@ export default function RegisterPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     disabled={isLoading}
+                    className="w-full"
                   />
                 </div>
                 <div className="space-y-2">
@@ -147,18 +151,20 @@ export default function RegisterPage() {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
                     disabled={isLoading}
+                    className="w-full"
                   />
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-start space-x-2 mt-4">
                   <Checkbox 
                     id="terms" 
                     checked={agreeTerms}
                     onCheckedChange={(checked) => setAgreeTerms(checked === true)}
                     disabled={isLoading}
+                    className="mt-1"
                   />
                   <Label 
                     htmlFor="terms" 
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    className="text-sm font-medium leading-tight peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                   >
                     I agree to the{" "}
                     <Link href="/terms" className="text-primary hover:underline">
@@ -170,10 +176,15 @@ export default function RegisterPage() {
                     </Link>
                   </Label>
                 </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button 
+                  type="submit" 
+                  className="w-full py-6 mt-6" 
+                  disabled={isLoading}
+                  size="lg"
+                >
                   {isLoading ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                       Creating Account...
                     </>
                   ) : (
@@ -182,10 +193,10 @@ export default function RegisterPage() {
                 </Button>
               </form>
             </CardContent>
-            <CardFooter>
-              <div className="text-center w-full text-sm">
+            <CardFooter className="flex justify-center pt-4 pb-6 border-t">
+              <div className="text-center text-sm">
                 Already have an account?{" "}
-                <Link href="/dashboard/login" className="text-primary hover:underline">
+                <Link href="/dashboard/login" className="text-primary font-medium hover:underline">
                   Sign in
                 </Link>
               </div>
