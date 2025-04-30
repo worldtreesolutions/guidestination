@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format, subDays } from "date-fns";
@@ -87,7 +86,7 @@ export function RecentBookings({ bookings }: RecentBookingsProps) {
                 </div>
               </div>
               <div className="flex flex-col items-end gap-1">
-                <span className="font-medium">฿{booking.amount.toLocaleString()}</span>
+                <span className="font-medium">฿{booking.amount ? booking.amount.toLocaleString() : '0'}</span>
                 <Badge variant={getStatusBadgeVariant(booking.status)}>
                   {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
                 </Badge>

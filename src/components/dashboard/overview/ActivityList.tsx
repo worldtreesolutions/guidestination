@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Activity } from "@/services/activityService"
 import { 
@@ -37,7 +36,7 @@ export function ActivityList({ activities, onDelete }: ActivityListProps) {
         </Button>
       </CardHeader>
       <CardContent>
-        {activities.length === 0 ? (
+        {!activities || activities.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
             <h3 className="mb-2 text-lg font-semibold">No activities yet</h3>
             <p className="text-sm text-muted-foreground">
@@ -64,14 +63,14 @@ export function ActivityList({ activities, onDelete }: ActivityListProps) {
               {activities.map((activity) => (
                 <TableRow key={activity.id}>
                   <TableCell className="font-medium">{activity.title}</TableCell>
-                  <TableCell>{activity.category.charAt(0).toUpperCase() + activity.category.slice(1)}</TableCell>
-                  <TableCell>{activity.basePrice.toLocaleString()}</TableCell>
+                  <TableCell>{activity.category ? (activity.category.charAt(0).toUpperCase() + activity.category.slice(1)) : 'N/A'}</TableCell>
+                  <TableCell>{activity.basePrice ? activity.basePrice.toLocaleString() : 'N/A'}</TableCell>
                   <TableCell>
                     <Badge 
                       variant={activity.status === 'published' ? 'default' : 'secondary'}
                       className={activity.status === 'published' ? 'bg-green-100 text-green-800 hover:bg-green-200' : ''}
                     >
-                      {activity.status.charAt(0).toUpperCase() + activity.status.slice(1)}
+                      {activity.status ? (activity.status.charAt(0).toUpperCase() + activity.status.slice(1)) : 'Draft'}
                     </Badge>
                   </TableCell>
                   <TableCell>
