@@ -69,7 +69,7 @@ export function DashboardSidebar() {
     },
     {
       title: "Revenue",
-      href: "/dashboard/earnings", // Updated href
+      href: "/dashboard/revenue", // Updated href
       icon: <BarChart3 className="h-5 w-5" />
     },
     {
