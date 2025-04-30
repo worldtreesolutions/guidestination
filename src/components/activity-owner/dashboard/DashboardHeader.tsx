@@ -13,6 +13,14 @@ interface DashboardHeaderProps {
 }
 
 export function DashboardHeader({ user }: DashboardHeaderProps) {
+  // Mock stats for display
+  const mockStats = {
+    totalActivities: 12,
+    totalBookings: 48,
+    totalEarnings: 125000,
+    pendingEarnings: 35000
+  };
+
   return (
     <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6'>
       <div>
@@ -42,7 +50,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
             <CalendarDays className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalActivities}</div>
+            <div className="text-2xl font-bold">{mockStats.totalActivities}</div>
             <p className="text-xs text-muted-foreground">
               Listed experiences
             </p>
@@ -55,7 +63,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalBookings}</div>
+            <div className="text-2xl font-bold">{mockStats.totalBookings}</div>
             <p className="text-xs text-muted-foreground">
               Confirmed reservations
             </p>
@@ -68,7 +76,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">฿{stats.totalEarnings.toLocaleString()}</div>
+            <div className="text-2xl font-bold">฿{mockStats.totalEarnings.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
               After platform fees
             </p>
@@ -81,7 +89,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">฿{stats.pendingEarnings.toLocaleString()}</div>
+            <div className="text-2xl font-bold">฿{mockStats.pendingEarnings.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
               From upcoming bookings
             </p>
