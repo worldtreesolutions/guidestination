@@ -26,15 +26,19 @@ export function EarningsChart({ data }: EarningsChartProps) {
         <CardDescription>Your earnings over the past 6 months</CardDescription>
       </CardHeader>
       <CardContent>
-        <BarChart
-          data={chartData}
-          index="month"
-          categories={["earnings"]}
-          colors={["primary"]}
-          valueFormatter={(value: number) => `฿${value.toLocaleString()}`}
-          yAxisWidth={60}
-          height={300}
-        />
+        <div className='h-[300px] flex items-end justify-between'>
+          {chartData.map((month) => (
+            <div key={month.month} className='flex flex-col items-center'>
+              <div 
+                className='bg-primary w-12 rounded-t-md' 
+                style={{ 
+                  height: `${(month.earnings / Math.max(...chartData.map(m => m.earnings))) * 250}px` 
+                }}
+              ></div>
+              <div className='mt-2 text-xs'>{month.month}</div>
+            </div>
+          ))}
+        </div>
       </CardContent>
     </Card>
   );
