@@ -1,4 +1,3 @@
-
 import { useState } from "react"
 import { useRouter } from "next/router"
 import Head from "next/head"
@@ -68,7 +67,7 @@ export default function RegisterPage() {
       </Head>
 
       <div className="flex min-h-screen w-full items-center justify-center bg-gray-50 dark:bg-gray-900 px-4 py-8">
-        <div className="w-full max-w-md mx-auto">
+        <div className="w-full max-w-md">
           <div className="flex justify-center mb-8">
             <Link href="/" className="flex items-center">
               <Image 
