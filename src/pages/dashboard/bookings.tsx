@@ -248,11 +248,7 @@ export default function BookingsPage() {
                         mode="range"
                         defaultMonth={new Date()}
                         selected={dateRange}
-                        onSelect={(range) => {
-                          if (range) {
-                            setDateRange(range);
-                          }
-                        }}
+                        onSelect={setDateRange}
                         numberOfMonths={2}
                       />
                     </PopoverContent>
