@@ -122,21 +122,21 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </form> */}
           </div>
 
-          {/* User Dropdown */}
-          {user && (
+          {/* User Dropdown - Fixed the user check */}
+          {user !== null && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="secondary" size="icon" className="rounded-full">
                   <Avatar className="h-8 w-8">
                     {/* Removed AvatarImage as photoURL is not available */}
                     {/* <AvatarImage src={user.photoURL || ""} alt={user.name || "User"} /> */}
-                    <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                    <AvatarFallback>{getInitials(user?.name)}</AvatarFallback>
                   </Avatar>
                   <span className="sr-only">Toggle user menu</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>{user.name || "My Account"}</DropdownMenuLabel>
+                <DropdownMenuLabel>{user?.name || "My Account"}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <Link href="/dashboard/settings">Settings</Link>
