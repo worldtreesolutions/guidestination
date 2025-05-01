@@ -1,14 +1,13 @@
-
-import { useState } from "react"
-import { useRouter } from "next/router"
-import Head from "next/head"
-import Link from "next/link"
-import Image from "next/image"
-import { useAuth } from "@/contexts/AuthContext"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
+import { useState } from 'react'
+import { useRouter } from 'next/router'
+import Head from 'next/head'
+import Link from 'next/link'
+import Image from 'next/image'
+import { useAuth } from '@/contexts/AuthContext'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Card,
   CardContent,
@@ -16,40 +15,54 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, AlertCircle } from "lucide-react"
+} from '@/components/ui/card'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Loader2, AlertCircle, AlertTriangle } from 'lucide-react'
 
 export default function LoginPage() {
   const router = useRouter()
-  const { login } = useAuth()
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const { login, checkUserVerification } = useAuth()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [verificationWarning, setVerificationWarning] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+    setVerificationWarning(null)
     setIsLoading(true)
 
     try {
+      // First check if user exists and is verified
+      const verificationStatus = await checkUserVerification(email);
+      
+      if (verificationStatus.exists && !verificationStatus.verified) {
+        setVerificationWarning('Your account is pending verification. Please contact support to verify your account.');
+        setIsLoading(false);
+        return;
+      }
+      
+      // If user is verified or doesn't exist, proceed with login
       await login(email, password, rememberMe)
-      router.push("/dashboard/overview")
+      router.push('/dashboard/overview')
     } catch (err: any) {
-      console.error("Login error:", err)
+      console.error('Login error:', err)
       // Handle Supabase auth errors with more specific messages
       if (err.message) {
-        if (err.message.includes("Invalid login credentials")) {
-          setError("Invalid email or password. Please try again.")
-        } else if (err.message.includes("Email not confirmed")) {
-          setError("Please confirm your email address before logging in.")
+        if (err.message.includes('Invalid login credentials')) {
+          setError('Invalid email or password. Please try again.')
+        } else if (err.message.includes('Email not confirmed')) {
+          setError('Please confirm your email address before logging in.')
+        } else if (err.message.includes('pending verification')) {
+          setVerificationWarning(err.message);
         } else {
           setError(err.message)
         }
       } else {
-        setError("An error occurred during login. Please try again.")
+        setError('An error occurred during login. Please try again.')
       }
     } finally {
       setIsLoading(false)
@@ -60,20 +73,20 @@ export default function LoginPage() {
     <>
       <Head>
         <title>Login - Dashboard</title>
-        <meta name="description" content="Login to access your dashboard" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name='description' content='Login to access your dashboard' />
+        <meta name='viewport' content='width=device-width, initial-scale=1' />
       </Head>
 
-      <div className="min-h-screen w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 md:p-8">
-        <div className="w-full max-w-md mx-auto">
-          <div className="flex justify-center mb-6">
-            <Link href="/" className="flex items-center">
+      <div className='min-h-screen w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 md:p-8'>
+        <div className='w-full max-w-md mx-auto'>
+          <div className='flex justify-center mb-6'>
+            <Link href='/' className='flex items-center'>
               <Image 
-                src="/logo.png" 
-                alt="Guidestination Logo" 
+                src='/logo.png' 
+                alt='Guidestination Logo' 
                 width={180} 
                 height={40}
-                className="h-10 w-auto"
+                className='h-10 w-auto'
                 onError={(e) => {
                   // Fallback if logo doesn't exist
                   const target = e.target as HTMLImageElement;
@@ -81,104 +94,112 @@ export default function LoginPage() {
                   target.style.display = 'none';
                 }}
               />
-              <span className="text-2xl font-bold ml-2">Guidestination</span>
+              <span className='text-2xl font-bold ml-2'>Guidestination</span>
             </Link>
           </div>
 
-          <Card className="w-full shadow-lg">
-            <CardHeader className="space-y-1 pb-6 text-center">
-              <CardTitle className="text-2xl font-bold">Sign in to Dashboard</CardTitle>
+          <Card className='w-full shadow-lg'>
+            <CardHeader className='space-y-1 pb-6 text-center'>
+              <CardTitle className='text-2xl font-bold'>Sign in to Dashboard</CardTitle>
               <CardDescription>
                 Enter your credentials to access your account
               </CardDescription>
             </CardHeader>
             <CardContent>
               {error && (
-                <Alert variant="destructive" className="mb-6">
-                  <AlertCircle className="h-4 w-4" />
+                <Alert variant='destructive' className='mb-6'>
+                  <AlertCircle className='h-4 w-4' />
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
-              <form onSubmit={handleSubmit} className="space-y-5">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+              
+              {verificationWarning && (
+                <Alert variant='warning' className='mb-6 bg-amber-50 border-amber-200 text-amber-800'>
+                  <AlertTriangle className='h-4 w-4 text-amber-600' />
+                  <AlertDescription className='text-amber-800'>{verificationWarning}</AlertDescription>
+                </Alert>
+              )}
+              
+              <form onSubmit={handleSubmit} className='space-y-5'>
+                <div className='space-y-2'>
+                  <Label htmlFor='email'>Email</Label>
                   <Input 
-                    id="email" 
-                    type="email" 
-                    placeholder="name@example.com" 
+                    id='email' 
+                    type='email' 
+                    placeholder='name@example.com' 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     disabled={isLoading}
-                    className="w-full"
+                    className='w-full'
                   />
                 </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="password">Password</Label>
+                <div className='space-y-2'>
+                  <div className='flex items-center justify-between'>
+                    <Label htmlFor='password'>Password</Label>
                     <Link 
-                      href="/dashboard/forgot-password" 
-                      className="text-sm text-primary hover:underline"
+                      href='/dashboard/forgot-password' 
+                      className='text-sm text-primary hover:underline'
                     >
                       Forgot password?
                     </Link>
                   </div>
                   <Input 
-                    id="password" 
-                    type="password" 
-                    placeholder="••••••••" 
+                    id='password' 
+                    type='password' 
+                    placeholder='••••••••' 
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     disabled={isLoading}
-                    className="w-full"
+                    className='w-full'
                   />
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className='flex items-center space-x-2'>
                   <Checkbox 
-                    id="remember" 
+                    id='remember' 
                     checked={rememberMe}
                     onCheckedChange={(checked) => setRememberMe(checked === true)}
                     disabled={isLoading}
                   />
                   <Label 
-                    htmlFor="remember" 
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    htmlFor='remember' 
+                    className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'
                   >
                     Remember me
                   </Label>
                 </div>
                 <Button 
-                  type="submit" 
-                  className="w-full py-6 mt-6" 
+                  type='submit' 
+                  className='w-full py-6 mt-6' 
                   disabled={isLoading}
-                  size="lg"
+                  size='lg'
                 >
                   {isLoading ? (
                     <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      <Loader2 className='mr-2 h-5 w-5 animate-spin' />
                       Signing in...
                     </>
                   ) : (
-                    "Sign In"
+                    'Sign In'
                   )}
                 </Button>
               </form>
             </CardContent>
-            <CardFooter className="flex flex-col space-y-4 pt-4 pb-6 border-t">
-              <div className="text-center text-sm w-full">
-                Don't have an account?{" "}
-                <Link href="/dashboard/register" className="text-primary font-medium hover:underline">
+            <CardFooter className='flex flex-col space-y-4 pt-4 pb-6 border-t'>
+              <div className='text-center text-sm w-full'>
+                Don't have an account?{' '}
+                <Link href='/dashboard/register' className='text-primary font-medium hover:underline'>
                   Create an account
                 </Link>
               </div>
-              <div className="text-center text-xs text-muted-foreground">
-                By signing in, you agree to our{" "}
-                <Link href="/terms" className="hover:underline">
+              <div className='text-center text-xs text-muted-foreground'>
+                By signing in, you agree to our{' '}
+                <Link href='/terms' className='hover:underline'>
                   Terms of Service
-                </Link>{" "}
-                and{" "}
-                <Link href="/privacy" className="hover:underline">
+                </Link>{' '}
+                and{' '}
+                <Link href='/privacy' className='hover:underline'>
                   Privacy Policy
                 </Link>
               </div>

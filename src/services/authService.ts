@@ -1,7 +1,19 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { v4 as uuidv4 } from "uuid";
 import { Session, User } from "@supabase/supabase-js";
+
+// Define a type for user metadata
+export interface UserMetadata {
+  name?: string;
+  verified?: boolean;
+  [key: string]: any;
+}
+
+// Define a type for the user verification status
+export interface UserVerificationStatus {
+  exists: boolean;
+  verified: boolean;
+}
 
 export interface UserRegistration {
   name: string;
@@ -15,6 +27,13 @@ export const authService = {
    * Sign in with email and password using Supabase Auth
    */
   async signInWithEmail(email: string, password: string): Promise<{ user: User | null; session: Session | null }> {
+    // First check if user exists and is verified
+    const verificationStatus = await this.checkUserVerification(email);
+    
+    if (verificationStatus.exists && !verificationStatus.verified) {
+      throw new Error('Your account is pending verification. Please contact support.');
+    }
+    
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -33,12 +52,15 @@ export const authService = {
   /**
    * Sign up with email and password using Supabase Auth
    */
-  async signUpWithEmail(email: string, password: string, metadata?: { name?: string; role?: string }): Promise<{ user: User | null; session: Session | null }> {
+  async signUpWithEmail(email: string, password: string, metadata: UserMetadata = {}): Promise<{ user: User | null; session: Session | null }> {
+    // Set verified to false by default for new users
+    const userMetadata = { ...metadata, verified: false };
+    
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: metadata,
+        data: userMetadata,
       },
     });
 
@@ -94,6 +116,26 @@ export const authService = {
     return {
       exists: !!data,
       userId: data?.id
+    };
+  },
+
+  /**
+   * Check if user exists and is verified
+   */
+  async checkUserVerification(email: string): Promise<UserVerificationStatus> {
+    const { data, error } = await supabase
+      .from('users')
+      .select('id, verified')
+      .eq('email', email)
+      .single();
+    
+    if (error) {
+      return { exists: false, verified: false };
+    }
+    
+    return { 
+      exists: true, 
+      verified: data?.verified === true 
     };
   },
 
@@ -159,7 +201,30 @@ export const authService = {
     if (error) {
       throw error;
     }
-  }
+  },
+
+  /**
+   * Update password with reset token
+   */
+  async updatePasswordWithResetToken(newPassword: string): Promise<void> {
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+    
+    if (error) throw error;
+  },
+
+  /**
+   * Update user metadata
+   */
+  async updateUserMetadata(metadata: UserMetadata) {
+    const { data, error } = await supabase.auth.updateUser({
+      data: metadata,
+    });
+    
+    if (error) throw error;
+    return data.user;
+  },
 };
 
 export default authService;

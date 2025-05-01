@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import authService from "@/services/authService";
+import authService, { UserVerificationStatus } from "@/services/authService";
 
 // Re-export User type for convenience
 export type { User };
@@ -15,6 +15,8 @@ interface AuthContextType {
   login: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
   logout: () => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
+  checkUserVerification: (email: string) => Promise<UserVerificationStatus>;
 }
 
 // Create the context with a default value
@@ -26,6 +28,8 @@ const AuthContext = createContext<AuthContextType>({
   login: async () => {},
   logout: async () => {},
   register: async () => {},
+  resetPassword: async () => {},
+  checkUserVerification: async () => ({ exists: false, verified: false }),
 });
 
 // Create a provider component
@@ -70,10 +74,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string, rememberMe = false) => {
     setIsLoading(true);
     try {
+      // First check if user exists and is verified
+      const verificationStatus = await authService.checkUserVerification(email);
+      
+      if (verificationStatus.exists && !verificationStatus.verified) {
+        throw new Error('Your account is pending verification. Please contact support.');
+      }
+      
       const { user, session } = await authService.signInWithEmail(email, password);
       
       if (!user || !session) {
-        throw new Error("Login failed: No user or session returned");
+        throw new Error('Login failed: No user or session returned');
       }
       
       setUser(user);
@@ -81,7 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       return;
     } catch (error) {
-      console.error("Login error:", error);
+      console.error('Login error:', error);
       throw error;
     } finally {
       setIsLoading(false);
@@ -123,6 +134,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Reset password function
+  const resetPassword = async (email: string) => {
+    try {
+      await authService.resetPassword(email);
+    } catch (error) {
+      console.error('Reset password error:', error);
+      throw error;
+    }
+  };
+
+  // Check user verification status
+  const checkUserVerification = async (email: string): Promise<UserVerificationStatus> => {
+    try {
+      return await authService.checkUserVerification(email);
+    } catch (error) {
+      console.error('Check verification error:', error);
+      throw error;
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -133,6 +164,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         logout,
         register,
+        resetPassword,
+        checkUserVerification,
       }}
     >
       {children}
