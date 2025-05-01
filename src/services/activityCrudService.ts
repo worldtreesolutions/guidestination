@@ -1,45 +1,11 @@
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
+import { Database } from "@/integrations/supabase/types";
 
-// Manual Activity interface - Refined based on schema and previous errors
-export interface Activity {
-  id?: number; // integer, primary key, default: nextval(...)
-  provider_id?: number | null; // integer, nullable
-  category_id?: number | null; // integer, nullable
-  title: string; // character varying, not null
-  description?: string | null; // text, nullable
-  image_url?: string | null; // text, nullable
-  pickup_location: string; // text, not null
-  dropoff_location: string; // text, not null
-  duration: string; // interval, not null (represented as string like 'HH:MM:SS')
-  price: number; // numeric, not null
-  discounts?: number | null; // numeric, nullable, default: 0.00
-  max_participants?: number | null; // integer, nullable
-  highlights?: string | null; // text, nullable
-  included?: string | null; // text, nullable
-  not_included?: string | null; // text, nullable
-  meeting_point?: string | null; // text, nullable
-  languages?: string | null; // text, nullable
-  is_active?: boolean | null; // boolean, nullable, default: true
-  created_by?: number | null; // integer, nullable (Schema vs Auth mismatch)
-  updated_by?: number | null; // integer, nullable (Schema vs Auth mismatch)
-  created_at?: string | null; // timestamp without time zone, nullable, default: CURRENT_TIMESTAMP
-  updated_at?: string | null; // timestamp without time zone, nullable, default: CURRENT_TIMESTAMP
-  b_price?: number | null; // numeric, nullable
-  status?: number | null; // integer, nullable
-}
-
-// Define ActivityInsert type based on the refined manual interface
-export type ActivityInsert = Omit<Activity, "id" | "created_at" | "updated_at" | "created_by" | "updated_by"> & {
-  created_by?: number | null; // Allow setting explicitly if needed, otherwise handled by service
-  updated_by?: number | null;
-};
-
-// Define ActivityUpdate type based on the manual interface (all fields optional)
-export type ActivityUpdate = Partial<Omit<Activity, "id" | "created_at" | "created_by">> & {
-  updated_by?: number | null; // Allow setting explicitly if needed, otherwise handled by service
-};
-
+// Use the Database type to define our Activity type
+export type Activity = Database['public']['Tables']['activities']['Row'];
+export type ActivityInsert = Database['public']['Tables']['activities']['Insert'];
+export type ActivityUpdate = Database['public']['Tables']['activities']['Update'];
 
 // Define a type for activity filters
 export interface ActivityFilters {
@@ -70,10 +36,9 @@ const activityCrudService = {
       is_active: activity.is_active !== undefined ? activity.is_active : true,
     };
 
-    // Use from<any> and cast insert data to 'any'
     const { data, error } = await supabase
-      .from<any>("activities") // Use <any> here
-      .insert(activityData as any) // Cast insert data to any
+      .from('activities')
+      .insert(activityData)
       .select()
       .single();
 
@@ -86,7 +51,7 @@ const activityCrudService = {
       throw new Error("Activity creation succeeded but no data returned.");
     }
 
-    return data as Activity; // Assert final return type
+    return data as Activity;
   },
 
   /**
@@ -96,21 +61,20 @@ const activityCrudService = {
     filters?: ActivityFilters,
     pagination?: Pagination
   ): Promise<{ activities: Activity[]; count: number }> {
-    // Use from<any> to bypass strict table type checking
     let query = supabase
-      .from<any>("activities") // Use <any> here
-      .select("*", { count: "exact" });
+      .from('activities')
+      .select('*', { count: 'exact' });
 
     // Apply filters
     if (filters) {
       if (filters.provider_id !== undefined) {
-        query = query.eq("provider_id", filters.provider_id);
+        query = query.eq('provider_id', filters.provider_id);
       }
       if (filters.category_id !== undefined) {
-        query = query.eq("category_id", filters.category_id);
+        query = query.eq('category_id', filters.category_id);
       }
       if (filters.is_active !== undefined) {
-        query = query.eq("is_active", filters.is_active);
+        query = query.eq('is_active', filters.is_active);
       }
       if (filters.search) {
         query = query.or(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
@@ -126,7 +90,7 @@ const activityCrudService = {
     }
 
     // Order by creation date
-    query = query.order("created_at", { ascending: false });
+    query = query.order('created_at', { ascending: false });
 
     const { data, error, count } = await query;
 
@@ -136,7 +100,7 @@ const activityCrudService = {
     }
 
     return {
-      activities: (data || []) as Activity[], // Assert final return type
+      activities: (data || []) as Activity[],
       count: count || 0
     };
   },
@@ -145,11 +109,10 @@ const activityCrudService = {
    * Get a single activity by ID
    */
   async getActivityById(id: number): Promise<Activity | null> {
-    // Use from<any> to bypass strict table type checking
     const { data, error } = await supabase
-      .from<any>("activities") // Use <any> here
-      .select("*")
-      .eq("id", id)
+      .from('activities')
+      .select('*')
+      .eq('id', id)
       .single();
 
     if (error) {
@@ -160,7 +123,7 @@ const activityCrudService = {
       throw error;
     }
 
-    return data as Activity | null; // Assert final return type
+    return data as Activity | null;
   },
 
   /**
@@ -181,11 +144,10 @@ const activityCrudService = {
     delete (updateData as any).created_at;
     delete (updateData as any).created_by;
 
-    // Use from<any> and cast update data to 'any'
     const { data, error } = await supabase
-      .from<any>("activities") // Use <any> here
-      .update(updateData as any) // Cast update data to any
-      .eq("id", id)
+      .from('activities')
+      .update(updateData)
+      .eq('id', id)
       .select()
       .single();
 
@@ -198,7 +160,7 @@ const activityCrudService = {
       throw new Error("Activity update succeeded but no data returned.");
     }
 
-    return data as Activity; // Assert final return type
+    return data as Activity;
   },
 
   /**
@@ -206,15 +168,14 @@ const activityCrudService = {
    */
   async softDeleteActivity(id: number, user: User): Promise<void> {
     const userId = user.id;
-    // Use from<any> to bypass strict table type checking
     const { error } = await supabase
-      .from<any>("activities") // Use <any> here
-      .update({ // Update data structure is simple, 'as any' likely not needed here
+      .from('activities')
+      .update({
         is_active: false,
         updated_by: userId as any, // Cast UUID to any
         updated_at: new Date().toISOString()
       })
-      .eq("id", id);
+      .eq('id', id);
 
     if (error) {
       console.error("Error soft deleting activity:", error.message);
@@ -226,11 +187,10 @@ const activityCrudService = {
    * Permanently delete an activity
    */
   async hardDeleteActivity(id: number): Promise<void> {
-    // Use from<any> to bypass strict table type checking
     const { error } = await supabase
-      .from<any>("activities") // Use <any> here
+      .from('activities')
       .delete()
-      .eq("id", id);
+      .eq('id', id);
 
     if (error) {
       console.error("Error hard deleting activity:", error.message);
@@ -243,15 +203,14 @@ const activityCrudService = {
    */
   async restoreActivity(id: number, user: User): Promise<Activity> {
     const userId = user.id;
-    // Use from<any> to bypass strict table type checking
     const { data, error } = await supabase
-      .from<any>("activities") // Use <any> here
-      .update({ // Update data structure is simple, 'as any' likely not needed here
+      .from('activities')
+      .update({
         is_active: true,
         updated_by: userId as any, // Cast UUID to any
         updated_at: new Date().toISOString()
       })
-      .eq("id", id)
+      .eq('id', id)
       .select()
       .single();
 
@@ -264,12 +223,10 @@ const activityCrudService = {
       throw new Error("Activity restoration succeeded but no data returned.");
     }
 
-    return data as Activity; // Assert final return type
+    return data as Activity;
   },
 
   // --- Additional Helper Methods ---
-  // These methods call the main CRUD methods which now use from<any>,
-  // so they should inherit the fix.
 
   /**
    * Get activities by provider ID
@@ -342,11 +299,10 @@ const activityCrudService = {
     delete (updateData as any).created_at;
     delete (updateData as any).created_by;
 
-    // Use from<any> and cast update data to 'any'
     const { error } = await supabase
-      .from<any>("activities") // Use <any> here
-      .update(updateData as any) // Cast update data to any
-      .in("id", activityIds);
+      .from('activities')
+      .update(updateData)
+      .in('id', activityIds);
 
     if (error) {
       console.error("Error bulk updating activities:", error.message);
@@ -359,15 +315,14 @@ const activityCrudService = {
    */
   async bulkSoftDeleteActivities(activityIds: number[], user: User): Promise<void> {
     const userId = user.id;
-    // Use from<any> to bypass strict table type checking
     const { error } = await supabase
-      .from<any>("activities") // Use <any> here
-      .update({ // Update data structure is simple, 'as any' likely not needed here
+      .from('activities')
+      .update({
         is_active: false,
         updated_by: userId as any, // Cast UUID to any
         updated_at: new Date().toISOString()
       })
-      .in("id", activityIds);
+      .in('id', activityIds);
 
     if (error) {
       console.error("Error bulk soft deleting activities:", error.message);
