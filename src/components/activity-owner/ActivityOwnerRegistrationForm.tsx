@@ -52,7 +52,7 @@ export const ActivityOwnerRegistrationForm = () => {
   const [registrationStatus, setRegistrationStatus] = useState<{
     type: 'success' | 'error' | 'info' | null;
     message: string | null;
-    isNewUser?: boolean;
+    isNewUser?: boolean; // Keep this to track status
   }>({ type: null, message: null })
   const { toast } = useToast()
   
@@ -88,7 +88,7 @@ export const ActivityOwnerRegistrationForm = () => {
       const registrationData = {
         business_name: values.businessName,
         owner_name: values.ownerName,
-        email: values.email, // Use the actual email now
+        email: values.email,
         phone: values.phone,
         business_type: values.businessType,
         tax_id: values.taxId,
@@ -102,47 +102,52 @@ export const ActivityOwnerRegistrationForm = () => {
       };
       
       try {
-        // First try using the service
+        // Use the service which now returns isNewUser flag
         const result = await activityOwnerService.registerActivityOwner(registrationData);
-        console.log('Registration successful via service, result:', result);
+        console.log('Registration result from service:', result);
         
-        // Check if the user was newly created or already existed
-        const isNewUser = result.user_id && result.user_id.toString().includes('new');
+        // Use the isNewUser flag returned from the service
+        const isNewUser = result.isNewUser; 
         
-        // Set registration status message
+        // Set registration status message based on isNewUser
         setRegistrationStatus({
           type: 'success',
           message: isNewUser 
             ? 'Your account has been created successfully. Please check your email for verification.'
             : 'Your activity provider account has been registered successfully. You already have an account with us.',
-          isNewUser
+          isNewUser // Store the flag in state if needed elsewhere
         });
         
         toast({
           title: 'Registration Successful',
-          description: 'Your activity owner account has been created. We will review your information.',
+          description: isNewUser 
+            ? 'Account created. Check email for verification.' 
+            : 'Activity provider info updated for existing account.',
         });
         
         form.reset(); // Reset form on success
       } catch (serviceError: any) {
         console.error('Service registration error:', serviceError);
         
-        // Check for duplicate email error
+        // Check for duplicate email error (using Supabase specific error code if available)
+        // Note: Supabase might throw different errors depending on constraints
         if (serviceError.code === '23505' || 
             (serviceError.message && serviceError.message.includes('duplicate key value violates unique constraint'))) {
           
+          // Even if it's a duplicate, the service might have updated the activity_owner info
+          // The service logic handles creating user/verification only if needed.
           setRegistrationStatus({
             type: 'info',
-            message: 'An account with this email already exists. Your activity provider information has been updated.',
+            message: 'An account with this email already exists. Your activity provider information has been processed.',
             isNewUser: false
           });
           
           toast({
-            title: 'Account Already Exists',
-            description: 'Your activity provider information has been updated.',
+            title: 'Account Exists',
+            description: 'Your activity provider information has been processed.',
           });
           
-          form.reset(); // Reset form on success
+          form.reset(); // Reset form
         } else {
           // Handle other errors
           setRegistrationStatus({
@@ -158,7 +163,7 @@ export const ActivityOwnerRegistrationForm = () => {
         }
       }
     } catch (error) {
-      console.error('Registration error:', error);
+      console.error('Overall registration error:', error);
       
       let errorMessage = 'An unexpected error occurred during registration.';
       if (error instanceof Error) {
@@ -186,16 +191,18 @@ export const ActivityOwnerRegistrationForm = () => {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
         {registrationStatus.type && registrationStatus.message && (
-          <Alert variant={registrationStatus.type === 'error' ? 'destructive' : 'default'}>
-            <InfoIcon className='h-4 w-4' />
-            <AlertTitle>
+          <Alert variant={registrationStatus.type === 'error' ? 'destructive' : (registrationStatus.type === 'info' ? 'default' : 'default')} className={registrationStatus.type === 'success' ? 'border-green-500 bg-green-50' : (registrationStatus.type === 'info' ? 'border-blue-500 bg-blue-50' : '')}>
+            <InfoIcon className={`h-4 w-4 ${registrationStatus.type === 'success' ? 'text-green-700' : (registrationStatus.type === 'info' ? 'text-blue-700' : '')}`} />
+            <AlertTitle className={registrationStatus.type === 'success' ? 'text-green-800' : (registrationStatus.type === 'info' ? 'text-blue-800' : '')}>
               {registrationStatus.type === 'success' 
                 ? 'Registration Successful' 
                 : registrationStatus.type === 'info' 
                   ? 'Account Information' 
                   : 'Registration Error'}
             </AlertTitle>
-            <AlertDescription>{registrationStatus.message}</AlertDescription>
+            <AlertDescription className={registrationStatus.type === 'success' ? 'text-green-700' : (registrationStatus.type === 'info' ? 'text-blue-700' : '')}>
+              {registrationStatus.message}
+            </AlertDescription>
           </Alert>
         )}
         

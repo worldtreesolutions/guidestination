@@ -28,7 +28,7 @@ export type Database = {
           tax_id: string | null
           tourism_license_number: string | null
           updated_at: string | null
-          user_id: string | null
+          user_id: string | null // Should ideally be number if users.id is number, check DB schema
         }
         Insert: {
           address?: string | null
@@ -48,7 +48,7 @@ export type Database = {
           tax_id?: string | null
           tourism_license_number?: string | null
           updated_at?: string | null
-          user_id?: string | null
+          user_id?: string | null // Should ideally be number if users.id is number
         }
         Update: {
           address?: string | null
@@ -68,7 +68,7 @@ export type Database = {
           tax_id?: string | null
           tourism_license_number?: string | null
           updated_at?: string | null
-          user_id?: string | null
+          user_id?: string | null // Should ideally be number if users.id is number
         }
         Relationships: [
           {
@@ -76,11 +76,72 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"] // Ensure users.id type matches user_id type
+          },
+        ]
+      }
+      users: { // Added users table definition
+        Row: {
+          id: number // Assuming id is integer based on previous errors
+          name: string
+          email: string
+          phone: string | null
+          user_type: string | null
+          verified: boolean | null
+          created_at: string
+          updated_at: string | null
+        }
+        Insert: {
+          id?: number
+          name: string
+          email: string
+          phone?: string | null
+          user_type?: string | null
+          verified?: boolean | null
+          created_at?: string
+          updated_at?: string | null
+        }
+        Update: {
+          id?: number
+          name?: string
+          email?: string
+          phone?: string | null
+          user_type?: string | null
+          verified?: boolean | null
+          created_at?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      email_verifications: { // Added email_verifications table definition
+        Row: {
+          id: number // Assuming id is integer
+          user_id: number // Assuming user_id is integer
+          token: string
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          user_id: number
+          token: string
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          user_id?: number
+          token?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_verifications_user_id_fkey" // Assuming FK name
+            columns: ["user_id"]
+            isOneToOne: false // Assuming one-to-many
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
       }
-      // Add other tables here as needed following the same structure
     }
     Views: {
       [_ in never]: never
