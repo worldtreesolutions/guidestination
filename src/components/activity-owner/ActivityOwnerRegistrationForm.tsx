@@ -70,6 +70,52 @@ export const ActivityOwnerRegistrationForm = () => {
     },
   })
 
+  // Add a direct test function to bypass the form validation
+  const testDirectSubmission = async () => {
+    setDebugInfo('Testing direct submission to Supabase...');
+    
+    try {
+      // Create a minimal test record
+      const testData = {
+        business_name: 'Test Business',
+        owner_name: 'Test Owner',
+        email: 'test@example.com',
+        phone: '1234567890',
+        business_type: 'test_type',
+        tax_id: '1234567890123',
+        address: 'Test Address, Chiang Mai',
+        description: 'This is a test submission to diagnose form submission issues.',
+        tourism_license_number: 'TEST123',
+        insurance_policy: 'TEST-POLICY',
+        insurance_amount: '1000000',
+        status: 'pending'
+      };
+      
+      setDebugInfo('Sending test data directly to Supabase...');
+      console.log('Test data:', testData);
+      
+      // Direct Supabase call bypassing the service
+      const { data, error } = await supabase
+        .from('activity_owners')
+        .insert(testData)
+        .select()
+        .single();
+        
+      console.log('Direct Supabase response:', { data, error });
+      
+      if (error) {
+        setDebugInfo(`Direct test failed: ${error.message} (${error.code})`);
+        console.error('Direct test error:', error);
+      } else {
+        setDebugInfo(`Direct test succeeded! ID: ${data.id}`);
+        console.log('Direct test success:', data);
+      }
+    } catch (err) {
+      console.error('Direct test exception:', err);
+      setDebugInfo(`Direct test exception: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  };
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     console.log('onSubmit triggered') // <-- Add log here
     setDebugInfo(null)
@@ -389,9 +435,21 @@ export const ActivityOwnerRegistrationForm = () => {
           />
         </div>
 
-        <Button type='submit' className='w-full' disabled={isSubmitting}>
-          {isSubmitting ? 'Submitting...' : 'Submit Registration'}
-        </Button>
+        <div className='flex flex-col gap-4'>
+          <Button type='submit' className='w-full' disabled={isSubmitting}>
+            {isSubmitting ? 'Submitting...' : 'Submit Registration'}
+          </Button>
+          
+          {/* Add test button */}
+          <Button 
+            type='button' 
+            variant='outline' 
+            className='w-full' 
+            onClick={testDirectSubmission}
+          >
+            Test Direct Submission
+          </Button>
+        </div>
         
         {debugInfo && (
           <div className='mt-4 p-4 bg-slate-100 rounded-md text-sm'>
