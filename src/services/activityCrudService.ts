@@ -68,12 +68,12 @@ const activityCrudService = {
       created_by: userId as any, // Cast UUID to any for integer column
       updated_by: userId as any, // Cast UUID to any for integer column
       is_active: activity.is_active !== undefined ? activity.is_active : true,
-      // Let DB handle default timestamps if not provided
     };
 
+    // Use from<any> and cast insert data to 'any'
     const { data, error } = await supabase
-      .from("activities") // Use table name string
-      .insert(activityData)
+      .from<any>("activities") // Use <any> here
+      .insert(activityData as any) // Cast insert data to any
       .select()
       .single();
 
@@ -86,7 +86,7 @@ const activityCrudService = {
       throw new Error("Activity creation succeeded but no data returned.");
     }
 
-    return data as Activity; // Assert type due to incomplete generated types
+    return data as Activity; // Assert final return type
   },
 
   /**
@@ -96,8 +96,9 @@ const activityCrudService = {
     filters?: ActivityFilters,
     pagination?: Pagination
   ): Promise<{ activities: Activity[]; count: number }> {
+    // Use from<any> to bypass strict table type checking
     let query = supabase
-      .from("activities") // Use table name string
+      .from<any>("activities") // Use <any> here
       .select("*", { count: "exact" });
 
     // Apply filters
@@ -135,7 +136,7 @@ const activityCrudService = {
     }
 
     return {
-      activities: (data || []) as Activity[], // Assert type
+      activities: (data || []) as Activity[], // Assert final return type
       count: count || 0
     };
   },
@@ -144,8 +145,9 @@ const activityCrudService = {
    * Get a single activity by ID
    */
   async getActivityById(id: number): Promise<Activity | null> {
+    // Use from<any> to bypass strict table type checking
     const { data, error } = await supabase
-      .from("activities") // Use table name string
+      .from<any>("activities") // Use <any> here
       .select("*")
       .eq("id", id)
       .single();
@@ -158,7 +160,7 @@ const activityCrudService = {
       throw error;
     }
 
-    return data as Activity | null; // Assert type
+    return data as Activity | null; // Assert final return type
   },
 
   /**
@@ -174,16 +176,15 @@ const activityCrudService = {
       updated_at: new Date().toISOString()
     };
 
-    // Remove id if present in updates, as it shouldn't be updated
+    // Remove fields that cannot be updated directly
     delete (updateData as any).id;
-    // Remove created_at/created_by if present
     delete (updateData as any).created_at;
     delete (updateData as any).created_by;
 
-
+    // Use from<any> and cast update data to 'any'
     const { data, error } = await supabase
-      .from("activities") // Use table name string
-      .update(updateData)
+      .from<any>("activities") // Use <any> here
+      .update(updateData as any) // Cast update data to any
       .eq("id", id)
       .select()
       .single();
@@ -197,7 +198,7 @@ const activityCrudService = {
       throw new Error("Activity update succeeded but no data returned.");
     }
 
-    return data as Activity; // Assert type
+    return data as Activity; // Assert final return type
   },
 
   /**
@@ -205,9 +206,10 @@ const activityCrudService = {
    */
   async softDeleteActivity(id: number, user: User): Promise<void> {
     const userId = user.id;
+    // Use from<any> to bypass strict table type checking
     const { error } = await supabase
-      .from("activities") // Use table name string
-      .update({
+      .from<any>("activities") // Use <any> here
+      .update({ // Update data structure is simple, 'as any' likely not needed here
         is_active: false,
         updated_by: userId as any, // Cast UUID to any
         updated_at: new Date().toISOString()
@@ -224,8 +226,9 @@ const activityCrudService = {
    * Permanently delete an activity
    */
   async hardDeleteActivity(id: number): Promise<void> {
+    // Use from<any> to bypass strict table type checking
     const { error } = await supabase
-      .from("activities") // Use table name string
+      .from<any>("activities") // Use <any> here
       .delete()
       .eq("id", id);
 
@@ -240,9 +243,10 @@ const activityCrudService = {
    */
   async restoreActivity(id: number, user: User): Promise<Activity> {
     const userId = user.id;
+    // Use from<any> to bypass strict table type checking
     const { data, error } = await supabase
-      .from("activities") // Use table name string
-      .update({
+      .from<any>("activities") // Use <any> here
+      .update({ // Update data structure is simple, 'as any' likely not needed here
         is_active: true,
         updated_by: userId as any, // Cast UUID to any
         updated_at: new Date().toISOString()
@@ -260,10 +264,12 @@ const activityCrudService = {
       throw new Error("Activity restoration succeeded but no data returned.");
     }
 
-    return data as Activity; // Assert type
+    return data as Activity; // Assert final return type
   },
 
   // --- Additional Helper Methods ---
+  // These methods call the main CRUD methods which now use from<any>,
+  // so they should inherit the fix.
 
   /**
    * Get activities by provider ID
@@ -308,7 +314,7 @@ const activityCrudService = {
    * Change activity status
    */
   async changeActivityStatus(id: number, status: number, user: User): Promise<Activity> {
-    return this.updateActivity(id, { status }, user);
+    return this.updateActivity(id, { status: status }, user);
   },
 
   /**
@@ -332,14 +338,14 @@ const activityCrudService = {
         updated_by: userId as any, // Cast UUID to any
         updated_at: new Date().toISOString()
     };
-    // Remove fields that shouldn't be bulk updated if present
     delete (updateData as any).id;
     delete (updateData as any).created_at;
     delete (updateData as any).created_by;
 
+    // Use from<any> and cast update data to 'any'
     const { error } = await supabase
-      .from("activities") // Use table name string
-      .update(updateData)
+      .from<any>("activities") // Use <any> here
+      .update(updateData as any) // Cast update data to any
       .in("id", activityIds);
 
     if (error) {
@@ -353,9 +359,10 @@ const activityCrudService = {
    */
   async bulkSoftDeleteActivities(activityIds: number[], user: User): Promise<void> {
     const userId = user.id;
+    // Use from<any> to bypass strict table type checking
     const { error } = await supabase
-      .from("activities") // Use table name string
-      .update({
+      .from<any>("activities") // Use <any> here
+      .update({ // Update data structure is simple, 'as any' likely not needed here
         is_active: false,
         updated_by: userId as any, // Cast UUID to any
         updated_at: new Date().toISOString()
