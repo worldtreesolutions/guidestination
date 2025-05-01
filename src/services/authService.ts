@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { v4 as uuidv4 } from "uuid";
 
@@ -21,7 +20,6 @@ export const authService = {
       .maybeSingle();
 
     if (error) {
-      console.error("Error checking if user exists:", error);
       throw error;
     }
 
@@ -49,7 +47,6 @@ export const authService = {
       .single();
 
     if (error) {
-      console.error("Error creating user:", error);
       throw error;
     }
 
@@ -76,14 +73,10 @@ export const authService = {
       });
 
     if (error) {
-      console.error("Error creating email verification:", error);
       throw error;
     }
-
-    // In a real application, you would send an email with the verification link here
-    // For now, we'll just log the token
-    console.log(`Verification token for user ${userId}: ${token}`);
     
+    // In a real application, you would send an email with the verification link here
     return { token };
   }
 };

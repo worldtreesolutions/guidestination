@@ -54,7 +54,6 @@ export const ActivityOwnerRegistrationForm = () => {
     message: string | null;
     isNewUser?: boolean;
   }>({ type: null, message: null })
-  const [debugInfo, setDebugInfo] = useState<string | null>(null)
   const { toast } = useToast()
   
   const form = useForm<z.infer<typeof formSchema>>({
@@ -79,14 +78,10 @@ export const ActivityOwnerRegistrationForm = () => {
 
   // Main form submission handler
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    console.log('onSubmit triggered');
     setIsSubmitting(true);
     setRegistrationStatus({ type: null, message: null });
-    setDebugInfo(null);
     
     try {
-      console.log('Submitting values:', values);
-      
       const registrationData = {
         business_name: values.businessName,
         owner_name: values.ownerName,
@@ -106,8 +101,6 @@ export const ActivityOwnerRegistrationForm = () => {
       try {
         // Use the service which now returns isNewUser flag
         const result = await activityOwnerService.registerActivityOwner(registrationData);
-        console.log('Registration result from service:', result);
-        setDebugInfo(JSON.stringify(result, null, 2));
         
         // Use the flags returned from the service
         const isNewUser = result.isNewUser;
@@ -130,9 +123,6 @@ export const ActivityOwnerRegistrationForm = () => {
         
         form.reset(); // Reset form on success
       } catch (serviceError: any) {
-        console.error('Service registration error:', serviceError);
-        setDebugInfo(JSON.stringify(serviceError, null, 2));
-        
         // Check for our custom error code for existing activity owner
         if (serviceError.code === 'ACTIVITY_OWNER_EXISTS') {
           setRegistrationStatus({
@@ -175,16 +165,12 @@ export const ActivityOwnerRegistrationForm = () => {
         }
       }
     } catch (error) {
-      console.error('Overall registration error:', error);
-      
       let errorMessage = 'An unexpected error occurred during registration.';
       if (error instanceof Error) {
         errorMessage = error.message;
       } else if (typeof error === 'object' && error !== null && 'message' in error) {
          errorMessage = (error as any).message;
       }
-      
-      setDebugInfo(JSON.stringify(error, null, 2));
       
       setRegistrationStatus({
         type: 'error',
@@ -199,24 +185,6 @@ export const ActivityOwnerRegistrationForm = () => {
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  // Function to fill the form with test data for debugging
-  const fillTestData = () => {
-    form.setValue('businessName', 'Test Business Name');
-    form.setValue('ownerName', 'Test Owner');
-    form.setValue('email', 'test' + Math.floor(Math.random() * 10000) + '@example.com'); // Random email to avoid duplicates
-    form.setValue('phone', '1234567890');
-    form.setValue('businessType', 'tour_operator');
-    form.setValue('taxId', '1234567890123');
-    form.setValue('address', 'Test Address, Chiang Mai, Thailand');
-    form.setValue('description', 'This is a test description for a business that offers amazing tours in Chiang Mai. We have been operating for over 5 years and have excellent customer reviews.');
-    form.setValue('tourismLicenseNumber', 'TEST123456');
-    form.setValue('tatLicenseNumber', 'TAT123456');
-    form.setValue('guideCardNumber', 'GUIDE123456');
-    form.setValue('insurancePolicy', 'INS123456');
-    form.setValue('insuranceAmount', '1000000');
-    form.setValue('termsAccepted', true);
   };
 
   return (
@@ -236,14 +204,6 @@ export const ActivityOwnerRegistrationForm = () => {
               {registrationStatus.message}
             </AlertDescription>
           </Alert>
-        )}
-        
-        {/* Debug information - will be removed in production */}
-        {debugInfo && (
-          <div className='p-4 border border-gray-300 rounded-md bg-gray-50 mb-4'>
-            <h4 className='font-medium mb-2'>Debug Information:</h4>
-            <pre className='text-xs overflow-auto max-h-40'>{debugInfo}</pre>
-          </div>
         )}
         
         <div className='space-y-4'>
@@ -527,18 +487,6 @@ export const ActivityOwnerRegistrationForm = () => {
           <Button type='submit' className='w-full' disabled={isSubmitting}>
             {isSubmitting ? 'Submitting...' : 'Submit Registration'}
           </Button>
-          
-          {/* Debug button - will be removed in production */}
-          <div className='flex gap-2 mt-2'>
-            <Button 
-              type='button' 
-              variant='outline' 
-              className='w-full' 
-              onClick={fillTestData}
-            >
-              Fill Test Data
-            </Button>
-          </div>
         </div>
       </form>
     </Form>
