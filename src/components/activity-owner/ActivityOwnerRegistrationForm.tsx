@@ -71,55 +71,30 @@ export const ActivityOwnerRegistrationForm = () => {
     },
   })
 
-  // Add a direct test function to bypass the form validation
-  const testDirectSubmission = async () => {
-    setDebugInfo('Testing direct submission to Supabase...');
-    
-    try {
-      // Create a minimal test record
-      const testData = {
-        business_name: 'Test Business',
-        owner_name: 'Test Owner',
-        email: 'test@example.com',
-        phone: '1234567890',
-        business_type: 'test_type',
-        tax_id: '1234567890123',
-        address: 'Test Address, Chiang Mai',
-        description: 'This is a test submission to diagnose form submission issues.',
-        tourism_license_number: 'TEST123',
-        insurance_policy: 'TEST-POLICY',
-        insurance_amount: '1000000',
-        status: 'pending'
-      };
-      
-      setDebugInfo('Sending test data directly to Supabase...');
-      console.log('Test data:', testData);
-      
-      // Direct Supabase call bypassing the service
-      const { data, error } = await supabase
-        .from('activity_owners')
-        .insert(testData)
-        .select()
-        .single();
-        
-      console.log('Direct Supabase response:', { data, error });
-      
-      if (error) {
-        setDebugInfo(`Direct test failed: ${error.message} (${error.code})`);
-        console.error('Direct test error:', error);
-      } else {
-        setDebugInfo(`Direct test succeeded! ID: ${data.id}`);
-        console.log('Direct test success:', data);
-      }
-    } catch (err) {
-      console.error('Direct test exception:', err);
-      setDebugInfo(`Direct test exception: ${err instanceof Error ? err.message : String(err)}`);
-    }
+  // Add a function to fill the form with test data for easier testing
+  const fillWithTestData = () => {
+    form.reset({
+      businessName: 'Test Business',
+      ownerName: 'Test Owner',
+      email: 'test@example.com',
+      phone: '1234567890',
+      businessType: 'tour_operator',
+      taxId: '1234567890123',
+      address: 'Test Address, Chiang Mai, Thailand 50000',
+      description: 'This is a test description for a tourism business in Chiang Mai. We offer various activities and experiences for tourists visiting the area.',
+      tourismLicenseNumber: 'TEST123',
+      tatLicenseNumber: 'TAT123',
+      guideCardNumber: 'GUIDE123',
+      insurancePolicy: 'INS123456',
+      insuranceAmount: '1000000',
+      termsAccepted: true,
+    });
+    setDebugInfo('Form filled with test data. You can now submit the form.');
   };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     console.log('onSubmit triggered') // <-- Add log here
-    setDebugInfo(null)
+    setDebugInfo('onSubmit function triggered')
     
     try {
       setIsSubmitting(true)
@@ -128,6 +103,7 @@ export const ActivityOwnerRegistrationForm = () => {
       // Ensure tax_id is a string (not null)
       const taxId = values.taxId || '';
       
+      // Create the registration data object with the correct structure
       const registrationData = {
         business_name: values.businessName,
         owner_name: values.ownerName,
@@ -144,14 +120,38 @@ export const ActivityOwnerRegistrationForm = () => {
         insurance_amount: values.insuranceAmount,
       }
       
-      console.log('Calling activityOwnerService.registerActivityOwner with:', registrationData) // <-- Add log here
-      setDebugInfo('Submitting to Supabase...')
+      console.log('Prepared registration data:', registrationData) // <-- Add log here
+      setDebugInfo('Submitting to Supabase via service...')
       
-      // Use the activity owner service to register
-      const result = await activityOwnerService.registerActivityOwner(registrationData)
-      
-      console.log('Registration successful, result:', result) // <-- Add log here
-      setDebugInfo('Registration successful!')
+      // Try direct submission to Supabase if the service method fails
+      try {
+        // First try using the service
+        const result = await activityOwnerService.registerActivityOwner(registrationData)
+        console.log('Registration successful via service, result:', result) // <-- Add log here
+        setDebugInfo('Registration successful via service!')
+      } catch (serviceError) {
+        console.error('Service registration failed, trying direct submission:', serviceError)
+        setDebugInfo('Service registration failed, trying direct submission...')
+        
+        // If service fails, try direct submission
+        const { data, error } = await supabase
+          .from('activity_owners')
+          .insert({
+            ...registrationData,
+            status: 'pending'
+          })
+          .select()
+          .single();
+          
+        if (error) {
+          console.error('Direct submission error:', error);
+          setDebugInfo(`Direct submission failed: ${error.message}`);
+          throw error;
+        }
+        
+        console.log('Direct submission successful:', data);
+        setDebugInfo('Registration successful via direct submission!');
+      }
       
       toast({
         title: 'Registration Successful',
@@ -441,15 +441,25 @@ export const ActivityOwnerRegistrationForm = () => {
             {isSubmitting ? 'Submitting...' : 'Submit Registration'}
           </Button>
           
-          {/* Add test button */}
-          <Button 
-            type='button' 
-            variant='outline' 
-            className='w-full' 
-            onClick={testDirectSubmission}
-          >
-            Test Direct Submission
-          </Button>
+          <div className='grid grid-cols-2 gap-4'>
+            <Button 
+              type='button' 
+              variant='outline' 
+              className='w-full' 
+              onClick={testDirectSubmission}
+            >
+              Test Direct Submission
+            </Button>
+            
+            <Button 
+              type='button' 
+              variant='outline' 
+              className='w-full' 
+              onClick={fillWithTestData}
+            >
+              Fill Test Data
+            </Button>
+          </div>
         </div>
         
         {debugInfo && (
