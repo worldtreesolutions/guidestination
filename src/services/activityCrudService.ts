@@ -1,36 +1,35 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 
-// Manual Activity interface (since generated types are incomplete)
+// Manual Activity interface - Refined based on schema and previous errors
 export interface Activity {
-  id?: number;
-  provider_id?: number; // Assuming this links to activity_providers table (integer ID)
-  category_id?: number; // Assuming this links to categories table (integer ID)
-  title: string;
-  description?: string | null;
-  image_url?: string | null;
-  pickup_location: string;
-  dropoff_location: string;
-  duration: string; // Interval type represented as string e.g., "04:00:00" for 4 hours
-  price: number;
-  discounts?: number | null;
-  max_participants?: number | null;
-  highlights?: string | null;
-  included?: string | null;
-  not_included?: string | null;
-  meeting_point?: string | null;
-  languages?: string | null;
-  is_active?: boolean | null;
-  created_by?: number | null; // Schema has integer, Auth user ID is UUID string
-  updated_by?: number | null; // Schema has integer, Auth user ID is UUID string
-  created_at?: string | null;
-  updated_at?: string | null;
-  b_price?: number | null;
-  status?: number | null; // Assuming integer status codes
+  id?: number; // integer, primary key, default: nextval(...)
+  provider_id?: number | null; // integer, nullable
+  category_id?: number | null; // integer, nullable
+  title: string; // character varying, not null
+  description?: string | null; // text, nullable
+  image_url?: string | null; // text, nullable
+  pickup_location: string; // text, not null
+  dropoff_location: string; // text, not null
+  duration: string; // interval, not null (represented as string like 'HH:MM:SS')
+  price: number; // numeric, not null
+  discounts?: number | null; // numeric, nullable, default: 0.00
+  max_participants?: number | null; // integer, nullable
+  highlights?: string | null; // text, nullable
+  included?: string | null; // text, nullable
+  not_included?: string | null; // text, nullable
+  meeting_point?: string | null; // text, nullable
+  languages?: string | null; // text, nullable
+  is_active?: boolean | null; // boolean, nullable, default: true
+  created_by?: number | null; // integer, nullable (Schema vs Auth mismatch)
+  updated_by?: number | null; // integer, nullable (Schema vs Auth mismatch)
+  created_at?: string | null; // timestamp without time zone, nullable, default: CURRENT_TIMESTAMP
+  updated_at?: string | null; // timestamp without time zone, nullable, default: CURRENT_TIMESTAMP
+  b_price?: number | null; // numeric, nullable
+  status?: number | null; // integer, nullable
 }
 
-// Define ActivityInsert type based on the manual interface (excluding read-only fields)
+// Define ActivityInsert type based on the refined manual interface
 export type ActivityInsert = Omit<Activity, "id" | "created_at" | "updated_at" | "created_by" | "updated_by"> & {
   created_by?: number | null; // Allow setting explicitly if needed, otherwise handled by service
   updated_by?: number | null;

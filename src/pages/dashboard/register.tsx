@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/router"
 import Head from "next/head"
 import Link from "next/link"
@@ -43,18 +42,15 @@ export default function RegisterPage() {
     checked: false,
   })
 
-  // Pre-fill email from query parameter if available
-  useEffect(() => {
-    if (router.query.email && typeof router.query.email === "string") {
-      setEmail(router.query.email)
-      checkEmailStatus(router.query.email)
-    }
-  }, [router.query.email])
-
-  const checkEmailStatus = async (emailToCheck: string) => {
+  // Define checkEmailStatus using useCallback to satisfy exhaustive-deps
+  const checkEmailStatus = useCallback(async (emailToCheck: string) => {
     if (!emailToCheck) return
     
     setIsLoading(true)
+    setError(null); // Clear previous errors/success messages
+    setSuccess(null);
+    setEmailStatus({ exists: false, verified: false, checked: false }); // Reset status
+
     try {
       const { exists } = await checkUserExists(emailToCheck)
       
@@ -66,17 +62,33 @@ export default function RegisterPage() {
           setActiveTab("existing")
           setSuccess("Your email is registered as an activity provider. Please set up a password to access your account.")
         } else {
-          setError("Your account is pending verification. Please contact support.")
+          // Keep the tab as 'new' but show error
+          setActiveTab("new"); 
+          setError("Your account exists but is pending verification. Please contact support.")
         }
       } else {
         setEmailStatus({ exists: false, verified: false, checked: true })
+        setActiveTab("new"); // Ensure tab is 'new' if email doesn't exist
+        setSuccess("Email not found. You can register as a new user.")
       }
     } catch (err) {
       console.error("Error checking email status:", err)
+      setError("An error occurred while checking your email status. Please try again.");
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [checkUserExists, checkUserVerification]); // Add dependencies
+
+  // Pre-fill email from query parameter if available
+  useEffect(() => {
+    if (router.query.email && typeof router.query.email === "string") {
+      const queryEmail = router.query.email;
+      setEmail(queryEmail)
+      // Automatically check status when email is pre-filled
+      checkEmailStatus(queryEmail) 
+    }
+  }, [router.query.email, checkEmailStatus]) // Add checkEmailStatus to dependency array
+
 
   const handleNewUserSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
