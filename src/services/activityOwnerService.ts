@@ -68,10 +68,9 @@ export const activityOwnerService = {
       // Generate a UUID for the activity owner record
       const ownerId = uuidv4();
       
-      // Generate a UUID for the user_id field as well, since it's a UUID in the database
-      const userUuid = uuidv4();
-      
       // Step 4: Insert into activity_owners table
+      // Important: We're not setting user_id here since it's a UUID and users.id is an integer
+      // This will need to be handled differently or through a database trigger
       const insertData: ActivityOwnerInsert = {
         id: ownerId, // Use UUID for the activity_owners table
         business_name: registrationData.business_name,
@@ -87,8 +86,8 @@ export const activityOwnerService = {
         guide_card_number: registrationData.guide_card_number || null,
         insurance_policy: registrationData.insurance_policy,
         insurance_amount: registrationData.insurance_amount,
-        status: 'pending',
-        user_id: userUuid // Use UUID for the user_id field
+        status: 'pending'
+        // Omitting user_id since it's a UUID and we have an integer
       };
 
       console.log('Inserting activity owner with data:', insertData);
