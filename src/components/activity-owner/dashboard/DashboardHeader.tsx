@@ -1,4 +1,4 @@
-import { User } from "@/contexts/AuthContext"
+import { User } from "@/contexts/AuthContext"; // Import User type explicitly
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { CalendarDays, Users, CreditCard, TrendingUp } from "lucide-react"
 
@@ -26,7 +26,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
       <div>
         <h1 className='text-3xl font-bold tracking-tight'>Dashboard</h1>
         <p className='text-muted-foreground'>
-          Welcome back, {user?.name || 'Provider'}! Here's an overview of your business.
+          Welcome back, {user?.user_metadata?.name || 'Provider'}! Here's an overview of your business.
         </p>
       </div>
       <div className='flex gap-2 w-full sm:w-auto'>

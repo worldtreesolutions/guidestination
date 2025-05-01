@@ -1,7 +1,7 @@
 import { ReactNode, useState, useEffect } from "react"
 import { useRouter } from "next/router"
 import Link from "next/link"
-import { useAuth } from "@/contexts/AuthContext" // Import User type
+import { useAuth, User } from "@/contexts/AuthContext" // Import User type explicitly
 import { Button } from "@/components/ui/button"
 import {
   Menu,
@@ -57,8 +57,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     router.push("/dashboard/login"); // Redirect to dashboard login
   };
 
-  // Updated getInitials to use name
-  const getInitials = (name?: string | null) => {
+  // Updated getInitials to use user_metadata
+  const getInitials = (currentUser?: User | null) => {
+    const name = currentUser?.user_metadata?.name;
     if (!name) return "U"; // Default to "U" if name is not available
     const names = name.split(" ");
     if (names.length === 1) return names[0][0].toUpperCase(); // Handle single name
@@ -115,13 +116,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 <Button variant="secondary" size="icon" className="rounded-full">
                   <Avatar className="h-8 w-8">
                     {/* Removed AvatarImage as photoURL is not available */}
-                    <AvatarFallback>{getInitials(user?.name)}</AvatarFallback>
+                    <AvatarFallback>{getInitials(user)}</AvatarFallback>
                   </Avatar>
                   <span className="sr-only">Toggle user menu</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>{user?.name || "My Account"}</DropdownMenuLabel>
+                <DropdownMenuLabel>{user?.user_metadata?.name || "My Account"}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <Link href="/dashboard/settings">Settings</Link>
