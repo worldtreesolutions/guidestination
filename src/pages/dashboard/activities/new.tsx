@@ -33,7 +33,7 @@ import {
   FormMessage
 } from "@/components/ui/form"
 import { Switch } from "@/components/ui/switch"
-import { activityService, Activity } from "@/services/activityService"
+import activityCrudService, { ActivityInsert } from "@/services/activityCrudService" // Changed import
 import { useToast } from "@/hooks/use-toast"
 import { ArrowLeft, Plus, Trash, CalendarIcon, Loader2 } from "lucide-react"
 import { useForm } from "react-hook-form"
@@ -44,30 +44,29 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format, isValid } from "date-fns"
 import { ImageUploader } from "@/components/dashboard/activities/ImageUploader"
 
-// Define the form schema using Zod
+// Define the form schema using Zod (ensure it aligns with ActivityInsert)
 const formSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters"),
   description: z.string().min(20, "Description must be at least 20 characters"),
-  category: z.string().min(1, "Please select a category"),
-  duration: z.string().min(1, "Please select a duration"),
-  basePrice: z.coerce.number().min(1, "Price must be greater than 0"),
-  maxParticipants: z.coerce.number().min(1, "Maximum participants must be at least 1"),
-  includesPickup: z.boolean().default(false),
-  pickupLocations: z.string().optional(),
-  includesMeal: z.boolean().default(false),
-  mealDescription: z.string().optional(),
-  meetingPoint: z.string().min(5, "Meeting point is required"),
-  languages: z.array(z.string()).min(1, "At least one language is required"),
-  highlights: z.array(z.string().min(1, "Highlight cannot be empty")).min(1, "At least one highlight is required"),
-  included: z.array(z.string().min(1, "Included item cannot be empty")).min(1, "At least one included item is required"),
-  notIncluded: z.array(z.string().min(1, "Item cannot be empty")).optional().default([]),
-  images: z.array(z.string().url("Must be a valid URL")).min(1, "At least one image URL is required"),
-  scheduleDates: z.array(z.date()).optional().default([]),
-  startTime: z.string().optional(),
-  endTime: z.string().optional(),
-  status: z.enum(["draft", "published"]).default("draft"),
+  category_id: z.coerce.number().optional().nullable(), // Match ActivityInsert
+  duration: z.string().min(1, "Please select a duration (e.g., 04:00:00 for 4 hours)"), // Match interval format if needed
+  price: z.coerce.number().min(1, "Price must be greater than 0"), // Match 'price' field
+  max_participants: z.coerce.number().min(1, "Maximum participants must be at least 1"), // Match 'max_participants'
+  pickup_location: z.string().min(5, "Pickup location is required"), // Match 'pickup_location'
+  dropoff_location: z.string().min(5, "Dropoff location is required"), // Match 'dropoff_location'
+  meeting_point: z.string().min(5, "Meeting point is required"), // Match 'meeting_point'
+  languages: z.string().optional().nullable(), // Match 'languages' (assuming comma-separated string or similar)
+  highlights: z.string().optional().nullable(), // Match 'highlights' (assuming comma-separated string or similar)
+  included: z.string().optional().nullable(), // Match 'included' (assuming comma-separated string or similar)
+  not_included: z.string().optional().nullable(), // Match 'not_included'
+  image_url: z.string().url("Must be a valid URL").optional().nullable(), // Match 'image_url'
+  is_active: z.boolean().default(true), // Match 'is_active'
+  b_price: z.coerce.number().optional().nullable(),
+  status: z.coerce.number().optional().nullable(), // Assuming status is integer
+  discounts: z.coerce.number().optional().nullable(),
 })
 
+// Adjust FormValues to match the new schema
 type FormValues = z.infer<typeof formSchema>
 
 // Define the React component using a default export
@@ -77,30 +76,28 @@ export default function NewActivityPage() {
   const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Initialize react-hook-form
+  // Initialize react-hook-form with defaults matching the new schema
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
       description: "",
-      category: "",
-      duration: "",
-      basePrice: 0,
-      maxParticipants: 10,
-      includesPickup: false,
-      pickupLocations: "",
-      includesMeal: false,
-      mealDescription: "",
-      meetingPoint: "",
-      languages: ["English"],
-      highlights: [""],
-      included: [""],
-      notIncluded: [],
-      images: [],
-      scheduleDates: [],
-      startTime: "09:00",
-      endTime: "17:00",
-      status: "draft",
+      category_id: null,
+      duration: "04:00:00", // Example interval
+      price: 0,
+      max_participants: 10,
+      pickup_location: "",
+      dropoff_location: "",
+      meeting_point: "",
+      languages: "English",
+      highlights: "",
+      included: "",
+      not_included: "",
+      image_url: "",
+      is_active: true,
+      b_price: null,
+      status: 1, // Example status ID
+      discounts: 0,
     }
   })
 
@@ -111,31 +108,30 @@ export default function NewActivityPage() {
     }
   }, [isAuthenticated, router])
 
-  // Handle form submission
+  // Handle form submission using activityCrudService
   const onSubmit = async (data: FormValues) => {
-    if (!user) return
+    if (!user) {
+      toast({ title: "Error", description: "User not found. Please log in again.", variant: "destructive" });
+      return;
+    }
 
     setIsSubmitting(true)
 
     try {
-      const activityData: Omit<Activity, "id" | "finalPrice" | "createdAt" | "updatedAt" | "rating" | "reviewCount"> = {
+      // Prepare data directly matching ActivityInsert structure
+      const activityData: ActivityInsert = {
         ...data,
-        providerId: user.id,
-        schedule: {
-          availableDates: data.scheduleDates?.map(date => date.toISOString()) || [],
-          startTime: data.startTime,
-          endTime: data.endTime,
-        },
-        pickupLocations: data.includesPickup ? data.pickupLocations : undefined,
-        mealDescription: data.includesMeal ? data.mealDescription : undefined,
-        notIncluded: data.notIncluded?.filter(item => item.trim() !== "") || [],
-      }
-      delete (activityData as any).scheduleDates;
+        provider_id: user.app_metadata?.provider_id ?? null, // Get provider_id from user metadata if available
+        price: Number(data.price),
+        max_participants: Number(data.max_participants),
+        category_id: data.category_id ? Number(data.category_id) : null,
+        b_price: data.b_price ? Number(data.b_price) : null,
+        status: data.status ? Number(data.status) : null,
+        discounts: data.discounts ? Number(data.discounts) : 0,
+      };
 
-      const finalPrice = data.basePrice * 1.2;
-      const creationData = { ...activityData, finalPrice };
-
-      await activityService.createActivity(creationData as Partial<Activity>);
+      // Call the CRUD service create function, passing the user object
+      await activityCrudService.createActivity(activityData, user);
 
       toast({
         title: "Activity Created",
@@ -143,31 +139,15 @@ export default function NewActivityPage() {
       })
 
       router.push("/dashboard/activities")
-    } catch (error) {
+    } catch (error: any) { // Catch specific error type if possible
       console.error("Error creating activity:", error)
       toast({
         title: "Error",
-        description: "Failed to create activity. Please try again.",
+        description: `Failed to create activity: ${error.message || "Please try again."}`,
         variant: "destructive"
       })
     } finally {
       setIsSubmitting(false)
-    }
-  }
-
-  // Helper functions for dynamic list fields
-  const addListItem = (field: "highlights" | "included" | "notIncluded") => {
-    const currentValues = form.getValues(field) || []
-    form.setValue(field, [...currentValues, ""])
-  }
-
-  const removeListItem = (field: "highlights" | "included" | "notIncluded", index: number) => {
-    const currentValues = form.getValues(field) || []
-    if (currentValues.length > 1 || field === "notIncluded") {
-       form.setValue(
-        field,
-        currentValues.filter((_, i) => i !== index)
-      )
     }
   }
 
@@ -242,23 +222,23 @@ export default function NewActivityPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField
                       control={form.control}
-                      name="category"
+                      name="category_id"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Category</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} defaultValue={field.value?.toString()}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select a category" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="adventure">Adventure</SelectItem>
-                              <SelectItem value="culture">Culture</SelectItem>
-                              <SelectItem value="food">Food & Cuisine</SelectItem>
-                              <SelectItem value="nature">Nature</SelectItem>
-                              <SelectItem value="wellness">Wellness</SelectItem>
-                              <SelectItem value="workshop">Workshop</SelectItem>
+                              <SelectItem value="1">Adventure</SelectItem>
+                              <SelectItem value="2">Culture</SelectItem>
+                              <SelectItem value="3">Food & Cuisine</SelectItem>
+                              <SelectItem value="4">Nature</SelectItem>
+                              <SelectItem value="5">Wellness</SelectItem>
+                              <SelectItem value="6">Workshop</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -272,19 +252,9 @@ export default function NewActivityPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Duration</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select duration" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="2_hours">2 Hours</SelectItem>
-                              <SelectItem value="half_day">Half Day (4 Hours)</SelectItem>
-                              <SelectItem value="full_day">Full Day (8 Hours)</SelectItem>
-                              <SelectItem value="multi_day">Multi-Day</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <FormControl>
+                            <Input placeholder="e.g., 04:00:00" {...field} />
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -294,7 +264,7 @@ export default function NewActivityPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField
                       control={form.control}
-                      name="basePrice"
+                      name="price"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Price per Person (THB)</FormLabel>
@@ -311,7 +281,7 @@ export default function NewActivityPage() {
 
                     <FormField
                       control={form.control}
-                      name="maxParticipants"
+                      name="max_participants"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Maximum Participants</FormLabel>
@@ -338,79 +308,42 @@ export default function NewActivityPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField
-                      control={form.control}
-                      name="includesPickup"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-base">Includes Pickup</FormLabel>
-                            <FormDescription>Is hotel pickup included?</FormDescription>
-                          </div>
-                          <FormControl>
-                            <Switch checked={field.value} onCheckedChange={field.onChange} />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="includesMeal"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-base">Includes Meal</FormLabel>
-                            <FormDescription>Is a meal or snack included?</FormDescription>
-                          </div>
-                          <FormControl>
-                            <Switch checked={field.value} onCheckedChange={field.onChange} />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  {form.watch("includesPickup") && (
-                    <FormField
-                      control={form.control}
-                      name="pickupLocations"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Pickup Locations / Details</FormLabel>
-                          <FormControl>
-                            <Textarea placeholder="e.g., Hotels within the Old City, specify meeting point if outside" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
-
-                  {form.watch("includesMeal") && (
-                    <FormField
-                      control={form.control}
-                      name="mealDescription"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Meal Description</FormLabel>
-                          <FormControl>
-                            <Textarea placeholder="e.g., Traditional Thai lunch set, light snacks and water" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
+                  <FormField
+                    control={form.control}
+                    name="pickup_location"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Pickup Location</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Your hotel lobby" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
                   <FormField
                     control={form.control}
-                    name="meetingPoint"
+                    name="dropoff_location"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Dropoff Location</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Your hotel lobby" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="meeting_point"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Meeting Point</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g., Tha Phae Gate, your hotel lobby (if pickup selected)" {...field} />
+                          <Input placeholder="e.g., Tha Phae Gate" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -424,27 +357,8 @@ export default function NewActivityPage() {
                       <FormItem>
                         <FormLabel>Languages Offered</FormLabel>
                         <FormControl>
-                           <div className="flex flex-wrap gap-2">
-                            {["English", "Thai", "Chinese", "Japanese", "Korean", "French", "German", "Spanish"].map((lang) => (
-                              <Button
-                                key={lang}
-                                type="button"
-                                variant={(field.value || []).includes(lang) ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => {
-                                  const currentLangs = field.value || [];
-                                  const updatedLangs = currentLangs.includes(lang)
-                                    ? currentLangs.filter(l => l !== lang)
-                                    : [...currentLangs, lang];
-                                  field.onChange(updatedLangs);
-                                }}
-                              >
-                                {lang}
-                              </Button>
-                            ))}
-                          </div>
+                          <Input placeholder="e.g., English, Thai" {...field} />
                         </FormControl>
-                         <FormDescription>Select all languages the activity is available in.</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -453,7 +367,7 @@ export default function NewActivityPage() {
               </Card>
 
               {/* Activity Specifics Card */}
-               <Card>
+              <Card>
                 <CardHeader>
                   <CardTitle>Activity Specifics</CardTitle>
                   <CardDescription>
@@ -461,124 +375,47 @@ export default function NewActivityPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {/* Highlights */}
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <Label>Highlights</Label>
-                      <Button type="button" variant="outline" size="sm" onClick={() => addListItem("highlights")}>
-                        <Plus className="h-4 w-4 mr-1" /> Add Highlight
-                      </Button>
-                    </div>
-                    <div className="space-y-2">
-                      {(form.watch("highlights") || []).map((_, index) => (
-                        <div key={index} className="flex gap-2 items-center">
-                          <FormField
-                            control={form.control}
-                            name={`highlights.${index}`}
-                            render={({ field }) => (
-                              <FormItem className="flex-1">
-                                <FormControl>
-                                  <Input placeholder={`Highlight ${index + 1}`} {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <Button
-                            type="button" variant="outline" size="icon"
-                            onClick={() => removeListItem("highlights", index)}
-                            disabled={(form.watch("highlights") || []).length <= 1}
-                          >
-                            <Trash className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                     {form.formState.errors.highlights?.root && (
-                      <p className="text-sm font-medium text-destructive mt-2">
-                        {form.formState.errors.highlights.root.message}
-                      </p>
+                  <FormField
+                    control={form.control}
+                    name="highlights"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Highlights</FormLabel>
+                        <FormControl>
+                          <Textarea placeholder="e.g., Scenic views, local culture" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
                     )}
-                  </div>
+                  />
 
-                   {/* Included */}
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <Label>What's Included</Label>
-                      <Button type="button" variant="outline" size="sm" onClick={() => addListItem("included")}>
-                        <Plus className="h-4 w-4 mr-1" /> Add Item
-                      </Button>
-                    </div>
-                    <div className="space-y-2">
-                      {(form.watch("included") || []).map((_, index) => (
-                         <div key={index} className="flex gap-2 items-center">
-                           <FormField
-                            control={form.control}
-                            name={`included.${index}`}
-                            render={({ field }) => (
-                              <FormItem className="flex-1">
-                                <FormControl>
-                                  <Input placeholder={`Included item ${index + 1}`} {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <Button
-                            type="button" variant="outline" size="icon"
-                            onClick={() => removeListItem("included", index)}
-                            disabled={(form.watch("included") || []).length <= 1}
-                          >
-                            <Trash className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                     {form.formState.errors.included?.root && (
-                      <p className="text-sm font-medium text-destructive mt-2">
-                        {form.formState.errors.included.root.message}
-                      </p>
+                  <FormField
+                    control={form.control}
+                    name="included"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>What's Included</FormLabel>
+                        <FormControl>
+                          <Textarea placeholder="e.g., Guide, meals" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
                     )}
-                  </div>
+                  />
 
-                  {/* Not Included */}
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <Label>What's Not Included (Optional)</Label>
-                      <Button type="button" variant="outline" size="sm" onClick={() => addListItem("notIncluded")}>
-                        <Plus className="h-4 w-4 mr-1" /> Add Item
-                      </Button>
-                    </div>
-                    <div className="space-y-2">
-                      {(form.watch("notIncluded") || []).map((_, index) => (
-                         <div key={index} className="flex gap-2 items-center">
-                           <FormField
-                            control={form.control}
-                            name={`notIncluded.${index}`}
-                            render={({ field }) => (
-                              <FormItem className="flex-1">
-                                <FormControl>
-                                  <Input placeholder={`Excluded item ${index + 1}`} {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <Button
-                            type="button" variant="outline" size="icon"
-                            onClick={() => removeListItem("notIncluded", index)}
-                          >
-                            <Trash className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                     {form.formState.errors.notIncluded?.root && (
-                      <p className="text-sm font-medium text-destructive mt-2">
-                        {form.formState.errors.notIncluded.root.message}
-                      </p>
+                  <FormField
+                    control={form.control}
+                    name="not_included"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>What's Not Included (Optional)</FormLabel>
+                        <FormControl>
+                          <Textarea placeholder="e.g., Tips, personal expenses" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
                     )}
-                  </div>
+                  />
                 </CardContent>
               </Card>
 
@@ -593,7 +430,7 @@ export default function NewActivityPage() {
                 <CardContent>
                   <FormField
                     control={form.control}
-                    name="images"
+                    name="image_url"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Activity Images</FormLabel>
@@ -611,89 +448,7 @@ export default function NewActivityPage() {
                 </CardContent>
               </Card>
 
-              {/* Schedule Card */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Schedule</CardTitle>
-                  <CardDescription>
-                    Set the available dates and times for your activity.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField
-                      control={form.control}
-                      name="scheduleDates"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                          <FormLabel>Available Dates</FormLabel>
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <FormControl>
-                                <Button
-                                  variant="outline"
-                                  className="w-full justify-start text-left font-normal h-auto py-2"
-                                >
-                                  <CalendarIcon className="mr-2 h-4 w-4" />
-                                  {field.value && field.value.length > 0
-                                    ? field.value.length === 1
-                                      ? isValid(field.value[0]) ? format(field.value[0], 'PP') : "Select date"
-                                      : `${field.value.length} dates selected`
-                                    : <span>Select available dates</span>}
-                                </Button>
-                              </FormControl>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                              <Calendar
-                                mode="multiple"
-                                selected={field.value}
-                                onSelect={field.onChange}
-                                initialFocus
-                                className="rounded-md border"
-                              />
-                            </PopoverContent>
-                          </Popover>
-                          <FormDescription>
-                            Select all dates this activity is offered.
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <div className="grid grid-cols-2 gap-4">
-                       <FormField
-                        control={form.control}
-                        name="startTime"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Start Time</FormLabel>
-                            <FormControl>
-                              <Input type="time" {...field} value={field.value || ""} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="endTime"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>End Time</FormLabel>
-                            <FormControl>
-                              <Input type="time" {...field} value={field.value || ""} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-               {/* Status Card */}
+              {/* Status Card */}
               <Card>
                 <CardHeader>
                   <CardTitle>Activity Status</CardTitle>
@@ -702,37 +457,36 @@ export default function NewActivityPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                   <FormField
-                      control={form.control}
-                      name="status"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Status</FormLabel>
-                           <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select status" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="draft">Draft (Hidden)</SelectItem>
-                              <SelectItem value="published">Published (Visible)</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormDescription>
-                            'Draft' keeps it hidden, 'Published' makes it live.
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                  <FormField
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Status</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value?.toString()}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select status" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="1">Draft (Hidden)</SelectItem>
+                            <SelectItem value="2">Published (Visible)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>
+                          'Draft' keeps it hidden, 'Published' makes it live.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </CardContent>
               </Card>
 
-
               {/* Action Buttons */}
               <CardFooter className="flex justify-end gap-4 pt-6">
-                 <Button
+                <Button
                   type="button"
                   variant="outline"
                   onClick={() => router.push("/dashboard/activities")}

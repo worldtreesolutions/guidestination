@@ -1,126 +1,140 @@
-
-    import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
     import Head from "next/head";
     import Link from "next/link";
     import { useAuth } from "@/contexts/AuthContext";
     import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout";
-    import { activityService, Activity } from "@/services/activityService";
+    import activityCrudService, { Activity as CrudActivity, ActivityUpdate } from "@/services/activityCrudService"; // Changed import
     import { useToast } from "@/hooks/use-toast";
     import { Button } from "@/components/ui/button";
     import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
     import { Plus, Loader2, AlertCircle } from "lucide-react";
     import ActivityCard from "@/components/dashboard/activities/ActivityCard"; // Import the new card component
 
-    type ActivityStatus = "draft" | "published" | "archived";
+    type ActivityStatus = number; // Or string if status is stored as text like 'published', 'draft'
+
+    const statusMap: { [key: string]: ActivityStatus | null } = {
+      active: 1, // Example: 1 means active/published
+      draft: 0, // Example: 0 means draft
+      archived: 2, // Example: 2 means archived
+      all: null, // For showing all activities
+    };
+    const defaultTab = "active"; // Default tab to show
 
     export default function ActivitiesPage() {
       const { user, isAuthenticated } = useAuth();
       const { toast } = useToast();
-      const [activities, setActivities] = useState<Activity[]>([]);
+      const [activities, setActivities] = useState<CrudActivity[]>([]); // Use CrudActivity type
       const [isLoading, setIsLoading] = useState(true);
       const [error, setError] = useState<string | null>(null);
-      const [activeTab, setActiveTab] = useState<ActivityStatus>("published");
+      const [activeTabKey, setActiveTabKey] = useState<string>(defaultTab);
 
       useEffect(() => {
         if (!isAuthenticated) {
-          // Redirect handled by DashboardLayout or AuthContext typically
           setIsLoading(false);
           return;
         }
 
         const fetchActivities = async () => {
-          if (user) {
+          if (user && user.app_metadata?.provider_id) { // Check for provider_id
             setIsLoading(true);
             setError(null);
             try {
-              const fetchedActivities = await activityService.getActivitiesByProvider(user.id);
+              const providerId = user.app_metadata.provider_id;
+              const { activities: fetchedActivities } = await activityCrudService.getActivitiesByProviderId(providerId);
               setActivities(fetchedActivities);
-            } catch (err) {
+            } catch (err: any) {
               console.error("Error fetching activities:", err);
               setError("Failed to load activities. Please try again.");
               toast({
                 title: "Error",
-                description: "Could not fetch your activities.",
+                description: `Could not fetch your activities: ${err.message}`,
                 variant: "destructive",
               });
             } finally {
               setIsLoading(false);
             }
+          } else if (user) {
+              setIsLoading(false);
+              setError("Provider ID not found for your account.");
+              console.warn("User authenticated but provider_id missing in metadata.");
+              toast({ title: "Error", description: "Could not link your account to a provider.", variant: "destructive" });
           } else {
-             // Handle case where user is authenticated but object not ready
-             // This might briefly show loading or wait for user context
              console.warn("User authenticated but user object not yet available for fetching activities.");
-             // Keep loading until user object is available or timeout
+             setIsLoading(true); // Keep loading until user object is available
           }
         };
 
-        // Fetch only when user object is available
         if (user) {
            fetchActivities();
         } else if (isAuthenticated) {
-           // If authenticated but user is null, wait for AuthContext to update
            setIsLoading(true);
         } else {
-            // Not authenticated and user is null
             setIsLoading(false);
         }
 
       }, [user, isAuthenticated, toast]);
 
-      const handleStatusChange = async (activityId: string, newStatus: ActivityStatus) => {
+      const handleStatusChange = async (activityId: number, newStatusValue: ActivityStatus) => {
+         if (!user) {
+            toast({ title: "Error", description: "User not found.", variant: "destructive" });
+            return;
+         }
         const originalActivities = [...activities];
-        // Optimistically update UI
         setActivities(prev =>
-          prev.map(act => (act.id === activityId ? { ...act, status: newStatus } : act))
+          prev.map(act => (act.id === activityId ? { ...act, status: newStatusValue } : act))
         );
 
         try {
-          await activityService.updateActivity(activityId, { status: newStatus });
+          const updateData: ActivityUpdate = { status: newStatusValue };
+          await activityCrudService.updateActivity(activityId, updateData, user);
           toast({
             title: "Status Updated",
-            description: `Activity moved to ${newStatus}.`,
+            description: `Activity status changed.`, // Adjust message as needed
           });
-        } catch (err) {
+        } catch (err: any) {
           console.error("Error updating status:", err);
-          // Revert UI on error
-          setActivities(originalActivities);
+          setActivities(originalActivities); // Revert UI
           toast({
             title: "Error",
-            description: "Failed to update activity status.",
+            description: `Failed to update activity status: ${err.message}`,
             variant: "destructive",
           });
         }
       };
 
-       const handleDeleteActivity = async (activityId: string) => {
+       const handleDeleteActivity = async (activityId: number) => {
+         if (!user) {
+            toast({ title: "Error", description: "User not found.", variant: "destructive" });
+            return;
+         }
          if (!confirm("Are you sure you want to permanently delete this activity? This cannot be undone.")) {
            return;
          }
 
          const originalActivities = [...activities];
-         // Optimistically update UI
-         setActivities(prev => prev.filter(act => act.id !== activityId));
+         setActivities(prev => prev.filter(act => act.id !== activityId)); // Optimistic UI update
 
          try {
-           await activityService.deleteActivity(activityId);
+           await activityCrudService.hardDeleteActivity(activityId);
            toast({
              title: "Activity Deleted",
              description: "The activity has been permanently deleted.",
            });
-         } catch (err) {
+         } catch (err: any) {
            console.error("Error deleting activity:", err);
-           // Revert UI on error
-           setActivities(originalActivities);
+           setActivities(originalActivities); // Revert UI
            toast({
              title: "Error",
-             description: "Failed to delete activity.",
+             description: `Failed to delete activity: ${err.message}`,
              variant: "destructive",
            });
          }
        };
 
-
-      const filteredActivities = activities.filter(activity => activity.status === activeTab);
+      const currentStatusFilter = statusMap[activeTabKey];
+      const filteredActivities = currentStatusFilter === null
+        ? activities // Show all if 'all' tab selected
+        : activities.filter(activity => activity.status === currentStatusFilter);
 
       const renderContent = () => {
         if (isLoading) {
@@ -144,8 +158,8 @@
         if (filteredActivities.length === 0) {
           return (
             <div className="text-center py-10 text-muted-foreground">
-              <p>No activities found in the "{activeTab}" section.</p>
-              {activeTab === 'published' && activities.length === 0 && (
+              <p>No activities found in the "{activeTabKey}" section.</p>
+              {activeTabKey === 'active' && activities.length === 0 && (
                  <p className="mt-2">Click "Add New Activity" to get started!</p>
               )}
             </div>
@@ -189,13 +203,13 @@
                 </Button>
               </div>
 
-              <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as ActivityStatus)}>
+              <Tabs value={activeTabKey} onValueChange={(value) => setActiveTabKey(value)}>
                 <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="published">Active</TabsTrigger>
+                  <TabsTrigger value="active">Active</TabsTrigger>
                   <TabsTrigger value="draft">Draft</TabsTrigger>
                   <TabsTrigger value="archived">Archived</TabsTrigger>
                 </TabsList>
-                <TabsContent value="published" className="mt-6">
+                <TabsContent value="active" className="mt-6">
                   {renderContent()}
                 </TabsContent>
                 <TabsContent value="draft" className="mt-6">
@@ -210,4 +224,3 @@
         </>
       );
     }
-  

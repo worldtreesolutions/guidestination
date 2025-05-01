@@ -32,7 +32,7 @@ import {
   FormMessage
 } from "@/components/ui/form"
 import { Switch } from "@/components/ui/switch"
-import { activityService, Activity } from "@/services/activityService"
+import activityCrudService, { ActivityUpdate, Activity as CrudActivity } from "@/services/activityCrudService" // Changed import
 import { useToast } from "@/hooks/use-toast"
 import { ArrowLeft, Plus, Trash, CalendarIcon, Loader2 } from "lucide-react"
 import Link from "next/link"
@@ -45,24 +45,23 @@ import { format, isValid, parseISO } from "date-fns"
 
 const formSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters"),
-  description: z.string().min(20, "Description must be at least 20 characters"),
-  category: z.string().min(1, "Please select a category"),
-  duration: z.string().min(1, "Please select a duration"),
-  basePrice: z.coerce.number().min(1, "Price must be greater than 0"),
-  maxParticipants: z.coerce.number().min(1, "Maximum participants must be at least 1"),
-  includesPickup: z.boolean().default(false),
-  pickupLocations: z.string().optional(),
-  includesMeal: z.boolean().default(false),
-  mealDescription: z.string().optional(),
-  meetingPoint: z.string().min(5, "Meeting point is required"),
-  languages: z.array(z.string()).min(1, "At least one language is required"),
-  highlights: z.array(z.string()).min(1, "At least one highlight is required"),
-  included: z.array(z.string()).min(1, "At least one included item is required"),
-  notIncluded: z.array(z.string()).optional().default([]), // Added default
-  images: z.array(z.string()).min(1, "At least one image is required"),
-  scheduleDates: z.array(z.date()).optional().default([]), // Added default
-  startTime: z.string().optional(),
-  endTime: z.string().optional(),
+  description: z.string().min(20, "Description must be at least 20 characters").optional().nullable(),
+  category_id: z.coerce.number().optional().nullable(),
+  duration: z.string().min(1, "Please select a duration (e.g., 04:00:00)"),
+  price: z.coerce.number().min(1, "Price must be greater than 0"),
+  max_participants: z.coerce.number().min(1, "Maximum participants must be at least 1").optional().nullable(),
+  pickup_location: z.string().min(5, "Pickup location is required"),
+  dropoff_location: z.string().min(5, "Dropoff location is required"),
+  meeting_point: z.string().min(5, "Meeting point is required").optional().nullable(),
+  languages: z.string().optional().nullable(),
+  highlights: z.string().optional().nullable(),
+  included: z.string().optional().nullable(),
+  not_included: z.string().optional().nullable(),
+  image_url: z.string().url("Must be a valid URL").optional().nullable(),
+  is_active: z.boolean().optional().nullable(),
+  b_price: z.coerce.number().optional().nullable(),
+  status: z.coerce.number().optional().nullable(),
+  discounts: z.coerce.number().optional().nullable(),
 })
 
 type FormValues = z.infer<typeof formSchema>
@@ -74,30 +73,29 @@ export default function EditActivityPage() {
   const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
-  const [activity, setActivity] = useState<Activity | null>(null)
+  const [activity, setActivity] = useState<CrudActivity | null>(null) // Use CrudActivity type
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
       description: "",
-      category: "",
+      category_id: null,
       duration: "",
-      basePrice: 0,
-      maxParticipants: 10,
-      includesPickup: false,
-      pickupLocations: "",
-      includesMeal: false,
-      mealDescription: "",
-      meetingPoint: "",
-      languages: ["English"],
-      highlights: [""],
-      included: [""],
-      notIncluded: [""],
-      images: [],
-      scheduleDates: [],
-      startTime: "09:00",
-      endTime: "17:00",
+      price: 0,
+      max_participants: 10,
+      pickup_location: "",
+      dropoff_location: "",
+      meeting_point: "",
+      languages: "",
+      highlights: "",
+      included: "",
+      not_included: "",
+      image_url: "",
+      is_active: true,
+      b_price: null,
+      status: null,
+      discounts: 0,
     }
   })
 
@@ -107,91 +105,82 @@ export default function EditActivityPage() {
       return
     }
 
-    if (activityId && typeof activityId === "string") {
+    const numericActivityId = activityId && typeof activityId === 'string' && /^\d+$/.test(activityId)
+      ? parseInt(activityId, 10)
+      : null;
+
+    if (numericActivityId) {
       const fetchActivity = async () => {
         setIsLoading(true)
         try {
-          const fetchedActivity = await activityService.getActivityById(activityId)
+          const fetchedActivity = await activityCrudService.getActivityById(numericActivityId)
           if (fetchedActivity) {
             setActivity(fetchedActivity)
-            // Populate form with fetched data, ensuring defaults for arrays
             form.reset({
-              ...fetchedActivity,
-              basePrice: fetchedActivity.basePrice || 0,
-              maxParticipants: fetchedActivity.maxParticipants || 10,
-              highlights: fetchedActivity.highlights?.length ? fetchedActivity.highlights : [""],
-              included: fetchedActivity.included?.length ? fetchedActivity.included : [""],
-              notIncluded: fetchedActivity.notIncluded?.length ? fetchedActivity.notIncluded : [""],
-              images: fetchedActivity.images?.length ? fetchedActivity.images : [],
-              languages: fetchedActivity.languages?.length ? fetchedActivity.languages : ["English"],
-              // Handle schedule dates carefully - assuming they are stored as strings
-              scheduleDates: fetchedActivity.schedule?.availableDates?.map(dateStr => {
-                try {
-                  return parseISO(dateStr); // Attempt to parse ISO string
-                } catch {
-                  return new Date(); // Fallback if parsing fails
-                }
-              }).filter(isValid) || [], // Filter out invalid dates
-              startTime: fetchedActivity.schedule?.startTime || "09:00",
-              endTime: fetchedActivity.schedule?.endTime || "17:00",
+              title: fetchedActivity.title,
+              description: fetchedActivity.description ?? "",
+              category_id: fetchedActivity.category_id ?? null,
+              duration: fetchedActivity.duration ?? "", // Assuming duration is string interval
+              price: fetchedActivity.price ?? 0,
+              max_participants: fetchedActivity.max_participants ?? 10,
+              pickup_location: fetchedActivity.pickup_location ?? "",
+              dropoff_location: fetchedActivity.dropoff_location ?? "",
+              meeting_point: fetchedActivity.meeting_point ?? "",
+              languages: fetchedActivity.languages ?? "",
+              highlights: fetchedActivity.highlights ?? "",
+              included: fetchedActivity.included ?? "",
+              not_included: fetchedActivity.not_included ?? "",
+              image_url: fetchedActivity.image_url ?? "",
+              is_active: fetchedActivity.is_active ?? true,
+              b_price: fetchedActivity.b_price ?? null,
+              status: fetchedActivity.status ?? null,
+              discounts: fetchedActivity.discounts ?? 0,
             })
           } else {
-            toast({
-              title: "Error",
-              description: "Activity not found.",
-              variant: "destructive"
-            })
+            toast({ title: "Error", description: "Activity not found.", variant: "destructive" })
             router.push("/dashboard/activities")
           }
-        } catch (error) {
+        } catch (error: any) {
           console.error("Error fetching activity:", error)
-          toast({
-            title: "Error",
-            description: "Failed to load activity data. Please try again.",
-            variant: "destructive"
-          })
+          toast({ title: "Error", description: `Failed to load activity  ${error.message}`, variant: "destructive" })
         } finally {
           setIsLoading(false)
         }
       }
       fetchActivity()
     } else if (router.isReady) {
-      // Handle case where activityId is not available yet or invalid
       setIsLoading(false)
-      if (!activityId) {
-         toast({
-            title: "Error",
-            description: "Invalid activity ID.",
-            variant: "destructive"
-          })
+      if (!numericActivityId) {
+         toast({ title: "Error", description: "Invalid activity ID.", variant: "destructive" })
          router.push("/dashboard/activities")
       }
     }
   }, [activityId, isAuthenticated, router, toast, form])
 
-  // Add type annotation to the data parameter
   const onSubmit = async (data: FormValues) => {
-    if (!user || !activityId || typeof activityId !== "string") return
+    const numericActivityId = activityId && typeof activityId === 'string' && /^\d+$/.test(activityId)
+      ? parseInt(activityId, 10)
+      : null;
+
+    if (!user || !numericActivityId) {
+        toast({ title: "Error", description: "User or Activity ID missing.", variant: "destructive" });
+        return;
+    }
 
     setIsSubmitting(true)
 
     try {
-      // Prepare data for update, converting dates back to strings if needed
-      const activityData: Partial<Activity> = {
+      const activityData: ActivityUpdate = {
         ...data,
-        schedule: {
-            availableDates: data.scheduleDates?.map(date => date.toISOString()) || [], // Convert dates back to ISO strings
-            startTime: data.startTime,
-            endTime: data.endTime,
-        },
-        // Remove scheduleDates from top level if it's handled within schedule object
-        // scheduleDates: undefined,
-      }
-      // Remove scheduleDates if it's part of the schedule object to avoid duplication
-      delete (activityData as any).scheduleDates;
+        price: Number(data.price),
+        max_participants: data.max_participants ? Number(data.max_participants) : null,
+        category_id: data.category_id ? Number(data.category_id) : null,
+        b_price: data.b_price ? Number(data.b_price) : null,
+        status: data.status ? Number(data.status) : null,
+        discounts: data.discounts ? Number(data.discounts) : 0,
+      };
 
-
-      await activityService.updateActivity(activityId, activityData)
+      await activityCrudService.updateActivity(numericActivityId, activityData, user)
 
       toast({
         title: "Activity updated",
@@ -199,31 +188,15 @@ export default function EditActivityPage() {
       })
 
       router.push("/dashboard/activities")
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating activity:", error)
       toast({
         title: "Error",
-        description: "Failed to update activity. Please try again.",
+        description: `Failed to update activity: ${error.message || "Please try again."}`,
         variant: "destructive"
       })
     } finally {
       setIsSubmitting(false)
-    }
-  }
-
-  // Dynamic field arrays
-  const addListItem = (field: "highlights" | "included" | "notIncluded") => {
-    const currentValues = form.getValues(field) || []
-    form.setValue(field, [...currentValues, ""])
-  }
-
-  const removeListItem = (field: "highlights" | "included" | "notIncluded", index: number) => {
-    const currentValues = form.getValues(field) || []
-    if (currentValues.length > 1) {
-      form.setValue(
-        field,
-        currentValues.filter((_, i) => i !== index)
-      )
     }
   }
 
@@ -319,7 +292,7 @@ export default function EditActivityPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField
                       control={form.control}
-                      name="category"
+                      name="category_id"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Category</FormLabel>
@@ -377,7 +350,7 @@ export default function EditActivityPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField
                       control={form.control}
-                      name="basePrice"
+                      name="price"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Price per Person (THB)</FormLabel>
@@ -394,7 +367,7 @@ export default function EditActivityPage() {
 
                     <FormField
                       control={form.control}
-                      name="maxParticipants"
+                      name="max_participants"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Maximum Participants</FormLabel>
@@ -421,92 +394,42 @@ export default function EditActivityPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField
                       control={form.control}
-                      name="includesPickup"
+                      name="pickup_location"
                       render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-base">
-                              Includes Pickup
-                            </FormLabel>
-                            <FormDescription>
-                              Do you offer pickup service?
-                            </FormDescription>
-                          </div>
+                        <FormItem>
+                          <FormLabel>Pickup Location</FormLabel>
                           <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
+                            <Input
+                              placeholder="e.g. Your hotel lobby"
+                              {...field}
                             />
                           </FormControl>
+                          <FormMessage />
                         </FormItem>
                       )}
                     />
 
                     <FormField
                       control={form.control}
-                      name="includesMeal"
+                      name="dropoff_location"
                       render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-base">
-                              Includes Meal
-                            </FormLabel>
-                            <FormDescription>
-                              Is food included in the activity?
-                            </FormDescription>
-                          </div>
+                        <FormItem>
+                          <FormLabel>Dropoff Location</FormLabel>
                           <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
+                            <Input
+                              placeholder="e.g. Your hotel lobby"
+                              {...field}
                             />
                           </FormControl>
+                          <FormMessage />
                         </FormItem>
                       )}
                     />
                   </div>
 
-                  {form.watch("includesPickup") && (
-                    <FormField
-                      control={form.control}
-                      name="pickupLocations"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Pickup Locations</FormLabel>
-                          <FormControl>
-                            <Textarea
-                              placeholder="e.g. All hotels in Chiang Mai Old City"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
-
-                  {form.watch("includesMeal") && (
-                    <FormField
-                      control={form.control}
-                      name="mealDescription"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Meal Description</FormLabel>
-                          <FormControl>
-                            <Textarea
-                              placeholder="e.g. Traditional Thai lunch at a local restaurant"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
-
                   <FormField
                     control={form.control}
-                    name="meetingPoint"
+                    name="meeting_point"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Meeting Point</FormLabel>
@@ -700,7 +623,7 @@ export default function EditActivityPage() {
                 <CardContent>
                   <FormField
                     control={form.control}
-                    name="images"
+                    name="image_url"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Image URLs</FormLabel>
@@ -722,93 +645,6 @@ export default function EditActivityPage() {
                       </FormItem>
                     )}
                   />
-                </CardContent>
-              </Card>
-
-              {/* Schedule Card */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Schedule</CardTitle>
-                  <CardDescription>
-                    Update available dates and times for your activity
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField
-                      control={form.control}
-                      name="scheduleDates"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                          <FormLabel>Available Dates</FormLabel>
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <FormControl>
-                                <Button
-                                  variant="outline"
-                                  className="w-full justify-start text-left font-normal h-auto py-2"
-                                >
-                                  <CalendarIcon className="mr-2 h-4 w-4" />
-                                  {field.value && field.value.length > 0 ? (
-                                    field.value.length === 1 ? (
-                                      isValid(field.value[0]) ? format(field.value[0], 'PP') : "Select dates"
-                                    ) : (
-                                      `${field.value.length} dates selected`
-                                    )
-                                  ) : (
-                                    <span>Select available dates</span>
-                                  )}
-                                </Button>
-                              </FormControl>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                              <Calendar
-                                mode="multiple"
-                                selected={field.value}
-                                onSelect={field.onChange} // react-hook-form handles the array update
-                                initialFocus
-                                className="rounded-md border"
-                              />
-                            </PopoverContent>
-                          </Popover>
-                          <FormDescription>
-                            Select all dates when this activity will be available
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="startTime"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Start Time</FormLabel>
-                            <FormControl>
-                              <Input type="time" {...field} value={field.value || ""} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="endTime"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>End Time</FormLabel>
-                            <FormControl>
-                              <Input type="time" {...field} value={field.value || ""} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </div>
                 </CardContent>
               </Card>
 
