@@ -82,7 +82,7 @@ export type Database = {
       }
       users: {
         Row: {
-          id: number
+          id: string // Changed from number to string (UUID)
           name: string
           email: string
           phone: string | null
@@ -94,7 +94,7 @@ export type Database = {
           role_id: number | null
         }
         Insert: {
-          id?: number
+          id?: string // Changed from number to string (UUID)
           name: string
           email: string
           phone?: string | null
@@ -106,7 +106,7 @@ export type Database = {
           role_id?: number | null
         }
         Update: {
-          id?: number
+          id?: string // Changed from number to string (UUID)
           name?: string
           email?: string
           phone?: string | null
@@ -122,19 +122,19 @@ export type Database = {
       email_verifications: {
         Row: {
           id: number
-          user_id: number
+          user_id: string // Changed from number to string (UUID)
           token: string
           created_at: string
         }
         Insert: {
           id?: number
-          user_id: number
+          user_id: string // Changed from number to string (UUID)
           token: string
           created_at?: string
         }
         Update: {
           id?: number
-          user_id?: number
+          user_id?: string // Changed from number to string (UUID)
           token?: string
           created_at?: string
         }
