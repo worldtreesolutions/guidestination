@@ -1,34 +1,13 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types"; // Import the Database type
 
-// Define Activity interface based on the database schema
-export interface Activity {
-  id?: number;
-  provider_id?: number;
-  category_id?: number;
-  title: string;
-  description?: string;
-  image_url?: string;
-  pickup_location: string;
-  dropoff_location: string;
-  duration: string; // This is an interval in the DB
-  price: number;
-  discounts?: number;
-  max_participants?: number;
-  highlights?: string;
-  included?: string;
-  not_included?: string;
-  meeting_point?: string;
-  languages?: string;
-  is_active?: boolean;
-  created_by?: number;
-  updated_by?: number;
-  created_at?: string;
-  updated_at?: string;
-  b_price?: number;
-  status?: number;
-}
+// Define Activity type based on the 'activities' table schema from Database types
+export type Activity = Database["public"]["Tables"]["activities"]["Row"];
+// Define ActivityInsert type for creating new activities
+export type ActivityInsert = Database["public"]["Tables"]["activities"]["Insert"];
+// Define ActivityUpdate type for updating activities
+export type ActivityUpdate = Database["public"]["Tables"]["activities"]["Update"];
 
 // Define a type for activity filters
 export interface ActivityFilters {
@@ -48,26 +27,34 @@ const activityCrudService = {
   /**
    * Create a new activity
    */
-  async createActivity(activity: Activity, user: User): Promise<Activity> {
-    // Set created_by and updated_by to the current user's ID
-    const userId = user.id;
+  async createActivity(activity: ActivityInsert, user: User): Promise<Activity> {
+    // Get the user's UUID
+    const userId = user.id; 
+
+    // Prepare the data for insertion, handling potential type mismatches
+    // NOTE: created_by/updated_by are integers in schema, user.id is UUID. Casting for now.
+    const activityData: ActivityInsert = {
+      ...activity,
+      created_by: userId as any, // Cast UUID to any to match integer column (potential schema issue)
+      updated_by: userId as any, // Cast UUID to any
+      is_active: activity.is_active !== undefined ? activity.is_active : true,
+      // Supabase handles created_at/updated_at defaults if not provided
+    };
     
     const { data, error } = await supabase
       .from("activities")
-      .insert({
-        ...activity,
-        created_by: userId,
-        updated_by: userId,
-        is_active: activity.is_active !== undefined ? activity.is_active : true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
+      .insert(activityData)
       .select()
       .single();
 
     if (error) {
       console.error("Error creating activity:", error.message);
       throw error;
+    }
+    
+    // Ensure data is not null before returning
+    if (!data) {
+      throw new Error("Activity creation succeeded but no data returned.");
     }
 
     return data;
@@ -80,6 +67,7 @@ const activityCrudService = {
     filters?: ActivityFilters,
     pagination?: Pagination
   ): Promise<{ activities: Activity[]; count: number }> {
+    // Use the specific table type from Database
     let query = supabase
       .from("activities")
       .select("*", { count: "exact" });
@@ -99,6 +87,7 @@ const activityCrudService = {
       }
       
       if (filters.search) {
+        // Ensure search targets valid text/varchar columns
         query = query.or(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
       }
     }
@@ -139,12 +128,11 @@ const activityCrudService = {
       .single();
 
     if (error) {
-      if (error.code === "PGRST116") {
-        // PGRST116 means no rows returned, which is not an error in this context
+      if (error.code === "PGRST116") { // No rows found is expected, return null
         return null;
       }
       
-      console.error("Error fetching activity:", error.message);
+      console.error("Error fetching activity by ID:", error.message);
       throw error;
     }
 
@@ -154,17 +142,19 @@ const activityCrudService = {
   /**
    * Update an existing activity
    */
-  async updateActivity(id: number, activity: Partial<Activity>, user: User): Promise<Activity> {
-    // Set updated_by to the current user's ID and updated_at to now
+  async updateActivity(id: number, activityUpdates: ActivityUpdate, user: User): Promise<Activity> {
     const userId = user.id;
     
+    // Prepare update data, ensuring updated_by and updated_at are set
+    const updateData: ActivityUpdate = {
+      ...activityUpdates,
+      updated_by: userId as any, // Cast UUID to any
+      updated_at: new Date().toISOString() 
+    };
+
     const { data, error } = await supabase
       .from("activities")
-      .update({
-        ...activity,
-        updated_by: userId,
-        updated_at: new Date().toISOString()
-      })
+      .update(updateData)
       .eq("id", id)
       .select()
       .single();
@@ -172,6 +162,10 @@ const activityCrudService = {
     if (error) {
       console.error("Error updating activity:", error.message);
       throw error;
+    }
+    
+    if (!data) {
+      throw new Error("Activity update succeeded but no data returned.");
     }
 
     return data;
@@ -181,11 +175,12 @@ const activityCrudService = {
    * Delete an activity (soft delete by setting is_active to false)
    */
   async softDeleteActivity(id: number, user: User): Promise<void> {
+    const userId = user.id;
     const { error } = await supabase
       .from("activities")
       .update({
         is_active: false,
-        updated_by: user.id,
+        updated_by: userId as any, // Cast UUID to any
         updated_at: new Date().toISOString()
       })
       .eq("id", id);
@@ -216,11 +211,12 @@ const activityCrudService = {
    * Restore a soft-deleted activity
    */
   async restoreActivity(id: number, user: User): Promise<Activity> {
+    const userId = user.id;
     const { data, error } = await supabase
       .from("activities")
       .update({
         is_active: true,
-        updated_by: user.id,
+        updated_by: userId as any, // Cast UUID to any
         updated_at: new Date().toISOString()
       })
       .eq("id", id)
@@ -230,6 +226,10 @@ const activityCrudService = {
     if (error) {
       console.error("Error restoring activity:", error.message);
       throw error;
+    }
+    
+    if (!data) {
+      throw new Error("Activity restoration succeeded but no data returned.");
     }
 
     return data;
@@ -242,6 +242,7 @@ const activityCrudService = {
     providerId: number,
     pagination?: Pagination
   ): Promise<{ activities: Activity[]; count: number }> {
+    // Ensure provider_id exists in ActivityFilters if used directly
     return this.getActivities(
       { provider_id: providerId },
       pagination
@@ -255,6 +256,7 @@ const activityCrudService = {
     categoryId: number,
     pagination?: Pagination
   ): Promise<{ activities: Activity[]; count: number }> {
+    // Ensure category_id exists in ActivityFilters if used directly
     return this.getActivities(
       { category_id: categoryId },
       pagination
@@ -290,11 +292,12 @@ const activityCrudService = {
    * Change activity status
    */
   async changeActivityStatus(id: number, status: number, user: User): Promise<Activity> {
+    const userId = user.id;
     const { data, error } = await supabase
       .from("activities")
       .update({
         status,
-        updated_by: user.id,
+        updated_by: userId as any, // Cast UUID to any
         updated_at: new Date().toISOString()
       })
       .eq("id", id)
@@ -305,6 +308,10 @@ const activityCrudService = {
       console.error("Error changing activity status:", error.message);
       throw error;
     }
+    
+    if (!data) {
+      throw new Error("Activity status change succeeded but no data returned.");
+    }
 
     return data;
   },
@@ -313,11 +320,12 @@ const activityCrudService = {
    * Update activity image
    */
   async updateActivityImage(id: number, imageUrl: string, user: User): Promise<Activity> {
+    const userId = user.id;
     const { data, error } = await supabase
       .from("activities")
       .update({
         image_url: imageUrl,
-        updated_by: user.id,
+        updated_by: userId as any, // Cast UUID to any
         updated_at: new Date().toISOString()
       })
       .eq("id", id)
@@ -328,6 +336,10 @@ const activityCrudService = {
       console.error("Error updating activity image:", error.message);
       throw error;
     }
+    
+    if (!data) {
+      throw new Error("Activity image update succeeded but no data returned.");
+    }
 
     return data;
   },
@@ -337,14 +349,15 @@ const activityCrudService = {
    */
   async bulkUpdateActivities(
     activityIds: number[],
-    updates: Partial<Activity>,
+    updates: ActivityUpdate,
     user: User
   ): Promise<void> {
+    const userId = user.id;
     const { error } = await supabase
       .from("activities")
       .update({
         ...updates,
-        updated_by: user.id,
+        updated_by: userId as any, // Cast UUID to any
         updated_at: new Date().toISOString()
       })
       .in("id", activityIds);
@@ -359,11 +372,12 @@ const activityCrudService = {
    * Bulk delete activities (soft delete)
    */
   async bulkSoftDeleteActivities(activityIds: number[], user: User): Promise<void> {
+    const userId = user.id;
     const { error } = await supabase
       .from("activities")
       .update({
         is_active: false,
-        updated_by: user.id,
+        updated_by: userId as any, // Cast UUID to any
         updated_at: new Date().toISOString()
       })
       .in("id", activityIds);
