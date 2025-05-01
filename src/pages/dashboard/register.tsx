@@ -1,4 +1,5 @@
-import { useState } from "react"
+
+import { useState, useEffect } from "react"
 import { useRouter } from "next/router"
 import Head from "next/head"
 import Link from "next/link"
@@ -17,11 +18,12 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, AlertCircle } from "lucide-react"
+import { Loader2, AlertCircle, Info } from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export default function RegisterPage() {
   const router = useRouter()
-  const { register } = useAuth()
+  const { register, setupPasswordForExistingUser, checkUserExists, checkUserVerification } = useAuth()
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -29,10 +31,57 @@ export default function RegisterPage() {
   const [agreeTerms, setAgreeTerms] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState("new")
+  const [emailStatus, setEmailStatus] = useState<{
+    exists: boolean;
+    verified: boolean;
+    checked: boolean;
+  }>({
+    exists: false,
+    verified: false,
+    checked: false,
+  })
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Pre-fill email from query parameter if available
+  useEffect(() => {
+    if (router.query.email && typeof router.query.email === "string") {
+      setEmail(router.query.email)
+      checkEmailStatus(router.query.email)
+    }
+  }, [router.query.email])
+
+  const checkEmailStatus = async (emailToCheck: string) => {
+    if (!emailToCheck) return
+    
+    setIsLoading(true)
+    try {
+      const { exists } = await checkUserExists(emailToCheck)
+      
+      if (exists) {
+        const { verified } = await checkUserVerification(emailToCheck)
+        setEmailStatus({ exists, verified, checked: true })
+        
+        if (verified) {
+          setActiveTab("existing")
+          setSuccess("Your email is registered as an activity provider. Please set up a password to access your account.")
+        } else {
+          setError("Your account is pending verification. Please contact support.")
+        }
+      } else {
+        setEmailStatus({ exists: false, verified: false, checked: true })
+      }
+    } catch (err) {
+      console.error("Error checking email status:", err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleNewUserSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+    setSuccess(null)
 
     // Validate form
     if (password !== confirmPassword) {
@@ -50,9 +99,38 @@ export default function RegisterPage() {
     try {
       await register(email, password, name)
       router.push("/dashboard/overview")
-    } catch (err) {
+    } catch (err: any) {
       console.error("Registration error:", err)
-      setError("Failed to create account. Please try again.")
+      setError(err.message || "Failed to create account. Please try again.")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleExistingUserSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError(null)
+    setSuccess(null)
+
+    // Validate form
+    if (password !== confirmPassword) {
+      setError("Passwords do not match")
+      return
+    }
+
+    if (!agreeTerms) {
+      setError("You must agree to the terms and conditions")
+      return
+    }
+
+    setIsLoading(true)
+
+    try {
+      await setupPasswordForExistingUser(email, password, name)
+      router.push("/dashboard/overview")
+    } catch (err: any) {
+      console.error("Setup password error:", err)
+      setError(err.message || "Failed to set up password. Please try again.")
     } finally {
       setIsLoading(false)
     }
@@ -101,96 +179,228 @@ export default function RegisterPage() {
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
-              <form onSubmit={handleSubmit} className="space-y-5">
+              
+              {success && (
+                <Alert className="mb-6 bg-green-50 border-green-200 text-green-800">
+                  <Info className="h-4 w-4" />
+                  <AlertDescription>{success}</AlertDescription>
+                </Alert>
+              )}
+
+              <div className="space-y-4">
+                {/* Email check section */}
                 <div className="space-y-2">
-                  <Label htmlFor="name">Full Name</Label>
-                  <Input 
-                    id="name" 
-                    placeholder="John Doe" 
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                    disabled={isLoading}
-                    className="w-full"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input 
-                    id="email" 
-                    type="email" 
-                    placeholder="name@example.com" 
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    disabled={isLoading}
-                    className="w-full"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
-                  <Input 
-                    id="password" 
-                    type="password" 
-                    placeholder="••••••••" 
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    disabled={isLoading}
-                    className="w-full"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm Password</Label>
-                  <Input 
-                    id="confirmPassword" 
-                    type="password" 
-                    placeholder="••••••••" 
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                    disabled={isLoading}
-                    className="w-full"
-                  />
-                </div>
-                <div className="flex items-start space-x-2 mt-4">
-                  <Checkbox 
-                    id="terms" 
-                    checked={agreeTerms}
-                    onCheckedChange={(checked) => setAgreeTerms(checked === true)}
-                    disabled={isLoading}
-                    className="mt-1"
-                  />
-                  <Label 
-                    htmlFor="terms" 
-                    className="text-sm font-medium leading-tight peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    I agree to the{" "}
-                    <Link href="/terms" className="text-primary hover:underline">
-                      Terms of Service
-                    </Link>{" "}
-                    and{" "}
-                    <Link href="/privacy" className="text-primary hover:underline">
-                      Privacy Policy
-                    </Link>
-                  </Label>
-                </div>
-                <Button 
-                  type="submit" 
-                  className="w-full py-6 mt-6" 
-                  disabled={isLoading}
-                  size="lg"
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Creating Account...
-                    </>
-                  ) : (
-                    "Create Account"
+                  <Label htmlFor="email-check">Check Your Email Status</Label>
+                  <div className="flex space-x-2">
+                    <Input 
+                      id="email-check" 
+                      type="email" 
+                      placeholder="name@example.com" 
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      disabled={isLoading}
+                      className="flex-1"
+                    />
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={() => checkEmailStatus(email)}
+                      disabled={isLoading || !email}
+                    >
+                      {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Check"}
+                    </Button>
+                  </div>
+                  {emailStatus.checked && (
+                    <p className="text-sm mt-1">
+                      {emailStatus.exists 
+                        ? emailStatus.verified 
+                          ? "Email found and verified. You can set up your password."
+                          : "Email found but not verified. Please contact support."
+                        : "Email not found. You can register as a new user."}
+                    </p>
                   )}
-                </Button>
-              </form>
+                </div>
+
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="new">New User</TabsTrigger>
+                    <TabsTrigger 
+                      value="existing" 
+                      disabled={!emailStatus.exists || !emailStatus.verified}
+                    >
+                      Existing User
+                    </TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="new">
+                    <form onSubmit={handleNewUserSubmit} className="space-y-4 mt-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="name-new">Full Name</Label>
+                        <Input 
+                          id="name-new" 
+                          placeholder="John Doe" 
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          required
+                          disabled={isLoading}
+                          className="w-full"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="password-new">Password</Label>
+                        <Input 
+                          id="password-new" 
+                          type="password" 
+                          placeholder="••••••••" 
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          required
+                          disabled={isLoading}
+                          className="w-full"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="confirmPassword-new">Confirm Password</Label>
+                        <Input 
+                          id="confirmPassword-new" 
+                          type="password" 
+                          placeholder="••••••••" 
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          required
+                          disabled={isLoading}
+                          className="w-full"
+                        />
+                      </div>
+                      
+                      <div className="flex items-start space-x-2 mt-4">
+                        <Checkbox 
+                          id="terms-new" 
+                          checked={agreeTerms}
+                          onCheckedChange={(checked) => setAgreeTerms(checked === true)}
+                          disabled={isLoading}
+                          className="mt-1"
+                        />
+                        <Label 
+                          htmlFor="terms-new" 
+                          className="text-sm font-medium leading-tight peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          I agree to the{" "}
+                          <Link href="/terms" className="text-primary hover:underline">
+                            Terms of Service
+                          </Link>{" "}
+                          and{" "}
+                          <Link href="/privacy" className="text-primary hover:underline">
+                            Privacy Policy
+                          </Link>
+                        </Label>
+                      </div>
+                      
+                      <Button 
+                        type="submit" 
+                        className="w-full py-6 mt-6" 
+                        disabled={isLoading}
+                        size="lg"
+                      >
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                            Creating Account...
+                          </>
+                        ) : (
+                          "Create Account"
+                        )}
+                      </Button>
+                    </form>
+                  </TabsContent>
+                  
+                  <TabsContent value="existing">
+                    <form onSubmit={handleExistingUserSubmit} className="space-y-4 mt-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="name-existing">Full Name</Label>
+                        <Input 
+                          id="name-existing" 
+                          placeholder="John Doe" 
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          required
+                          disabled={isLoading}
+                          className="w-full"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="password-existing">Password</Label>
+                        <Input 
+                          id="password-existing" 
+                          type="password" 
+                          placeholder="••••••••" 
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          required
+                          disabled={isLoading}
+                          className="w-full"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="confirmPassword-existing">Confirm Password</Label>
+                        <Input 
+                          id="confirmPassword-existing" 
+                          type="password" 
+                          placeholder="••••••••" 
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          required
+                          disabled={isLoading}
+                          className="w-full"
+                        />
+                      </div>
+                      
+                      <div className="flex items-start space-x-2 mt-4">
+                        <Checkbox 
+                          id="terms-existing" 
+                          checked={agreeTerms}
+                          onCheckedChange={(checked) => setAgreeTerms(checked === true)}
+                          disabled={isLoading}
+                          className="mt-1"
+                        />
+                        <Label 
+                          htmlFor="terms-existing" 
+                          className="text-sm font-medium leading-tight peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          I agree to the{" "}
+                          <Link href="/terms" className="text-primary hover:underline">
+                            Terms of Service
+                          </Link>{" "}
+                          and{" "}
+                          <Link href="/privacy" className="text-primary hover:underline">
+                            Privacy Policy
+                          </Link>
+                        </Label>
+                      </div>
+                      
+                      <Button 
+                        type="submit" 
+                        className="w-full py-6 mt-6" 
+                        disabled={isLoading}
+                        size="lg"
+                      >
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                            Setting Up Password...
+                          </>
+                        ) : (
+                          "Set Up Password"
+                        )}
+                      </Button>
+                    </form>
+                  </TabsContent>
+                </Tabs>
+              </div>
             </CardContent>
             <CardFooter className="flex justify-center pt-4 pb-6 border-t">
               <div className="text-center text-sm">

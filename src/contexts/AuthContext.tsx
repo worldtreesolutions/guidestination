@@ -15,8 +15,10 @@ interface AuthContextType {
   login: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
   logout: () => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
+  setupPasswordForExistingUser: (email: string, password: string, name: string) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   checkUserVerification: (email: string) => Promise<UserVerificationStatus>;
+  checkUserExists: (email: string) => Promise<{ exists: boolean; userId?: string }>;
 }
 
 // Create the context with a default value
@@ -28,8 +30,10 @@ const AuthContext = createContext<AuthContextType>({
   login: async () => {},
   logout: async () => {},
   register: async () => {},
+  setupPasswordForExistingUser: async () => {},
   resetPassword: async () => {},
   checkUserVerification: async () => ({ exists: false, verified: false }),
+  checkUserExists: async () => ({ exists: false }),
 });
 
 // Create a provider component
@@ -121,16 +125,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { user, session } = await authService.signUpWithEmail(email, password, { name });
       
       if (!user) {
-        throw new Error("Registration failed: No user returned");
+        throw new Error('Registration failed: No user returned');
       }
       
       setUser(user);
       setSession(session);
     } catch (error) {
-      console.error("Registration error:", error);
+      console.error('Registration error:', error);
       throw error;
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Setup password for existing user
+  const setupPasswordForExistingUser = async (email: string, password: string, name: string) => {
+    setIsLoading(true);
+    try {
+      const { user, session } = await authService.setupPasswordForExistingUser(email, password, name);
+      
+      if (!user) {
+        throw new Error('Failed to set up password: No user returned');
+      }
+      
+      setUser(user);
+      setSession(session);
+    } catch (error) {
+      console.error('Setup password error:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Check if user exists
+  const checkUserExists = async (email: string): Promise<{ exists: boolean; userId?: string }> => {
+    try {
+      return await authService.checkUserExists(email);
+    } catch (error) {
+      console.error('Check user exists error:', error);
+      throw error;
     }
   };
 
@@ -164,8 +198,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         logout,
         register,
+        setupPasswordForExistingUser,
         resetPassword,
         checkUserVerification,
+        checkUserExists,
       }}
     >
       {children}

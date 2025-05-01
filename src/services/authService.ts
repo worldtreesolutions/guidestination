@@ -240,6 +240,45 @@ export const authService = {
     if (error) throw error;
     return data.user;
   },
+
+  /**
+   * Set up password for existing user
+   * This is used when a user has been registered as an activity provider
+   * but hasn't set up their password yet
+   */
+  async setupPasswordForExistingUser(email: string, password: string, name: string): Promise<{ user: User | null; session: Session | null }> {
+    // First check if user exists
+    const { exists, userId } = await this.checkUserExists(email);
+    
+    if (!exists) {
+      throw new Error('No account found with this email. Please register first.');
+    }
+    
+    // Check if user is verified
+    const verificationStatus = await this.checkUserVerification(email);
+    
+    if (!verificationStatus.verified) {
+      throw new Error('Your account is pending verification. Please contact support.');
+    }
+    
+    // Create auth user with the existing email and new password
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { name, verified: true },
+      },
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    return {
+      user: data.user,
+      session: data.session,
+    };
+  },
 };
 
 export default authService;
