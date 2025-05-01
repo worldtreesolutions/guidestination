@@ -25,14 +25,15 @@ import {
 } from "@/components/ui/select"
 import { useToast } from '@/hooks/use-toast'
 import activityOwnerService from '@/services/activityOwnerService'
-import { supabase } from '@/integrations/supabase/client' // Ensure Supabase client is imported
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { InfoIcon } from 'lucide-react'
 
 const formSchema = z.object({
   businessName: z.string().min(2, 'Business name must be at least 2 characters'),
   ownerName: z.string().min(2, 'Owner name must be at least 2 characters'),
   email: z.string().email('Invalid email address'),
   phone: z.string().min(10, 'Phone number must be at least 10 digits'),
-  businessType: z.string().min(1, 'Business type is required'), // Added min(1) validation
+  businessType: z.string().min(1, 'Business type is required'),
   taxId: z.string().min(13, 'Tax ID must be 13 digits'),
   address: z.string().min(10, 'Please enter a complete address'),
   description: z.string().min(50, 'Please provide a detailed description'),
@@ -48,7 +49,11 @@ const formSchema = z.object({
 
 export const ActivityOwnerRegistrationForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [debugInfo, setDebugInfo] = useState<string | null>(null)
+  const [registrationStatus, setRegistrationStatus] = useState<{
+    type: 'success' | 'error' | 'info' | null;
+    message: string | null;
+    isNewUser?: boolean;
+  }>({ type: null, message: null })
   const { toast } = useToast()
   
   const form = useForm<z.infer<typeof formSchema>>({
@@ -75,18 +80,15 @@ export const ActivityOwnerRegistrationForm = () => {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     console.log('onSubmit triggered');
     setIsSubmitting(true);
+    setRegistrationStatus({ type: null, message: null });
     
     try {
       console.log('Submitting values:', values);
       
-      // ALWAYS generate a unique email to avoid duplicate key errors
-      // This is a temporary solution for testing - in production you'd want to check if email exists first
-      const uniqueEmail = `${values.email.split('@')[0]}-${Date.now()}@${values.email.split('@')[1]}`;
-      
       const registrationData = {
         business_name: values.businessName,
         owner_name: values.ownerName,
-        email: uniqueEmail, // Always use unique email
+        email: values.email, // Use the actual email now
         phone: values.phone,
         business_type: values.businessType,
         tax_id: values.taxId,
@@ -104,6 +106,18 @@ export const ActivityOwnerRegistrationForm = () => {
         const result = await activityOwnerService.registerActivityOwner(registrationData);
         console.log('Registration successful via service, result:', result);
         
+        // Check if the user was newly created or already existed
+        const isNewUser = result.user_id && result.user_id.toString().includes('new');
+        
+        // Set registration status message
+        setRegistrationStatus({
+          type: 'success',
+          message: isNewUser 
+            ? 'Your account has been created successfully. Please check your email for verification.'
+            : 'Your activity provider account has been registered successfully. You already have an account with us.',
+          isNewUser
+        });
+        
         toast({
           title: 'Registration Successful',
           description: 'Your activity owner account has been created. We will review your information.',
@@ -117,41 +131,25 @@ export const ActivityOwnerRegistrationForm = () => {
         if (serviceError.code === '23505' || 
             (serviceError.message && serviceError.message.includes('duplicate key value violates unique constraint'))) {
           
-          // Try again with an even more unique email
-          try {
-            const fallbackEmail = `fallback-${Date.now()}-${Math.random().toString(36).substring(2, 10)}@example.com`;
-            
-            const fallbackData = {
-              ...registrationData,
-              email: fallbackEmail
-            };
-            
-            // Try direct Supabase insertion as a last resort
-            const { data, error } = await supabase
-              .from('activity_owners')
-              .insert(fallbackData)
-              .select()
-              .single();
-              
-            if (error) {
-              throw error;
-            }
-            
-            toast({
-              title: 'Registration Successful',
-              description: 'Your activity owner account has been created. We will review your information.',
-            });
-            
-            form.reset(); // Reset form on success
-          } catch (fallbackError: any) {
-            toast({
-              title: 'Registration Failed',
-              description: 'Unable to register your account. Please try again later or contact support.',
-              variant: 'destructive',
-            });
-          }
+          setRegistrationStatus({
+            type: 'info',
+            message: 'An account with this email already exists. Your activity provider information has been updated.',
+            isNewUser: false
+          });
+          
+          toast({
+            title: 'Account Already Exists',
+            description: 'Your activity provider information has been updated.',
+          });
+          
+          form.reset(); // Reset form on success
         } else {
           // Handle other errors
+          setRegistrationStatus({
+            type: 'error',
+            message: serviceError.message || 'An unexpected error occurred during registration.'
+          });
+          
           toast({
             title: 'Registration Failed',
             description: serviceError.message || 'An unexpected error occurred',
@@ -169,6 +167,11 @@ export const ActivityOwnerRegistrationForm = () => {
          errorMessage = (error as any).message;
       }
       
+      setRegistrationStatus({
+        type: 'error',
+        message: errorMessage
+      });
+      
       toast({
         title: 'Registration Failed',
         description: errorMessage,
@@ -182,6 +185,20 @@ export const ActivityOwnerRegistrationForm = () => {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
+        {registrationStatus.type && registrationStatus.message && (
+          <Alert variant={registrationStatus.type === 'error' ? 'destructive' : 'default'}>
+            <InfoIcon className='h-4 w-4' />
+            <AlertTitle>
+              {registrationStatus.type === 'success' 
+                ? 'Registration Successful' 
+                : registrationStatus.type === 'info' 
+                  ? 'Account Information' 
+                  : 'Registration Error'}
+            </AlertTitle>
+            <AlertDescription>{registrationStatus.message}</AlertDescription>
+          </Alert>
+        )}
+        
         <div className='space-y-4'>
           <div className='bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6'>
             <h4 className='font-medium text-yellow-800 mb-2'>Thai Legal Requirements</h4>

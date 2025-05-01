@@ -34,7 +34,7 @@ export const activityOwnerService = {
    * 3. Insert into activity_providers table
    * 4. Create email verification record
    */
-  async registerActivityOwner(registrationData: ActivityOwnerRegistration): Promise<ActivityOwner> {
+  async registerActivityOwner(registrationData: ActivityOwnerRegistration): Promise<ActivityOwner & { isNewUser?: boolean }> {
     console.log('Inside registerActivityOwner service method', registrationData);
     
     try {
@@ -43,6 +43,7 @@ export const activityOwnerService = {
       const { exists, userId } = await authService.checkUserExists(registrationData.email);
       
       let actualUserId: number;
+      let isNewUser = false;
       
       // Step 2: If user doesn't exist, create one
       if (!exists) {
@@ -55,6 +56,7 @@ export const activityOwnerService = {
         });
         
         actualUserId = newUserId;
+        isNewUser = true;
         
         // Step 3: Create email verification
         await authService.createEmailVerification(newUserId);
@@ -101,8 +103,8 @@ export const activityOwnerService = {
         throw new Error("Failed to register activity owner: No data returned.")
       }
       
-      // Supabase returns the inserted row in the 'data' property when using .single()
-      return data 
+      // Return the data with the isNewUser flag
+      return { ...data, isNewUser };
     } catch (err) {
       console.error('Error in registerActivityOwner:', err);
       throw err;
