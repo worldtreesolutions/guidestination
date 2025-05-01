@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client"
 import type { Database } from "@/integrations/supabase/types"
+import authService from './authService';
 
 // Define types based on the database table structure
 // Ensure src/integrations/supabase/types.ts is up-to-date with your DB schema
@@ -26,35 +27,63 @@ export interface ActivityOwnerRegistration {
 }
 
 export const activityOwnerService = {
-  // Add explicit type for the 'registrationData' parameter
+  /**
+   * Register an activity owner with multi-table process:
+   * 1. Check if user exists in users table
+   * 2. If not, create user with verified=false
+   * 3. Insert into activity_providers table
+   * 4. Create email verification record
+   */
   async registerActivityOwner(registrationData: ActivityOwnerRegistration): Promise<ActivityOwner> {
     console.log('Inside registerActivityOwner service method', registrationData);
     
-    // Map registration data to the insert type, ensuring optional fields are handled
-    const insertData: ActivityOwnerInsert = {
-      // Reference the 'registrationData' parameter correctly
-      business_name: registrationData.business_name,
-      owner_name: registrationData.owner_name,
-      email: registrationData.email,
-      phone: registrationData.phone,
-      business_type: registrationData.business_type,
-      tax_id: registrationData.tax_id,
-      address: registrationData.address,
-      description: registrationData.description,
-      tourism_license_number: registrationData.tourism_license_number,
-      tat_license_number: registrationData.tat_license_number || null,
-      guide_card_number: registrationData.guide_card_number || null,
-      insurance_policy: registrationData.insurance_policy,
-      insurance_amount: registrationData.insurance_amount,
-      // Set default status to 'pending'
-      status: 'pending',
-      // user_id is omitted here, assuming it's set by RLS or session context later
-    }
-
-    console.log('Prepared insert data:', insertData);
-
     try {
-      // Use the 'data' property from the response
+      // Start a Supabase transaction
+      // Step 1: Check if user exists
+      const { exists, userId } = await authService.checkUserExists(registrationData.email);
+      
+      let actualUserId: number;
+      
+      // Step 2: If user doesn't exist, create one
+      if (!exists) {
+        console.log('User does not exist, creating new user');
+        const { userId: newUserId } = await authService.createUser({
+          name: registrationData.owner_name,
+          email: registrationData.email,
+          phone: registrationData.phone,
+          user_type: 'activity_provider'
+        });
+        
+        actualUserId = newUserId;
+        
+        // Step 3: Create email verification
+        await authService.createEmailVerification(newUserId);
+      } else {
+        console.log('User already exists with ID:', userId);
+        actualUserId = userId!;
+      }
+      
+      // Step 4: Insert into activity_providers table
+      const insertData: ActivityOwnerInsert = {
+        business_name: registrationData.business_name,
+        owner_name: registrationData.owner_name,
+        email: registrationData.email,
+        phone: registrationData.phone,
+        business_type: registrationData.business_type,
+        tax_id: registrationData.tax_id,
+        address: registrationData.address,
+        description: registrationData.description,
+        tourism_license_number: registrationData.tourism_license_number,
+        tat_license_number: registrationData.tat_license_number || null,
+        guide_card_number: registrationData.guide_card_number || null,
+        insurance_policy: registrationData.insurance_policy,
+        insurance_amount: registrationData.insurance_amount,
+        status: 'pending',
+        user_id: actualUserId.toString() // Link to the user record
+      };
+
+      console.log('Inserting activity provider with data:', insertData);
+
       const { data, error } = await supabase
         .from("activity_owners")
         .insert(insertData) // Use the correctly typed insert data
