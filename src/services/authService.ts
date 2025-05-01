@@ -1,5 +1,7 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { v4 as uuidv4 } from "uuid";
+import { Session, User } from "@supabase/supabase-js";
 
 export interface UserRegistration {
   name: string;
@@ -9,6 +11,72 @@ export interface UserRegistration {
 }
 
 export const authService = {
+  /**
+   * Sign in with email and password using Supabase Auth
+   */
+  async signInWithEmail(email: string, password: string): Promise<{ user: User | null; session: Session | null }> {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    return {
+      user: data.user,
+      session: data.session,
+    };
+  },
+
+  /**
+   * Sign up with email and password using Supabase Auth
+   */
+  async signUpWithEmail(email: string, password: string, metadata?: { name?: string; role?: string }): Promise<{ user: User | null; session: Session | null }> {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: metadata,
+      },
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    return {
+      user: data.user,
+      session: data.session,
+    };
+  },
+
+  /**
+   * Sign out the current user
+   */
+  async signOut(): Promise<void> {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Get the current session
+   */
+  async getSession(): Promise<{ session: Session | null }> {
+    const { data, error } = await supabase.auth.getSession();
+    
+    if (error) {
+      throw error;
+    }
+    
+    return {
+      session: data.session,
+    };
+  },
+
   /**
    * Check if a user exists by email
    */
@@ -78,6 +146,19 @@ export const authService = {
     
     // In a real application, you would send an email with the verification link here
     return { token };
+  },
+
+  /**
+   * Reset password
+   */
+  async resetPassword(email: string): Promise<void> {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/dashboard/reset-password`,
+    });
+
+    if (error) {
+      throw error;
+    }
   }
 };
 

@@ -1,3 +1,4 @@
+
 import { useState } from "react"
 import { useRouter } from "next/router"
 import Head from "next/head"
@@ -36,9 +37,20 @@ export default function LoginPage() {
     try {
       await login(email, password, rememberMe)
       router.push("/dashboard/overview")
-    } catch (err) {
+    } catch (err: any) {
       console.error("Login error:", err)
-      setError("Invalid email or password. Please try again.")
+      // Handle Supabase auth errors with more specific messages
+      if (err.message) {
+        if (err.message.includes("Invalid login credentials")) {
+          setError("Invalid email or password. Please try again.")
+        } else if (err.message.includes("Email not confirmed")) {
+          setError("Please confirm your email address before logging in.")
+        } else {
+          setError(err.message)
+        }
+      } else {
+        setError("An error occurred during login. Please try again.")
+      }
     } finally {
       setIsLoading(false)
     }
