@@ -32,7 +32,7 @@ export const activityOwnerService = {
    * Register an activity owner with multi-table process:
    * 1. Check if user exists in users table
    * 2. If not, create user with verified=false
-   * 3. Insert into activity_providers table
+   * 3. Insert into activity_owners table
    * 4. Create email verification record
    */
   async registerActivityOwner(registrationData: ActivityOwnerRegistration): Promise<ActivityOwner & { isNewUser?: boolean }> {
@@ -68,6 +68,9 @@ export const activityOwnerService = {
       // Generate a UUID for the activity owner record
       const ownerId = uuidv4();
       
+      // Generate a UUID for the user_id field as well, since it's a UUID in the database
+      const userUuid = uuidv4();
+      
       // Step 4: Insert into activity_owners table
       const insertData: ActivityOwnerInsert = {
         id: ownerId, // Use UUID for the activity_owners table
@@ -85,7 +88,7 @@ export const activityOwnerService = {
         insurance_policy: registrationData.insurance_policy,
         insurance_amount: registrationData.insurance_amount,
         status: 'pending',
-        user_id: actualUserId.toString() // Link to the user record
+        user_id: userUuid // Use UUID for the user_id field
       };
 
       console.log('Inserting activity owner with data:', insertData);
