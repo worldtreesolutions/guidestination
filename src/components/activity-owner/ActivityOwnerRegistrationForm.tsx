@@ -1,4 +1,3 @@
-
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -74,10 +73,13 @@ export const ActivityOwnerRegistrationForm = () => {
 
   // Function to fill the form with test data
   const fillWithTestData = () => {
+    // Generate a unique email with timestamp to avoid duplicate email errors
+    const uniqueEmail = `test-${Date.now()}@example.com`;
+    
     form.reset({
       businessName: 'Test Business',
       ownerName: 'Test Owner',
-      email: 'test@example.com',
+      email: uniqueEmail, // Use unique email
       phone: '1234567890',
       businessType: 'tour_operator',
       taxId: '1234567890123',
@@ -90,7 +92,7 @@ export const ActivityOwnerRegistrationForm = () => {
       insuranceAmount: '1000000',
       termsAccepted: true,
     });
-    setDebugInfo('Form filled with test data. You can now submit the form.');
+    setDebugInfo(`Form filled with test data. Using unique email: ${uniqueEmail}`);
   };
 
   // Function for direct Supabase submission test
@@ -99,10 +101,13 @@ export const ActivityOwnerRegistrationForm = () => {
     setIsSubmitting(true); // Indicate loading state
     
     try {
+      // Generate a unique email with timestamp to avoid duplicate email errors
+      const uniqueEmail = `direct-test-${Date.now()}@example.com`;
+      
       const testData = {
         business_name: 'Direct Test Business',
         owner_name: 'Direct Test Owner',
-        email: `direct-test-${Date.now()}@example.com`, // Unique email
+        email: uniqueEmail, // Use unique email
         phone: '0987654321',
         business_type: 'test_direct',
         tax_id: '9876543210123', // Ensure 13 digits
@@ -114,8 +119,8 @@ export const ActivityOwnerRegistrationForm = () => {
         status: 'pending' // Set default status
       };
       
-      setDebugInfo('Sending test data directly to Supabase...');
-      console.log('Test ', testData);
+      setDebugInfo(`Sending test data directly to Supabase with email: ${uniqueEmail}...`);
+      console.log('Test data:', testData);
       
       const { data, error } = await supabase
         .from('activity_owners')
@@ -164,10 +169,17 @@ export const ActivityOwnerRegistrationForm = () => {
     try {
       console.log('Submitting values:', values);
       
+      // Generate a unique email if using the test email to avoid duplicate errors
+      let email = values.email;
+      if (email === 'test@example.com') {
+        email = `test-${Date.now()}@example.com`;
+        setDebugInfo(`Using generated unique email: ${email} instead of test@example.com`);
+      }
+      
       const registrationData = {
         business_name: values.businessName,
         owner_name: values.ownerName,
-        email: values.email,
+        email: email, // Use potentially modified email
         phone: values.phone,
         business_type: values.businessType,
         tax_id: values.taxId, // Already validated by Zod
@@ -181,20 +193,40 @@ export const ActivityOwnerRegistrationForm = () => {
         // status will be set by the service or default in DB
       };
       
-      console.log('Prepared registration ', registrationData);
-      setDebugInfo('Submitting via activityOwnerService...');
+      console.log('Prepared registration data:', registrationData);
+      setDebugInfo(`Submitting via activityOwnerService with email: ${email}...`);
       
-      const result = await activityOwnerService.registerActivityOwner(registrationData);
-      console.log('Registration successful via service, result:', result);
-      setDebugInfo(`Registration successful via service! Owner ID: ${result.id}`);
-      
-      toast({
-        title: 'Registration Successful',
-        description: 'Your activity owner account has been created. We will review your information.',
-      });
-      
-      form.reset(); // Reset form on success
-      
+      try {
+        const result = await activityOwnerService.registerActivityOwner(registrationData);
+        console.log('Registration successful via service, result:', result);
+        setDebugInfo(`Registration successful via service! Owner ID: ${result.id}`);
+        
+        toast({
+          title: 'Registration Successful',
+          description: 'Your activity owner account has been created. We will review your information.',
+        });
+        
+        form.reset(); // Reset form on success
+      } catch (serviceError: any) {
+        console.error('Service registration error:', serviceError);
+        
+        // Check for duplicate email error
+        if (serviceError.code === '23505' || 
+            (serviceError.message && serviceError.message.includes('duplicate key value violates unique constraint'))) {
+          setDebugInfo(`Email already exists: ${email}. Please use a different email address.`);
+          toast({
+            title: 'Registration Failed',
+            description: 'This email is already registered. Please use a different email address.',
+            variant: 'destructive',
+          });
+          
+          // Focus on the email field for better UX
+          form.setFocus('email');
+        } else {
+          // Handle other errors
+          throw serviceError; // Re-throw to be caught by the outer catch
+        }
+      }
     } catch (error) {
       console.error('Registration error:', error);
       
@@ -205,12 +237,15 @@ export const ActivityOwnerRegistrationForm = () => {
          errorMessage = (error as any).message;
       }
       
-      setDebugInfo(`Registration failed: ${errorMessage}`);
-      toast({
-        title: 'Registration Failed',
-        description: errorMessage,
-        variant: 'destructive',
-      });
+      // Don't overwrite more specific error messages
+      if (!debugInfo?.includes('Email already exists')) {
+        setDebugInfo(`Registration failed: ${errorMessage}`);
+        toast({
+          title: 'Registration Failed',
+          description: errorMessage,
+          variant: 'destructive',
+        });
+      }
     } finally {
       console.log('Setting isSubmitting to false');
       setIsSubmitting(false);
