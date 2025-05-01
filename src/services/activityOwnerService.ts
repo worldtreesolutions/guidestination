@@ -3,8 +3,6 @@ import type { Database } from "@/integrations/supabase/types"
 
 // Define types based on the database table structure
 // Ensure src/integrations/supabase/types.ts is up-to-date with your DB schema
-// If you encounter errors like "Property 'activity_owners' does not exist", 
-// you might need to regenerate Supabase types.
 export type ActivityOwner = Database["public"]["Tables"]["activity_owners"]["Row"]
 export type ActivityOwnerInsert = Database["public"]["Tables"]["activity_owners"]["Insert"]
 export type ActivityOwnerUpdate = Database["public"]["Tables"]["activity_owners"]["Update"]
@@ -20,38 +18,37 @@ export interface ActivityOwnerRegistration {
   address: string
   description: string
   tourism_license_number: string
-  tat_license_number?: string | null // Allow null for optional fields
-  guide_card_number?: string | null // Allow null for optional fields
+  tat_license_number?: string | null
+  guide_card_number?: string | null
   insurance_policy: string
   insurance_amount: string
   // user_id will likely be handled by Supabase Auth RLS policies or session context
 }
 
 export const activityOwnerService = {
-  // Add explicit type for the 'data' parameter
-  async registerActivityOwner( ActivityOwnerRegistration): Promise<ActivityOwner> {
+  // Add explicit type for the 'registrationData' parameter
+  async registerActivityOwner(registrationData: ActivityOwnerRegistration): Promise<ActivityOwner> {
     // Map registration data to the insert type, ensuring optional fields are handled
     const insertData: ActivityOwnerInsert = {
-      // Reference the 'data' parameter correctly
-      business_name: data.business_name,
-      owner_name: data.owner_name,
-      email: data.email,
-      phone: data.phone,
-      business_type: data.business_type,
-      tax_id: data.tax_id,
-      address: data.address,
-      description: data.description,
-      tourism_license_number: data.tourism_license_number,
-      tat_license_number: data.tat_license_number || null,
-      guide_card_number: data.guide_card_number || null,
-      insurance_policy: data.insurance_policy,
-      insurance_amount: data.insurance_amount,
+      // Reference the 'registrationData' parameter correctly
+      business_name: registrationData.business_name,
+      owner_name: registrationData.owner_name,
+      email: registrationData.email,
+      phone: registrationData.phone,
+      business_type: registrationData.business_type,
+      tax_id: registrationData.tax_id,
+      address: registrationData.address,
+      description: registrationData.description,
+      tourism_license_number: registrationData.tourism_license_number,
+      tat_license_number: registrationData.tat_license_number || null,
+      guide_card_number: registrationData.guide_card_number || null,
+      insurance_policy: registrationData.insurance_policy,
+      insurance_amount: registrationData.insurance_amount,
       // user_id is omitted here, assuming it's set by RLS or session context later
-      // If you need to set it explicitly, get the user ID from useAuth() and add it here
     }
 
-    // Use 'data' property from the response, not 'result'
-    const {  insertedData, error } = await supabase
+    // Use the 'data' property from the response
+    const { data, error } = await supabase
       .from("activity_owners")
       .insert(insertData) // Use the correctly typed insert data
       .select()
@@ -61,10 +58,11 @@ export const activityOwnerService = {
       console.error("Supabase insert error:", error)
       throw error
     }
-    if (!insertedData) {
+    if (!data) {
       throw new Error("Failed to register activity owner: No data returned.")
     }
-    return insertedData // Return the data property
+    // Supabase returns the inserted row in the 'data' property when using .single()
+    return data 
   },
 
   async getActivityOwnerByEmail(email: string): Promise<ActivityOwner | null> {
@@ -76,7 +74,6 @@ export const activityOwnerService = {
 
     if (error) {
       console.error("Supabase select error:", error)
-      // Don't throw if it's a 'not found' type error, just return null
       // PGRST116: 'Requested range not satisfiable' often means no rows found
       if (error.code === 'PGRST116') { 
         return null
@@ -87,9 +84,8 @@ export const activityOwnerService = {
   },
 
   async updateActivityOwner(id: string, updates: ActivityOwnerUpdate): Promise<ActivityOwner> {
-     // Ensure updates only contain valid columns for the Update type
-    // Use 'data' property from the response, not 'result'
-    const {  updatedData, error } = await supabase
+    // Use the 'data' property from the response
+    const { data, error } = await supabase
       .from("activity_owners")
       .update(updates)
       .eq("id", id)
@@ -100,10 +96,11 @@ export const activityOwnerService = {
       console.error("Supabase update error:", error)
       throw error
     }
-     if (!updatedData) {
+     if (!data) {
       throw new Error("Failed to update activity owner: No data returned.")
     }
-    return updatedData // Return the data property
+    // Supabase returns the updated row in the 'data' property when using .single()
+    return data 
   }
 }
 
