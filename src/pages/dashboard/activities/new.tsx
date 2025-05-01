@@ -47,22 +47,23 @@ import { ImageUploader } from "@/components/dashboard/activities/ImageUploader"
 // Define the form schema using Zod (ensure it aligns with ActivityInsert)
 const formSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters"),
-  description: z.string().min(20, "Description must be at least 20 characters"),
-  category_id: z.coerce.number().optional().nullable(), // Match ActivityInsert
-  duration: z.string().min(1, "Please select a duration (e.g., 04:00:00 for 4 hours)"), // Match interval format if needed
-  price: z.coerce.number().min(1, "Price must be greater than 0"), // Match 'price' field
-  max_participants: z.coerce.number().min(1, "Maximum participants must be at least 1"), // Match 'max_participants'
-  pickup_location: z.string().min(5, "Pickup location is required"), // Match 'pickup_location'
-  dropoff_location: z.string().min(5, "Dropoff location is required"), // Match 'dropoff_location'
-  meeting_point: z.string().min(5, "Meeting point is required"), // Match 'meeting_point'
-  languages: z.string().optional().nullable(), // Match 'languages' (assuming comma-separated string or similar)
-  highlights: z.string().optional().nullable(), // Match 'highlights' (assuming comma-separated string or similar)
-  included: z.string().optional().nullable(), // Match 'included' (assuming comma-separated string or similar)
-  not_included: z.string().optional().nullable(), // Match 'not_included'
-  image_url: z.string().url("Must be a valid URL").optional().nullable(), // Match 'image_url'
-  is_active: z.boolean().default(true), // Match 'is_active'
+  description: z.string().min(20, "Description must be at least 20 characters").optional().nullable(), // Allow null
+  category_id: z.coerce.number().optional().nullable(),
+  duration: z.string().min(1, "Please select a duration (e.g., 04:00:00 for 4 hours)"),
+  price: z.coerce.number().min(1, "Price must be greater than 0"),
+  max_participants: z.coerce.number().min(1, "Maximum participants must be at least 1"),
+  pickup_location: z.string().min(5, "Pickup location is required"),
+  dropoff_location: z.string().min(5, "Dropoff location is required"),
+  meeting_point: z.string().min(5, "Meeting point is required").optional().nullable(), // Allow null
+  languages: z.string().optional().nullable(), // Allow null
+  highlights: z.string().optional().nullable(), // Allow null
+  included: z.string().optional().nullable(), // Allow null
+  not_included: z.string().optional().nullable(), // Allow null
+  // Change image_url to handle array from ImageUploader, take first URL
+  image_urls: z.array(z.string().url()).optional().default([]), // Expect array from uploader
+  is_active: z.boolean().default(true),
   b_price: z.coerce.number().optional().nullable(),
-  status: z.coerce.number().optional().nullable(), // Assuming status is integer
+  status: z.coerce.number().optional().nullable(),
   discounts: z.coerce.number().optional().nullable(),
 })
 
@@ -81,9 +82,9 @@ export default function NewActivityPage() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
-      description: "",
+      description: "", // Default to empty string, Zod handles optional/nullable
       category_id: null,
-      duration: "04:00:00", // Example interval
+      duration: "04:00:00",
       price: 0,
       max_participants: 10,
       pickup_location: "",
@@ -93,10 +94,10 @@ export default function NewActivityPage() {
       highlights: "",
       included: "",
       not_included: "",
-      image_url: "",
+      image_urls: [], // Default to empty array
       is_active: true,
       b_price: null,
-      status: 1, // Example status ID
+      status: 1,
       discounts: 0,
     }
   })
@@ -120,14 +121,26 @@ export default function NewActivityPage() {
     try {
       // Prepare data directly matching ActivityInsert structure
       const activityData: ActivityInsert = {
-        ...data,
-        provider_id: user.app_metadata?.provider_id ?? null, // Get provider_id from user metadata if available
+        // Map form values to ActivityInsert fields
+        title: data.title,
+        description: data.description,
+        category_id: data.category_id ? Number(data.category_id) : null,
+        duration: data.duration,
         price: Number(data.price),
         max_participants: Number(data.max_participants),
-        category_id: data.category_id ? Number(data.category_id) : null,
+        pickup_location: data.pickup_location,
+        dropoff_location: data.dropoff_location,
+        meeting_point: data.meeting_point,
+        languages: data.languages,
+        highlights: data.highlights,
+        included: data.included,
+        not_included: data.not_included,
+        image_url: data.image_urls && data.image_urls.length > 0 ? data.image_urls[0] : null, // Take first URL or null
+        is_active: data.is_active,
         b_price: data.b_price ? Number(data.b_price) : null,
         status: data.status ? Number(data.status) : null,
         discounts: data.discounts ? Number(data.discounts) : 0,
+        provider_id: user.app_metadata?.provider_id ?? null,
       };
 
       // Call the CRUD service create function, passing the user object
@@ -212,6 +225,7 @@ export default function NewActivityPage() {
                             placeholder="Describe the activity, what makes it unique..."
                             className="min-h-[120px]"
                             {...field}
+                            value={field.value ?? ""} // Handle null value for Textarea
                           />
                         </FormControl>
                         <FormMessage />
@@ -226,21 +240,22 @@ export default function NewActivityPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Category</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value?.toString()}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select a category" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="1">Adventure</SelectItem>
-                              <SelectItem value="2">Culture</SelectItem>
-                              <SelectItem value="3">Food & Cuisine</SelectItem>
-                              <SelectItem value="4">Nature</SelectItem>
-                              <SelectItem value="5">Wellness</SelectItem>
-                              <SelectItem value="6">Workshop</SelectItem>
-                            </SelectContent>
-                          </Select>
+                           {/* Use Select for better UX */}
+                           <Select onValueChange={(value) => field.onChange(value ? Number(value) : null)} value={field.value?.toString() ?? ""}>
+                             <FormControl>
+                               <SelectTrigger>
+                                 <SelectValue placeholder="Select a category" />
+                               </SelectTrigger>
+                             </FormControl>
+                             <SelectContent>
+                               <SelectItem value="1">Adventure</SelectItem>
+                               <SelectItem value="2">Culture</SelectItem>
+                               <SelectItem value="3">Food & Cuisine</SelectItem>
+                               <SelectItem value="4">Nature</SelectItem>
+                               <SelectItem value="5">Wellness</SelectItem>
+                               <SelectItem value="6">Workshop</SelectItem>
+                             </SelectContent>
+                           </Select>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -430,7 +445,7 @@ export default function NewActivityPage() {
                 <CardContent>
                   <FormField
                     control={form.control}
-                    name="image_url"
+                    name="image_urls"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Activity Images</FormLabel>

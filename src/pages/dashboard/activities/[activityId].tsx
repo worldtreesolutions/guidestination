@@ -53,11 +53,11 @@ const formSchema = z.object({
   pickup_location: z.string().min(5, "Pickup location is required"),
   dropoff_location: z.string().min(5, "Dropoff location is required"),
   meeting_point: z.string().min(5, "Meeting point is required").optional().nullable(),
-  languages: z.string().optional().nullable(),
-  highlights: z.string().optional().nullable(),
-  included: z.string().optional().nullable(),
-  not_included: z.string().optional().nullable(),
-  image_url: z.string().url("Must be a valid URL").optional().nullable(),
+  languages: z.string().optional().nullable(), // Keep as string for simplicity
+  highlights: z.string().optional().nullable(), // Keep as string
+  included: z.string().optional().nullable(), // Keep as string
+  not_included: z.string().optional().nullable(), // Keep as string
+  image_url: z.string().url("Must be a valid URL").optional().nullable(), // Single URL
   is_active: z.boolean().optional().nullable(),
   b_price: z.coerce.number().optional().nullable(),
   status: z.coerce.number().optional().nullable(),
@@ -79,7 +79,7 @@ export default function EditActivityPage() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
-      description: "",
+      description: "", // Default to empty string
       category_id: null,
       duration: "",
       price: 0,
@@ -87,11 +87,11 @@ export default function EditActivityPage() {
       pickup_location: "",
       dropoff_location: "",
       meeting_point: "",
-      languages: "",
-      highlights: "",
-      included: "",
-      not_included: "",
-      image_url: "",
+      languages: "", // Default to empty string
+      highlights: "", // Default to empty string
+      included: "", // Default to empty string
+      not_included: "", // Default to empty string
+      image_url: "", // Default to empty string
       is_active: true,
       b_price: null,
       status: null,
@@ -120,17 +120,17 @@ export default function EditActivityPage() {
               title: fetchedActivity.title,
               description: fetchedActivity.description ?? "",
               category_id: fetchedActivity.category_id ?? null,
-              duration: fetchedActivity.duration ?? "", // Assuming duration is string interval
+              duration: fetchedActivity.duration ?? "",
               price: fetchedActivity.price ?? 0,
               max_participants: fetchedActivity.max_participants ?? 10,
               pickup_location: fetchedActivity.pickup_location ?? "",
               dropoff_location: fetchedActivity.dropoff_location ?? "",
               meeting_point: fetchedActivity.meeting_point ?? "",
-              languages: fetchedActivity.languages ?? "",
-              highlights: fetchedActivity.highlights ?? "",
-              included: fetchedActivity.included ?? "",
-              not_included: fetchedActivity.not_included ?? "",
-              image_url: fetchedActivity.image_url ?? "",
+              languages: fetchedActivity.languages ?? "", // Use string directly
+              highlights: fetchedActivity.highlights ?? "", // Use string directly
+              included: fetchedActivity.included ?? "", // Use string directly
+              not_included: fetchedActivity.not_included ?? "", // Use string directly
+              image_url: fetchedActivity.image_url ?? "", // Use string directly
               is_active: fetchedActivity.is_active ?? true,
               b_price: fetchedActivity.b_price ?? null,
               status: fetchedActivity.status ?? null,
