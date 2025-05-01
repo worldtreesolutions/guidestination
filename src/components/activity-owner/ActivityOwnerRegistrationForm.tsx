@@ -227,6 +227,73 @@ export const ActivityOwnerRegistrationForm = () => {
     form.setValue('termsAccepted', true);
   };
 
+  // Direct submission test function - bypasses form validation
+  const testDirectSubmission = async () => {
+    setIsSubmitting(true);
+    setRegistrationStatus({ type: null, message: null });
+    setDebugInfo(null);
+    
+    try {
+      const testData = {
+        business_name: 'Test Direct Submission',
+        owner_name: 'Test Owner',
+        email: 'test_direct_' + Math.floor(Math.random() * 10000) + '@example.com',
+        phone: '1234567890',
+        business_type: 'tour_operator',
+        tax_id: '1234567890123',
+        address: 'Test Address, Chiang Mai',
+        description: 'This is a direct test submission to diagnose form submission issues.',
+        tourism_license_number: 'TEST123',
+        tat_license_number: null,
+        guide_card_number: null,
+        insurance_policy: 'TEST-POLICY',
+        insurance_amount: '1000000',
+      };
+      
+      console.log('Direct test submission with data:', testData);
+      
+      const result = await activityOwnerService.registerActivityOwner(testData);
+      console.log('Direct test result:', result);
+      setDebugInfo(JSON.stringify(result, null, 2));
+      
+      setRegistrationStatus({
+        type: 'success',
+        message: 'Direct test submission successful!',
+        isNewUser: result.isNewUser,
+        isExistingOwner: result.isExistingOwner
+      });
+      
+      toast({
+        title: 'Test Successful',
+        description: 'Direct submission test completed successfully',
+      });
+    } catch (error) {
+      console.error('Direct test error:', error);
+      
+      let errorMessage = 'An error occurred during direct test submission.';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'object' && error !== null && 'message' in error) {
+         errorMessage = (error as any).message;
+      }
+      
+      setDebugInfo(JSON.stringify(error, null, 2));
+      
+      setRegistrationStatus({
+        type: 'error',
+        message: errorMessage
+      });
+      
+      toast({
+        title: 'Test Failed',
+        description: errorMessage,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
@@ -545,6 +612,14 @@ export const ActivityOwnerRegistrationForm = () => {
               onClick={fillTestData}
             >
               Fill Test Data
+            </Button>
+            <Button 
+              type='button' 
+              variant='outline' 
+              className='w-full' 
+              onClick={testDirectSubmission}
+            >
+              Test Direct Submission
             </Button>
           </div>
         </div>
