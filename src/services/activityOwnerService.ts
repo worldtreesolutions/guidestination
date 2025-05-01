@@ -24,7 +24,6 @@ export interface ActivityOwnerRegistration {
   guide_card_number?: string | null
   insurance_policy: string
   insurance_amount: string
-  // user_id will likely be handled by Supabase Auth RLS policies or session context
 }
 
 export const activityOwnerService = {
@@ -32,21 +31,22 @@ export const activityOwnerService = {
    * Register an activity owner with multi-table process:
    * 1. Check if user exists in users table
    * 2. If not, create user with verified=false
-   * 3. Insert into activity_owners table
-   * 4. Create email verification record
+   * 3. Check if activity owner with email exists
+   * 4. If exists, update; if not, insert
+   * 5. Create email verification record if new user
    */
-  async registerActivityOwner(registrationData: ActivityOwnerRegistration): Promise<ActivityOwner & { isNewUser?: boolean }> {
+  async registerActivityOwner(registrationData: ActivityOwnerRegistration): Promise<ActivityOwner & { isNewUser?: boolean; isExistingOwner?: boolean }> {
     console.log('Inside registerActivityOwner service method', registrationData);
     
     try {
-      // Step 1: Check if user exists
-      const { exists, userId } = await authService.checkUserExists(registrationData.email);
+      // Step 1: Check if user exists in users table
+      const { exists: userExists, userId } = await authService.checkUserExists(registrationData.email);
       
       let actualUserId: number;
       let isNewUser = false;
       
       // Step 2: If user doesn't exist, create one
-      if (!exists) {
+      if (!userExists) {
         console.log('User does not exist, creating new user');
         const { userId: newUserId } = await authService.createUser({
           name: registrationData.owner_name,
@@ -58,59 +58,87 @@ export const activityOwnerService = {
         actualUserId = newUserId;
         isNewUser = true;
         
-        // Step 3: Create email verification
+        // Step 3: Create email verification for new user
         await authService.createEmailVerification(newUserId);
       } else {
         console.log('User already exists with ID:', userId);
         actualUserId = userId!;
       }
       
-      // Generate a UUID for the activity owner record
-      const ownerId = uuidv4();
+      // Step 4: Check if activity owner with this email already exists
+      const existingOwner = await this.getActivityOwnerByEmail(registrationData.email);
+      let result: ActivityOwner;
+      let isExistingOwner = false;
       
-      // Step 4: Insert into activity_owners table
-      // Important: We're not setting user_id here since it's a UUID and users.id is an integer
-      // This will need to be handled differently or through a database trigger
-      const insertData: ActivityOwnerInsert = {
-        id: ownerId, // Use UUID for the activity_owners table
-        business_name: registrationData.business_name,
-        owner_name: registrationData.owner_name,
-        email: registrationData.email,
-        phone: registrationData.phone,
-        business_type: registrationData.business_type,
-        tax_id: registrationData.tax_id,
-        address: registrationData.address,
-        description: registrationData.description,
-        tourism_license_number: registrationData.tourism_license_number,
-        tat_license_number: registrationData.tat_license_number || null,
-        guide_card_number: registrationData.guide_card_number || null,
-        insurance_policy: registrationData.insurance_policy,
-        insurance_amount: registrationData.insurance_amount,
-        status: 'pending'
-        // Omitting user_id since it's a UUID and we have an integer
-      };
+      if (existingOwner) {
+        // Update existing activity owner
+        console.log('Activity owner with this email already exists, updating record');
+        isExistingOwner = true;
+        
+        const updateData: ActivityOwnerUpdate = {
+          business_name: registrationData.business_name,
+          owner_name: registrationData.owner_name,
+          phone: registrationData.phone,
+          business_type: registrationData.business_type,
+          tax_id: registrationData.tax_id,
+          address: registrationData.address,
+          description: registrationData.description,
+          tourism_license_number: registrationData.tourism_license_number,
+          tat_license_number: registrationData.tat_license_number || null,
+          guide_card_number: registrationData.guide_card_number || null,
+          insurance_policy: registrationData.insurance_policy,
+          insurance_amount: registrationData.insurance_amount,
+          updated_at: new Date().toISOString()
+        };
+        
+        result = await this.updateActivityOwner(existingOwner.id, updateData);
+      } else {
+        // Insert new activity owner
+        console.log('Creating new activity owner record');
+        
+        // Generate a UUID for the activity owner record
+        const ownerId = uuidv4();
+        
+        const insertData: ActivityOwnerInsert = {
+          id: ownerId,
+          business_name: registrationData.business_name,
+          owner_name: registrationData.owner_name,
+          email: registrationData.email,
+          phone: registrationData.phone,
+          business_type: registrationData.business_type,
+          tax_id: registrationData.tax_id,
+          address: registrationData.address,
+          description: registrationData.description,
+          tourism_license_number: registrationData.tourism_license_number,
+          tat_license_number: registrationData.tat_license_number || null,
+          guide_card_number: registrationData.guide_card_number || null,
+          insurance_policy: registrationData.insurance_policy,
+          insurance_amount: registrationData.insurance_amount,
+          status: 'pending'
+        };
 
-      console.log('Inserting activity owner with data:', insertData);
+        console.log('Inserting activity owner with data:', insertData);
 
-      const { data, error } = await supabase
-        .from("activity_owners")
-        .insert(insertData) // Use the correctly typed insert data
-        .select()
-        .single() // Expecting a single row back
+        const { data, error } = await supabase
+          .from("activity_owners")
+          .insert(insertData)
+          .select()
+          .single();
 
-      console.log('Supabase response:', { data, error });
-
-      if (error) {
-        console.error("Supabase insert error:", error)
-        throw error
+        if (error) {
+          console.error("Supabase insert error:", error);
+          throw error;
+        }
+        
+        if (!data) {
+          throw new Error("Failed to register activity owner: No data returned.");
+        }
+        
+        result = data;
       }
       
-      if (!data) {
-        throw new Error("Failed to register activity owner: No data returned.")
-      }
-      
-      // Return the data with the isNewUser flag
-      return { ...data, isNewUser };
+      // Return the data with the isNewUser and isExistingOwner flags
+      return { ...result, isNewUser, isExistingOwner };
     } catch (err) {
       console.error('Error in registerActivityOwner:', err);
       throw err;
@@ -122,37 +150,37 @@ export const activityOwnerService = {
       .from("activity_owners")
       .select("*")
       .eq("email", email)
-      .maybeSingle() // Use maybeSingle to handle cases where owner might not exist
+      .maybeSingle();
 
     if (error) {
-      console.error("Supabase select error:", error)
+      console.error("Supabase select error:", error);
       // PGRST116: 'Requested range not satisfiable' often means no rows found
       if (error.code === 'PGRST116') { 
-        return null
+        return null;
       }
-      throw error
+      throw error;
     }
-    return data // Type is inferred correctly by maybeSingle
+    return data;
   },
 
   async updateActivityOwner(id: string, updates: ActivityOwnerUpdate): Promise<ActivityOwner> {
-    // Use the 'data' property from the response
     const { data, error } = await supabase
       .from("activity_owners")
       .update(updates)
       .eq("id", id)
       .select()
-      .single() // Expecting a single row back
+      .single();
 
     if (error) {
-      console.error("Supabase update error:", error)
-      throw error
+      console.error("Supabase update error:", error);
+      throw error;
     }
-     if (!data) {
-      throw new Error("Failed to update activity owner: No data returned.")
+    
+    if (!data) {
+      throw new Error("Failed to update activity owner: No data returned.");
     }
-    // Supabase returns the updated row in the 'data' property when using .single()
-    return data 
+    
+    return data;
   }
 }
 

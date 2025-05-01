@@ -52,7 +52,8 @@ export const ActivityOwnerRegistrationForm = () => {
   const [registrationStatus, setRegistrationStatus] = useState<{
     type: 'success' | 'error' | 'info' | null;
     message: string | null;
-    isNewUser?: boolean; // Keep this to track status
+    isNewUser?: boolean;
+    isExistingOwner?: boolean;
   }>({ type: null, message: null })
   const { toast } = useToast()
   
@@ -102,27 +103,46 @@ export const ActivityOwnerRegistrationForm = () => {
       };
       
       try {
-        // Use the service which now returns isNewUser flag
+        // Use the service which now returns isNewUser and isExistingOwner flags
         const result = await activityOwnerService.registerActivityOwner(registrationData);
         console.log('Registration result from service:', result);
         
-        // Use the isNewUser flag returned from the service
-        const isNewUser = result.isNewUser; 
+        // Use the flags returned from the service
+        const isNewUser = result.isNewUser;
+        const isExistingOwner = result.isExistingOwner;
         
-        // Set registration status message based on isNewUser
+        // Set registration status message based on the combination of flags
+        let statusMessage = '';
+        let statusType: 'success' | 'info' = 'success';
+        
+        if (isNewUser && !isExistingOwner) {
+          // New user, new activity owner
+          statusMessage = 'Your account has been created successfully. Please check your email for verification.';
+          statusType = 'success';
+        } else if (!isNewUser && isExistingOwner) {
+          // Existing user, existing activity owner
+          statusMessage = 'Your activity provider information has been updated successfully.';
+          statusType = 'info';
+        } else if (isNewUser && isExistingOwner) {
+          // New user, existing activity owner (unlikely but possible edge case)
+          statusMessage = 'A new user account has been created and linked to your existing activity provider profile.';
+          statusType = 'info';
+        } else {
+          // Existing user, new activity owner
+          statusMessage = 'Your activity provider account has been registered successfully. You already have an account with us.';
+          statusType = 'success';
+        }
+        
         setRegistrationStatus({
-          type: 'success',
-          message: isNewUser 
-            ? 'Your account has been created successfully. Please check your email for verification.'
-            : 'Your activity provider account has been registered successfully. You already have an account with us.',
-          isNewUser // Store the flag in state if needed elsewhere
+          type: statusType,
+          message: statusMessage,
+          isNewUser,
+          isExistingOwner
         });
         
         toast({
-          title: 'Registration Successful',
-          description: isNewUser 
-            ? 'Account created. Check email for verification.' 
-            : 'Activity provider info updated for existing account.',
+          title: isExistingOwner ? 'Information Updated' : 'Registration Successful',
+          description: statusMessage,
         });
         
         form.reset(); // Reset form on success
@@ -130,24 +150,20 @@ export const ActivityOwnerRegistrationForm = () => {
         console.error('Service registration error:', serviceError);
         
         // Check for duplicate email error (using Supabase specific error code if available)
-        // Note: Supabase might throw different errors depending on constraints
         if (serviceError.code === '23505' || 
             (serviceError.message && serviceError.message.includes('duplicate key value violates unique constraint'))) {
           
-          // Even if it's a duplicate, the service might have updated the activity_owner info
-          // The service logic handles creating user/verification only if needed.
           setRegistrationStatus({
             type: 'info',
-            message: 'An account with this email already exists. Your activity provider information has been processed.',
-            isNewUser: false
+            message: 'An account with this email already exists. Please try updating your information instead.',
+            isNewUser: false,
+            isExistingOwner: true
           });
           
           toast({
             title: 'Account Exists',
-            description: 'Your activity provider information has been processed.',
+            description: 'An account with this email already exists.',
           });
-          
-          form.reset(); // Reset form
         } else {
           // Handle other errors
           setRegistrationStatus({
