@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client"
 import type { Database } from "@/integrations/supabase/types"
 import authService from './authService';
+import { v4 as uuidv4 } from 'uuid';
 
 // Define types based on the database table structure
 // Ensure src/integrations/supabase/types.ts is up-to-date with your DB schema
@@ -38,7 +39,6 @@ export const activityOwnerService = {
     console.log('Inside registerActivityOwner service method', registrationData);
     
     try {
-      // Start a Supabase transaction
       // Step 1: Check if user exists
       const { exists, userId } = await authService.checkUserExists(registrationData.email);
       
@@ -65,8 +65,12 @@ export const activityOwnerService = {
         actualUserId = userId!;
       }
       
-      // Step 4: Insert into activity_providers table
+      // Generate a UUID for the activity owner record
+      const ownerId = uuidv4();
+      
+      // Step 4: Insert into activity_owners table
       const insertData: ActivityOwnerInsert = {
+        id: ownerId, // Use UUID for the activity_owners table
         business_name: registrationData.business_name,
         owner_name: registrationData.owner_name,
         email: registrationData.email,
@@ -84,7 +88,7 @@ export const activityOwnerService = {
         user_id: actualUserId.toString() // Link to the user record
       };
 
-      console.log('Inserting activity provider with data:', insertData);
+      console.log('Inserting activity owner with data:', insertData);
 
       const { data, error } = await supabase
         .from("activity_owners")
