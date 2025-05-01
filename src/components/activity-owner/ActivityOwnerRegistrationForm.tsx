@@ -71,99 +71,9 @@ export const ActivityOwnerRegistrationForm = () => {
     },
   })
 
-  // Function to fill the form with test data
-  const fillWithTestData = () => {
-    // Generate a unique email with timestamp to avoid duplicate email errors
-    const uniqueEmail = `test-${Date.now()}@example.com`;
-    
-    form.reset({
-      businessName: 'Test Business',
-      ownerName: 'Test Owner',
-      email: uniqueEmail, // Use unique email
-      phone: '1234567890',
-      businessType: 'tour_operator',
-      taxId: '1234567890123',
-      address: 'Test Address, Chiang Mai, Thailand 50000',
-      description: 'This is a test description for a tourism business in Chiang Mai. We offer various activities and experiences for tourists visiting the area.',
-      tourismLicenseNumber: 'TEST123',
-      tatLicenseNumber: 'TAT123',
-      guideCardNumber: 'GUIDE123',
-      insurancePolicy: 'INS123456',
-      insuranceAmount: '1000000',
-      termsAccepted: true,
-    });
-    setDebugInfo(`Form filled with test data. Using unique email: ${uniqueEmail}`);
-  };
-
-  // Function for direct Supabase submission test
-  const testDirectSubmission = async () => {
-    setDebugInfo('Testing direct submission to Supabase...');
-    setIsSubmitting(true); // Indicate loading state
-    
-    try {
-      // Generate a unique email with timestamp to avoid duplicate email errors
-      const uniqueEmail = `direct-test-${Date.now()}@example.com`;
-      
-      const testData = {
-        business_name: 'Direct Test Business',
-        owner_name: 'Direct Test Owner',
-        email: uniqueEmail, // Use unique email
-        phone: '0987654321',
-        business_type: 'test_direct',
-        tax_id: '9876543210123', // Ensure 13 digits
-        address: 'Direct Test Address, Chiang Mai',
-        description: 'This is a direct test submission.',
-        tourism_license_number: 'DIRECT-TEST-LIC',
-        insurance_policy: 'DIRECT-TEST-POLICY',
-        insurance_amount: '1500000',
-        status: 'pending' // Set default status
-      };
-      
-      setDebugInfo(`Sending test data directly to Supabase with email: ${uniqueEmail}...`);
-      console.log('Test data:', testData);
-      
-      const { data, error } = await supabase
-        .from('activity_owners')
-        .insert(testData)
-        .select()
-        .single();
-        
-      console.log('Direct Supabase response:', { data, error });
-      
-      if (error) {
-        setDebugInfo(`Direct test failed: ${error.message} (Code: ${error.code})`);
-        console.error('Direct test error:', error);
-        toast({
-          title: 'Direct Test Failed',
-          description: error.message,
-          variant: 'destructive',
-        });
-      } else {
-        setDebugInfo(`Direct test succeeded! Record ID: ${data.id}`);
-        console.log('Direct test success:', data);
-        toast({
-          title: 'Direct Test Successful',
-          description: `Record created with ID: ${data.id}`,
-        });
-      }
-    } catch (err) {
-      console.error('Direct test exception:', err);
-      const errorMessage = err instanceof Error ? err.message : String(err);
-      setDebugInfo(`Direct test exception: ${errorMessage}`);
-      toast({
-        title: 'Direct Test Exception',
-        description: errorMessage,
-        variant: 'destructive',
-      });
-    } finally {
-      setIsSubmitting(false); // Reset loading state
-    }
-  };
-
   // Main form submission handler
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     console.log('onSubmit triggered');
-    setDebugInfo('onSubmit function triggered');
     setIsSubmitting(true);
     
     try {
@@ -172,7 +82,6 @@ export const ActivityOwnerRegistrationForm = () => {
       // ALWAYS generate a unique email to avoid duplicate key errors
       // This is a temporary solution for testing - in production you'd want to check if email exists first
       const uniqueEmail = `${values.email.split('@')[0]}-${Date.now()}@${values.email.split('@')[1]}`;
-      setDebugInfo(`Using generated unique email: ${uniqueEmail} instead of ${values.email}`);
       
       const registrationData = {
         business_name: values.businessName,
@@ -190,15 +99,10 @@ export const ActivityOwnerRegistrationForm = () => {
         insurance_amount: values.insuranceAmount,
       };
       
-      console.log('Prepared registration data:', registrationData);
-      setDebugInfo(`Submitting via activityOwnerService with email: ${uniqueEmail}...`);
-      
-      // Try direct Supabase insertion as a fallback
       try {
         // First try using the service
         const result = await activityOwnerService.registerActivityOwner(registrationData);
         console.log('Registration successful via service, result:', result);
-        setDebugInfo(`Registration successful via service! Owner ID: ${result.id}`);
         
         toast({
           title: 'Registration Successful',
@@ -208,18 +112,14 @@ export const ActivityOwnerRegistrationForm = () => {
         form.reset(); // Reset form on success
       } catch (serviceError: any) {
         console.error('Service registration error:', serviceError);
-        setDebugInfo(`Service error: ${serviceError.message || 'Unknown error'}`);
         
         // Check for duplicate email error
         if (serviceError.code === '23505' || 
             (serviceError.message && serviceError.message.includes('duplicate key value violates unique constraint'))) {
           
-          setDebugInfo(`Email already exists: ${uniqueEmail}. Trying with a different email...`);
-          
           // Try again with an even more unique email
           try {
             const fallbackEmail = `fallback-${Date.now()}-${Math.random().toString(36).substring(2, 10)}@example.com`;
-            setDebugInfo(`Trying fallback email: ${fallbackEmail}`);
             
             const fallbackData = {
               ...registrationData,
@@ -237,15 +137,13 @@ export const ActivityOwnerRegistrationForm = () => {
               throw error;
             }
             
-            setDebugInfo(`Registration successful with fallback email! Owner ID: ${data.id}`);
             toast({
               title: 'Registration Successful',
-              description: 'Your activity owner account has been created with a temporary email. We will review your information.',
+              description: 'Your activity owner account has been created. We will review your information.',
             });
             
             form.reset(); // Reset form on success
           } catch (fallbackError: any) {
-            setDebugInfo(`Fallback registration failed: ${fallbackError.message || 'Unknown error'}`);
             toast({
               title: 'Registration Failed',
               description: 'Unable to register your account. Please try again later or contact support.',
@@ -254,7 +152,6 @@ export const ActivityOwnerRegistrationForm = () => {
           }
         } else {
           // Handle other errors
-          setDebugInfo(`Registration failed: ${serviceError.message || 'Unknown error'}`);
           toast({
             title: 'Registration Failed',
             description: serviceError.message || 'An unexpected error occurred',
@@ -272,21 +169,18 @@ export const ActivityOwnerRegistrationForm = () => {
          errorMessage = (error as any).message;
       }
       
-      setDebugInfo(`Registration failed: ${errorMessage}`);
       toast({
         title: 'Registration Failed',
         description: errorMessage,
         variant: 'destructive',
       });
     } finally {
-      console.log('Setting isSubmitting to false');
       setIsSubmitting(false);
     }
   };
 
   return (
     <Form {...form}>
-      {/* Pass the correct onSubmit handler to the form */}
       <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
         <div className='space-y-4'>
           <div className='bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6'>
@@ -302,12 +196,12 @@ export const ActivityOwnerRegistrationForm = () => {
           <h3 className='text-lg font-medium'>Business Information</h3>
           <FormField
             control={form.control}
-            name="businessName"
+            name='businessName'
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Business Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="Your business name" {...field} />
+                  <Input placeholder='Your business name' {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -316,20 +210,20 @@ export const ActivityOwnerRegistrationForm = () => {
 
           <FormField
             control={form.control}
-            name="businessType"
+            name='businessType'
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Business Type</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select business type" />
+                      <SelectValue placeholder='Select business type' />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="tour_operator">Tour Operator</SelectItem>
-                    <SelectItem value="activity_provider">Activity Provider</SelectItem>
-                    <SelectItem value="experience_host">Experience Host</SelectItem>
+                    <SelectItem value='tour_operator'>Tour Operator</SelectItem>
+                    <SelectItem value='activity_provider'>Activity Provider</SelectItem>
+                    <SelectItem value='experience_host'>Experience Host</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -339,12 +233,12 @@ export const ActivityOwnerRegistrationForm = () => {
           
            <FormField
             control={form.control}
-            name="taxId"
+            name='taxId'
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Tax ID (13 digits)</FormLabel>
                 <FormControl>
-                  <Input placeholder="Your 13-digit Tax ID" {...field} />
+                  <Input placeholder='Your 13-digit Tax ID' {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -389,14 +283,14 @@ export const ActivityOwnerRegistrationForm = () => {
           
            <FormField
             control={form.control}
-            name="description"
+            name='description'
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Business Description</FormLabel>
                 <FormControl>
                   <Textarea 
-                    placeholder="Describe your business and the activities you offer (min. 50 characters)"
-                    className="min-h-[120px]"
+                    placeholder='Describe your business and the activities you offer (min. 50 characters)'
+                    className='min-h-[120px]'
                     {...field}
                   />
                 </FormControl>
@@ -413,12 +307,12 @@ export const ActivityOwnerRegistrationForm = () => {
           <div className='grid md:grid-cols-2 gap-4'>
             <FormField
               control={form.control}
-              name="ownerName"
+              name='ownerName'
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Owner Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Full name" {...field} />
+                    <Input placeholder='Full name' {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -427,12 +321,12 @@ export const ActivityOwnerRegistrationForm = () => {
 
             <FormField
               control={form.control}
-              name="email"
+              name='email'
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="your@email.com" type="email" {...field} />
+                    <Input placeholder='your@email.com' type='email' {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -442,12 +336,12 @@ export const ActivityOwnerRegistrationForm = () => {
 
           <FormField
             control={form.control}
-            name="phone"
+            name='phone'
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Phone Number</FormLabel>
                 <FormControl>
-                  <Input placeholder="+66XXXXXXXXX" {...field} />
+                  <Input placeholder='+66XXXXXXXXX' {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -456,14 +350,14 @@ export const ActivityOwnerRegistrationForm = () => {
 
           <FormField
             control={form.control}
-            name="address"
+            name='address'
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Business Address</FormLabel>
                 <FormControl>
                   <Textarea 
-                    placeholder="Full address in Chiang Mai"
-                    className="min-h-[100px]"
+                    placeholder='Full address in Chiang Mai'
+                    className='min-h-[100px]'
                     {...field}
                   />
                 </FormControl>
@@ -502,7 +396,7 @@ export const ActivityOwnerRegistrationForm = () => {
                 <FormItem>
                   <FormLabel>Insurance Coverage Amount (THB)</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder='Minimum 1,000,000 THB' {...field} />
+                    <Input type='number' placeholder='Minimum 1,000,000 THB' {...field} />
                   </FormControl>
                   <FormDescription>
                     Minimum required coverage: 1,000,000 THB
@@ -547,18 +441,18 @@ export const ActivityOwnerRegistrationForm = () => {
                   <Checkbox
                     checked={field.value}
                     onCheckedChange={field.onChange}
-                    id="terms" // Add id for label association
+                    id='terms'
                   />
                 </FormControl>
                 <div className='space-y-1 leading-none'>
-                  <FormLabel htmlFor="terms"> {/* Associate label with checkbox */}
+                  <FormLabel htmlFor='terms'>
                     I accept the terms and conditions
                   </FormLabel>
                   <FormDescription>
                     By accepting, you agree to comply with all applicable Thai tourism laws and regulations,
                     maintain valid licenses and insurance, and adhere to our platform's terms of service.
                   </FormDescription>
-                   <FormMessage /> {/* Display validation message here */}
+                   <FormMessage />
                 </div>
               </FormItem>
             )}
@@ -569,36 +463,7 @@ export const ActivityOwnerRegistrationForm = () => {
           <Button type='submit' className='w-full' disabled={isSubmitting}>
             {isSubmitting ? 'Submitting...' : 'Submit Registration'}
           </Button>
-          
-          <div className='grid grid-cols-2 gap-4'>
-             {/* Ensure onClick points to the defined function */}
-            <Button 
-              type='button' 
-              variant='outline' 
-              className='w-full' 
-              onClick={testDirectSubmission} 
-              disabled={isSubmitting} // Disable while submitting
-            >
-              Test Direct Submission
-            </Button>
-            
-            <Button 
-              type='button' 
-              variant='secondary' // Changed variant for distinction
-              className='w-full' 
-              onClick={fillWithTestData}
-              disabled={isSubmitting} // Disable while submitting
-            >
-              Fill Test Data
-            </Button>
-          </div>
         </div>
-        
-        {debugInfo && (
-          <div className='mt-4 p-4 bg-slate-100 dark:bg-slate-800 rounded-md text-sm border border-slate-200 dark:border-slate-700'>
-            <p className='font-mono text-slate-700 dark:text-slate-300'>{debugInfo}</p>
-          </div>
-        )}
       </form>
     </Form>
   )
