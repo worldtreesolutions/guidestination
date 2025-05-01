@@ -53,7 +53,6 @@ export const ActivityOwnerRegistrationForm = () => {
     type: 'success' | 'error' | 'info' | null;
     message: string | null;
     isNewUser?: boolean;
-    isExistingOwner?: boolean;
   }>({ type: null, message: null })
   const [debugInfo, setDebugInfo] = useState<string | null>(null)
   const { toast } = useToast()
@@ -105,46 +104,27 @@ export const ActivityOwnerRegistrationForm = () => {
       };
       
       try {
-        // Use the service which now returns isNewUser and isExistingOwner flags
+        // Use the service which now returns isNewUser flag
         const result = await activityOwnerService.registerActivityOwner(registrationData);
         console.log('Registration result from service:', result);
         setDebugInfo(JSON.stringify(result, null, 2));
         
         // Use the flags returned from the service
         const isNewUser = result.isNewUser;
-        const isExistingOwner = result.isExistingOwner;
         
-        // Set registration status message based on the combination of flags
-        let statusMessage = '';
-        let statusType: 'success' | 'info' = 'success';
-        
-        if (isNewUser && !isExistingOwner) {
-          // New user, new activity owner
-          statusMessage = 'Your account has been created successfully. Please check your email for verification.';
-          statusType = 'success';
-        } else if (!isNewUser && isExistingOwner) {
-          // Existing user, existing activity owner
-          statusMessage = 'Your activity provider information has been updated successfully.';
-          statusType = 'info';
-        } else if (isNewUser && isExistingOwner) {
-          // New user, existing activity owner (unlikely but possible edge case)
-          statusMessage = 'A new user account has been created and linked to your existing activity provider profile.';
-          statusType = 'info';
-        } else {
-          // Existing user, new activity owner
-          statusMessage = 'Your activity provider account has been registered successfully. You already have an account with us.';
-          statusType = 'success';
-        }
+        // Set registration status message
+        let statusMessage = isNewUser 
+          ? 'Your account has been created successfully. Please check your email for verification.'
+          : 'Your activity provider account has been registered successfully. You already have an account with us.';
         
         setRegistrationStatus({
-          type: statusType,
+          type: 'success',
           message: statusMessage,
-          isNewUser,
-          isExistingOwner
+          isNewUser
         });
         
         toast({
-          title: isExistingOwner ? 'Information Updated' : 'Registration Successful',
+          title: 'Registration Successful',
           description: statusMessage,
         });
         
@@ -153,20 +133,32 @@ export const ActivityOwnerRegistrationForm = () => {
         console.error('Service registration error:', serviceError);
         setDebugInfo(JSON.stringify(serviceError, null, 2));
         
-        // Check for duplicate email error (using Supabase specific error code if available)
-        if (serviceError.code === '23505' || 
-            (serviceError.message && serviceError.message.includes('duplicate key value violates unique constraint'))) {
-          
+        // Check for our custom error code for existing activity owner
+        if (serviceError.code === 'ACTIVITY_OWNER_EXISTS') {
           setRegistrationStatus({
-            type: 'info',
-            message: 'An account with this email already exists. Please try updating your information instead.',
-            isNewUser: false,
-            isExistingOwner: true
+            type: 'error',
+            message: serviceError.message || 'An account with this email already exists. Please use a different email address to register.'
           });
           
           toast({
-            title: 'Account Exists',
-            description: 'An account with this email already exists.',
+            title: 'Registration Failed',
+            description: serviceError.message || 'An account with this email already exists. Please use a different email address.',
+            variant: 'destructive',
+          });
+        }
+        // Check for duplicate email error (using Supabase specific error code if available)
+        else if (serviceError.code === '23505' || 
+            (serviceError.message && serviceError.message.includes('duplicate key value violates unique constraint'))) {
+          
+          setRegistrationStatus({
+            type: 'error',
+            message: 'An account with this email already exists. Please use a different email address to register.'
+          });
+          
+          toast({
+            title: 'Registration Failed',
+            description: 'An account with this email already exists. Please use a different email address.',
+            variant: 'destructive',
           });
         } else {
           // Handle other errors
@@ -225,73 +217,6 @@ export const ActivityOwnerRegistrationForm = () => {
     form.setValue('insurancePolicy', 'INS123456');
     form.setValue('insuranceAmount', '1000000');
     form.setValue('termsAccepted', true);
-  };
-
-  // Direct submission test function - bypasses form validation
-  const testDirectSubmission = async () => {
-    setIsSubmitting(true);
-    setRegistrationStatus({ type: null, message: null });
-    setDebugInfo(null);
-    
-    try {
-      const testData = {
-        business_name: 'Test Direct Submission',
-        owner_name: 'Test Owner',
-        email: 'test_direct_' + Math.floor(Math.random() * 10000) + '@example.com',
-        phone: '1234567890',
-        business_type: 'tour_operator',
-        tax_id: '1234567890123',
-        address: 'Test Address, Chiang Mai',
-        description: 'This is a direct test submission to diagnose form submission issues.',
-        tourism_license_number: 'TEST123',
-        tat_license_number: null,
-        guide_card_number: null,
-        insurance_policy: 'TEST-POLICY',
-        insurance_amount: '1000000',
-      };
-      
-      console.log('Direct test submission with data:', testData);
-      
-      const result = await activityOwnerService.registerActivityOwner(testData);
-      console.log('Direct test result:', result);
-      setDebugInfo(JSON.stringify(result, null, 2));
-      
-      setRegistrationStatus({
-        type: 'success',
-        message: 'Direct test submission successful!',
-        isNewUser: result.isNewUser,
-        isExistingOwner: result.isExistingOwner
-      });
-      
-      toast({
-        title: 'Test Successful',
-        description: 'Direct submission test completed successfully',
-      });
-    } catch (error) {
-      console.error('Direct test error:', error);
-      
-      let errorMessage = 'An error occurred during direct test submission.';
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      } else if (typeof error === 'object' && error !== null && 'message' in error) {
-         errorMessage = (error as any).message;
-      }
-      
-      setDebugInfo(JSON.stringify(error, null, 2));
-      
-      setRegistrationStatus({
-        type: 'error',
-        message: errorMessage
-      });
-      
-      toast({
-        title: 'Test Failed',
-        description: errorMessage,
-        variant: 'destructive',
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
   };
 
   return (
@@ -603,7 +528,7 @@ export const ActivityOwnerRegistrationForm = () => {
             {isSubmitting ? 'Submitting...' : 'Submit Registration'}
           </Button>
           
-          {/* Debug buttons - will be removed in production */}
+          {/* Debug button - will be removed in production */}
           <div className='flex gap-2 mt-2'>
             <Button 
               type='button' 
@@ -612,14 +537,6 @@ export const ActivityOwnerRegistrationForm = () => {
               onClick={fillTestData}
             >
               Fill Test Data
-            </Button>
-            <Button 
-              type='button' 
-              variant='outline' 
-              className='w-full' 
-              onClick={testDirectSubmission}
-            >
-              Test Direct Submission
             </Button>
           </div>
         </div>

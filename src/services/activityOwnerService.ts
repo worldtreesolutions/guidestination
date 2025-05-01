@@ -29,23 +29,35 @@ export interface ActivityOwnerRegistration {
 export const activityOwnerService = {
   /**
    * Register an activity owner with multi-table process:
-   * 1. Check if user exists in users table
-   * 2. If not, create user with verified=false
-   * 3. Check if activity owner with email exists
-   * 4. If exists, update; if not, insert
+   * 1. Check if activity owner with email exists - if yes, throw error
+   * 2. Check if user exists in users table
+   * 3. If not, create user with verified=false
+   * 4. Insert new activity owner record
    * 5. Create email verification record if new user
    */
   async registerActivityOwner(registrationData: ActivityOwnerRegistration): Promise<ActivityOwner & { isNewUser?: boolean; isExistingOwner?: boolean }> {
     console.log('Inside registerActivityOwner service method', registrationData);
     
     try {
-      // Step 1: Check if user exists in users table
+      // Step 1: Check if activity owner with this email already exists
+      const existingOwner = await this.getActivityOwnerByEmail(registrationData.email);
+      
+      if (existingOwner) {
+        // If an activity owner with this email already exists, throw an error
+        console.log('Activity owner with this email already exists');
+        const error = new Error('An account with this email already exists. Please use a different email address to register.');
+        // Add a custom code to identify this specific error
+        (error as any).code = 'ACTIVITY_OWNER_EXISTS';
+        throw error;
+      }
+      
+      // Step 2: Check if user exists in users table
       const { exists: userExists, userId } = await authService.checkUserExists(registrationData.email);
       
       let actualUserId: number;
       let isNewUser = false;
       
-      // Step 2: If user doesn't exist, create one
+      // Step 3: If user doesn't exist, create one
       if (!userExists) {
         console.log('User does not exist, creating new user');
         const { userId: newUserId } = await authService.createUser({
@@ -58,87 +70,57 @@ export const activityOwnerService = {
         actualUserId = newUserId;
         isNewUser = true;
         
-        // Step 3: Create email verification for new user
+        // Step 4: Create email verification for new user
         await authService.createEmailVerification(newUserId);
       } else {
         console.log('User already exists with ID:', userId);
         actualUserId = userId!;
       }
       
-      // Step 4: Check if activity owner with this email already exists
-      const existingOwner = await this.getActivityOwnerByEmail(registrationData.email);
-      let result: ActivityOwner;
-      let isExistingOwner = false;
+      // Step 5: Insert new activity owner
+      console.log('Creating new activity owner record');
       
-      if (existingOwner) {
-        // Update existing activity owner
-        console.log('Activity owner with this email already exists, updating record');
-        isExistingOwner = true;
-        
-        const updateData: ActivityOwnerUpdate = {
-          business_name: registrationData.business_name,
-          owner_name: registrationData.owner_name,
-          phone: registrationData.phone,
-          business_type: registrationData.business_type,
-          tax_id: registrationData.tax_id,
-          address: registrationData.address,
-          description: registrationData.description,
-          tourism_license_number: registrationData.tourism_license_number,
-          tat_license_number: registrationData.tat_license_number || null,
-          guide_card_number: registrationData.guide_card_number || null,
-          insurance_policy: registrationData.insurance_policy,
-          insurance_amount: registrationData.insurance_amount,
-          updated_at: new Date().toISOString()
-        };
-        
-        result = await this.updateActivityOwner(existingOwner.id, updateData);
-      } else {
-        // Insert new activity owner
-        console.log('Creating new activity owner record');
-        
-        // Generate a UUID for the activity owner record
-        const ownerId = uuidv4();
-        
-        const insertData: ActivityOwnerInsert = {
-          id: ownerId,
-          business_name: registrationData.business_name,
-          owner_name: registrationData.owner_name,
-          email: registrationData.email,
-          phone: registrationData.phone,
-          business_type: registrationData.business_type,
-          tax_id: registrationData.tax_id,
-          address: registrationData.address,
-          description: registrationData.description,
-          tourism_license_number: registrationData.tourism_license_number,
-          tat_license_number: registrationData.tat_license_number || null,
-          guide_card_number: registrationData.guide_card_number || null,
-          insurance_policy: registrationData.insurance_policy,
-          insurance_amount: registrationData.insurance_amount,
-          status: 'pending'
-        };
+      // Generate a UUID for the activity owner record
+      const ownerId = uuidv4();
+      
+      const insertData: ActivityOwnerInsert = {
+        id: ownerId,
+        business_name: registrationData.business_name,
+        owner_name: registrationData.owner_name,
+        email: registrationData.email,
+        phone: registrationData.phone,
+        business_type: registrationData.business_type,
+        tax_id: registrationData.tax_id,
+        address: registrationData.address,
+        description: registrationData.description,
+        tourism_license_number: registrationData.tourism_license_number,
+        tat_license_number: registrationData.tat_license_number || null,
+        guide_card_number: registrationData.guide_card_number || null,
+        insurance_policy: registrationData.insurance_policy,
+        insurance_amount: registrationData.insurance_amount,
+        status: 'pending',
+        user_id: actualUserId.toString() // Link to the user record
+      };
 
-        console.log('Inserting activity owner with data:', insertData);
+      console.log('Inserting activity owner with data:', insertData);
 
-        const { data, error } = await supabase
-          .from("activity_owners")
-          .insert(insertData)
-          .select()
-          .single();
+      const { data, error } = await supabase
+        .from("activity_owners")
+        .insert(insertData)
+        .select()
+        .single();
 
-        if (error) {
-          console.error("Supabase insert error:", error);
-          throw error;
-        }
-        
-        if (!data) {
-          throw new Error("Failed to register activity owner: No data returned.");
-        }
-        
-        result = data;
+      if (error) {
+        console.error("Supabase insert error:", error);
+        throw error;
       }
       
-      // Return the data with the isNewUser and isExistingOwner flags
-      return { ...result, isNewUser, isExistingOwner };
+      if (!data) {
+        throw new Error("Failed to register activity owner: No data returned.");
+      }
+      
+      // Return the data with the isNewUser flag
+      return { ...data, isNewUser, isExistingOwner: false };
     } catch (err) {
       console.error('Error in registerActivityOwner:', err);
       throw err;
