@@ -23,6 +23,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { toast } from '@/components/ui/use-toast'
+import { activityOwnerService } from '@/services/activityOwnerService'
 
 const formSchema = z.object({
   businessName: z.string().min(2, 'Business name must be at least 2 characters'),
@@ -44,16 +46,66 @@ const formSchema = z.object({
 })
 
 export const ActivityOwnerRegistrationForm = () => {
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      businessName: '',
+      ownerName: '',
+      email: '',
+      phone: '',
+      businessType: '',
+      taxId: '',
+      address: '',
+      description: '',
+      tourismLicenseNumber: '',
+      tatLicenseNumber: '',
+      guideCardNumber: '',
+      insurancePolicy: '',
+      insuranceAmount: '',
       termsAccepted: false,
     },
   })
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log(values)
-    // Handle form submission
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    try {
+      setIsSubmitting(true)
+      
+      // Use the activity owner service to register
+      await activityOwnerService.registerActivityOwner({
+        business_name: values.businessName,
+        owner_name: values.ownerName,
+        email: values.email,
+        phone: values.phone,
+        business_type: values.businessType,
+        tax_id: values.taxId,
+        address: values.address,
+        description: values.description,
+        tourism_license_number: values.tourismLicenseNumber,
+        tat_license_number: values.tatLicenseNumber,
+        guide_card_number: values.guideCardNumber,
+        insurance_policy: values.insurancePolicy,
+        insurance_amount: values.insuranceAmount,
+      })
+      
+      toast({
+        title: 'Registration Successful',
+        description: 'Your activity owner account has been created. We will review your information and contact you soon.',
+      })
+      
+      // Reset the form after successful submission
+      form.reset()
+    } catch (error) {
+      console.error('Registration error:', error)
+      toast({
+        title: 'Registration Failed',
+        description: 'There was an error submitting your registration. Please try again.',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -303,8 +355,8 @@ export const ActivityOwnerRegistrationForm = () => {
           />
         </div>
 
-        <Button type='submit' className='w-full'>
-          Submit Registration
+        <Button type='submit' className='w-full' disabled={isSubmitting}>
+          {isSubmitting ? 'Submitting...' : 'Submit Registration'}
         </Button>
       </form>
     </Form>
