@@ -70,11 +70,12 @@ export const ActivityOwnerRegistrationForm = () => {
   })
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    console.log('onSubmit triggered') // <-- Add log here
     try {
       setIsSubmitting(true)
+      console.log('Submitting values:', values) // <-- Add log here
       
-      // Use the activity owner service to register
-      await activityOwnerService.registerActivityOwner({
+      const registrationData = {
         business_name: values.businessName,
         owner_name: values.ownerName,
         email: values.email,
@@ -88,8 +89,14 @@ export const ActivityOwnerRegistrationForm = () => {
         guide_card_number: values.guideCardNumber,
         insurance_policy: values.insurancePolicy,
         insurance_amount: values.insuranceAmount,
-      })
+      }
       
+      console.log('Calling activityOwnerService.registerActivityOwner with:', registrationData) // <-- Add log here
+      
+      // Use the activity owner service to register
+      await activityOwnerService.registerActivityOwner(registrationData)
+      
+      console.log('Registration successful') // <-- Add log here
       toast({
         title: 'Registration Successful',
         description: 'Your activity owner account has been created. We will review your information and contact you soon.',
@@ -98,13 +105,15 @@ export const ActivityOwnerRegistrationForm = () => {
       // Reset the form after successful submission
       form.reset()
     } catch (error) {
-      console.error('Registration error:', error)
+      console.error('Registration error:', error) // <-- Log the actual error object
       toast({
         title: 'Registration Failed',
-        description: 'There was an error submitting your registration. Please try again.',
+        // Display a more specific error if possible, otherwise keep generic
+        description: error instanceof Error ? error.message : 'There was an error submitting your registration. Please try again.',
         variant: 'destructive',
       })
     } finally {
+      console.log('Setting isSubmitting to false') // <-- Add log here
       setIsSubmitting(false)
     }
   }
