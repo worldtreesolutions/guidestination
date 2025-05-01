@@ -112,7 +112,7 @@ export default function NewActivityPage() {
   }, [isAuthenticated, router])
 
   // Handle form submission
-  const onSubmit = async ( FormValues) => {
+  const onSubmit = async (data: FormValues) => {
     if (!user) return
 
     setIsSubmitting(true)
