@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react"
+
+import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -23,16 +24,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { useToast } from '@/hooks/use-toast' // Corrected import path
-import activityOwnerService from '@/services/activityOwnerService' // Changed to default import
-import { supabase } from '@/integrations/supabase/client' // <-- Add this import
+import { useToast } from '@/hooks/use-toast'
+import activityOwnerService from '@/services/activityOwnerService'
+import { supabase } from '@/integrations/supabase/client' // Ensure Supabase client is imported
 
 const formSchema = z.object({
   businessName: z.string().min(2, 'Business name must be at least 2 characters'),
   ownerName: z.string().min(2, 'Owner name must be at least 2 characters'),
   email: z.string().email('Invalid email address'),
   phone: z.string().min(10, 'Phone number must be at least 10 digits'),
-  businessType: z.string(),
+  businessType: z.string().min(1, 'Business type is required'), // Added min(1) validation
   taxId: z.string().min(13, 'Tax ID must be 13 digits'),
   address: z.string().min(10, 'Please enter a complete address'),
   description: z.string().min(50, 'Please provide a detailed description'),
@@ -49,7 +50,7 @@ const formSchema = z.object({
 export const ActivityOwnerRegistrationForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [debugInfo, setDebugInfo] = useState<string | null>(null)
-  const { toast } = useToast() // Use the hook correctly
+  const { toast } = useToast()
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -71,7 +72,7 @@ export const ActivityOwnerRegistrationForm = () => {
     },
   })
 
-  // Add a function to fill the form with test data for easier testing
+  // Function to fill the form with test data
   const fillWithTestData = () => {
     form.reset({
       businessName: 'Test Business',
@@ -92,25 +93,84 @@ export const ActivityOwnerRegistrationForm = () => {
     setDebugInfo('Form filled with test data. You can now submit the form.');
   };
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    console.log('onSubmit triggered') // <-- Add log here
-    setDebugInfo('onSubmit function triggered')
+  // Function for direct Supabase submission test
+  const testDirectSubmission = async () => {
+    setDebugInfo('Testing direct submission to Supabase...');
+    setIsSubmitting(true); // Indicate loading state
     
     try {
-      setIsSubmitting(true)
-      console.log('Submitting values:', values) // <-- Add log here
+      const testData = {
+        business_name: 'Direct Test Business',
+        owner_name: 'Direct Test Owner',
+        email: `direct-test-${Date.now()}@example.com`, // Unique email
+        phone: '0987654321',
+        business_type: 'test_direct',
+        tax_id: '9876543210123', // Ensure 13 digits
+        address: 'Direct Test Address, Chiang Mai',
+        description: 'This is a direct test submission.',
+        tourism_license_number: 'DIRECT-TEST-LIC',
+        insurance_policy: 'DIRECT-TEST-POLICY',
+        insurance_amount: '1500000',
+        status: 'pending' // Set default status
+      };
       
-      // Ensure tax_id is a string (not null)
-      const taxId = values.taxId || '';
+      setDebugInfo('Sending test data directly to Supabase...');
+      console.log('Test ', testData);
       
-      // Create the registration data object with the correct structure
+      const { data, error } = await supabase
+        .from('activity_owners')
+        .insert(testData)
+        .select()
+        .single();
+        
+      console.log('Direct Supabase response:', { data, error });
+      
+      if (error) {
+        setDebugInfo(`Direct test failed: ${error.message} (Code: ${error.code})`);
+        console.error('Direct test error:', error);
+        toast({
+          title: 'Direct Test Failed',
+          description: error.message,
+          variant: 'destructive',
+        });
+      } else {
+        setDebugInfo(`Direct test succeeded! Record ID: ${data.id}`);
+        console.log('Direct test success:', data);
+        toast({
+          title: 'Direct Test Successful',
+          description: `Record created with ID: ${data.id}`,
+        });
+      }
+    } catch (err) {
+      console.error('Direct test exception:', err);
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      setDebugInfo(`Direct test exception: ${errorMessage}`);
+      toast({
+        title: 'Direct Test Exception',
+        description: errorMessage,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false); // Reset loading state
+    }
+  };
+
+  // Main form submission handler
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    console.log('onSubmit triggered');
+    setDebugInfo('onSubmit function triggered');
+    setIsSubmitting(true);
+    
+    try {
+      console.log('Submitting values:', values);
+      
       const registrationData = {
         business_name: values.businessName,
         owner_name: values.ownerName,
         email: values.email,
         phone: values.phone,
         business_type: values.businessType,
-        tax_id: taxId,
+        tax_id: values.taxId, // Already validated by Zod
         address: values.address,
         description: values.description,
         tourism_license_number: values.tourismLicenseNumber,
@@ -118,79 +178,48 @@ export const ActivityOwnerRegistrationForm = () => {
         guide_card_number: values.guideCardNumber || null,
         insurance_policy: values.insurancePolicy,
         insurance_amount: values.insuranceAmount,
-      }
+        // status will be set by the service or default in DB
+      };
       
-      console.log('Prepared registration data:', registrationData) // <-- Add log here
-      setDebugInfo('Submitting to Supabase via service...')
+      console.log('Prepared registration ', registrationData);
+      setDebugInfo('Submitting via activityOwnerService...');
       
-      // Try direct submission to Supabase if the service method fails
-      try {
-        // First try using the service
-        const result = await activityOwnerService.registerActivityOwner(registrationData)
-        console.log('Registration successful via service, result:', result) // <-- Add log here
-        setDebugInfo('Registration successful via service!')
-      } catch (serviceError) {
-        console.error('Service registration failed, trying direct submission:', serviceError)
-        setDebugInfo('Service registration failed, trying direct submission...')
-        
-        // If service fails, try direct submission
-        const { data, error } = await supabase
-          .from('activity_owners')
-          .insert({
-            ...registrationData,
-            status: 'pending'
-          })
-          .select()
-          .single();
-          
-        if (error) {
-          console.error('Direct submission error:', error);
-          setDebugInfo(`Direct submission failed: ${error.message}`);
-          throw error;
-        }
-        
-        console.log('Direct submission successful:', data);
-        setDebugInfo('Registration successful via direct submission!');
-      }
+      const result = await activityOwnerService.registerActivityOwner(registrationData);
+      console.log('Registration successful via service, result:', result);
+      setDebugInfo(`Registration successful via service! Owner ID: ${result.id}`);
       
       toast({
         title: 'Registration Successful',
-        description: 'Your activity owner account has been created. We will review your information and contact you soon.',
-      })
+        description: 'Your activity owner account has been created. We will review your information.',
+      });
       
-      // Reset the form after successful submission
-      form.reset()
+      form.reset(); // Reset form on success
+      
     } catch (error) {
-      console.error('Registration error:', error) // <-- Log the actual error object
+      console.error('Registration error:', error);
       
-      // Extract more detailed error information
-      let errorMessage = 'There was an error submitting your registration. Please try again.';
-      
+      let errorMessage = 'An unexpected error occurred during registration.';
       if (error instanceof Error) {
         errorMessage = error.message;
-        setDebugInfo(`Error: ${error.message}`)
-      } else if (typeof error === 'object' && error !== null) {
-        // Handle Supabase error object
-        const supabaseError = error as any;
-        if (supabaseError.code) {
-          errorMessage = `Database error (${supabaseError.code}): ${supabaseError.message || 'Unknown error'}`;
-          setDebugInfo(`Supabase error: ${supabaseError.code} - ${supabaseError.message || 'Unknown'}`)
-        }
+      } else if (typeof error === 'object' && error !== null && 'message' in error) {
+         errorMessage = (error as any).message;
       }
       
+      setDebugInfo(`Registration failed: ${errorMessage}`);
       toast({
         title: 'Registration Failed',
         description: errorMessage,
         variant: 'destructive',
-      })
+      });
     } finally {
-      console.log('Setting isSubmitting to false') // <-- Add log here
-      setIsSubmitting(false)
+      console.log('Setting isSubmitting to false');
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <Form {...form}>
+      {/* Pass the correct onSubmit handler to the form */}
       <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
         <div className='space-y-4'>
           <div className='bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6'>
@@ -240,6 +269,20 @@ export const ActivityOwnerRegistrationForm = () => {
               </FormItem>
             )}
           />
+          
+           <FormField
+            control={form.control}
+            name="taxId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Tax ID (13 digits)</FormLabel>
+                <FormControl>
+                  <Input placeholder="Your 13-digit Tax ID" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           <div className='grid md:grid-cols-2 gap-4'>
             <FormField
@@ -264,7 +307,7 @@ export const ActivityOwnerRegistrationForm = () => {
               name='tatLicenseNumber'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>TAT License Number (if applicable)</FormLabel>
+                  <FormLabel>TAT License Number (Optional)</FormLabel>
                   <FormControl>
                     <Input placeholder='Tourism Authority of Thailand License' {...field} />
                   </FormControl>
@@ -276,6 +319,24 @@ export const ActivityOwnerRegistrationForm = () => {
               )}
             />
           </div>
+          
+           <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Business Description</FormLabel>
+                <FormControl>
+                  <Textarea 
+                    placeholder="Describe your business and the activities you offer (min. 50 characters)"
+                    className="min-h-[120px]"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
 
         <Separator />
@@ -319,7 +380,7 @@ export const ActivityOwnerRegistrationForm = () => {
               <FormItem>
                 <FormLabel>Phone Number</FormLabel>
                 <FormControl>
-                  <Input placeholder="+66" {...field} />
+                  <Input placeholder="+66XXXXXXXXX" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -348,7 +409,7 @@ export const ActivityOwnerRegistrationForm = () => {
         <Separator />
 
         <div className='space-y-4'>
-          <h3 className='text-lg font-medium'>Legal Requirements</h3>
+          <h3 className='text-lg font-medium'>Legal & Insurance</h3>
           <div className='grid md:grid-cols-2 gap-4'>
             <FormField
               control={form.control}
@@ -374,7 +435,7 @@ export const ActivityOwnerRegistrationForm = () => {
                 <FormItem>
                   <FormLabel>Insurance Coverage Amount (THB)</FormLabel>
                   <FormControl>
-                    <Input placeholder='Minimum 1,000,000 THB' {...field} />
+                    <Input type="number" placeholder='Minimum 1,000,000 THB' {...field} />
                   </FormControl>
                   <FormDescription>
                     Minimum required coverage: 1,000,000 THB
@@ -390,7 +451,7 @@ export const ActivityOwnerRegistrationForm = () => {
             name='guideCardNumber'
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Professional Guide Card Number</FormLabel>
+                <FormLabel>Professional Guide Card Number (Optional)</FormLabel>
                 <FormControl>
                   <Input placeholder='Guide card number if applicable' {...field} />
                 </FormControl>
@@ -414,48 +475,52 @@ export const ActivityOwnerRegistrationForm = () => {
             control={form.control}
             name='termsAccepted'
             render={({ field }) => (
-              <FormItem className='flex flex-row items-start space-x-3 space-y-0'>
+              <FormItem className='flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow'>
                 <FormControl>
                   <Checkbox
                     checked={field.value}
                     onCheckedChange={field.onChange}
+                    id="terms" // Add id for label association
                   />
                 </FormControl>
                 <div className='space-y-1 leading-none'>
-                  <FormLabel>
+                  <FormLabel htmlFor="terms"> {/* Associate label with checkbox */}
                     I accept the terms and conditions
                   </FormLabel>
                   <FormDescription>
                     By accepting, you agree to comply with all applicable Thai tourism laws and regulations,
                     maintain valid licenses and insurance, and adhere to our platform's terms of service.
                   </FormDescription>
+                   <FormMessage /> {/* Display validation message here */}
                 </div>
-                <FormMessage />
               </FormItem>
             )}
           />
         </div>
 
-        <div className='flex flex-col gap-4'>
+        <div className='flex flex-col gap-4 pt-4'>
           <Button type='submit' className='w-full' disabled={isSubmitting}>
             {isSubmitting ? 'Submitting...' : 'Submit Registration'}
           </Button>
           
           <div className='grid grid-cols-2 gap-4'>
+             {/* Ensure onClick points to the defined function */}
             <Button 
               type='button' 
               variant='outline' 
               className='w-full' 
-              onClick={testDirectSubmission}
+              onClick={testDirectSubmission} 
+              disabled={isSubmitting} // Disable while submitting
             >
               Test Direct Submission
             </Button>
             
             <Button 
               type='button' 
-              variant='outline' 
+              variant='secondary' // Changed variant for distinction
               className='w-full' 
               onClick={fillWithTestData}
+              disabled={isSubmitting} // Disable while submitting
             >
               Fill Test Data
             </Button>
@@ -463,8 +528,8 @@ export const ActivityOwnerRegistrationForm = () => {
         </div>
         
         {debugInfo && (
-          <div className='mt-4 p-4 bg-slate-100 rounded-md text-sm'>
-            <p className='font-mono'>{debugInfo}</p>
+          <div className='mt-4 p-4 bg-slate-100 dark:bg-slate-800 rounded-md text-sm border border-slate-200 dark:border-slate-700'>
+            <p className='font-mono text-slate-700 dark:text-slate-300'>{debugInfo}</p>
           </div>
         )}
       </form>
