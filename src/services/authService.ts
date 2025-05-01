@@ -100,9 +100,9 @@ export const authService = {
   },
 
   /**
-   * Check if a user exists by email
+   * Check if a user exists by email (Corrected return type)
    */
-  async checkUserExists(email: string): Promise<{ exists: boolean; userId?: number }> {
+  async checkUserExists(email: string): Promise<{ exists: boolean; userId?: string }> { // Changed userId to string (UUID)
     const { data, error } = await supabase
       .from("users")
       .select("id")
@@ -110,12 +110,14 @@ export const authService = {
       .maybeSingle();
 
     if (error) {
-      throw error;
+      // Don't throw error, just return exists: false
+      console.error("Error checking user existence:", error.message);
+      return { exists: false };
     }
 
     return {
       exists: !!data,
-      userId: data?.id
+      userId: data?.id // id is UUID (string)
     };
   },
 
@@ -130,6 +132,11 @@ export const authService = {
       .single();
     
     if (error) {
+      // If error (e.g., user not found), return false for both
+      // Avoid logging "No rows found" as an error here, it's expected if user doesn't exist
+      if (error.code !== 'PGRST116') { 
+         console.error("Error checking user verification:", error.message);
+      }
       return { exists: false, verified: false };
     }
     
@@ -140,10 +147,11 @@ export const authService = {
   },
 
   /**
-   * Create a new user in the users table
+   * Create a new user in the users table (Corrected return type)
    */
-  async createUser(userData: UserRegistration): Promise<{ userId: number }> {
-    // Create a new user with verified set to FALSE
+  async createUser(userData: UserRegistration): Promise<{ userId: string }> { // Changed userId to string (UUID)
+    // This function might not be directly used if the trigger handles user creation
+    // But correcting it for consistency
     const { data, error } = await supabase
       .from("users")
       .insert({
@@ -151,12 +159,13 @@ export const authService = {
         email: userData.email,
         phone: userData.phone || null,
         user_type: userData.user_type || "activity_provider",
-        verified: false
+        verified: false // Explicitly set verified to false
       })
       .select("id")
       .single();
 
     if (error) {
+      console.error("Error creating user in users table:", error.message);
       throw error;
     }
 
@@ -164,15 +173,24 @@ export const authService = {
       throw new Error("Failed to create user: No data returned");
     }
 
-    return { userId: data.id };
+    return { userId: data.id }; // id is UUID (string)
   },
 
   /**
-   * Create a verification token and send verification email
+   * Create a verification token and send verification email (Corrected userId type)
    */
-  async createEmailVerification(userId: number): Promise<{ token: string }> {
+  async createEmailVerification(userId: string): Promise<{ token: string }> { // Changed userId to string (UUID)
     // Generate a unique verification token
     const token = uuidv4();
+
+    // Ensure email_verifications table exists
+    // CREATE TABLE IF NOT EXISTS email_verifications (
+    //   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    //   user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    //   token TEXT UNIQUE NOT NULL,
+    //   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    //   expires_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() + INTERVAL '24 hours'
+    // );
 
     // Insert into email_verifications table
     const { error } = await supabase
@@ -183,10 +201,12 @@ export const authService = {
       });
 
     if (error) {
+      console.error("Error creating email verification record:", error.message);
       throw error;
     }
     
     // In a real application, you would send an email with the verification link here
+    console.log(`Verification token for user ${userId}: ${token}`); // Log for testing
     return { token };
   },
 

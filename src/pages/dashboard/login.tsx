@@ -16,7 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert' // Import AlertTitle
 import { Loader2, AlertCircle, AlertTriangle } from 'lucide-react'
 
 export default function LoginPage() {
@@ -109,14 +109,17 @@ export default function LoginPage() {
               {error && (
                 <Alert variant='destructive' className='mb-6'>
                   <AlertCircle className='h-4 w-4' />
+                  <AlertTitle>Error</AlertTitle>
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
               
               {verificationWarning && (
-                <Alert variant='warning' className='mb-6 bg-amber-50 border-amber-200 text-amber-800'>
-                  <AlertTriangle className='h-4 w-4 text-amber-600' />
-                  <AlertDescription className='text-amber-800'>{verificationWarning}</AlertDescription>
+                // Removed variant='warning', using custom classes for styling
+                <Alert className='mb-6 border-yellow-500/50 text-yellow-700 dark:border-yellow-400/50 dark:text-yellow-300 [&>svg]:text-yellow-500 dark:[&>svg]:text-yellow-400'>
+                  <AlertTriangle className='h-4 w-4' />
+                  <AlertTitle>Verification Pending</AlertTitle>
+                  <AlertDescription>{verificationWarning}</AlertDescription>
                 </Alert>
               )}
               
