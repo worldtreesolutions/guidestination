@@ -1,5 +1,4 @@
-{`
-export type Json =
+{`export type Json =
   | string
   | number
   | boolean
@@ -177,5 +176,4 @@ export type Enums<
   : PublicEnumNameOrOptions extends keyof Database["public"]["Enums"]
     ? Database["public"]["Enums"][PublicEnumNameOrOptions]
     : never
-
 `}
