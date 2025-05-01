@@ -23,8 +23,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { toast } from '@/components/ui/use-toast'
-import { activityOwnerService } from '@/services/activityOwnerService'
+import { useToast } from '@/hooks/use-toast' // Corrected import path
+import activityOwnerService from '@/services/activityOwnerService' // Changed to default import
 
 const formSchema = z.object({
   businessName: z.string().min(2, 'Business name must be at least 2 characters'),
@@ -47,6 +47,7 @@ const formSchema = z.object({
 
 export const ActivityOwnerRegistrationForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const { toast } = useToast() // Use the hook correctly
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
