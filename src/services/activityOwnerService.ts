@@ -54,7 +54,8 @@ export const activityOwnerService = {
       // Step 2: Check if user exists in users table
       const { exists: userExists, userId } = await authService.checkUserExists(registrationData.email);
       
-      let actualUserId: number;
+      // Corrected: userId is a string (UUID)
+      let actualUserId: string; 
       let isNewUser = false;
       
       // Step 3: If user doesn't exist, create one
@@ -67,14 +68,14 @@ export const activityOwnerService = {
           user_type: 'activity_provider'
         });
         
-        actualUserId = newUserId;
+        actualUserId = newUserId; // Assign the string UUID
         isNewUser = true;
         
-        // Step 4: Create email verification for new user
-        await authService.createEmailVerification(newUserId);
+        // Step 4: Create email verification for new user (pass string UUID)
+        await authService.createEmailVerification(newUserId); 
       } else {
         console.log('User already exists with ID:', userId);
-        actualUserId = userId!;
+        actualUserId = userId!; // Assign the existing string UUID
       }
       
       // Step 5: Insert new activity owner
@@ -99,7 +100,7 @@ export const activityOwnerService = {
         insurance_policy: registrationData.insurance_policy,
         insurance_amount: registrationData.insurance_amount,
         status: 'pending',
-        user_id: actualUserId.toString() // Link to the user record
+        user_id: actualUserId // Link to the user record (string UUID)
       };
 
       console.log('Inserting activity owner with data:', insertData);
