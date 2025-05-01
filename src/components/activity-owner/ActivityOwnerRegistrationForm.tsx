@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -47,6 +47,7 @@ const formSchema = z.object({
 
 export const ActivityOwnerRegistrationForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [debugInfo, setDebugInfo] = useState<string | null>(null)
   const { toast } = useToast() // Use the hook correctly
   
   const form = useForm<z.infer<typeof formSchema>>({
@@ -71,9 +72,14 @@ export const ActivityOwnerRegistrationForm = () => {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     console.log('onSubmit triggered') // <-- Add log here
+    setDebugInfo(null)
+    
     try {
       setIsSubmitting(true)
       console.log('Submitting values:', values) // <-- Add log here
+      
+      // Ensure tax_id is a string (not null)
+      const taxId = values.taxId || '';
       
       const registrationData = {
         business_name: values.businessName,
@@ -81,22 +87,25 @@ export const ActivityOwnerRegistrationForm = () => {
         email: values.email,
         phone: values.phone,
         business_type: values.businessType,
-        tax_id: values.taxId,
+        tax_id: taxId,
         address: values.address,
         description: values.description,
         tourism_license_number: values.tourismLicenseNumber,
-        tat_license_number: values.tatLicenseNumber,
-        guide_card_number: values.guideCardNumber,
+        tat_license_number: values.tatLicenseNumber || null,
+        guide_card_number: values.guideCardNumber || null,
         insurance_policy: values.insurancePolicy,
         insurance_amount: values.insuranceAmount,
       }
       
       console.log('Calling activityOwnerService.registerActivityOwner with:', registrationData) // <-- Add log here
+      setDebugInfo('Submitting to Supabase...')
       
       // Use the activity owner service to register
-      await activityOwnerService.registerActivityOwner(registrationData)
+      const result = await activityOwnerService.registerActivityOwner(registrationData)
       
-      console.log('Registration successful') // <-- Add log here
+      console.log('Registration successful, result:', result) // <-- Add log here
+      setDebugInfo('Registration successful!')
+      
       toast({
         title: 'Registration Successful',
         description: 'Your activity owner account has been created. We will review your information and contact you soon.',
@@ -106,10 +115,25 @@ export const ActivityOwnerRegistrationForm = () => {
       form.reset()
     } catch (error) {
       console.error('Registration error:', error) // <-- Log the actual error object
+      
+      // Extract more detailed error information
+      let errorMessage = 'There was an error submitting your registration. Please try again.';
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+        setDebugInfo(`Error: ${error.message}`)
+      } else if (typeof error === 'object' && error !== null) {
+        // Handle Supabase error object
+        const supabaseError = error as any;
+        if (supabaseError.code) {
+          errorMessage = `Database error (${supabaseError.code}): ${supabaseError.message || 'Unknown error'}`;
+          setDebugInfo(`Supabase error: ${supabaseError.code} - ${supabaseError.message || 'Unknown'}`)
+        }
+      }
+      
       toast({
         title: 'Registration Failed',
-        // Display a more specific error if possible, otherwise keep generic
-        description: error instanceof Error ? error.message : 'There was an error submitting your registration. Please try again.',
+        description: errorMessage,
         variant: 'destructive',
       })
     } finally {
@@ -368,6 +392,12 @@ export const ActivityOwnerRegistrationForm = () => {
         <Button type='submit' className='w-full' disabled={isSubmitting}>
           {isSubmitting ? 'Submitting...' : 'Submit Registration'}
         </Button>
+        
+        {debugInfo && (
+          <div className='mt-4 p-4 bg-slate-100 rounded-md text-sm'>
+            <p className='font-mono'>{debugInfo}</p>
+          </div>
+        )}
       </form>
     </Form>
   )

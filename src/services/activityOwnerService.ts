@@ -28,6 +28,8 @@ export interface ActivityOwnerRegistration {
 export const activityOwnerService = {
   // Add explicit type for the 'registrationData' parameter
   async registerActivityOwner(registrationData: ActivityOwnerRegistration): Promise<ActivityOwner> {
+    console.log('Inside registerActivityOwner service method', registrationData);
+    
     // Map registration data to the insert type, ensuring optional fields are handled
     const insertData: ActivityOwnerInsert = {
       // Reference the 'registrationData' parameter correctly
@@ -44,25 +46,38 @@ export const activityOwnerService = {
       guide_card_number: registrationData.guide_card_number || null,
       insurance_policy: registrationData.insurance_policy,
       insurance_amount: registrationData.insurance_amount,
+      // Set default status to 'pending'
+      status: 'pending',
       // user_id is omitted here, assuming it's set by RLS or session context later
     }
 
-    // Use the 'data' property from the response
-    const { data, error } = await supabase
-      .from("activity_owners")
-      .insert(insertData) // Use the correctly typed insert data
-      .select()
-      .single() // Expecting a single row back
+    console.log('Prepared insert data:', insertData);
 
-    if (error) {
-      console.error("Supabase insert error:", error)
-      throw error
+    try {
+      // Use the 'data' property from the response
+      const { data, error } = await supabase
+        .from("activity_owners")
+        .insert(insertData) // Use the correctly typed insert data
+        .select()
+        .single() // Expecting a single row back
+
+      console.log('Supabase response:', { data, error });
+
+      if (error) {
+        console.error("Supabase insert error:", error)
+        throw error
+      }
+      
+      if (!data) {
+        throw new Error("Failed to register activity owner: No data returned.")
+      }
+      
+      // Supabase returns the inserted row in the 'data' property when using .single()
+      return data 
+    } catch (err) {
+      console.error('Error in registerActivityOwner:', err);
+      throw err;
     }
-    if (!data) {
-      throw new Error("Failed to register activity owner: No data returned.")
-    }
-    // Supabase returns the inserted row in the 'data' property when using .single()
-    return data 
   },
 
   async getActivityOwnerByEmail(email: string): Promise<ActivityOwner | null> {
