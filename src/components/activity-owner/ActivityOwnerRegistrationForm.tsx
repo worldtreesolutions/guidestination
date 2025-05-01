@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/select"
 import { useToast } from '@/hooks/use-toast' // Corrected import path
 import activityOwnerService from '@/services/activityOwnerService' // Changed to default import
+import { supabase } from '@/integrations/supabase/client' // <-- Add this import
 
 const formSchema = z.object({
   businessName: z.string().min(2, 'Business name must be at least 2 characters'),
