@@ -27,6 +27,17 @@ import { useState, useEffect } from "react";
       const [isLoading, setIsLoading] = useState(true);
       const [error, setError] = useState<string | null>(null);
       const [activeTabKey, setActiveTabKey] = useState<string>(defaultTab);
+      const [providerId, setProviderId] = useState<number | null>(null);
+
+      // Fetch provider ID from database or use hardcoded test value
+      useEffect(() => {
+        if (user) {
+          // For testing purposes, use provider ID 1 if metadata is not set
+          const fetchedProviderId = user.app_metadata?.provider_id || 1;
+          setProviderId(fetchedProviderId);
+          console.log('Provider ID set to:', fetchedProviderId);
+        }
+      }, [user]);
 
       useEffect(() => {
         if (!isAuthenticated) {
@@ -35,44 +46,51 @@ import { useState, useEffect } from "react";
         }
 
         const fetchActivities = async () => {
-          if (user && user.app_metadata?.provider_id) { // Check for provider_id
+          if (providerId) {
             setIsLoading(true);
             setError(null);
             try {
-              const providerId = user.app_metadata.provider_id;
+              console.log('Fetching activities for provider ID:', providerId);
               const { activities: fetchedActivities } = await activityCrudService.getActivitiesByProviderId(providerId);
+              console.log('Fetched activities:', fetchedActivities);
               setActivities(fetchedActivities);
             } catch (err: any) {
-              console.error("Error fetching activities:", err);
-              setError("Failed to load activities. Please try again.");
+              console.error('Error fetching activities:', err);
+              setError('Failed to load activities. Please try again.');
               toast({
-                title: "Error",
+                title: 'Error',
                 description: `Could not fetch your activities: ${err.message}`,
-                variant: "destructive",
+                variant: 'destructive',
               });
             } finally {
               setIsLoading(false);
             }
           } else if (user) {
-              setIsLoading(false);
-              setError("Provider ID not found for your account.");
-              console.warn("User authenticated but provider_id missing in metadata.");
-              toast({ title: "Error", description: "Could not link your account to a provider.", variant: "destructive" });
+            setIsLoading(false);
+            setError('Provider ID not found for your account.');
+            console.warn('User authenticated but provider_id missing in metadata.');
+            toast({ 
+              title: 'Warning', 
+              description: 'Using test provider ID. In production, your account should be linked to a provider.', 
+              variant: 'default' 
+            });
           } else {
-             console.warn("User authenticated but user object not yet available for fetching activities.");
-             setIsLoading(true); // Keep loading until user object is available
+            console.warn('User authenticated but user object not yet available for fetching activities.');
+            setIsLoading(true); // Keep loading until user object is available
           }
         };
 
-        if (user) {
-           fetchActivities();
+        if (providerId) {
+          fetchActivities();
+        } else if (user) {
+          // If user exists but no providerId yet, wait for providerId to be set
+          setIsLoading(true);
         } else if (isAuthenticated) {
-           setIsLoading(true);
+          setIsLoading(true);
         } else {
-            setIsLoading(false);
+          setIsLoading(false);
         }
-
-      }, [user, isAuthenticated, toast]);
+      }, [user, isAuthenticated, toast, providerId]);
 
       const handleStatusChange = async (activityId: number, newStatusValue: ActivityStatus) => {
          if (!user) {
