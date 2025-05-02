@@ -292,16 +292,6 @@ export default function EditActivityPage() {
         discounts: data.discounts ? Number(data.discounts) : 0,
       };
 
-      // Remove fields that don't exist in the activities table
-      delete (activityData as any).has_pickup;
-      delete (activityData as any).image_urls;
-      delete (activityData as any).schedule_start_time;
-      delete (activityData as any).schedule_end_time;
-      delete (activityData as any).schedule_capacity;
-      delete (activityData as any).schedule_availability_start_date;
-      delete (activityData as any).schedule_availability_end_date;
-      delete (activityData as any).schedule_id;
-
       // Update activity
       await activityCrudService.updateActivity(numericActivityId, activityData, user);
 
@@ -315,7 +305,8 @@ export default function EditActivityPage() {
         availability_end_date: data.schedule_availability_end_date,
         is_active: true,
         status: 'active',
-        updated_by: user.id as any,
+        // Don't use user.id directly for integer columns
+        updated_by: null,
       };
 
       if (data.schedule_id) {
@@ -339,7 +330,8 @@ export default function EditActivityPage() {
           .from('activity_schedules')
           .insert({
             ...scheduleData,
-            created_by: user.id as any,
+            // Don't use user.id directly for integer columns
+            created_by: null,
           });
 
         if (error) {

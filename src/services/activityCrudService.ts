@@ -26,13 +26,13 @@ const activityCrudService = {
    * Create a new activity
    */
   async createActivity(activity: ActivityInsert, user: User): Promise<Activity> {
-    const userId = user.id;
-
-    // Prepare data, casting user ID for integer columns
+    // Prepare data for insert
     const activityData = {
       ...activity,
-      created_by: userId as any, // Cast UUID to any for integer column
-      updated_by: userId as any, // Cast UUID to any for integer column
+      // Don't use user.id directly for integer columns
+      // For now, set to null and let database handle defaults
+      created_by: null,
+      updated_by: null,
       is_active: activity.is_active !== undefined ? activity.is_active : true,
     };
 
@@ -130,12 +130,12 @@ const activityCrudService = {
    * Update an existing activity
    */
   async updateActivity(id: number, activityUpdates: ActivityUpdate, user: User): Promise<Activity> {
-    const userId = user.id;
-
     // Prepare update data
     const updateData = {
       ...activityUpdates,
-      updated_by: userId as any, // Cast UUID to any for integer column
+      // Don't use user.id directly for integer columns
+      // For now, set to null and let database handle defaults
+      updated_by: null,
       updated_at: new Date().toISOString()
     };
 
@@ -144,8 +144,15 @@ const activityCrudService = {
     delete (updateData as any).created_at;
     delete (updateData as any).created_by;
     
-    // Remove has_pickup field as it doesn't exist in the database schema
+    // Remove fields that don't exist in the database schema
     delete (updateData as any).has_pickup;
+    delete (updateData as any).image_urls;
+    delete (updateData as any).schedule_start_time;
+    delete (updateData as any).schedule_end_time;
+    delete (updateData as any).schedule_capacity;
+    delete (updateData as any).schedule_availability_start_date;
+    delete (updateData as any).schedule_availability_end_date;
+    delete (updateData as any).schedule_id;
 
     const { data, error } = await supabase
       .from('activities')
@@ -170,12 +177,12 @@ const activityCrudService = {
    * Delete an activity (soft delete by setting is_active to false)
    */
   async softDeleteActivity(id: number, user: User): Promise<void> {
-    const userId = user.id;
     const { error } = await supabase
       .from('activities')
       .update({
         is_active: false,
-        updated_by: userId as any, // Cast UUID to any
+        // Don't use user.id directly for integer columns
+        updated_by: null,
         updated_at: new Date().toISOString()
       })
       .eq('id', id);
@@ -205,12 +212,12 @@ const activityCrudService = {
    * Restore a soft-deleted activity
    */
   async restoreActivity(id: number, user: User): Promise<Activity> {
-    const userId = user.id;
     const { data, error } = await supabase
       .from('activities')
       .update({
         is_active: true,
-        updated_by: userId as any, // Cast UUID to any
+        // Don't use user.id directly for integer columns
+        updated_by: null,
         updated_at: new Date().toISOString()
       })
       .eq('id', id)
@@ -292,10 +299,10 @@ const activityCrudService = {
     updates: ActivityUpdate,
     user: User
   ): Promise<void> {
-    const userId = user.id;
     const updateData = {
         ...updates,
-        updated_by: userId as any, // Cast UUID to any
+        // Don't use user.id directly for integer columns
+        updated_by: null,
         updated_at: new Date().toISOString()
     };
     delete (updateData as any).id;
@@ -317,12 +324,12 @@ const activityCrudService = {
    * Bulk delete activities (soft delete)
    */
   async bulkSoftDeleteActivities(activityIds: number[], user: User): Promise<void> {
-    const userId = user.id;
     const { error } = await supabase
       .from('activities')
       .update({
         is_active: false,
-        updated_by: userId as any, // Cast UUID to any
+        // Don't use user.id directly for integer columns
+        updated_by: null,
         updated_at: new Date().toISOString()
       })
       .in('id', activityIds);

@@ -193,10 +193,6 @@ export default function NewActivityPage() {
         provider_id: user.app_metadata?.provider_id ?? null,
       };
 
-      // Remove has_pickup field as it doesn't exist in the database schema
-      delete (activityData as any).has_pickup;
-      delete (activityData as any).image_urls;
-
       // Call the CRUD service create function, passing the user object
       const createdActivity = await activityCrudService.createActivity(activityData, user);
 
@@ -213,8 +209,9 @@ export default function NewActivityPage() {
             availability_end_date: data.schedule_availability_end_date,
             is_active: true,
             status: 'active',
-            created_by: user.id as any,
-            updated_by: user.id as any,
+            // Don't use user.id directly for integer columns
+            created_by: null,
+            updated_by: null,
           });
 
           if (error) {
