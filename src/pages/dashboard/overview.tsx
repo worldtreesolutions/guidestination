@@ -4,7 +4,10 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router"; // Added router import
 import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { activityService, Booking, Activity } from "@/services/activityService";
+// Import activityCrudService and its Activity type
+import activityCrudService, { Activity as CrudActivity } from "@/services/activityCrudService"; 
+// Keep Booking type if needed for recent bookings, adjust if necessary
+import { activityService, Booking } from "@/services/activityService"; 
 import { Loader2 } from "lucide-react";
 // Corrected import paths for dashboard components
 import { EarningsChart } from "@/components/activity-owner/dashboard/EarningsChart"; // Changed to named import
@@ -23,50 +26,74 @@ export default function DashboardOverviewPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [earnings, setEarnings] = useState<EarningsData | null>(null);
   const [recentBookings, setRecentBookings] = useState<Booking[]>([]);
-  const [activities, setActivities] = useState<Activity[]>([]);
+  // Use the CrudActivity type from activityCrudService
+  const [activities, setActivities] = useState<CrudActivity[]>([]); 
+  const [providerId, setProviderId] = useState<number | null>(null);
+
+  // Fetch provider ID from user metadata
+  useEffect(() => {
+    if (user?.app_metadata?.provider_id) {
+      const fetchedProviderId = Number(user.app_metadata.provider_id);
+      setProviderId(fetchedProviderId);
+      console.log('Overview - Provider ID set:', fetchedProviderId);
+    } else if (user) {
+      console.warn('Overview - Provider ID not found in user metadata.');
+      // Handle case where provider ID might be missing, maybe use a default or show error
+      // For now, we'll let fetching depend on providerId state
+    }
+  }, [user]);
+
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.push("/dashboard/login"); // Redirect if not logged in
+    // Redirect immediately if not authenticated, even before providerId is set
+    if (!isAuthenticated && !isLoading) { // Check isLoading to prevent redirect during initial load
+      router.push("/dashboard/login"); 
       return;
     }
 
-    const fetchData = async () => {
-      if (user) {
+    // Only fetch data if authenticated and providerId is available
+    if (isAuthenticated && providerId !== null) {
+      const fetchData = async () => {
+        // No need to check user object here again, providerId check implies user exists
         try {
           setIsLoading(true);
           // Fetch all data concurrently
-          const [earningsData, bookingsData, activitiesData] = await Promise.all([
-            activityService.getProviderEarnings(user.id), // Assuming user has id
-            activityService.getBookingsByProvider(user.id),
-            activityService.getActivitiesByProvider(user.id)
+          // Use activityCrudService for activities
+          const [earningsData, bookingsData, activitiesResult] = await Promise.all([
+            activityService.getProviderEarnings(user!.id), // Assuming user has id from auth, use non-null assertion
+            activityService.getBookingsByProvider(user!.id),
+            activityCrudService.getActivitiesByProviderId(providerId) // Use fetched providerId
           ]);
 
           setEarnings(earningsData);
           // Sort bookings by date descending and take the latest 5
           const sortedBookings = bookingsData.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
           setRecentBookings(sortedBookings.slice(0, 5));
-          setActivities(activitiesData);
+          setActivities(activitiesResult.activities); // Set activities from the result
 
         } catch (error) {
-          console.error("Failed to fetch dashboard ", error);
+          console.error("Failed to fetch dashboard  ", error);
           // Optionally show a toast message here
         } finally {
           setIsLoading(false);
         }
-      } else {
-        // Handle case where user is authenticated but user object is not yet available
-        // This might indicate a state synchronization issue in AuthContext
-        console.warn("User authenticated but user object is null.");
-        // Optionally redirect or show loading state until user object is populated
-        setIsLoading(false); // Stop loading even if user is null for now
-      }
-    };
+      };
 
-    fetchData();
-  }, [user, isAuthenticated, router]);
+      fetchData();
+    } else if (isAuthenticated && providerId === null && !isLoading) {
+       // Handle the case where user is authenticated but providerId couldn't be determined
+       console.error("Authenticated user is missing provider ID.");
+       setIsLoading(false); // Stop loading, maybe show an error message
+    } else if (!isAuthenticated && !isLoading) {
+       // Already handled by the redirect above, but keep setIsLoading(false)
+       setIsLoading(false);
+    }
+    // If still loading initial auth state or providerId, do nothing yet
+    
+  }, [user, isAuthenticated, router, providerId, isLoading]); // Add providerId and isLoading to dependency array
 
-  if (isLoading) {
+  // Updated loading state check
+  if (isLoading || (isAuthenticated && providerId === null)) {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-full">
