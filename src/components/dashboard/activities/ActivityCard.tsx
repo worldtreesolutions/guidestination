@@ -75,6 +75,17 @@ export default function ActivityCard({ activity, onStatusChange, onDelete }: Act
   };
 
   // Create a compatible activity object for the preview component
+  // @ Fix status type to match ActivityPreview expectation if different
+  // Assuming ActivityPreview expects 'published', 'draft', 'archived'
+  const getPreviewStatus = (status: number | null): "published" | "draft" | "archived" => {
+     switch (status) {
+       case 2: return "published";
+       case 1: return "draft";
+       case 0: return "archived";
+       default: return "draft";
+     }
+  };
+
   const previewActivity = {
     id: activity.id.toString(),
     title: activity.title,
@@ -84,7 +95,8 @@ export default function ActivityCard({ activity, onStatusChange, onDelete }: Act
     basePrice: activity.price,
     finalPrice: activity.b_price || activity.price,
     images: activity.image_url ? [activity.image_url] : [],
-    status: getStatusText(activity.status) as "draft" | "active" | "archived",
+    // @ Use helper function for status mapping
+    status: getPreviewStatus(activity.status), 
     highlights: activity.highlights ? activity.highlights.split('\n') : [],
     included: activity.included ? activity.included.split('\n') : [],
     notIncluded: activity.not_included ? activity.not_included.split('\n') : [],
@@ -93,12 +105,13 @@ export default function ActivityCard({ activity, onStatusChange, onDelete }: Act
     pickupLocation: activity.pickup_location,
     dropoffLocation: activity.dropoff_location,
     languages: activity.languages ? activity.languages.split(',') : [],
-    // Add missing properties to satisfy TypeScript
+    // Add missing properties to satisfy TypeScript if ActivityPreview expects them
     providerId: (activity.provider_id || 0).toString(), // Convert to string
     includesPickup: !!activity.pickup_location,
     includesMeal: false, // Assuming false, adjust if needed
     createdAt: activity.created_at || "",
     updatedAt: activity.updated_at || ""
+    // Add any other fields ActivityPreview might require from its own Activity type definition
   };
 
   return (

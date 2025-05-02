@@ -93,6 +93,7 @@ export default function DashboardOverviewPage() {
   }, [user, isAuthenticated, router, providerId, isLoading]); // Add providerId and isLoading to dependency array
 
   // Updated loading state check
+  // @ Fix comparison: check if providerId is null, not comparing number | null with string
   if (isLoading || (isAuthenticated && providerId === null)) {
     return (
       <DashboardLayout>

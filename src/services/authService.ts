@@ -88,9 +88,9 @@ export const authService = {
    * Check if a user exists by email (Corrected return type)
    */
   async checkUserExists(email: string): Promise<{ exists: boolean; userId?: string }> { // userId is already string (UUID) - OK
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin // Use admin client here
       .from("users")
-      .select("id")
+      .select("id") // id in users table is INT
       .eq("email", email)
       .maybeSingle();
 
@@ -101,7 +101,8 @@ export const authService = {
 
     return {
       exists: !!data,
-      userId: data?.id // id is UUID (string) - OK
+      // @ Convert numeric ID to string if needed elsewhere, but keep as number internally if appropriate
+      userId: data?.id?.toString() // Convert number ID to string
     };
   },
 
@@ -109,7 +110,7 @@ export const authService = {
    * Check if user exists and is verified
    */
   async checkUserVerification(email: string): Promise<UserVerificationStatus> {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin // Use admin client here
       .from('users')
       .select('id, verified')
       .eq('email', email)
@@ -134,7 +135,7 @@ export const authService = {
    * Create a new user in the users table (Corrected return type)
    */
   async createUser(userData: UserRegistration): Promise<{ userId: string }> { // userId is already string (UUID) - OK
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin // Use admin client here
       .from("users")
       .insert({
         name: userData.name,
@@ -143,7 +144,7 @@ export const authService = {
         user_type: userData.user_type || "activity_provider",
         verified: false 
       })
-      .select("id")
+      .select("id") // id is INT
       .single();
 
     if (error) {
@@ -155,7 +156,8 @@ export const authService = {
       throw new Error("Failed to create user: No data returned");
     }
 
-    return { userId: data.id }; // id is UUID (string) - OK
+    // @ Convert numeric ID to string for return type consistency
+    return { userId: data.id.toString() }; 
   },
 
   /**
@@ -163,17 +165,21 @@ export const authService = {
    */
   async createEmailVerification(userId: string): Promise<{ token: string }> { // userId is already string (UUID) - OK
     const token = uuidv4();
+    
+    // @ Convert string userId back to number for insertion if user_id column is INT
+    const numericUserId = parseInt(userId, 10); 
+    if (isNaN(numericUserId)) {
+       throw new Error("Invalid user ID format for email verification.");
+    }
 
-    // Assuming email_verifications table exists and user_id is UUID
+    // Assuming email_verifications table exists and user_id is INT
     // If the table doesn't exist or has a different schema, this will fail.
-    // The SQL in the previous step didn't create this table by default.
     // Let's comment out the insert for now to avoid potential errors if the table isn't there.
-    // If email verification is needed later, we can uncomment and ensure the table exists.
     /* 
-    const { error } = await supabase
+    const { error } = await supabaseAdmin // Use admin client here
       .from("email_verifications") 
       .insert({
-        user_id: userId, // Pass the string UUID
+        user_id: numericUserId, // Pass the numeric ID
         token: token
       });
 
@@ -186,7 +192,7 @@ export const authService = {
     */
     
     // Log for testing since the actual insert is commented out
-    console.log(`Verification token generated for user ${userId}: ${token}. (DB insert commented out)`); 
+    console.log(`Verification token generated for user ${userId} (numeric: ${numericUserId}): ${token}. (DB insert commented out)`); 
     return { token };
   },
 
@@ -269,10 +275,17 @@ export const authService = {
    * Fetch user details including role and provider ID
    */
   async getUserDetails(userId: string): Promise<{ roleId: number | null; providerId: string | null }> {
+    // @ Convert string userId back to number if users.id is INT
+    const numericUserId = parseInt(userId, 10);
+    if (isNaN(numericUserId)) {
+       console.error('Invalid user ID format for fetching details:', userId);
+       return { roleId: null, providerId: null };
+    }
+    
     const { data, error } = await supabaseAdmin
       .from('users')
       .select('role_id')
-      .eq('id', userId) // Use the UUID from auth.users
+      .eq('id', numericUserId) // Use the numeric ID
       .single();
 
     if (error) {

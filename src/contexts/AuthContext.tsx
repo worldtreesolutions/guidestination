@@ -14,7 +14,8 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
   logout: () => Promise<void>;
-  register: (email: string, password: string, name: string) => Promise<void>;
+  // @ Adjust register return type to match implementation
+  register: (email: string, password: string, name: string) => Promise<{ success: boolean; error?: string }>; 
   setupPasswordForExistingUser: (email: string, password: string, name: string) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   checkUserVerification: (email: string) => Promise<UserVerificationStatus>;
@@ -29,7 +30,8 @@ const AuthContext = createContext<AuthContextType>({
   isLoading: true,
   login: async () => {},
   logout: async () => {},
-  register: async () => {},
+  // @ Update default register function to match new type
+  register: async () => ({ success: false, error: 'Default function not implemented' }), 
   setupPasswordForExistingUser: async () => {},
   resetPassword: async () => {},
   checkUserVerification: async () => ({ exists: false, verified: false }),
@@ -135,7 +137,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   // Register function
-  const register = async (email: string, password: string, name: string) => {
+  // @ Ensure return type matches the context definition
+  const register = async (email: string, password: string, name: string): Promise<{ success: boolean; error?: string }> => { 
     setIsLoading(true);
     try {
       // Check if user already exists in the custom users table
