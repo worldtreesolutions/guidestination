@@ -13,9 +13,9 @@ import { useState, useEffect } from "react";
     type ActivityStatus = number; // Or string if status is stored as text like 'published', 'draft'
 
     const statusMap: { [key: string]: ActivityStatus | null } = {
-      active: 1, // Example: 1 means active/published
-      draft: 0, // Example: 0 means draft
-      archived: 2, // Example: 2 means archived
+      active: 2, // Published/Active status is 2
+      draft: 1, // Draft status is 1
+      archived: 0, // Archived status is 0
       all: null, // For showing all activities
     };
     const defaultTab = "active"; // Default tab to show

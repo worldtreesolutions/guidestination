@@ -38,7 +38,7 @@ export default function ActivityCard({ activity, onStatusChange, onDelete }: Act
 
   const getStatusVariant = (status: number | null) => {
     switch (status) {
-      case 2: // Published
+      case 2: // Published/Active
         return "default";
       case 1: // Draft
         return "secondary";
@@ -52,7 +52,7 @@ export default function ActivityCard({ activity, onStatusChange, onDelete }: Act
   const getStatusText = (status: number | null) => {
     switch (status) {
       case 2:
-        return "published";
+        return "active";
       case 1:
         return "draft";
       case 0:
@@ -84,7 +84,7 @@ export default function ActivityCard({ activity, onStatusChange, onDelete }: Act
     basePrice: activity.price,
     finalPrice: activity.b_price || activity.price,
     images: activity.image_url ? [activity.image_url] : [],
-    status: getStatusText(activity.status) as "draft" | "published" | "archived",
+    status: getStatusText(activity.status) as "draft" | "active" | "archived",
     highlights: activity.highlights ? activity.highlights.split('\n') : [],
     included: activity.included ? activity.included.split('\n') : [],
     notIncluded: activity.not_included ? activity.not_included.split('\n') : [],
