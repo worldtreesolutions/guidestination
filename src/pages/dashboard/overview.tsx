@@ -83,15 +83,16 @@ export default function DashboardOverviewPage() {
             activityCrudService.getActivitiesByProviderId(providerId) // Use fetched providerId
           ]);
           console.log('[Data Fetch Effect] Data fetched successfully.');
+          console.log('[Data Fetch Effect] Fetched Activities:', activitiesResult.activities); // Log fetched activities
 
           setEarnings(earningsData);
           const sortedBookings = bookingsData.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
           setRecentBookings(sortedBookings.slice(0, 5));
-          setActivities(activitiesResult.activities); 
+          setActivities(activitiesResult.activities); // Update activities state
 
         } catch (error: any) {
           console.error("[Data Fetch Effect] Failed to fetch dashboard ", error);
-          setFetchError(`Failed to load dashboard  ${error.message}`);
+          setFetchError(`Failed to load dashboard  ${error.message}`); // More specific error
           // Optionally show a toast message here
         } finally {
           console.log('[Data Fetch Effect] Setting isDataLoading to false.');
