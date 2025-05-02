@@ -99,7 +99,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
           
           try {
-            await authService.updateUserMetadata(metadata);
+            // Update user metadata with provider_id
+            const updatedUser = await authService.updateUserMetadata(metadata);
+            console.log('Updated user metadata:', updatedUser.user_metadata);
+            
+            // Set the updated user with metadata
+            setUser(updatedUser);
           } catch (metadataError) {
             console.error('Error updating user metadata:', metadataError);
           }

@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Database } from "@/integrations/supabase/types";
@@ -37,12 +36,19 @@ const activityCrudService = {
 
     // Log the incoming activity data for debugging
     console.log('Creating activity with data:', JSON.stringify(activity));
-    console.log('Provider ID from activity data:', activity.provider_id);
+    console.log('Provider ID from activity data:', activity.provider_id, 'Type:', typeof activity.provider_id);
 
     // Ensure provider_id is set and is a number
-    if (!activity.provider_id && user.app_metadata?.provider_id) {
-      activity.provider_id = Number(user.app_metadata.provider_id);
-      console.log('Setting provider_id from user metadata:', activity.provider_id);
+    let providerId = activity.provider_id;
+    if (!providerId && user.app_metadata?.provider_id) {
+      providerId = Number(user.app_metadata.provider_id);
+      console.log('Setting provider_id from user metadata:', providerId);
+    }
+    
+    // Fallback to a default value if still not set
+    if (!providerId) {
+      providerId = 1; // Default provider ID
+      console.log('Using default provider_id:', providerId);
     }
 
     // Prepare data, casting user ID for integer columns
@@ -50,14 +56,15 @@ const activityCrudService = {
       ...activity,
       // Map the duration string to the proper interval format
       duration: durationMap[activity.duration] || activity.duration,
-      // Explicitly set provider_id to ensure it's included
-      provider_id: activity.provider_id ? Number(activity.provider_id) : null,
+      // Explicitly set provider_id to ensure it's included and is a number
+      provider_id: providerId,
       created_by: null, // Don't use user.id directly for integer columns
       updated_by: null, // Don't use user.id directly for integer columns
       is_active: activity.is_active !== undefined ? activity.is_active : true,
     };
 
     console.log('Final activity data being inserted:', JSON.stringify(activityData));
+    console.log('Final provider_id:', activityData.provider_id, 'Type:', typeof activityData.provider_id);
 
     const { data, error } = await supabase
       .from('activities')
