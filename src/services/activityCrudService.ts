@@ -26,13 +26,21 @@ const activityCrudService = {
    * Create a new activity
    */
   async createActivity(activity: ActivityInsert, user: User): Promise<Activity> {
-    // Prepare data for insert
+    // Convert duration string to proper interval format
+    const durationMap: { [key: string]: string } = {
+      '1_hour': '1 hour',
+      '2_hours': '2 hours',
+      'half_day': '4 hours',
+      'full_day': '8 hours'
+    };
+
+    // Prepare data, casting user ID for integer columns
     const activityData = {
       ...activity,
-      // Don't use user.id directly for integer columns
-      // For now, set to null and let database handle defaults
-      created_by: null,
-      updated_by: null,
+      // Map the duration string to the proper interval format
+      duration: durationMap[activity.duration] || activity.duration,
+      created_by: null, // Don't use user.id directly for integer columns
+      updated_by: null, // Don't use user.id directly for integer columns
       is_active: activity.is_active !== undefined ? activity.is_active : true,
     };
 
@@ -130,12 +138,20 @@ const activityCrudService = {
    * Update an existing activity
    */
   async updateActivity(id: number, activityUpdates: ActivityUpdate, user: User): Promise<Activity> {
+    // Convert duration string to proper interval format if it exists in the updates
+    const durationMap: { [key: string]: string } = {
+      '1_hour': '1 hour',
+      '2_hours': '2 hours',
+      'half_day': '4 hours',
+      'full_day': '8 hours'
+    };
+
     // Prepare update data
     const updateData = {
       ...activityUpdates,
-      // Don't use user.id directly for integer columns
-      // For now, set to null and let database handle defaults
-      updated_by: null,
+      // Map the duration string to the proper interval format if it exists
+      duration: activityUpdates.duration ? (durationMap[activityUpdates.duration] || activityUpdates.duration) : undefined,
+      updated_by: null, // Don't use user.id directly for integer columns
       updated_at: new Date().toISOString()
     };
 

@@ -173,10 +173,10 @@ export default function EditActivityPage() {
           hours = 2;
           break;
         case 'half_day':
-          hours = 4;
+          hours = 4; // Half day is 4 hours
           break;
         case 'full_day':
-          hours = 8;
+          hours = 8; // Full day is 8 hours
           break;
       }
       
@@ -523,6 +523,9 @@ export default function EditActivityPage() {
                               <SelectItem value='full_day'>Full Day (8 Hours)</SelectItem>
                             </SelectContent>
                           </Select>
+                          <FormDescription>
+                            Select the duration of the activity
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
