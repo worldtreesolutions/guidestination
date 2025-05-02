@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Database } from "@/integrations/supabase/types";
@@ -34,23 +35,29 @@ const activityCrudService = {
       'full_day': '8 hours'
     };
 
-    // Log the incoming activity data
-    console.log('Creating activity with data:', activity);
+    // Log the incoming activity data for debugging
+    console.log('Creating activity with data:', JSON.stringify(activity));
     console.log('Provider ID from activity data:', activity.provider_id);
+
+    // Ensure provider_id is set and is a number
+    if (!activity.provider_id && user.app_metadata?.provider_id) {
+      activity.provider_id = Number(user.app_metadata.provider_id);
+      console.log('Setting provider_id from user metadata:', activity.provider_id);
+    }
 
     // Prepare data, casting user ID for integer columns
     const activityData = {
       ...activity,
       // Map the duration string to the proper interval format
       duration: durationMap[activity.duration] || activity.duration,
-      // Ensure provider_id is included and is a number
+      // Explicitly set provider_id to ensure it's included
       provider_id: activity.provider_id ? Number(activity.provider_id) : null,
       created_by: null, // Don't use user.id directly for integer columns
       updated_by: null, // Don't use user.id directly for integer columns
       is_active: activity.is_active !== undefined ? activity.is_active : true,
     };
 
-    console.log('Final activity data being inserted:', activityData);
+    console.log('Final activity data being inserted:', JSON.stringify(activityData));
 
     const { data, error } = await supabase
       .from('activities')
@@ -177,6 +184,8 @@ const activityCrudService = {
     delete (updateData as any).schedule_availability_start_date;
     delete (updateData as any).schedule_availability_end_date;
     delete (updateData as any).schedule_id;
+
+    console.log('Updating activity with data:', JSON.stringify(updateData));
 
     const { data, error } = await supabase
       .from('activities')

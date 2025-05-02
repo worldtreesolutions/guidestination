@@ -193,7 +193,7 @@ export default function NewActivityPage() {
       // Get provider ID from user metadata
       const providerId = user.app_metadata?.provider_id;
       
-      console.log('Provider ID from metadata:', providerId);
+      console.log('Provider ID from metadata:', providerId, 'Type:', typeof providerId);
       
       if (!providerId) {
         console.warn('No provider_id found in user metadata. Using fallback value.');
@@ -224,7 +224,8 @@ export default function NewActivityPage() {
         provider_id: providerId ? Number(providerId) : null,
       };
 
-      console.log('Activity data being sent:', activityData);
+      console.log('Activity data being sent:', JSON.stringify(activityData));
+      console.log('Provider ID in activity data:', activityData.provider_id, 'Type:', typeof activityData.provider_id);
 
       // Call the CRUD service create function, passing the user object
       const createdActivity = await activityCrudService.createActivity(activityData, user);

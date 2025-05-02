@@ -53,7 +53,7 @@ import { useState, useEffect } from "react";
             setIsLoading(true);
             setError(null);
             try {
-              console.log('Fetching activities for provider ID:', providerId);
+              console.log('Fetching activities for provider ID:', providerId, 'Type:', typeof providerId);
               const { activities: fetchedActivities } = await activityCrudService.getActivitiesByProviderId(providerId);
               console.log('Fetched activities:', fetchedActivities);
               setActivities(fetchedActivities);
