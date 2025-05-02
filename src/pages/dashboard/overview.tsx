@@ -90,8 +90,8 @@ export default function DashboardOverviewPage() {
           // Fetch all data concurrently
           const [earningsData, bookingsData, activitiesResult] = await Promise.all([
             activityService.getProviderEarnings(user.id), // Use user.id safely
-            // @ Fetch detailed bookings including activity name and price
-            activityService.getDetailedBookingsByProvider(user.id), // Use detailed fetch
+            // @ Use getBookingsByProvider instead of getDetailedBookingsByProvider
+            activityService.getBookingsByProvider(user.id), // Use correct fetch method
             activityCrudService.getActivitiesByProviderId(providerId) // Use fetched providerId
           ]);
           console.log('[Data Fetch Effect] Data fetched successfully.');
@@ -101,16 +101,18 @@ export default function DashboardOverviewPage() {
           setEarnings(earningsData);
           
           // @ Map fetched bookings to the DisplayBooking type
-          const mappedBookings: DisplayBooking[] = bookingsData
+          // Ensure the properties used here (id, activity_name, etc.) match what getBookingsByProvider returns
+          const mappedBookings: DisplayBooking[] = bookingsData 
             .map((b: any) => ({ // Use 'any' temporarily if type is complex/unknown
               id: b.id.toString(), // Ensure ID is string
-              activityName: b.activity_name || 'Unknown Activity', // Use fetched activity name
-              customerName: b.customer_name || 'Unknown Customer',
+              activityName: b.activity_name || 'Unknown Activity', // Use fetched activity name (adjust if property name differs)
+              customerName: b.customer_name || 'Unknown Customer', // Adjust if property name differs
               date: new Date(b.booking_date || b.created_at), // Use booking_date or fallback
-              amount: b.total_price || 0, // Use fetched total price
+              amount: b.total_price || 0, // Use fetched total price (adjust if property name differs)
               status: b.status || 'pending', // Use fetched status
             }))
-            .sort((a, b) => b.date.getTime() - a.date.getTime()); // Sort by date
+             // @ Add explicit types for sort parameters
+            .sort((a: DisplayBooking, b: DisplayBooking) => b.date.getTime() - a.date.getTime());
 
           setRecentBookings(mappedBookings.slice(0, 5));
           setActivities(activitiesResult.activities); // Update activities state
