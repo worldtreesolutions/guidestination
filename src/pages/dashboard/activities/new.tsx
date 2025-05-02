@@ -193,6 +193,10 @@ export default function NewActivityPage() {
         provider_id: user.app_metadata?.provider_id ?? null,
       };
 
+      // Remove has_pickup field as it doesn't exist in the database schema
+      delete (activityData as any).has_pickup;
+      delete (activityData as any).image_urls;
+
       // Call the CRUD service create function, passing the user object
       const createdActivity = await activityCrudService.createActivity(activityData, user);
 

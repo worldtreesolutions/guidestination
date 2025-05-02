@@ -77,20 +77,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  // Sign out the user
-  const signOut = async () => {
-    try {
-      await supabase.auth.signOut();
-      setUser(null);
-      setSession(null);
-      setIsAuthenticated(false);
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  };
-
   // Login function
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string, rememberMe?: boolean) => {
     setIsLoading(true);
     try {
       const { user: authUser, session: authSession, roleId, providerId } = await authService.signInWithEmail(email, password);
@@ -112,13 +100,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             console.error('Error updating user metadata:', metadataError);
           }
         }
-        
-        return { success: true };
       }
-      return { success: false, error: 'Login failed' };
     } catch (error: any) {
       console.error('Login error:', error);
-      return { success: false, error: error.message };
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -133,7 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(null);
       setIsAuthenticated(false);
     } catch (error) {
-      console.error("Logout error:", error);
+      console.error('Logout error:', error);
       throw error;
     } finally {
       setIsLoading(false);

@@ -46,7 +46,7 @@ export const authService = {
     }
 
     // Attempt Supabase sign-in
-    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+    const { data, error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -57,18 +57,15 @@ export const authService = {
       throw new Error('Invalid login credentials.');
     }
 
-    if (!signInData.session || !signInData.user) {
+    if (!data.session || !data.user) {
       throw new Error('Sign in failed. Please try again.');
     }
 
-    // Optionally, update last login time or perform other actions
-    // await supabaseAdmin.from('users').update({ last_login_at: new Date() }).eq('id', userData.id);
-
     return {
-      user: signInData.user,
-      session: signInData.session,
+      user: data.user,
+      session: data.session,
       roleId: userData.role_id, // Return role_id
-      providerId: signInData.user.app_metadata?.provider_id?.toString(), // Ensure providerId is string
+      providerId: data.user.app_metadata?.provider_id?.toString(), // Ensure providerId is string
     };
   },
 
@@ -291,6 +288,17 @@ export const authService = {
       roleId: data?.role_id ?? null,
       providerId: providerId ? providerId.toString() : null, // Ensure providerId is string or null
     };
+  },
+
+  /**
+   * Sign out the user
+   */
+  async signOut(): Promise<void> {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error('Error signing out:', error);
+      throw error;
+    }
   },
 };
 

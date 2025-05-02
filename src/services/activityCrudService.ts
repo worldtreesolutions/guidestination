@@ -143,6 +143,9 @@ const activityCrudService = {
     delete (updateData as any).id;
     delete (updateData as any).created_at;
     delete (updateData as any).created_by;
+    
+    // Remove has_pickup field as it doesn't exist in the database schema
+    delete (updateData as any).has_pickup;
 
     const { data, error } = await supabase
       .from('activities')

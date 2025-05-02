@@ -278,11 +278,15 @@ export default function EditActivityPage() {
         b_price: data.b_price ? Number(data.b_price) : null,
         status: data.status ? Number(data.status) : null,
         discounts: data.discounts ? Number(data.discounts) : 0,
-        // Only use pickup_location if has_pickup is true
+        // Only use pickup_location if has_pickup is true, otherwise set to empty string
         pickup_location: data.has_pickup ? data.pickup_location || '' : '',
         // Take the first image URL for the image_url field
         image_url: data.image_urls && data.image_urls.length > 0 ? data.image_urls[0] : null,
       };
+
+      // Remove has_pickup field as it doesn't exist in the database schema
+      delete (activityData as any).has_pickup;
+      delete (activityData as any).image_urls;
 
       // Update activity
       await activityCrudService.updateActivity(numericActivityId, activityData, user);
