@@ -423,7 +423,7 @@ export default function NewActivityPage() {
                         <FormItem>
                           <FormLabel>Start Time</FormLabel>
                           <FormControl>
-                            <Input type='time' {...field} />
+                            <Input type='time' {...field} value={field.value || ''} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -437,7 +437,7 @@ export default function NewActivityPage() {
                         <FormItem>
                           <FormLabel>End Time</FormLabel>
                           <FormControl>
-                            <Input type='time' {...field} disabled />
+                            <Input type='time' {...field} disabled value={field.value || ''} />
                           </FormControl>
                           <FormDescription>
                             Auto-calculated based on duration
@@ -455,7 +455,12 @@ export default function NewActivityPage() {
                       <FormItem>
                         <FormLabel>Capacity per Schedule</FormLabel>
                         <FormControl>
-                          <Input type='number' min='1' {...field} />
+                          <Input 
+                            type='number' 
+                            min='1' 
+                            {...field} 
+                            value={field.value || ''}
+                          />
                         </FormControl>
                         <FormDescription>
                           Maximum number of bookings per scheduled time
@@ -473,7 +478,7 @@ export default function NewActivityPage() {
                         <FormItem>
                           <FormLabel>Available From</FormLabel>
                           <FormControl>
-                            <Input type='date' {...field} />
+                            <Input type='date' {...field} value={field.value || ''} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -487,7 +492,7 @@ export default function NewActivityPage() {
                         <FormItem>
                           <FormLabel>Available Until</FormLabel>
                           <FormControl>
-                            <Input type='date' {...field} />
+                            <Input type='date' {...field} value={field.value || ''} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -569,7 +574,7 @@ export default function NewActivityPage() {
                       <FormItem>
                         <FormLabel>Meeting Point</FormLabel>
                         <FormControl>
-                          <Input placeholder='e.g., Tha Phae Gate' {...field} />
+                          <Input placeholder='e.g., Tha Phae Gate' {...field} value={field.value || ''} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -583,7 +588,7 @@ export default function NewActivityPage() {
                       <FormItem>
                         <FormLabel>Languages Offered</FormLabel>
                         <FormControl>
-                          <Input placeholder='e.g., English, Thai' {...field} />
+                          <Input placeholder='e.g., English, Thai' {...field} value={field.value || ''} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -608,7 +613,7 @@ export default function NewActivityPage() {
                       <FormItem>
                         <FormLabel>Highlights</FormLabel>
                         <FormControl>
-                          <Textarea placeholder='e.g., Scenic views, local culture' {...field} />
+                          <Textarea placeholder='e.g., Scenic views, local culture' {...field} value={field.value || ''} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -622,7 +627,7 @@ export default function NewActivityPage() {
                       <FormItem>
                         <FormLabel>What's Included</FormLabel>
                         <FormControl>
-                          <Textarea placeholder='e.g., Guide, meals' {...field} />
+                          <Textarea placeholder='e.g., Guide, meals' {...field} value={field.value || ''} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -636,7 +641,7 @@ export default function NewActivityPage() {
                       <FormItem>
                         <FormLabel>What's Not Included (Optional)</FormLabel>
                         <FormControl>
-                          <Textarea placeholder='e.g., Tips, personal expenses' {...field} />
+                          <Textarea placeholder='e.g., Tips, personal expenses' {...field} value={field.value || ''} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

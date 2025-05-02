@@ -556,7 +556,7 @@ export default function EditActivityPage() {
                         <FormItem>
                           <FormLabel>Start Time</FormLabel>
                           <FormControl>
-                            <Input type='time' {...field} />
+                            <Input type='time' {...field} value={field.value || ''} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -570,7 +570,7 @@ export default function EditActivityPage() {
                         <FormItem>
                           <FormLabel>End Time</FormLabel>
                           <FormControl>
-                            <Input type='time' {...field} disabled />
+                            <Input type='time' {...field} disabled value={field.value || ''} />
                           </FormControl>
                           <FormDescription>
                             Auto-calculated based on duration
@@ -588,7 +588,12 @@ export default function EditActivityPage() {
                       <FormItem>
                         <FormLabel>Capacity per Schedule</FormLabel>
                         <FormControl>
-                          <Input type='number' min='1' {...field} />
+                          <Input 
+                            type='number' 
+                            min='1' 
+                            {...field} 
+                            value={field.value || ''}
+                          />
                         </FormControl>
                         <FormDescription>
                           Maximum number of bookings per scheduled time
@@ -606,7 +611,7 @@ export default function EditActivityPage() {
                         <FormItem>
                           <FormLabel>Available From</FormLabel>
                           <FormControl>
-                            <Input type='date' {...field} />
+                            <Input type='date' {...field} value={field.value || ''} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -620,7 +625,7 @@ export default function EditActivityPage() {
                         <FormItem>
                           <FormLabel>Available Until</FormLabel>
                           <FormControl>
-                            <Input type='date' {...field} />
+                            <Input type='date' {...field} value={field.value || ''} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
