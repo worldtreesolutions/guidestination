@@ -4,20 +4,21 @@ import { format, subDays } from "date-fns";
 // import { Booking } from "@/services/activityService"; // Ensure Booking type is imported if needed
 
 interface Booking {
-  id: string;
+  id: string; // Assuming booking ID is string
   activityName: string;
   customerName: string;
   date: Date;
   amount: number;
-  status: "confirmed" | "pending" | "cancelled";
+  status: "confirmed" | "pending" | "cancelled"; // Match component's status type
 }
 
 interface RecentBookingsProps {
-  bookings?: Booking[];
+  // @ Update prop type to match the interface above
+  bookings?: Booking[]; 
 }
 
 export function RecentBookings({ bookings }: RecentBookingsProps) {
-  // Default data if none provided
+  // Default data if none provided (can be removed if always passing data)
   const defaultBookings: Booking[] = [
     {
       id: "B-1001",
@@ -53,7 +54,8 @@ export function RecentBookings({ bookings }: RecentBookingsProps) {
     }
   ];
 
-  const displayBookings = bookings || defaultBookings;
+  // @ Use the passed bookings directly if available, otherwise show empty or default
+  const displayBookings = bookings && bookings.length > 0 ? bookings : defaultBookings; 
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {

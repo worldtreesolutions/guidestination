@@ -14,6 +14,16 @@ import { EarningsChart } from "@/components/dashboard/overview/EarningsChart"; /
 import { RecentBookings } from "@/components/dashboard/overview/RecentBookings"; // Corrected path
 import { ActivityList } from "@/components/dashboard/overview/ActivityList"; // Corrected path
 
+// @ Define a local Booking type matching RecentBookings component expectations
+interface DisplayBooking {
+  id: string; // Assuming booking ID is string, adjust if number
+  activityName: string;
+  customerName: string;
+  date: Date;
+  amount: number;
+  status: "confirmed" | "pending" | "cancelled"; // Match component's status type
+}
+
 interface EarningsData {
   total: number;
   monthly: { month: string; amount: number }[];
@@ -25,7 +35,8 @@ export default function DashboardOverviewPage() {
   const router = useRouter();
   const [isDataLoading, setIsDataLoading] = useState(true); // Separate state for data loading
   const [earnings, setEarnings] = useState<EarningsData | null>(null);
-  const [recentBookings, setRecentBookings] = useState<Booking[]>([]);
+  // @ Use the local DisplayBooking type for recent bookings state
+  const [recentBookings, setRecentBookings] = useState<DisplayBooking[]>([]); 
   const [activities, setActivities] = useState<CrudActivity[]>([]); 
   const [providerId, setProviderId] = useState<number | null>(null);
   const [fetchError, setFetchError] = useState<string | null>(null); // State for fetch errors
@@ -79,15 +90,29 @@ export default function DashboardOverviewPage() {
           // Fetch all data concurrently
           const [earningsData, bookingsData, activitiesResult] = await Promise.all([
             activityService.getProviderEarnings(user.id), // Use user.id safely
-            activityService.getBookingsByProvider(user.id), // Use user.id safely
+            // @ Fetch detailed bookings including activity name and price
+            activityService.getDetailedBookingsByProvider(user.id), // Use detailed fetch
             activityCrudService.getActivitiesByProviderId(providerId) // Use fetched providerId
           ]);
           console.log('[Data Fetch Effect] Data fetched successfully.');
           console.log('[Data Fetch Effect] Fetched Activities:', activitiesResult.activities); // Log fetched activities
+          console.log('[Data Fetch Effect] Fetched Bookings:', bookingsData); // Log fetched bookings
 
           setEarnings(earningsData);
-          const sortedBookings = bookingsData.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-          setRecentBookings(sortedBookings.slice(0, 5));
+          
+          // @ Map fetched bookings to the DisplayBooking type
+          const mappedBookings: DisplayBooking[] = bookingsData
+            .map((b: any) => ({ // Use 'any' temporarily if type is complex/unknown
+              id: b.id.toString(), // Ensure ID is string
+              activityName: b.activity_name || 'Unknown Activity', // Use fetched activity name
+              customerName: b.customer_name || 'Unknown Customer',
+              date: new Date(b.booking_date || b.created_at), // Use booking_date or fallback
+              amount: b.total_price || 0, // Use fetched total price
+              status: b.status || 'pending', // Use fetched status
+            }))
+            .sort((a, b) => b.date.getTime() - a.date.getTime()); // Sort by date
+
+          setRecentBookings(mappedBookings.slice(0, 5));
           setActivities(activitiesResult.activities); // Update activities state
 
         } catch (error: any) {
