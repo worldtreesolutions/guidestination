@@ -1,4 +1,3 @@
-
 import Image from "next/image";
 import Link from "next/link";
 import { Activity } from "@/services/activityCrudService";
@@ -75,7 +74,13 @@ export default function ActivityCard({ activity, onStatusChange, onDelete }: Act
     meetingPoint: activity.meeting_point || "",
     pickupLocation: activity.pickup_location,
     dropoffLocation: activity.dropoff_location,
-    languages: activity.languages ? activity.languages.split(',') : []
+    languages: activity.languages ? activity.languages.split(',') : [],
+    // Add missing properties to satisfy TypeScript
+    providerId: activity.provider_id || 0,
+    includesPickup: !!activity.pickup_location,
+    includesMeal: false,
+    createdAt: activity.created_at || "",
+    updatedAt: activity.updated_at || ""
   };
 
   return (
