@@ -42,22 +42,23 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { format, isValid, parseISO } from "date-fns"
+import { ImageUploader } from '@/components/dashboard/activities/ImageUploader'
 
 const formSchema = z.object({
-  title: z.string().min(5, "Title must be at least 5 characters"),
-  description: z.string().min(20, "Description must be at least 20 characters").optional().nullable(),
+  title: z.string().min(5, 'Title must be at least 5 characters'),
+  description: z.string().min(20, 'Description must be at least 20 characters').optional().nullable(),
   category_id: z.coerce.number().optional().nullable(),
-  duration: z.string().min(1, "Please select a duration (e.g., 04:00:00)"),
-  price: z.coerce.number().min(1, "Price must be greater than 0"),
-  max_participants: z.coerce.number().min(1, "Maximum participants must be at least 1").optional().nullable(),
-  pickup_location: z.string().min(5, "Pickup location is required"),
-  dropoff_location: z.string().min(5, "Dropoff location is required"),
-  meeting_point: z.string().min(5, "Meeting point is required").optional().nullable(),
+  duration: z.string().min(1, 'Please select a duration (e.g., 04:00:00)'),
+  price: z.coerce.number().min(1, 'Price must be greater than 0'),
+  max_participants: z.coerce.number().min(1, 'Maximum participants must be at least 1').optional().nullable(),
+  pickup_location: z.string().min(5, 'Pickup location is required'),
+  dropoff_location: z.string().min(5, 'Dropoff location is required'),
+  meeting_point: z.string().min(5, 'Meeting point is required').optional().nullable(),
   languages: z.string().optional().nullable(), // Keep as string for simplicity
   highlights: z.string().optional().nullable(), // Keep as string
   included: z.string().optional().nullable(), // Keep as string
   not_included: z.string().optional().nullable(), // Keep as string
-  image_url: z.string().url("Must be a valid URL").optional().nullable(), // Single URL
+  image_urls: z.array(z.string().url()).optional().default([]), // Changed to array for ImageUploader
   is_active: z.boolean().optional().nullable(),
   b_price: z.coerce.number().optional().nullable(),
   status: z.coerce.number().optional().nullable(),
@@ -78,20 +79,20 @@ export default function EditActivityPage() {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: "",
-      description: "", // Default to empty string
+      title: '',
+      description: '', // Default to empty string
       category_id: null,
-      duration: "",
+      duration: '',
       price: 0,
       max_participants: 10,
-      pickup_location: "",
-      dropoff_location: "",
-      meeting_point: "",
-      languages: "", // Default to empty string
-      highlights: "", // Default to empty string
-      included: "", // Default to empty string
-      not_included: "", // Default to empty string
-      image_url: "", // Default to empty string
+      pickup_location: '',
+      dropoff_location: '',
+      meeting_point: '',
+      languages: '', // Default to empty string
+      highlights: '', // Default to empty string
+      included: '', // Default to empty string
+      not_included: '', // Default to empty string
+      image_urls: [], // Changed to array for ImageUploader
       is_active: true,
       b_price: null,
       status: null,
@@ -99,9 +100,23 @@ export default function EditActivityPage() {
     }
   })
 
+  // Helper functions for array fields
+  const addListItem = (fieldName: string) => {
+    const currentItems = form.getValues(fieldName as any) || [];
+    form.setValue(fieldName as any, [...currentItems, '']);
+  };
+
+  const removeListItem = (fieldName: string, index: number) => {
+    const currentItems = form.getValues(fieldName as any) || [];
+    form.setValue(
+      fieldName as any,
+      currentItems.filter((_: any, i: number) => i !== index)
+    );
+  };
+
   useEffect(() => {
     if (!isAuthenticated) {
-      router.push("/dashboard/login")
+      router.push('/dashboard/login')
       return
     }
 
@@ -116,33 +131,37 @@ export default function EditActivityPage() {
           const fetchedActivity = await activityCrudService.getActivityById(numericActivityId)
           if (fetchedActivity) {
             setActivity(fetchedActivity)
+            
+            // Convert single image_url to array for image_urls
+            const imageUrls = fetchedActivity.image_url ? [fetchedActivity.image_url] : [];
+            
             form.reset({
               title: fetchedActivity.title,
-              description: fetchedActivity.description ?? "",
+              description: fetchedActivity.description ?? '',
               category_id: fetchedActivity.category_id ?? null,
-              duration: fetchedActivity.duration ?? "",
+              duration: fetchedActivity.duration ?? '',
               price: fetchedActivity.price ?? 0,
               max_participants: fetchedActivity.max_participants ?? 10,
-              pickup_location: fetchedActivity.pickup_location ?? "",
-              dropoff_location: fetchedActivity.dropoff_location ?? "",
-              meeting_point: fetchedActivity.meeting_point ?? "",
-              languages: fetchedActivity.languages ?? "", // Use string directly
-              highlights: fetchedActivity.highlights ?? "", // Use string directly
-              included: fetchedActivity.included ?? "", // Use string directly
-              not_included: fetchedActivity.not_included ?? "", // Use string directly
-              image_url: fetchedActivity.image_url ?? "", // Use string directly
+              pickup_location: fetchedActivity.pickup_location ?? '',
+              dropoff_location: fetchedActivity.dropoff_location ?? '',
+              meeting_point: fetchedActivity.meeting_point ?? '',
+              languages: fetchedActivity.languages ?? '', // Use string directly
+              highlights: fetchedActivity.highlights ?? '', // Use string directly
+              included: fetchedActivity.included ?? '', // Use string directly
+              not_included: fetchedActivity.not_included ?? '', // Use string directly
+              image_urls: imageUrls, // Use array for ImageUploader
               is_active: fetchedActivity.is_active ?? true,
               b_price: fetchedActivity.b_price ?? null,
               status: fetchedActivity.status ?? null,
               discounts: fetchedActivity.discounts ?? 0,
             })
           } else {
-            toast({ title: "Error", description: "Activity not found.", variant: "destructive" })
-            router.push("/dashboard/activities")
+            toast({ title: 'Error', description: 'Activity not found.', variant: 'destructive' })
+            router.push('/dashboard/activities')
           }
         } catch (error: any) {
-          console.error("Error fetching activity:", error)
-          toast({ title: "Error", description: `Failed to load activity  ${error.message}`, variant: "destructive" })
+          console.error('Error fetching activity:', error)
+          toast({ title: 'Error', description: `Failed to load activity  ${error.message}`, variant: 'destructive' })
         } finally {
           setIsLoading(false)
         }
@@ -151,8 +170,8 @@ export default function EditActivityPage() {
     } else if (router.isReady) {
       setIsLoading(false)
       if (!numericActivityId) {
-         toast({ title: "Error", description: "Invalid activity ID.", variant: "destructive" })
-         router.push("/dashboard/activities")
+         toast({ title: 'Error', description: 'Invalid activity ID.', variant: 'destructive' })
+         router.push('/dashboard/activities')
       }
     }
   }, [activityId, isAuthenticated, router, toast, form])
@@ -163,7 +182,7 @@ export default function EditActivityPage() {
       : null;
 
     if (!user || !numericActivityId) {
-        toast({ title: "Error", description: "User or Activity ID missing.", variant: "destructive" });
+        toast({ title: 'Error', description: 'User or Activity ID missing.', variant: 'destructive' });
         return;
     }
 
@@ -178,22 +197,24 @@ export default function EditActivityPage() {
         b_price: data.b_price ? Number(data.b_price) : null,
         status: data.status ? Number(data.status) : null,
         discounts: data.discounts ? Number(data.discounts) : 0,
+        // Take the first image URL for the image_url field
+        image_url: data.image_urls && data.image_urls.length > 0 ? data.image_urls[0] : null,
       };
 
       await activityCrudService.updateActivity(numericActivityId, activityData, user)
 
       toast({
-        title: "Activity updated",
-        description: "Your activity has been successfully updated."
+        title: 'Activity updated',
+        description: 'Your activity has been successfully updated.'
       })
 
-      router.push("/dashboard/activities")
+      router.push('/dashboard/activities')
     } catch (error: any) {
-      console.error("Error updating activity:", error)
+      console.error('Error updating activity:', error)
       toast({
-        title: "Error",
-        description: `Failed to update activity: ${error.message || "Please try again."}`,
-        variant: "destructive"
+        title: 'Error',
+        description: `Failed to update activity: ${error.message || 'Please try again.'}`,
+        variant: 'destructive'
       })
     } finally {
       setIsSubmitting(false)
@@ -203,9 +224,9 @@ export default function EditActivityPage() {
   if (isLoading) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center h-full">
-          <Loader2 className="h-8 w-8 animate-spin" />
-          <p className="ml-2">Loading activity details...</p>
+        <div className='flex items-center justify-center h-full'>
+          <Loader2 className='h-8 w-8 animate-spin' />
+          <p className='ml-2'>Loading activity details...</p>
         </div>
       </DashboardLayout>
     )
@@ -214,7 +235,7 @@ export default function EditActivityPage() {
   if (!activity) {
      return (
       <DashboardLayout>
-        <div className="flex items-center justify-center h-full">
+        <div className='flex items-center justify-center h-full'>
           <p>Activity not found or could not be loaded.</p>
         </div>
       </DashboardLayout>
@@ -225,29 +246,29 @@ export default function EditActivityPage() {
   return (
     <>
       <Head>
-        <title>Edit Activity - {activity?.title || "Provider Dashboard"}</title>
-        <meta name="description" content="Edit details for your activity" />
+        <title>Edit Activity - {activity?.title || 'Provider Dashboard'}</title>
+        <meta name='description' content='Edit details for your activity' />
       </Head>
 
       <DashboardLayout>
-        <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className='space-y-6'>
+          <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4'>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">Edit Activity</h1>
-              <p className="text-muted-foreground">
-                Update the details for "{activity?.title}"
+              <h1 className='text-2xl font-bold tracking-tight'>Edit Activity</h1>
+              <p className='text-muted-foreground'>
+                Update the details for '{activity?.title}'
               </p>
             </div>
-            <Button variant="outline" asChild>
-              <Link href="/dashboard/activities">
-                <ArrowLeft className="mr-2 h-4 w-4" />
+            <Button variant='outline' asChild>
+              <Link href='/dashboard/activities'>
+                <ArrowLeft className='mr-2 h-4 w-4' />
                 Back to Activities
               </Link>
             </Button>
           </div>
 
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
               {/* Basic Information Card */}
               <Card>
                 <CardHeader>
@@ -256,15 +277,15 @@ export default function EditActivityPage() {
                     Update the basic details about your activity
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent className='space-y-6'>
                   <FormField
                     control={form.control}
-                    name="title"
+                    name='title'
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Activity Title</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g. Doi Suthep Temple Tour" {...field} />
+                          <Input placeholder='e.g. Doi Suthep Temple Tour' {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -273,14 +294,14 @@ export default function EditActivityPage() {
 
                   <FormField
                     control={form.control}
-                    name="description"
+                    name='description'
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Description</FormLabel>
                         <FormControl>
                           <Textarea
-                            placeholder="Describe your activity in detail..."
-                            className="min-h-[120px]"
+                            placeholder='Describe your activity in detail...'
+                            className='min-h-[120px]'
                             {...field}
                           />
                         </FormControl>
@@ -289,29 +310,29 @@ export default function EditActivityPage() {
                     )}
                   />
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
                     <FormField
                       control={form.control}
-                      name="category_id"
+                      name='category_id'
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Category</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            value={field.value} // Use value here for controlled component
+                          <Select 
+                            onValueChange={(value) => field.onChange(value ? Number(value) : null)} 
+                            value={field.value?.toString() ?? ''}
                           >
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Select a category" />
+                                <SelectValue placeholder='Select a category' />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="adventure">Adventure</SelectItem>
-                              <SelectItem value="culture">Culture</SelectItem>
-                              <SelectItem value="food">Food & Cuisine</SelectItem>
-                              <SelectItem value="nature">Nature</SelectItem>
-                              <SelectItem value="wellness">Wellness</SelectItem>
-                              <SelectItem value="workshop">Workshop</SelectItem>
+                              <SelectItem value='1'>Adventure</SelectItem>
+                              <SelectItem value='2'>Culture</SelectItem>
+                              <SelectItem value='3'>Food & Cuisine</SelectItem>
+                              <SelectItem value='4'>Nature</SelectItem>
+                              <SelectItem value='5'>Wellness</SelectItem>
+                              <SelectItem value='6'>Workshop</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -321,24 +342,24 @@ export default function EditActivityPage() {
 
                     <FormField
                       control={form.control}
-                      name="duration"
+                      name='duration'
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Duration</FormLabel>
                           <Select
                             onValueChange={field.onChange}
-                            value={field.value} // Use value here
+                            value={field.value}
                           >
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Select duration" />
+                                <SelectValue placeholder='Select duration' />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="2_hours">2 Hours</SelectItem>
-                              <SelectItem value="half_day">Half Day (4 Hours)</SelectItem>
-                              <SelectItem value="full_day">Full Day (8 Hours)</SelectItem>
-                              <SelectItem value="multi_day">Multi-Day</SelectItem>
+                              <SelectItem value='2_hours'>2 Hours</SelectItem>
+                              <SelectItem value='half_day'>Half Day (4 Hours)</SelectItem>
+                              <SelectItem value='full_day'>Full Day (8 Hours)</SelectItem>
+                              <SelectItem value='multi_day'>Multi-Day</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -347,15 +368,15 @@ export default function EditActivityPage() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
                     <FormField
                       control={form.control}
-                      name="price"
+                      name='price'
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Price per Person (THB)</FormLabel>
                           <FormControl>
-                            <Input type="number" min="0" {...field} />
+                            <Input type='number' min='0' {...field} />
                           </FormControl>
                           <FormDescription>
                             Base price before commission
@@ -367,12 +388,12 @@ export default function EditActivityPage() {
 
                     <FormField
                       control={form.control}
-                      name="max_participants"
+                      name='max_participants'
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Maximum Participants</FormLabel>
                           <FormControl>
-                            <Input type="number" min="1" {...field} />
+                            <Input type='number' min='1' {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -390,17 +411,17 @@ export default function EditActivityPage() {
                     Update more information about your activity
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <CardContent className='space-y-6'>
+                  <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
                     <FormField
                       control={form.control}
-                      name="pickup_location"
+                      name='pickup_location'
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Pickup Location</FormLabel>
                           <FormControl>
                             <Input
-                              placeholder="e.g. Your hotel lobby"
+                              placeholder='e.g. Your hotel lobby'
                               {...field}
                             />
                           </FormControl>
@@ -411,13 +432,13 @@ export default function EditActivityPage() {
 
                     <FormField
                       control={form.control}
-                      name="dropoff_location"
+                      name='dropoff_location'
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Dropoff Location</FormLabel>
                           <FormControl>
                             <Input
-                              placeholder="e.g. Your hotel lobby"
+                              placeholder='e.g. Your hotel lobby'
                               {...field}
                             />
                           </FormControl>
@@ -429,13 +450,13 @@ export default function EditActivityPage() {
 
                   <FormField
                     control={form.control}
-                    name="meeting_point"
+                    name='meeting_point'
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Meeting Point</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="e.g. Your hotel lobby or Tha Phae Gate"
+                            placeholder='e.g. Your hotel lobby or Tha Phae Gate'
                             {...field}
                           />
                         </FormControl>
@@ -446,18 +467,18 @@ export default function EditActivityPage() {
 
                   <FormField
                     control={form.control}
-                    name="languages"
+                    name='languages'
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Languages</FormLabel>
                         <FormControl>
-                          <div className="flex flex-wrap gap-2">
+                          <div className='flex flex-wrap gap-2'>
                             {["English", "Thai", "Chinese", "Japanese", "Korean", "French", "German", "Spanish"].map((lang) => (
                               <Button
                                 key={lang}
-                                type="button"
-                                variant={(field.value || []).includes(lang) ? "default" : "outline"} // Safeguard with || []
-                                size="sm"
+                                type='button'
+                                variant={(field.value || []).includes(lang) ? 'default' : 'outline'} // Safeguard with || []
+                                size='sm'
                                 onClick={() => {
                                   const currentLangs = field.value || [];
                                   if (currentLangs.includes(lang)) {
@@ -487,42 +508,42 @@ export default function EditActivityPage() {
                     Update highlights and what's included/not included
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent className='space-y-6'>
                   {/* Highlights */}
                   <div>
-                    <div className="flex items-center justify-between mb-2">
+                    <div className='flex items-center justify-between mb-2'>
                       <Label>Highlights</Label>
                       <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
+                        type='button'
+                        variant='outline'
+                        size='sm'
                         onClick={() => addListItem("highlights")}
                       >
-                        <Plus className="h-4 w-4 mr-1" />
+                        <Plus className='h-4 w-4 mr-1' />
                         Add Highlight
                       </Button>
                     </div>
-                    <div className="space-y-2">
+                    <div className='space-y-2'>
                       {(form.watch("highlights") || []).map((_, index) => ( // Safeguard
-                        <div key={index} className="flex gap-2">
+                        <div key={index} className='flex gap-2'>
                           <Input
                             placeholder={`e.g. Visit the sacred Doi Suthep temple`}
                             {...form.register(`highlights.${index}`)}
                           />
                           <Button
-                            type="button"
-                            variant="outline"
-                            size="icon"
+                            type='button'
+                            variant='outline'
+                            size='icon'
                             onClick={() => removeListItem("highlights", index)}
                             disabled={(form.watch("highlights") || []).length <= 1} // Safeguard
                           >
-                            <Trash className="h-4 w-4" />
+                            <Trash className='h-4 w-4' />
                           </Button>
                         </div>
                       ))}
                     </div>
                     {form.formState.errors.highlights && (
-                      <p className="text-sm font-medium text-destructive mt-2">
+                      <p className='text-sm font-medium text-destructive mt-2'>
                         {form.formState.errors.highlights.message}
                       </p>
                     )}
@@ -530,39 +551,39 @@ export default function EditActivityPage() {
 
                   {/* Included */}
                   <div>
-                    <div className="flex items-center justify-between mb-2">
+                    <div className='flex items-center justify-between mb-2'>
                       <Label>What's Included</Label>
                       <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
+                        type='button'
+                        variant='outline'
+                        size='sm'
                         onClick={() => addListItem("included")}
                       >
-                        <Plus className="h-4 w-4 mr-1" />
+                        <Plus className='h-4 w-4 mr-1' />
                         Add Item
                       </Button>
                     </div>
-                    <div className="space-y-2">
+                    <div className='space-y-2'>
                       {(form.watch("included") || []).map((_, index) => ( // Safeguard
-                        <div key={index} className="flex gap-2">
+                        <div key={index} className='flex gap-2'>
                           <Input
                             placeholder={`e.g. Hotel pickup and drop-off`}
                             {...form.register(`included.${index}`)}
                           />
                           <Button
-                            type="button"
-                            variant="outline"
-                            size="icon"
+                            type='button'
+                            variant='outline'
+                            size='icon'
                             onClick={() => removeListItem("included", index)}
                             disabled={(form.watch("included") || []).length <= 1} // Safeguard
                           >
-                            <Trash className="h-4 w-4" />
+                            <Trash className='h-4 w-4' />
                           </Button>
                         </div>
                       ))}
                     </div>
                     {form.formState.errors.included && (
-                      <p className="text-sm font-medium text-destructive mt-2">
+                      <p className='text-sm font-medium text-destructive mt-2'>
                         {form.formState.errors.included.message}
                       </p>
                     )}
@@ -570,40 +591,40 @@ export default function EditActivityPage() {
 
                   {/* Not Included */}
                   <div>
-                    <div className="flex items-center justify-between mb-2">
+                    <div className='flex items-center justify-between mb-2'>
                       <Label>What's Not Included</Label>
                       <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
+                        type='button'
+                        variant='outline'
+                        size='sm'
                         onClick={() => addListItem("notIncluded")}
                       >
-                        <Plus className="h-4 w-4 mr-1" />
+                        <Plus className='h-4 w-4 mr-1' />
                         Add Item
                       </Button>
                     </div>
-                    <div className="space-y-2">
+                    <div className='space-y-2'>
                       {(form.watch("notIncluded") || []).map((_, index) => ( // Safeguard applied
-                        <div key={index} className="flex gap-2">
+                        <div key={index} className='flex gap-2'>
                           <Input
                             placeholder={`e.g. Gratuities`}
                             {...form.register(`notIncluded.${index}`)}
                           />
                           <Button
-                            type="button"
-                            variant="outline"
-                            size="icon"
+                            type='button'
+                            variant='outline'
+                            size='icon'
                             onClick={() => removeListItem("notIncluded", index)}
                             disabled={(form.watch("notIncluded") || []).length <= 1} // Safeguard applied
                           >
-                            <Trash className="h-4 w-4" />
+                            <Trash className='h-4 w-4' />
                           </Button>
                         </div>
                       ))}
                     </div>
                      {/* Optional: Add error message display for notIncluded if needed */}
                      {form.formState.errors.notIncluded && (
-                      <p className="text-sm font-medium text-destructive mt-2">
+                      <p className='text-sm font-medium text-destructive mt-2'>
                         {/* Adjust message based on validation rules if any */}
                         {typeof form.formState.errors.notIncluded === 'object' && 'message' in form.formState.errors.notIncluded ? form.formState.errors.notIncluded.message : 'Invalid input'}
                       </p>
@@ -623,23 +644,19 @@ export default function EditActivityPage() {
                 <CardContent>
                   <FormField
                     control={form.control}
-                    name="image_url"
+                    name='image_urls'
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Image URLs</FormLabel>
+                        <FormLabel>Activity Images</FormLabel>
                         <FormControl>
-                          <Textarea
-                            placeholder="Enter image URLs (one per line)"
-                            value={(field.value || []).join("\n")} // Safeguard
-                            onChange={(e) => {
-                              const urls = e.target.value.split("\n").filter(url => url.trim() !== "")
-                              field.onChange(urls)
-                            }}
-                            className="min-h-[100px]"
+                          <ImageUploader 
+                            value={field.value} 
+                            onChange={field.onChange}
+                            maxImages={8}
                           />
                         </FormControl>
                         <FormDescription>
-                          Enter one image URL per line. You can use images from Unsplash.com
+                          Upload images showcasing your activity. The first image will be the main cover.
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -649,19 +666,19 @@ export default function EditActivityPage() {
               </Card>
 
               {/* Action Buttons */}
-              <div className="flex justify-end gap-4">
+              <div className='flex justify-end gap-4'>
                 <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => router.push("/dashboard/activities")}
+                  type='button'
+                  variant='outline'
+                  onClick={() => router.push('/dashboard/activities')}
                 >
                   Cancel
                 </Button>
                 <Button
-                  type="submit"
+                  type='submit'
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? "Saving..." : "Save Changes"}
+                  {isSubmitting ? 'Saving...' : 'Save Changes'}
                 </Button>
               </div>
             </form>

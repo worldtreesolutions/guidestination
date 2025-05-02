@@ -52,7 +52,8 @@ const formSchema = z.object({
   duration: z.string().min(1, "Please select a duration (e.g., 04:00:00 for 4 hours)"),
   price: z.coerce.number().min(1, "Price must be greater than 0"),
   max_participants: z.coerce.number().min(1, "Maximum participants must be at least 1"),
-  pickup_location: z.string().min(5, "Pickup location is required"),
+  has_pickup: z.boolean().default(false), // New field for pickup toggle
+  pickup_location: z.string().optional().nullable(), // Made optional
   dropoff_location: z.string().min(5, "Dropoff location is required"),
   meeting_point: z.string().min(5, "Meeting point is required").optional().nullable(), // Allow null
   languages: z.string().optional().nullable(), // Allow null
@@ -87,6 +88,7 @@ export default function NewActivityPage() {
       duration: "04:00:00",
       price: 0,
       max_participants: 10,
+      has_pickup: false, // Default to false
       pickup_location: "",
       dropoff_location: "",
       meeting_point: "",
@@ -101,6 +103,9 @@ export default function NewActivityPage() {
       discounts: 0,
     }
   })
+
+  // Watch the has_pickup field to conditionally show pickup location
+  const hasPickup = form.watch('has_pickup')
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -128,7 +133,7 @@ export default function NewActivityPage() {
         duration: data.duration,
         price: Number(data.price),
         max_participants: Number(data.max_participants),
-        pickup_location: data.pickup_location,
+        pickup_location: data.has_pickup ? data.pickup_location || '' : '', // Use empty string if no pickup
         dropoff_location: data.dropoff_location,
         meeting_point: data.meeting_point,
         languages: data.languages,
@@ -323,19 +328,47 @@ export default function NewActivityPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
+                  {/* Pickup Toggle */}
                   <FormField
                     control={form.control}
-                    name="pickup_location"
+                    name='has_pickup'
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Pickup Location</FormLabel>
+                      <FormItem className='flex flex-row items-center justify-between rounded-lg border p-4'>
+                        <div className='space-y-0.5'>
+                          <FormLabel className='text-base'>Pickup Available</FormLabel>
+                          <FormDescription>
+                            Toggle if pickup service is available for this activity
+                          </FormDescription>
+                        </div>
                         <FormControl>
-                          <Input placeholder="e.g., Your hotel lobby" {...field} />
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
                         </FormControl>
-                        <FormMessage />
                       </FormItem>
                     )}
                   />
+
+                  {/* Conditional Pickup Location Field */}
+                  {hasPickup && (
+                    <FormField
+                      control={form.control}
+                      name='pickup_location'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Pickup Location</FormLabel>
+                          <FormControl>
+                            <Input placeholder='e.g., Your hotel lobby' {...field} value={field.value || ''} />
+                          </FormControl>
+                          <FormDescription>
+                            Where will participants be picked up from?
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
 
                   <FormField
                     control={form.control}
