@@ -2,9 +2,11 @@ import Link from "next/link"
 import { NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList } from "@/components/ui/navigation-menu"
 import { MobileMenu } from "./MobileMenu"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { useAuth } from "@/contexts/AuthContext"; // Import useAuth
 
 export function Navbar() {
   const isMobile = useIsMobile()
+  const { isAuthenticated, logout } = useAuth(); // Get auth state and logout function
 
   return (
     <header className='sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
