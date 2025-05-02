@@ -556,7 +556,7 @@ export default function EditActivityPage() {
                         <FormItem>
                           <FormLabel>Start Time</FormLabel>
                           <FormControl>
-                            <Input type='time' {...field} value={field.value || ''} />
+                            <Input type='time' {...field} value={field.value ?? ''} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -570,7 +570,7 @@ export default function EditActivityPage() {
                         <FormItem>
                           <FormLabel>End Time</FormLabel>
                           <FormControl>
-                            <Input type='time' {...field} disabled value={field.value || ''} />
+                            <Input type='time' {...field} disabled value={field.value ?? ''} />
                           </FormControl>
                           <FormDescription>
                             Auto-calculated based on duration
@@ -592,7 +592,7 @@ export default function EditActivityPage() {
                             type='number' 
                             min='1' 
                             {...field} 
-                            value={field.value || ''}
+                            value={field.value ?? ''} // Handle null/undefined
                           />
                         </FormControl>
                         <FormDescription>
@@ -611,7 +611,7 @@ export default function EditActivityPage() {
                         <FormItem>
                           <FormLabel>Available From</FormLabel>
                           <FormControl>
-                            <Input type='date' {...field} value={field.value || ''} />
+                            <Input type='date' {...field} value={field.value ?? ''} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -625,7 +625,7 @@ export default function EditActivityPage() {
                         <FormItem>
                           <FormLabel>Available Until</FormLabel>
                           <FormControl>
-                            <Input type='date' {...field} value={field.value || ''} />
+                            <Input type='date' {...field} value={field.value ?? ''} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -717,7 +717,7 @@ export default function EditActivityPage() {
                           <Input
                             placeholder='e.g. Your hotel lobby or Tha Phae Gate'
                             {...field}
-                            value={field.value || ''}
+                            value={field.value ?? ''} // Handle null/undefined
                           />
                         </FormControl>
                         <FormMessage />
@@ -735,7 +735,7 @@ export default function EditActivityPage() {
                           <Input
                             placeholder='e.g., English, Thai'
                             {...field}
-                            value={field.value || ''}
+                            value={field.value ?? ''} // Handle null/undefined
                           />
                         </FormControl>
                         <FormMessage />
@@ -764,7 +764,7 @@ export default function EditActivityPage() {
                           <Textarea
                             placeholder='e.g., Scenic views, local culture'
                             {...field}
-                            value={field.value || ''}
+                            value={field.value ?? ''} // Handle null/undefined
                           />
                         </FormControl>
                         <FormDescription>
@@ -785,7 +785,7 @@ export default function EditActivityPage() {
                           <Textarea
                             placeholder='e.g., Guide, meals'
                             {...field}
-                            value={field.value || ''}
+                            value={field.value ?? ''} // Handle null/undefined
                           />
                         </FormControl>
                         <FormDescription>
@@ -806,7 +806,7 @@ export default function EditActivityPage() {
                           <Textarea
                             placeholder='e.g., Tips, personal expenses'
                             {...field}
-                            value={field.value || ''}
+                            value={field.value ?? ''} // Handle null/undefined
                           />
                         </FormControl>
                         <FormDescription>

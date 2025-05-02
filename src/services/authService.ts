@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { supabaseAdmin } from "@/integrations/supabase/admin";
 import { v4 as uuidv4 } from "uuid";
 import { Session, User } from "@supabase/supabase-js";
 
@@ -26,62 +27,49 @@ export const authService = {
   /**
    * Sign in with email and password using Supabase Auth
    */
-  async signInWithEmail(email: string, password: string): Promise<{ user: User | null; session: Session | null }> {
-    // First check if user exists and is verified
-    const verificationStatus = await this.checkUserVerification(email);
-    
-    if (verificationStatus.exists && !verificationStatus.verified) {
-      throw new Error('Your account is pending verification. Please contact support.');
+  async signInWithEmail(email: string, password: string): Promise<{ user: User | null; session: Session | null; roleId: number | null; providerId: string | null }> {
+    // Check if user exists in the custom 'users' table
+    const { data: userData, error: userError } = await supabaseAdmin
+      .from('users')
+      .select('id, verified, role_id')
+      .eq('email', email)
+      .single();
+
+    if (userError || !userData) {
+      console.error('Error fetching user data or user not found:', userError?.message);
+      throw new Error('User not found in our system.');
     }
-    
-    const { data, error } = await supabase.auth.signInWithPassword({
+
+    // Check if the user is verified
+    if (!userData.verified) {
+      throw new Error('Account not verified. Please check your email or contact support.');
+    }
+
+    // Attempt Supabase sign-in
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    if (error) {
-      throw error;
+    if (signInError) {
+      console.error('Supabase sign-in error:', signInError.message);
+      // Provide a more generic error message for security
+      throw new Error('Invalid login credentials.');
     }
+
+    if (!signInData.session || !signInData.user) {
+      throw new Error('Sign in failed. Please try again.');
+    }
+
+    // Optionally, update last login time or perform other actions
+    // await supabaseAdmin.from('users').update({ last_login_at: new Date() }).eq('id', userData.id);
 
     return {
-      user: data.user,
-      session: data.session,
+      user: signInData.user,
+      session: signInData.session,
+      roleId: userData.role_id, // Return role_id
+      providerId: signInData.user.app_metadata?.provider_id?.toString(), // Ensure providerId is string
     };
-  },
-
-  /**
-   * Sign up with email and password using Supabase Auth
-   */
-  async signUpWithEmail(email: string, password: string, metadata: UserMetadata = {}): Promise<{ user: User | null; session: Session | null }> {
-    // Set verified to false by default for new users
-    const userMetadata = { ...metadata, verified: false };
-    
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: userMetadata,
-      },
-    });
-
-    if (error) {
-      throw error;
-    }
-
-    return {
-      user: data.user,
-      session: data.session,
-    };
-  },
-
-  /**
-   * Sign out the current user
-   */
-  async signOut(): Promise<void> {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      throw error;
-    }
   },
 
   /**
@@ -277,6 +265,31 @@ export const authService = {
     return {
       user: data.user,
       session: data.session,
+    };
+  },
+
+  /**
+   * Fetch user details including role and provider ID
+   */
+  async getUserDetails(userId: string): Promise<{ roleId: number | null; providerId: string | null }> {
+    const { data, error } = await supabaseAdmin
+      .from('users')
+      .select('role_id')
+      .eq('id', userId) // Use the UUID from auth.users
+      .single();
+
+    if (error) {
+      console.error('Error fetching user details:', error);
+      return { roleId: null, providerId: null };
+    }
+
+    // Fetch provider ID from auth metadata
+    const { data: { user } } = await supabase.auth.getUser();
+    const providerId = user?.app_metadata?.provider_id ?? null;
+
+    return {
+      roleId: data?.role_id ?? null,
+      providerId: providerId ? providerId.toString() : null, // Ensure providerId is string or null
     };
   },
 };

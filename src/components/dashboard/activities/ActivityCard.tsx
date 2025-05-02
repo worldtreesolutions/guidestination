@@ -76,9 +76,9 @@ export default function ActivityCard({ activity, onStatusChange, onDelete }: Act
     dropoffLocation: activity.dropoff_location,
     languages: activity.languages ? activity.languages.split(',') : [],
     // Add missing properties to satisfy TypeScript
-    providerId: activity.provider_id || 0,
+    providerId: (activity.provider_id || 0).toString(), // Convert to string
     includesPickup: !!activity.pickup_location,
-    includesMeal: false,
+    includesMeal: false, // Assuming false, adjust if needed
     createdAt: activity.created_at || "",
     updatedAt: activity.updated_at || ""
   };

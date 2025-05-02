@@ -41,6 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   // Check if user is logged in on mount and set up auth state listener
   useEffect(() => {
@@ -50,6 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { session } = await authService.getSession();
         setSession(session);
         setUser(session?.user ?? null);
+        setIsAuthenticated(!!session?.user);
       } catch (error) {
         console.error("Error getting session:", error);
       } finally {
@@ -64,6 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
+        setIsAuthenticated(!!session?.user);
         setIsLoading(false);
       }
     );
@@ -74,30 +77,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  // Sign out the user
+  const signOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+      setSession(null);
+      setIsAuthenticated(false);
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
   // Login function
-  const login = async (email: string, password: string, rememberMe = false) => {
+  const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      // First check if user exists and is verified
-      const verificationStatus = await authService.checkUserVerification(email);
+      const { user: authUser, session: authSession, roleId, providerId } = await authService.signInWithEmail(email, password);
       
-      if (verificationStatus.exists && !verificationStatus.verified) {
-        throw new Error('Your account is pending verification. Please contact support.');
+      if (authUser && authSession) {
+        setUser(authUser);
+        setSession(authSession);
+        setIsAuthenticated(true);
+        
+        // Store role and provider ID in user metadata if available
+        if (roleId || providerId) {
+          const metadata: any = { ...authUser.user_metadata };
+          if (roleId) metadata.role_id = roleId;
+          if (providerId) metadata.provider_id = providerId;
+          
+          try {
+            await authService.updateUserMetadata(metadata);
+          } catch (metadataError) {
+            console.error('Error updating user metadata:', metadataError);
+          }
+        }
+        
+        return { success: true };
       }
-      
-      const { user, session } = await authService.signInWithEmail(email, password);
-      
-      if (!user || !session) {
-        throw new Error('Login failed: No user or session returned');
-      }
-      
-      setUser(user);
-      setSession(session);
-      
-      return;
-    } catch (error) {
+      return { success: false, error: 'Login failed' };
+    } catch (error: any) {
       console.error('Login error:', error);
-      throw error;
+      return { success: false, error: error.message };
     } finally {
       setIsLoading(false);
     }
@@ -110,6 +131,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await authService.signOut();
       setUser(null);
       setSession(null);
+      setIsAuthenticated(false);
     } catch (error) {
       console.error("Logout error:", error);
       throw error;
@@ -122,17 +144,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = async (email: string, password: string, name: string) => {
     setIsLoading(true);
     try {
-      const { user, session } = await authService.signUpWithEmail(email, password, { name });
+      // Check if user already exists in the custom users table
+      const { exists, verified } = await authService.checkUserVerification(email);
       
-      if (!user) {
-        throw new Error('Registration failed: No user returned');
+      if (exists) {
+        // If user exists but is not verified, they need to contact support
+        if (!verified) {
+          return { success: false, error: 'Your account is pending verification. Please contact support.' };
+        }
+        
+        // If user exists and is verified, set up password for existing user
+        const { user: authUser, session: authSession } = await authService.setupPasswordForExistingUser(email, password, name);
+        
+        if (authUser && authSession) {
+          setUser(authUser);
+          setSession(authSession);
+          setIsAuthenticated(true);
+          return { success: true };
+        }
+      } else {
+        // If user doesn't exist, create a new user in the custom users table
+        // This is just a placeholder - in a real app, you'd have admin approval
+        const { userId } = await authService.createUser({
+          name,
+          email,
+          user_type: 'activity_provider'
+        });
+        
+        // Generate verification token (in a real app, you'd send an email)
+        await authService.createEmailVerification(userId);
+        
+        return { 
+          success: false, 
+          error: 'Registration submitted. Your account needs to be verified by an admin before you can log in.' 
+        };
       }
       
-      setUser(user);
-      setSession(session);
-    } catch (error) {
+      return { success: false, error: 'Registration failed' };
+    } catch (error: any) {
       console.error('Registration error:', error);
-      throw error;
+      return { success: false, error: error.message };
     } finally {
       setIsLoading(false);
     }
@@ -193,7 +244,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         user,
         session,
-        isAuthenticated: !!user && !!session,
+        isAuthenticated,
         isLoading,
         login,
         logout,
