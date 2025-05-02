@@ -8,11 +8,11 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import activityCrudService, { Activity as CrudActivity } from "@/services/activityCrudService"; 
 // Keep Booking type if needed for recent bookings, adjust if necessary
 import { activityService, Booking } from "@/services/activityService"; 
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertTriangle } from "lucide-react"; // Added AlertTriangle
 // Corrected import paths for dashboard components
-import { EarningsChart } from "@/components/activity-owner/dashboard/EarningsChart"; // Changed to named import
-import { RecentBookings } from "@/components/activity-owner/dashboard/RecentBookings"; // Changed to named import
-import { ActivityList } from "@/components/activity-owner/dashboard/ActivityList"; // Changed to named import
+import { EarningsChart } from "@/components/dashboard/overview/EarningsChart"; // Corrected path
+import { RecentBookings } from "@/components/dashboard/overview/RecentBookings"; // Corrected path
+import { ActivityList } from "@/components/dashboard/overview/ActivityList"; // Corrected path
 
 interface EarningsData {
   total: number;
@@ -21,80 +21,103 @@ interface EarningsData {
 }
 
 export default function DashboardOverviewPage() {
-  const { user, isAuthenticated } = useAuth();
+  const { user, session, isAuthenticated, isLoading: isAuthLoading } = useAuth(); // Get session and auth loading state
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
+  const [isDataLoading, setIsDataLoading] = useState(true); // Separate state for data loading
   const [earnings, setEarnings] = useState<EarningsData | null>(null);
   const [recentBookings, setRecentBookings] = useState<Booking[]>([]);
-  // Use the CrudActivity type from activityCrudService
   const [activities, setActivities] = useState<CrudActivity[]>([]); 
   const [providerId, setProviderId] = useState<number | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null); // State for fetch errors
 
-  // Fetch provider ID from user metadata
+  // Effect 1: Handle Authentication Status and Redirects
   useEffect(() => {
+    console.log('[Auth Effect] Running - isAuthLoading:', isAuthLoading, 'isAuthenticated:', isAuthenticated);
+    if (!isAuthLoading && !isAuthenticated) {
+      console.log('[Auth Effect] Redirecting to login.');
+      router.push("/dashboard/login");
+    }
+  }, [isAuthLoading, isAuthenticated, router]);
+
+  // Effect 2: Set Provider ID once user is available
+  useEffect(() => {
+    console.log('[Provider ID Effect] Running - User:', user ? user.id : 'null');
     if (user?.app_metadata?.provider_id) {
       const fetchedProviderId = Number(user.app_metadata.provider_id);
-      setProviderId(fetchedProviderId);
-      console.log('Overview - Provider ID set:', fetchedProviderId);
+      if (!isNaN(fetchedProviderId)) {
+        setProviderId(fetchedProviderId);
+        console.log('[Provider ID Effect] Provider ID set:', fetchedProviderId);
+      } else {
+        console.warn('[Provider ID Effect] provider_id in metadata is not a valid number:', user.app_metadata.provider_id);
+        setProviderId(null); // Explicitly set to null if invalid
+      }
     } else if (user) {
-      console.warn('Overview - Provider ID not found in user metadata.');
-      // Handle case where provider ID might be missing, maybe use a default or show error
-      // For now, we'll let fetching depend on providerId state
+      console.warn('[Provider ID Effect] Provider ID not found in user metadata.');
+      setProviderId(null); // Explicitly set to null if not found
     }
+    // This effect only depends on the user object
   }, [user]);
 
-
+  // Effect 3: Fetch Data when authenticated and providerId is known
   useEffect(() => {
-    // Redirect immediately if not authenticated, even before providerId is set
-    if (!isAuthenticated && !isLoading) { // Check isLoading to prevent redirect during initial load
-      router.push("/dashboard/login"); 
-      return;
-    }
-
-    // Only fetch data if authenticated and providerId is available
-    if (isAuthenticated && providerId !== null) {
+    // Only proceed if authentication is resolved, user is authenticated, and providerId is set
+    if (!isAuthLoading && isAuthenticated && providerId !== null) {
+      console.log('[Data Fetch Effect] Conditions met. Fetching data for providerId:', providerId);
       const fetchData = async () => {
-        // No need to check user object here again, providerId check implies user exists
+        // Ensure user object and ID are available before fetching
+        if (!user?.id) {
+           console.error('[Data Fetch Effect] User ID is missing, cannot fetch data.');
+           setFetchError('User information is missing.');
+           setIsDataLoading(false);
+           return;
+        }
+        
+        setIsDataLoading(true); // Start data loading
+        setFetchError(null); // Reset error
         try {
-          setIsLoading(true);
+          console.log('[Data Fetch Effect] Fetching earnings, bookings, activities...');
           // Fetch all data concurrently
-          // Use activityCrudService for activities
           const [earningsData, bookingsData, activitiesResult] = await Promise.all([
-            activityService.getProviderEarnings(user!.id), // Assuming user has id from auth, use non-null assertion
-            activityService.getBookingsByProvider(user!.id),
+            activityService.getProviderEarnings(user.id), // Use user.id safely
+            activityService.getBookingsByProvider(user.id), // Use user.id safely
             activityCrudService.getActivitiesByProviderId(providerId) // Use fetched providerId
           ]);
+          console.log('[Data Fetch Effect] Data fetched successfully.');
 
           setEarnings(earningsData);
-          // Sort bookings by date descending and take the latest 5
           const sortedBookings = bookingsData.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
           setRecentBookings(sortedBookings.slice(0, 5));
-          setActivities(activitiesResult.activities); // Set activities from the result
+          setActivities(activitiesResult.activities); 
 
-        } catch (error) {
-          console.error("Failed to fetch dashboard  ", error);
+        } catch (error: any) {
+          console.error("[Data Fetch Effect] Failed to fetch dashboard ", error);
+          setFetchError(`Failed to load dashboard  ${error.message}`);
           // Optionally show a toast message here
         } finally {
-          setIsLoading(false);
+          console.log('[Data Fetch Effect] Setting isDataLoading to false.');
+          setIsDataLoading(false); // Finish data loading regardless of success/error
         }
       };
 
       fetchData();
-    } else if (isAuthenticated && providerId === null && !isLoading) {
-       // Handle the case where user is authenticated but providerId couldn't be determined
-       console.error("Authenticated user is missing provider ID.");
-       setIsLoading(false); // Stop loading, maybe show an error message
-    } else if (!isAuthenticated && !isLoading) {
-       // Already handled by the redirect above, but keep setIsLoading(false)
-       setIsLoading(false);
+    } else if (!isAuthLoading && isAuthenticated && providerId === null) {
+      // Handle case where user is authenticated but providerId is missing/invalid
+      console.error('[Data Fetch Effect] Authenticated user is missing a valid provider ID.');
+      setFetchError('Your account is not linked to a provider ID. Please contact support.');
+      setIsDataLoading(false); // Stop loading as we can't fetch data
+    } else if (!isAuthLoading && !isAuthenticated) {
+       // If not authenticated (and auth check is done), stop loading
+       console.log('[Data Fetch Effect] User not authenticated, stopping data loading.');
+       setIsDataLoading(false);
     }
-    // If still loading initial auth state or providerId, do nothing yet
-    
-  }, [user, isAuthenticated, router, providerId, isLoading]); // Add providerId and isLoading to dependency array
+    // Dependencies: run when auth state, user, or providerId changes
+  }, [isAuthLoading, isAuthenticated, user, providerId]); 
 
-  // Updated loading state check
-  // @ Fix comparison: check if providerId is null, not comparing number | null with string
-  if (isLoading || (isAuthenticated && providerId === null)) {
+  // Combined Loading State Check
+  const isLoading = isAuthLoading || isDataLoading;
+
+  if (isLoading) {
+    console.log('Rendering Loading State - isAuthLoading:', isAuthLoading, 'isDataLoading:', isDataLoading);
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-full">

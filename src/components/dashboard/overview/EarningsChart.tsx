@@ -1,5 +1,7 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
+// @ Ensure correct import path if moved
+// import { ... } from "@/components/ui/chart" 
 
 interface EarningsChartProps {
   data?: {

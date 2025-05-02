@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format, subDays } from "date-fns";
+// import { Booking } from "@/services/activityService"; // Ensure Booking type is imported if needed
 
 interface Booking {
   id: string;

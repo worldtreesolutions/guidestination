@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Activity } from "@/services/activityService"
+import { Activity as CrudActivity } from "@/services/activityCrudService"; // Import the correct Activity type
 import { 
   Table, 
   TableBody, 
@@ -11,14 +11,33 @@ import {
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
-import { Edit, Trash, PlusCircle } from "lucide-react"
+import { Edit, Trash2, PlusCircle } from "lucide-react" // Ensure icons are imported
 
 interface ActivityListProps {
-  activities: Activity[]
-  onDelete: (activityId: string) => void
+  activities: CrudActivity[]; // Update props to use CrudActivity type
+  onDelete: (activityId: number) => void // Keep onDelete prop
 }
 
 export function ActivityList({ activities, onDelete }: ActivityListProps) {
+
+  const getStatusText = (status: number | null) => {
+    switch (status) {
+      case 2: return "Published";
+      case 1: return "Draft";
+      case 0: return "Archived";
+      default: return "Unknown";
+    }
+  };
+
+  const getStatusVariant = (status: number | null): "default" | "secondary" | "outline" | "destructive" => {
+    switch (status) {
+      case 2: return "default"; // Published
+      case 1: return "secondary"; // Draft
+      case 0: return "outline"; // Archived
+      default: return "secondary";
+    }
+  };
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -53,9 +72,8 @@ export function ActivityList({ activities, onDelete }: ActivityListProps) {
             <TableHeader>
               <TableRow>
                 <TableHead>Title</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Price (THB)</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Price (THB)</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -63,16 +81,15 @@ export function ActivityList({ activities, onDelete }: ActivityListProps) {
               {activities.map((activity) => (
                 <TableRow key={activity.id}>
                   <TableCell className="font-medium">{activity.title}</TableCell>
-                  <TableCell>{activity.category ? (activity.category.charAt(0).toUpperCase() + activity.category.slice(1)) : 'N/A'}</TableCell>
-                  <TableCell>{activity.basePrice ? activity.basePrice.toLocaleString() : 'N/A'}</TableCell>
                   <TableCell>
                     <Badge 
-                      variant={activity.status === 'published' ? 'default' : 'secondary'}
-                      className={activity.status === 'published' ? 'bg-green-100 text-green-800 hover:bg-green-200' : ''}
+                      variant={getStatusVariant(activity.status)}
+                      className={getStatusVariant(activity.status) === 'default' ? 'bg-green-100 text-green-800 hover:bg-green-200' : ''}
                     >
-                      {activity.status ? (activity.status.charAt(0).toUpperCase() + activity.status.slice(1)) : 'Draft'}
+                      {getStatusText(activity.status)}
                     </Badge>
                   </TableCell>
+                  <TableCell>{activity.basePrice ? activity.basePrice.toLocaleString() : 'N/A'}</TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
                       <Button asChild variant="outline" size="sm">
@@ -87,7 +104,7 @@ export function ActivityList({ activities, onDelete }: ActivityListProps) {
                         className="text-red-600 hover:bg-red-50 hover:text-red-700"
                         onClick={() => onDelete(activity.id)}
                       >
-                        <Trash className="h-4 w-4 mr-1" />
+                        <Trash2 className="h-4 w-4 mr-1" />
                         Delete
                       </Button>
                     </div>
