@@ -42,7 +42,8 @@ export function Navbar() {
                     </Link>
                   </NavigationMenuItem>
                   <NavigationMenuItem>
-                    <Link href="/activity-owner/dashboard" legacyBehavior passHref>
+                    <Link href="/dashboard/login" legacyBehavior passHref>
+                    {/* @ Update Link href from /activity-owner/dashboard to /dashboard/login */}
                       <NavigationMenuLink className="inline-flex h-10 items-center justify-center rounded-md bg-transparent px-2 lg:px-4 py-2 text-sm font-medium transition-colors hover:bg-[#22C55E] hover:text-white focus:bg-[#22C55E] focus:text-white focus:outline-none disabled:pointer-events-none disabled:opacity-50">
                         Provider Dashboard
                       </NavigationMenuLink>
