@@ -51,14 +51,15 @@ const formSchema = z.object({
   duration: z.string().min(1, 'Please select a duration (e.g., 04:00:00)'),
   price: z.coerce.number().min(1, 'Price must be greater than 0'),
   max_participants: z.coerce.number().min(1, 'Maximum participants must be at least 1').optional().nullable(),
-  pickup_location: z.string().min(5, 'Pickup location is required'),
+  has_pickup: z.boolean().default(false), // Add pickup toggle
+  pickup_location: z.string().optional().nullable(), // Make pickup location optional
   dropoff_location: z.string().min(5, 'Dropoff location is required'),
   meeting_point: z.string().min(5, 'Meeting point is required').optional().nullable(),
-  languages: z.string().optional().nullable(), // Keep as string for simplicity
-  highlights: z.string().optional().nullable(), // Keep as string
-  included: z.string().optional().nullable(), // Keep as string
-  not_included: z.string().optional().nullable(), // Keep as string
-  image_urls: z.array(z.string().url()).optional().default([]), // Changed to array for ImageUploader
+  languages: z.string().optional().nullable(),
+  highlights: z.string().optional().nullable(),
+  included: z.string().optional().nullable(),
+  not_included: z.string().optional().nullable(),
+  image_urls: z.array(z.string().url()).optional().default([]),
   is_active: z.boolean().optional().nullable(),
   b_price: z.coerce.number().optional().nullable(),
   status: z.coerce.number().optional().nullable(),
@@ -74,25 +75,26 @@ export default function EditActivityPage() {
   const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
-  const [activity, setActivity] = useState<CrudActivity | null>(null) // Use CrudActivity type
+  const [activity, setActivity] = useState<CrudActivity | null>(null)
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: '',
-      description: '', // Default to empty string
+      description: '',
       category_id: null,
       duration: '',
       price: 0,
       max_participants: 10,
+      has_pickup: false, // Default to false
       pickup_location: '',
       dropoff_location: '',
       meeting_point: '',
-      languages: '', // Default to empty string
-      highlights: '', // Default to empty string
-      included: '', // Default to empty string
-      not_included: '', // Default to empty string
-      image_urls: [], // Changed to array for ImageUploader
+      languages: '',
+      highlights: '',
+      included: '',
+      not_included: '',
+      image_urls: [],
       is_active: true,
       b_price: null,
       status: null,
@@ -100,19 +102,8 @@ export default function EditActivityPage() {
     }
   })
 
-  // Helper functions for array fields
-  const addListItem = (fieldName: string) => {
-    const currentItems = form.getValues(fieldName as any) || [];
-    form.setValue(fieldName as any, [...currentItems, '']);
-  };
-
-  const removeListItem = (fieldName: string, index: number) => {
-    const currentItems = form.getValues(fieldName as any) || [];
-    form.setValue(
-      fieldName as any,
-      currentItems.filter((_: any, i: number) => i !== index)
-    );
-  };
+  // Watch the has_pickup field to conditionally show pickup location
+  const hasPickup = form.watch('has_pickup')
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -135,6 +126,9 @@ export default function EditActivityPage() {
             // Convert single image_url to array for image_urls
             const imageUrls = fetchedActivity.image_url ? [fetchedActivity.image_url] : [];
             
+            // Determine if pickup is available based on pickup_location
+            const hasPickup = !!fetchedActivity.pickup_location && fetchedActivity.pickup_location.trim() !== '';
+            
             form.reset({
               title: fetchedActivity.title,
               description: fetchedActivity.description ?? '',
@@ -142,14 +136,15 @@ export default function EditActivityPage() {
               duration: fetchedActivity.duration ?? '',
               price: fetchedActivity.price ?? 0,
               max_participants: fetchedActivity.max_participants ?? 10,
+              has_pickup: hasPickup, // Set based on pickup_location
               pickup_location: fetchedActivity.pickup_location ?? '',
               dropoff_location: fetchedActivity.dropoff_location ?? '',
               meeting_point: fetchedActivity.meeting_point ?? '',
-              languages: fetchedActivity.languages ?? '', // Use string directly
-              highlights: fetchedActivity.highlights ?? '', // Use string directly
-              included: fetchedActivity.included ?? '', // Use string directly
-              not_included: fetchedActivity.not_included ?? '', // Use string directly
-              image_urls: imageUrls, // Use array for ImageUploader
+              languages: fetchedActivity.languages ?? '',
+              highlights: fetchedActivity.highlights ?? '',
+              included: fetchedActivity.included ?? '',
+              not_included: fetchedActivity.not_included ?? '',
+              image_urls: imageUrls,
               is_active: fetchedActivity.is_active ?? true,
               b_price: fetchedActivity.b_price ?? null,
               status: fetchedActivity.status ?? null,
@@ -197,6 +192,8 @@ export default function EditActivityPage() {
         b_price: data.b_price ? Number(data.b_price) : null,
         status: data.status ? Number(data.status) : null,
         discounts: data.discounts ? Number(data.discounts) : 0,
+        // Only use pickup_location if has_pickup is true
+        pickup_location: data.has_pickup ? data.pickup_location || '' : '',
         // Take the first image URL for the image_url field
         image_url: data.image_urls && data.image_urls.length > 0 ? data.image_urls[0] : null,
       };
@@ -241,7 +238,6 @@ export default function EditActivityPage() {
       </DashboardLayout>
     )
   }
-
 
   return (
     <>
@@ -303,6 +299,7 @@ export default function EditActivityPage() {
                             placeholder='Describe your activity in detail...'
                             className='min-h-[120px]'
                             {...field}
+                            value={field.value || ''}
                           />
                         </FormControl>
                         <FormMessage />
@@ -346,22 +343,9 @@ export default function EditActivityPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Duration</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            value={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder='Select duration' />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value='2_hours'>2 Hours</SelectItem>
-                              <SelectItem value='half_day'>Half Day (4 Hours)</SelectItem>
-                              <SelectItem value='full_day'>Full Day (8 Hours)</SelectItem>
-                              <SelectItem value='multi_day'>Multi-Day</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <FormControl>
+                            <Input placeholder='e.g., 04:00:00' {...field} />
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -393,7 +377,12 @@ export default function EditActivityPage() {
                         <FormItem>
                           <FormLabel>Maximum Participants</FormLabel>
                           <FormControl>
-                            <Input type='number' min='1' {...field} />
+                            <Input 
+                              type='number' 
+                              min='1' 
+                              {...field} 
+                              value={field.value || ''}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -412,7 +401,30 @@ export default function EditActivityPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className='space-y-6'>
-                  <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                  {/* Pickup Toggle */}
+                  <FormField
+                    control={form.control}
+                    name='has_pickup'
+                    render={({ field }) => (
+                      <FormItem className='flex flex-row items-center justify-between rounded-lg border p-4'>
+                        <div className='space-y-0.5'>
+                          <FormLabel className='text-base'>Pickup Available</FormLabel>
+                          <FormDescription>
+                            Toggle if pickup service is available for this activity
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Conditional Pickup Location Field */}
+                  {hasPickup && (
                     <FormField
                       control={form.control}
                       name='pickup_location'
@@ -420,33 +432,37 @@ export default function EditActivityPage() {
                         <FormItem>
                           <FormLabel>Pickup Location</FormLabel>
                           <FormControl>
-                            <Input
-                              placeholder='e.g. Your hotel lobby'
-                              {...field}
+                            <Input 
+                              placeholder='e.g., Your hotel lobby' 
+                              {...field} 
+                              value={field.value || ''}
                             />
                           </FormControl>
+                          <FormDescription>
+                            Where will participants be picked up from?
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
+                  )}
 
-                    <FormField
-                      control={form.control}
-                      name='dropoff_location'
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Dropoff Location</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder='e.g. Your hotel lobby'
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name='dropoff_location'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Dropoff Location</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder='e.g. Your hotel lobby'
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
                   <FormField
                     control={form.control}
@@ -458,6 +474,7 @@ export default function EditActivityPage() {
                           <Input
                             placeholder='e.g. Your hotel lobby or Tha Phae Gate'
                             {...field}
+                            value={field.value || ''}
                           />
                         </FormControl>
                         <FormMessage />
@@ -472,26 +489,11 @@ export default function EditActivityPage() {
                       <FormItem>
                         <FormLabel>Languages</FormLabel>
                         <FormControl>
-                          <div className='flex flex-wrap gap-2'>
-                            {["English", "Thai", "Chinese", "Japanese", "Korean", "French", "German", "Spanish"].map((lang) => (
-                              <Button
-                                key={lang}
-                                type='button'
-                                variant={(field.value || []).includes(lang) ? 'default' : 'outline'} // Safeguard with || []
-                                size='sm'
-                                onClick={() => {
-                                  const currentLangs = field.value || [];
-                                  if (currentLangs.includes(lang)) {
-                                    field.onChange(currentLangs.filter(l => l !== lang))
-                                  } else {
-                                    field.onChange([...currentLangs, lang])
-                                  }
-                                }}
-                              >
-                                {lang}
-                              </Button>
-                            ))}
-                          </div>
+                          <Input
+                            placeholder='e.g., English, Thai'
+                            {...field}
+                            value={field.value || ''}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -509,127 +511,68 @@ export default function EditActivityPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className='space-y-6'>
-                  {/* Highlights */}
-                  <div>
-                    <div className='flex items-center justify-between mb-2'>
-                      <Label>Highlights</Label>
-                      <Button
-                        type='button'
-                        variant='outline'
-                        size='sm'
-                        onClick={() => addListItem("highlights")}
-                      >
-                        <Plus className='h-4 w-4 mr-1' />
-                        Add Highlight
-                      </Button>
-                    </div>
-                    <div className='space-y-2'>
-                      {(form.watch("highlights") || []).map((_, index) => ( // Safeguard
-                        <div key={index} className='flex gap-2'>
-                          <Input
-                            placeholder={`e.g. Visit the sacred Doi Suthep temple`}
-                            {...form.register(`highlights.${index}`)}
+                  <FormField
+                    control={form.control}
+                    name='highlights'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Highlights</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder='e.g., Scenic views, local culture'
+                            {...field}
+                            value={field.value || ''}
                           />
-                          <Button
-                            type='button'
-                            variant='outline'
-                            size='icon'
-                            onClick={() => removeListItem("highlights", index)}
-                            disabled={(form.watch("highlights") || []).length <= 1} // Safeguard
-                          >
-                            <Trash className='h-4 w-4' />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                    {form.formState.errors.highlights && (
-                      <p className='text-sm font-medium text-destructive mt-2'>
-                        {form.formState.errors.highlights.message}
-                      </p>
+                        </FormControl>
+                        <FormDescription>
+                          Enter each highlight on a new line
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
                     )}
-                  </div>
+                  />
 
-                  {/* Included */}
-                  <div>
-                    <div className='flex items-center justify-between mb-2'>
-                      <Label>What's Included</Label>
-                      <Button
-                        type='button'
-                        variant='outline'
-                        size='sm'
-                        onClick={() => addListItem("included")}
-                      >
-                        <Plus className='h-4 w-4 mr-1' />
-                        Add Item
-                      </Button>
-                    </div>
-                    <div className='space-y-2'>
-                      {(form.watch("included") || []).map((_, index) => ( // Safeguard
-                        <div key={index} className='flex gap-2'>
-                          <Input
-                            placeholder={`e.g. Hotel pickup and drop-off`}
-                            {...form.register(`included.${index}`)}
+                  <FormField
+                    control={form.control}
+                    name='included'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>What's Included</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder='e.g., Guide, meals'
+                            {...field}
+                            value={field.value || ''}
                           />
-                          <Button
-                            type='button'
-                            variant='outline'
-                            size='icon'
-                            onClick={() => removeListItem("included", index)}
-                            disabled={(form.watch("included") || []).length <= 1} // Safeguard
-                          >
-                            <Trash className='h-4 w-4' />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                    {form.formState.errors.included && (
-                      <p className='text-sm font-medium text-destructive mt-2'>
-                        {form.formState.errors.included.message}
-                      </p>
+                        </FormControl>
+                        <FormDescription>
+                          Enter each included item on a new line
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
                     )}
-                  </div>
+                  />
 
-                  {/* Not Included */}
-                  <div>
-                    <div className='flex items-center justify-between mb-2'>
-                      <Label>What's Not Included</Label>
-                      <Button
-                        type='button'
-                        variant='outline'
-                        size='sm'
-                        onClick={() => addListItem("notIncluded")}
-                      >
-                        <Plus className='h-4 w-4 mr-1' />
-                        Add Item
-                      </Button>
-                    </div>
-                    <div className='space-y-2'>
-                      {(form.watch("notIncluded") || []).map((_, index) => ( // Safeguard applied
-                        <div key={index} className='flex gap-2'>
-                          <Input
-                            placeholder={`e.g. Gratuities`}
-                            {...form.register(`notIncluded.${index}`)}
+                  <FormField
+                    control={form.control}
+                    name='not_included'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>What's Not Included</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder='e.g., Tips, personal expenses'
+                            {...field}
+                            value={field.value || ''}
                           />
-                          <Button
-                            type='button'
-                            variant='outline'
-                            size='icon'
-                            onClick={() => removeListItem("notIncluded", index)}
-                            disabled={(form.watch("notIncluded") || []).length <= 1} // Safeguard applied
-                          >
-                            <Trash className='h-4 w-4' />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                     {/* Optional: Add error message display for notIncluded if needed */}
-                     {form.formState.errors.notIncluded && (
-                      <p className='text-sm font-medium text-destructive mt-2'>
-                        {/* Adjust message based on validation rules if any */}
-                        {typeof form.formState.errors.notIncluded === 'object' && 'message' in form.formState.errors.notIncluded ? form.formState.errors.notIncluded.message : 'Invalid input'}
-                      </p>
+                        </FormControl>
+                        <FormDescription>
+                          Enter each non-included item on a new line
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
                     )}
-                  </div>
+                  />
                 </CardContent>
               </Card>
 
@@ -665,6 +608,46 @@ export default function EditActivityPage() {
                 </CardContent>
               </Card>
 
+              {/* Status Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Activity Status</CardTitle>
+                  <CardDescription>
+                    Set the visibility of your activity.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <FormField
+                    control={form.control}
+                    name='status'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Status</FormLabel>
+                        <Select 
+                          onValueChange={(value) => field.onChange(Number(value))} 
+                          value={field.value?.toString() || '1'}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder='Select status' />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value='1'>Draft (Hidden)</SelectItem>
+                            <SelectItem value='2'>Published (Visible)</SelectItem>
+                            <SelectItem value='0'>Archived</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>
+                          'Draft' keeps it hidden, 'Published' makes it live.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
+
               {/* Action Buttons */}
               <div className='flex justify-end gap-4'>
                 <Button
@@ -678,7 +661,14 @@ export default function EditActivityPage() {
                   type='submit'
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? 'Saving...' : 'Save Changes'}
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                      Saving...
+                    </>
+                  ) : (
+                    'Save Changes'
+                  )}
                 </Button>
               </div>
             </form>
