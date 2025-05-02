@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { supabase } from "@/integrations/supabase/client"
 import {
   Select,
   SelectContent,
@@ -48,7 +49,7 @@ const formSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters'),
   description: z.string().min(20, 'Description must be at least 20 characters').optional().nullable(),
   category_id: z.coerce.number().optional().nullable(),
-  duration: z.string().min(1, 'Please select a duration (e.g., 04:00:00)'),
+  duration: z.string().min(1, 'Please select a duration'),
   price: z.coerce.number().min(1, 'Price must be greater than 0'),
   max_participants: z.coerce.number().min(1, 'Maximum participants must be at least 1').optional().nullable(),
   has_pickup: z.boolean().default(false), // Add pickup toggle
@@ -64,9 +65,29 @@ const formSchema = z.object({
   b_price: z.coerce.number().optional().nullable(),
   status: z.coerce.number().optional().nullable(),
   discounts: z.coerce.number().optional().nullable(),
+  // Schedule fields
+  schedule_start_time: z.string().optional().nullable(),
+  schedule_end_time: z.string().optional().nullable(),
+  schedule_capacity: z.coerce.number().optional().nullable(),
+  schedule_availability_start_date: z.string().optional().nullable(),
+  schedule_availability_end_date: z.string().optional().nullable(),
+  schedule_id: z.coerce.number().optional().nullable(), // For existing schedule
 })
 
 type FormValues = z.infer<typeof formSchema>
+
+// Define a type for the schedule
+interface ActivitySchedule {
+  id: number;
+  activity_id: number | null;
+  start_time: string;
+  end_time: string;
+  capacity: number;
+  availability_start_date: string | null;
+  availability_end_date: string | null;
+  is_active: boolean | null;
+  status: string | null;
+}
 
 export default function EditActivityPage() {
   const { user, isAuthenticated } = useAuth()
@@ -76,6 +97,7 @@ export default function EditActivityPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [activity, setActivity] = useState<CrudActivity | null>(null)
+  const [schedules, setSchedules] = useState<ActivitySchedule[]>([])
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -83,7 +105,7 @@ export default function EditActivityPage() {
       title: '',
       description: '',
       category_id: null,
-      duration: '',
+      duration: '2_hours',
       price: 0,
       max_participants: 10,
       has_pickup: false, // Default to false
@@ -99,11 +121,50 @@ export default function EditActivityPage() {
       b_price: null,
       status: null,
       discounts: 0,
+      // Schedule defaults
+      schedule_start_time: '09:00',
+      schedule_end_time: '11:00',
+      schedule_capacity: 10,
+      schedule_availability_start_date: new Date().toISOString().split('T')[0],
+      schedule_availability_end_date: new Date(new Date().setMonth(new Date().getMonth() + 3)).toISOString().split('T')[0],
+      schedule_id: null,
     }
   })
 
   // Watch the has_pickup field to conditionally show pickup location
   const hasPickup = form.watch('has_pickup')
+  
+  // Watch the duration field to update end time based on start time
+  const duration = form.watch('duration')
+  const startTime = form.watch('schedule_start_time')
+
+  // Update end time when start time or duration changes
+  useEffect(() => {
+    if (startTime) {
+      const start = new Date(`2000-01-01T${startTime}`);
+      let hours = 2; // Default to 2 hours
+      
+      switch (duration) {
+        case '1_hour':
+          hours = 1;
+          break;
+        case '2_hours':
+          hours = 2;
+          break;
+        case 'half_day':
+          hours = 4;
+          break;
+        case 'full_day':
+          hours = 8;
+          break;
+      }
+      
+      const end = new Date(start.getTime() + hours * 60 * 60 * 1000);
+      const endTimeString = end.toTimeString().substring(0, 5);
+      
+      form.setValue('schedule_end_time', endTimeString);
+    }
+  }, [startTime, duration, form]);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -116,10 +177,25 @@ export default function EditActivityPage() {
       : null;
 
     if (numericActivityId) {
-      const fetchActivity = async () => {
+      const fetchActivityAndSchedules = async () => {
         setIsLoading(true)
         try {
+          // Fetch activity
           const fetchedActivity = await activityCrudService.getActivityById(numericActivityId)
+          
+          // Fetch schedules for this activity
+          const { data: scheduleData, error: scheduleError } = await supabase
+            .from('activity_schedules')
+            .select('*')
+            .eq('activity_id', numericActivityId);
+            
+          if (scheduleError) {
+            console.error('Error fetching schedules:', scheduleError);
+          }
+          
+          const activitySchedules = scheduleData || [];
+          setSchedules(activitySchedules as ActivitySchedule[]);
+          
           if (fetchedActivity) {
             setActivity(fetchedActivity)
             
@@ -129,11 +205,14 @@ export default function EditActivityPage() {
             // Determine if pickup is available based on pickup_location
             const hasPickup = !!fetchedActivity.pickup_location && fetchedActivity.pickup_location.trim() !== '';
             
+            // Get the first schedule if available
+            const firstSchedule = activitySchedules.length > 0 ? activitySchedules[0] : null;
+            
             form.reset({
               title: fetchedActivity.title,
               description: fetchedActivity.description ?? '',
               category_id: fetchedActivity.category_id ?? null,
-              duration: fetchedActivity.duration ?? '',
+              duration: fetchedActivity.duration ?? '2_hours',
               price: fetchedActivity.price ?? 0,
               max_participants: fetchedActivity.max_participants ?? 10,
               has_pickup: hasPickup, // Set based on pickup_location
@@ -149,6 +228,13 @@ export default function EditActivityPage() {
               b_price: fetchedActivity.b_price ?? null,
               status: fetchedActivity.status ?? null,
               discounts: fetchedActivity.discounts ?? 0,
+              // Schedule fields
+              schedule_id: firstSchedule?.id ?? null,
+              schedule_start_time: firstSchedule?.start_time ?? '09:00',
+              schedule_end_time: firstSchedule?.end_time ?? '11:00',
+              schedule_capacity: firstSchedule?.capacity ?? 10,
+              schedule_availability_start_date: firstSchedule?.availability_start_date ?? new Date().toISOString().split('T')[0],
+              schedule_availability_end_date: firstSchedule?.availability_end_date ?? new Date(new Date().setMonth(new Date().getMonth() + 3)).toISOString().split('T')[0],
             })
           } else {
             toast({ title: 'Error', description: 'Activity not found.', variant: 'destructive' })
@@ -161,7 +247,7 @@ export default function EditActivityPage() {
           setIsLoading(false)
         }
       }
-      fetchActivity()
+      fetchActivityAndSchedules()
     } else if (router.isReady) {
       setIsLoading(false)
       if (!numericActivityId) {
@@ -198,7 +284,55 @@ export default function EditActivityPage() {
         image_url: data.image_urls && data.image_urls.length > 0 ? data.image_urls[0] : null,
       };
 
-      await activityCrudService.updateActivity(numericActivityId, activityData, user)
+      // Update activity
+      await activityCrudService.updateActivity(numericActivityId, activityData, user);
+
+      // Update or create schedule
+      const scheduleData = {
+        activity_id: numericActivityId,
+        start_time: data.schedule_start_time || '09:00',
+        end_time: data.schedule_end_time || '11:00',
+        capacity: data.schedule_capacity || 10,
+        availability_start_date: data.schedule_availability_start_date,
+        availability_end_date: data.schedule_availability_end_date,
+        is_active: true,
+        status: 'active',
+        updated_by: user.id as any,
+      };
+
+      if (data.schedule_id) {
+        // Update existing schedule
+        const { error } = await supabase
+          .from('activity_schedules')
+          .update(scheduleData)
+          .eq('id', data.schedule_id);
+
+        if (error) {
+          console.error('Error updating schedule:', error);
+          toast({
+            title: 'Warning',
+            description: 'Activity updated but schedule could not be saved.',
+            variant: 'default'
+          });
+        }
+      } else {
+        // Create new schedule
+        const { error } = await supabase
+          .from('activity_schedules')
+          .insert({
+            ...scheduleData,
+            created_by: user.id as any,
+          });
+
+        if (error) {
+          console.error('Error creating schedule:', error);
+          toast({
+            title: 'Warning',
+            description: 'Activity updated but schedule could not be saved.',
+            variant: 'default'
+          });
+        }
+      }
 
       toast({
         title: 'Activity updated',
@@ -343,9 +477,22 @@ export default function EditActivityPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Duration</FormLabel>
-                          <FormControl>
-                            <Input placeholder='e.g., 04:00:00' {...field} />
-                          </FormControl>
+                          <Select 
+                            onValueChange={field.onChange} 
+                            value={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder='Select duration' />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value='1_hour'>1 Hour</SelectItem>
+                              <SelectItem value='2_hours'>2 Hours</SelectItem>
+                              <SelectItem value='half_day'>Half Day (4 Hours)</SelectItem>
+                              <SelectItem value='full_day'>Full Day (8 Hours)</SelectItem>
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -383,6 +530,97 @@ export default function EditActivityPage() {
                               {...field} 
                               value={field.value || ''}
                             />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Schedule Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Activity Schedule</CardTitle>
+                  <CardDescription>
+                    Update when this activity is available for booking.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className='space-y-6'>
+                  <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                    <FormField
+                      control={form.control}
+                      name='schedule_start_time'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Start Time</FormLabel>
+                          <FormControl>
+                            <Input type='time' {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name='schedule_end_time'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>End Time</FormLabel>
+                          <FormControl>
+                            <Input type='time' {...field} disabled />
+                          </FormControl>
+                          <FormDescription>
+                            Auto-calculated based on duration
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name='schedule_capacity'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Capacity per Schedule</FormLabel>
+                        <FormControl>
+                          <Input type='number' min='1' {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          Maximum number of bookings per scheduled time
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                    <FormField
+                      control={form.control}
+                      name='schedule_availability_start_date'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Available From</FormLabel>
+                          <FormControl>
+                            <Input type='date' {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name='schedule_availability_end_date'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Available Until</FormLabel>
+                          <FormControl>
+                            <Input type='date' {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
