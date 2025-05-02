@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Edit, Archive, Eye, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ActivityPreview } from "./ActivityPreview";
+import categoryService from '@/services/categoryService';
 
 interface ActivityCardProps {
   activity: Activity;
@@ -17,7 +18,24 @@ interface ActivityCardProps {
 
 export default function ActivityCard({ activity, onStatusChange, onDelete }: ActivityCardProps) {
   const [showPreview, setShowPreview] = useState(false);
+  const [categoryName, setCategoryName] = useState<string>('Uncategorized');
   
+  // Fetch category name when component mounts
+  useEffect(() => {
+    const fetchCategoryName = async () => {
+      if (activity.category_id) {
+        try {
+          const name = await categoryService.getCategoryNameById(activity.category_id);
+          setCategoryName(name);
+        } catch (error) {
+          console.error('Error fetching category name:', error);
+        }
+      }
+    };
+
+    fetchCategoryName();
+  }, [activity.category_id]);
+
   const getStatusVariant = (status: number | null) => {
     switch (status) {
       case 2: // Published
@@ -61,7 +79,7 @@ export default function ActivityCard({ activity, onStatusChange, onDelete }: Act
     id: activity.id.toString(),
     title: activity.title,
     description: activity.description || "",
-    category: activity.category_id ? `Category ${activity.category_id}` : "Uncategorized",
+    category: activity.category_id ? categoryName : "Uncategorized",
     duration: activity.duration || "",
     basePrice: activity.price,
     finalPrice: activity.b_price || activity.price,
@@ -109,7 +127,7 @@ export default function ActivityCard({ activity, onStatusChange, onDelete }: Act
         <CardContent className="p-4 flex-grow">
           <CardTitle className="text-lg mb-1 line-clamp-2">{activity.title}</CardTitle>
           <CardDescription className="text-sm text-muted-foreground mb-2 capitalize">
-            {activity.category_id ? `Category ${activity.category_id}` : "Uncategorized"} - {activity.duration.replace("_", " ")}
+            {activity.category_id ? categoryName : "Uncategorized"} - {activity.duration.replace("_", " ")}
           </CardDescription>
           <p className="font-semibold text-lg">
             ฿{activity.b_price?.toLocaleString() ?? activity.price.toLocaleString()}

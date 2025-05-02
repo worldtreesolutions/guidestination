@@ -44,6 +44,7 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { format, isValid } from "date-fns"
 import { ImageUploader } from "@/components/dashboard/activities/ImageUploader"
+import categoryService, { Category } from '@/services/categoryService'
 
 // Define the form schema using Zod (ensure it aligns with ActivityInsert)
 const formSchema = z.object({
@@ -84,6 +85,26 @@ export default function NewActivityPage() {
   const router = useRouter()
   const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [categories, setCategories] = useState<Category[]>([])
+
+  // Fetch categories when component mounts
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const categoriesData = await categoryService.getAllCategories();
+        setCategories(categoriesData);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load categories. Please try again.',
+          variant: 'destructive'
+        });
+      }
+    };
+
+    fetchCategories();
+  }, [toast]);
 
   // Initialize react-hook-form with defaults matching the new schema
   const form = useForm<FormValues>({
@@ -329,12 +350,11 @@ export default function NewActivityPage() {
                                </SelectTrigger>
                              </FormControl>
                              <SelectContent>
-                               <SelectItem value='1'>Adventure</SelectItem>
-                               <SelectItem value='2'>Culture</SelectItem>
-                               <SelectItem value='3'>Food & Cuisine</SelectItem>
-                               <SelectItem value='4'>Nature</SelectItem>
-                               <SelectItem value='5'>Wellness</SelectItem>
-                               <SelectItem value='6'>Workshop</SelectItem>
+                               {categories.map((category) => (
+                                 <SelectItem key={category.id} value={category.id.toString()}>
+                                   {category.name}
+                                 </SelectItem>
+                               ))}
                              </SelectContent>
                            </Select>
                           <FormMessage />
