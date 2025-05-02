@@ -92,7 +92,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (roleId || providerId) {
           const metadata: any = { ...authUser.user_metadata };
           if (roleId) metadata.role_id = roleId;
-          if (providerId) metadata.provider_id = providerId;
+          if (providerId) {
+            // Ensure provider_id is stored as a number
+            metadata.provider_id = Number(providerId);
+            console.log('Setting provider_id in metadata:', metadata.provider_id, 'Type:', typeof metadata.provider_id);
+          }
           
           try {
             await authService.updateUserMetadata(metadata);

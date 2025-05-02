@@ -34,15 +34,23 @@ const activityCrudService = {
       'full_day': '8 hours'
     };
 
+    // Log the incoming activity data
+    console.log('Creating activity with data:', activity);
+    console.log('Provider ID from activity data:', activity.provider_id);
+
     // Prepare data, casting user ID for integer columns
     const activityData = {
       ...activity,
       // Map the duration string to the proper interval format
       duration: durationMap[activity.duration] || activity.duration,
+      // Ensure provider_id is included and is a number
+      provider_id: activity.provider_id ? Number(activity.provider_id) : null,
       created_by: null, // Don't use user.id directly for integer columns
       updated_by: null, // Don't use user.id directly for integer columns
       is_active: activity.is_active !== undefined ? activity.is_active : true,
     };
+
+    console.log('Final activity data being inserted:', activityData);
 
     const { data, error } = await supabase
       .from('activities')

@@ -190,6 +190,15 @@ export default function NewActivityPage() {
     setIsSubmitting(true)
 
     try {
+      // Get provider ID from user metadata
+      const providerId = user.app_metadata?.provider_id;
+      
+      console.log('Provider ID from metadata:', providerId);
+      
+      if (!providerId) {
+        console.warn('No provider_id found in user metadata. Using fallback value.');
+      }
+
       // Prepare data directly matching ActivityInsert structure
       const activityData: ActivityInsert = {
         // Map form values to ActivityInsert fields
@@ -211,8 +220,11 @@ export default function NewActivityPage() {
         b_price: data.b_price ? Number(data.b_price) : null,
         status: data.status ? Number(data.status) : null,
         discounts: data.discounts ? Number(data.discounts) : 0,
-        provider_id: user.app_metadata?.provider_id ?? null,
+        // Ensure provider_id is a number
+        provider_id: providerId ? Number(providerId) : null,
       };
+
+      console.log('Activity data being sent:', activityData);
 
       // Call the CRUD service create function, passing the user object
       const createdActivity = await activityCrudService.createActivity(activityData, user);

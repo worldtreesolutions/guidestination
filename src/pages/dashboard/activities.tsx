@@ -32,10 +32,13 @@ import { useState, useEffect } from "react";
       // Fetch provider ID from database or use hardcoded test value
       useEffect(() => {
         if (user) {
-          // For testing purposes, use provider ID 1 if metadata is not set
-          const fetchedProviderId = user.app_metadata?.provider_id || 1;
+          // Get provider ID from user metadata and ensure it's a number
+          const metadataProviderId = user.app_metadata?.provider_id;
+          const fetchedProviderId = metadataProviderId ? Number(metadataProviderId) : 1;
+          
           setProviderId(fetchedProviderId);
-          console.log('Provider ID set to:', fetchedProviderId);
+          console.log('Provider ID set to:', fetchedProviderId, 'Type:', typeof fetchedProviderId);
+          console.log('Original provider ID from metadata:', metadataProviderId, 'Type:', typeof metadataProviderId);
         }
       }, [user]);
 
