@@ -2,27 +2,23 @@
 import Head from "next/head";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/router"; // Added router import
+import { useRouter } from "next/router"; 
 import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-// Import activityCrudService and its Activity type
 import activityCrudService, { Activity as CrudActivity } from "@/services/activityCrudService"; 
-// Keep Booking type if needed for recent bookings, adjust if necessary
 import { activityService, Booking } from "@/services/activityService"; 
-import { Loader2, AlertTriangle } from "lucide-react"; // Added AlertTriangle
-// Corrected import paths for dashboard components
-import { EarningsChart } from "@/components/dashboard/overview/EarningsChart"; // Corrected path
-import { RecentBookings } from "@/components/dashboard/overview/RecentBookings"; // Corrected path
-import { ActivityList } from "@/components/dashboard/overview/ActivityList"; // Corrected path
+import { Loader2, AlertTriangle } from "lucide-react"; 
+import { EarningsChart } from "@/components/dashboard/overview/EarningsChart"; 
+import { RecentBookings } from "@/components/dashboard/overview/RecentBookings"; 
+import { ActivityList } from "@/components/dashboard/overview/ActivityList"; 
 
-// @ Define a local Booking type matching RecentBookings component expectations
 interface DisplayBooking {
-  id: string; // Assuming booking ID is string, adjust if number
+  id: string; 
   activityName: string;
   customerName: string;
   date: Date;
   amount: number;
-  status: "confirmed" | "pending" | "cancelled"; // Match component's status type
+  status: "confirmed" | "pending" | "cancelled"; 
 }
 
 interface EarningsData {
@@ -32,17 +28,15 @@ interface EarningsData {
 }
 
 export default function DashboardOverviewPage() {
-  const { user, session, isAuthenticated, isLoading: isAuthLoading } = useAuth(); // Get session and auth loading state
+  const { user, session, isAuthenticated, isLoading: isAuthLoading } = useAuth(); 
   const router = useRouter();
-  const [isDataLoading, setIsDataLoading] = useState(true); // Separate state for data loading
+  const [isDataLoading, setIsDataLoading] = useState(true); 
   const [earnings, setEarnings] = useState<EarningsData | null>(null);
-  // @ Use the local DisplayBooking type for recent bookings state
   const [recentBookings, setRecentBookings] = useState<DisplayBooking[]>([]); 
   const [activities, setActivities] = useState<CrudActivity[]>([]); 
   const [providerId, setProviderId] = useState<number | null>(null);
-  const [fetchError, setFetchError] = useState<string | null>(null); // State for fetch errors
+  const [fetchError, setFetchError] = useState<string | null>(null); 
 
-  // Effect 1: Handle Authentication Status and Redirects
   useEffect(() => {
     console.log('[Auth Effect] Running - isAuthLoading:', isAuthLoading, 'isAuthenticated:', isAuthenticated);
     if (!isAuthLoading && !isAuthenticated) {
@@ -51,7 +45,6 @@ export default function DashboardOverviewPage() {
     }
   }, [isAuthLoading, isAuthenticated, router]);
 
-  // Effect 2: Set Provider ID once user is available
   useEffect(() => {
     console.log('[Provider ID Effect] Running - User:', user ? user.id : 'null');
     if (user?.app_metadata?.provider_id) {
@@ -61,22 +54,18 @@ export default function DashboardOverviewPage() {
         console.log('[Provider ID Effect] Provider ID set:', fetchedProviderId);
       } else {
         console.warn('[Provider ID Effect] provider_id in metadata is not a valid number:', user.app_metadata.provider_id);
-        setProviderId(null); // Explicitly set to null if invalid
+        setProviderId(null); 
       }
     } else if (user) {
       console.warn('[Provider ID Effect] Provider ID not found in user metadata.');
-      setProviderId(null); // Explicitly set to null if not found
+      setProviderId(null); 
     }
-    // This effect only depends on the user object
   }, [user]);
 
-  // Effect 3: Fetch Data when authenticated and providerId is known
   useEffect(() => {
-    // Only proceed if authentication is resolved, user is authenticated, and providerId is set
     if (!isAuthLoading && isAuthenticated && providerId !== null) {
       console.log('[Data Fetch Effect] Conditions met. Fetching data for providerId:', providerId);
       const fetchData = async () => {
-        // Ensure user object and ID are available before fetching
         if (!user?.id) {
            console.error('[Data Fetch Effect] User ID is missing, cannot fetch data.');
            setFetchError('User information is missing.');
@@ -84,65 +73,55 @@ export default function DashboardOverviewPage() {
            return;
         }
         
-        setIsDataLoading(true); // Start data loading
-        setFetchError(null); // Reset error
+        setIsDataLoading(true); 
+        setFetchError(null); 
         try {
           console.log('[Data Fetch Effect] Fetching earnings, bookings, activities...');
-          // Fetch all data concurrently
           const [earningsData, bookingsData, activitiesResult] = await Promise.all([
-            activityService.getProviderEarnings(user.id), // Use user.id safely
-            // @ Use getBookingsByProvider instead of getDetailedBookingsByProvider
-            activityService.getBookingsByProvider(user.id), // Use correct fetch method
-            activityCrudService.getActivitiesByProviderId(providerId) // Use fetched providerId
+            activityService.getProviderEarnings(user.id), 
+            activityService.getBookingsByProvider(user.id), 
+            activityCrudService.getActivitiesByProviderId(providerId) 
           ]);
           console.log('[Data Fetch Effect] Data fetched successfully.');
-          console.log('[Data Fetch Effect] Fetched Activities:', activitiesResult.activities); // Log fetched activities
-          console.log('[Data Fetch Effect] Fetched Bookings:', bookingsData); // Log fetched bookings
+          console.log('[Data Fetch Effect] Fetched Activities:', activitiesResult.activities); 
+          console.log('[Data Fetch Effect] Fetched Bookings:', bookingsData); 
 
           setEarnings(earningsData);
           
-          // @ Map fetched bookings to the DisplayBooking type
-          // Ensure the properties used here (id, activity_name, etc.) match what getBookingsByProvider returns
           const mappedBookings: DisplayBooking[] = bookingsData 
-            .map((b: any) => ({ // Use 'any' temporarily if type is complex/unknown
-              id: b.id.toString(), // Ensure ID is string
-              activityName: b.activity_name || 'Unknown Activity', // Use fetched activity name (adjust if property name differs)
-              customerName: b.customer_name || 'Unknown Customer', // Adjust if property name differs
-              date: new Date(b.booking_date || b.created_at), // Use booking_date or fallback
-              amount: b.total_price || 0, // Use fetched total price (adjust if property name differs)
-              status: b.status || 'pending', // Use fetched status
+            .map((b: any) => ({ 
+              id: b.id.toString(), 
+              activityName: b.activity_name || 'Unknown Activity', 
+              customerName: b.customer_name || 'Unknown Customer', 
+              date: new Date(b.booking_date || b.created_at), 
+              amount: b.total_price || 0, 
+              status: b.status || 'pending', 
             }))
-             // @ Add explicit types for sort parameters
             .sort((a: DisplayBooking, b: DisplayBooking) => b.date.getTime() - a.date.getTime());
 
           setRecentBookings(mappedBookings.slice(0, 5));
-          setActivities(activitiesResult.activities); // Update activities state
+          setActivities(activitiesResult.activities); 
 
         } catch (error: any) {
           console.error("[Data Fetch Effect] Failed to fetch dashboard ", error);
-          setFetchError(`Failed to load dashboard  ${error.message}`); // More specific error
-          // Optionally show a toast message here
+          setFetchError(`Failed to load dashboard  ${error.message}`); 
         } finally {
           console.log('[Data Fetch Effect] Setting isDataLoading to false.');
-          setIsDataLoading(false); // Finish data loading regardless of success/error
+          setIsDataLoading(false); 
         }
       };
 
       fetchData();
     } else if (!isAuthLoading && isAuthenticated && providerId === null) {
-      // Handle case where user is authenticated but providerId is missing/invalid
       console.error('[Data Fetch Effect] Authenticated user is missing a valid provider ID.');
       setFetchError('Your account is not linked to a provider ID. Please contact support.');
-      setIsDataLoading(false); // Stop loading as we can't fetch data
+      setIsDataLoading(false); 
     } else if (!isAuthLoading && !isAuthenticated) {
-       // If not authenticated (and auth check is done), stop loading
        console.log('[Data Fetch Effect] User not authenticated, stopping data loading.');
        setIsDataLoading(false);
     }
-    // Dependencies: run when auth state, user, or providerId changes
   }, [isAuthLoading, isAuthenticated, user, providerId]); 
 
-  // Combined Loading State Check
   const isLoading = isAuthLoading || isDataLoading;
 
   if (isLoading) {
@@ -157,7 +136,6 @@ export default function DashboardOverviewPage() {
     );
   }
 
-  // Handle case where user is null after loading (should ideally not happen if authenticated)
   if (!user) {
      return (
       <DashboardLayout>
@@ -176,15 +154,12 @@ export default function DashboardOverviewPage() {
       </Head>
       <DashboardLayout>
         <div className="space-y-6">
-          {/* Welcome Header can be added here if needed */}
           <h1 className="text-2xl font-bold tracking-tight">Dashboard Overview</h1>
 
-          {/* Metrics Cards - Example Structure */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-                {/* Icon can go here */}
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
@@ -198,7 +173,6 @@ export default function DashboardOverviewPage() {
              <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Pending Revenue</CardTitle>
-                 {/* Icon can go here */}
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
@@ -212,11 +186,9 @@ export default function DashboardOverviewPage() {
              <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Active Activities</CardTitle>
-                 {/* Icon can go here */}
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {/* Corrected: Compare status with number 2 for 'published'/'active' */}
                   {activities?.filter(a => a.status === 2).length ?? '0'}
                 </div>
                  <p className="text-xs text-muted-foreground">
@@ -227,7 +199,6 @@ export default function DashboardOverviewPage() {
              <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Recent Bookings</CardTitle>
-                 {/* Icon can go here */}
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
@@ -240,16 +211,14 @@ export default function DashboardOverviewPage() {
             </Card>
           </div>
 
-          {/* Charts and Lists */}
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
             <Card className="lg:col-span-4">
               <CardHeader>
                 <CardTitle>Earnings Overview</CardTitle>
               </CardHeader>
               <CardContent className="pl-2">
-                 {/* Ensure EarningsChart receives valid data */}
                 {earnings?.monthly ? (
-                  <EarningsChart data={earnings.monthly} />
+                  <EarningsChart data={earnings.monthly.map(item => ({ month: item.month, earnings: item.amount }))} />
                 ) : (
                   <p className="text-muted-foreground">No earnings data available.</p>
                 )}
@@ -272,7 +241,6 @@ export default function DashboardOverviewPage() {
             </Card>
           </div>
 
-          {/* Activity List */}
            <Card>
               <CardHeader>
                 <CardTitle>Your Activities</CardTitle>

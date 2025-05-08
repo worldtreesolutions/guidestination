@@ -1,3 +1,4 @@
+
 import { useState } from "react"
 import Head from "next/head"
 import { Navbar } from "@/components/layout/Navbar"
@@ -21,15 +22,17 @@ export default function ActivityOwnerPage() {
         
         <main className="flex-1">
           <div className="relative py-12 bg-gradient-to-b from-primary/10 to-background">
-            <div className="container max-w-7xl">
-              <div className="text-center mb-12">
+            {/* Changed className here to use w-full and padding */}
+            <div className="w-full px-4 sm:px-6 lg:px-8">
+              <div className="text-center mb-12 max-w-7xl mx-auto"> {/* Added max-w-7xl and mx-auto for inner content centering */}
                 <h1 className="text-4xl font-bold mb-4">List Your Activities on Guidestination</h1>
                 <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
                   Join the leading platform for local experiences in Chiang Mai and connect with travelers worldwide
                 </p>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-8 mb-12">
+              {/* Added max-w-7xl and mx-auto for inner content centering */}
+              <div className="grid md:grid-cols-2 gap-8 mb-12 max-w-7xl mx-auto">
                 <Card>
                   <CardHeader>
                     <Shield className="h-10 w-10 text-primary mb-4" />
@@ -71,6 +74,7 @@ export default function ActivityOwnerPage() {
                 </Card>
               </div>
 
+              {/* This card can remain centered as it was */}
               <Card className="max-w-3xl mx-auto">
                 <CardHeader>
                   <CardTitle>Register as an Activity Provider</CardTitle>
