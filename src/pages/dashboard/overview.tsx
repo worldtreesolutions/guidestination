@@ -146,6 +146,9 @@ export default function DashboardOverviewPage() {
     );
   } 
 
+  // Count active activities (status === 2)
+  const activeActivitiesCount = activities.filter(a => a.status === 2).length;
+
   return ( 
     <>
       <Head>
@@ -189,7 +192,7 @@ export default function DashboardOverviewPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {activities?.filter(a => a.status === 2).length ?? '0'}
+                  {activeActivitiesCount}
                 </div>
                  <p className="text-xs text-muted-foreground">
                   Number of currently published activities
@@ -202,10 +205,10 @@ export default function DashboardOverviewPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  +{recentBookings?.length ?? '0'}
+                  {recentBookings.length}
                 </div>
                  <p className="text-xs text-muted-foreground">
-                  New bookings in the last period (adjust logic)
+                  New bookings in the last period
                 </p>
               </CardContent>
             </Card>
