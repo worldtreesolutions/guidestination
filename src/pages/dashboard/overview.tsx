@@ -1,3 +1,4 @@
+
 import Head from "next/head";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
@@ -165,9 +166,9 @@ export default function DashboardOverviewPage() {
         </div>
       </DashboardLayout>
     );
-  } // Ensure this closing brace is correct
+  } 
 
-  return ( // Ensure this return is correctly placed
+  return ( 
     <>
       <Head>
         <title>Dashboard Overview - Guidestination</title>
@@ -215,7 +216,8 @@ export default function DashboardOverviewPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {activities?.filter(a => a.status === 'published').length ?? '0'}
+                  {/* Corrected: Compare status with number 2 for 'published'/'active' */}
+                  {activities?.filter(a => a.status === 2).length ?? '0'}
                 </div>
                  <p className="text-xs text-muted-foreground">
                   Number of currently published activities
