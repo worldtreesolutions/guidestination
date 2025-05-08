@@ -89,7 +89,8 @@ export function ActivityList({ activities, onDelete }: ActivityListProps) {
                       {getStatusText(activity.status)}
                     </Badge>
                   </TableCell>
-                  <TableCell>{activity.basePrice ? activity.basePrice.toLocaleString() : 'N/A'}</TableCell>
+                  {/* @ Corrected to use activity.price as per Activity type */}
+                  <TableCell>{activity.price ? activity.price.toLocaleString() : 'N/A'}</TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
                       <Button asChild variant="outline" size="sm">
