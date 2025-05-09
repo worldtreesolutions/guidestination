@@ -29,7 +29,7 @@ export const authService = {
    * Sign in with email and password using Supabase Auth
    */
   async signInWithEmail(email: string, password: string): Promise<{ user: User | null; session: Session | null; roleId: number | null; providerId: string | null }> {
-    const { userRecord, error: userError } = await supabaseAdmin
+    const { user: userRecord, error: userError } = await supabaseAdmin
       .from('users')
       .select('id, verified, role_id')
       .eq('email', email)
@@ -254,7 +254,7 @@ export const authService = {
   },
 
   async getUserDetails(authUuid: string): Promise<{ roleId: number | null; providerId: string | null }> {
-    const { userRecord, error } = await supabaseAdmin
+    const { user: userRecord, error } = await supabaseAdmin
       .from('users')
       .select('role_id') 
       .eq('user_id', authUuid) 
