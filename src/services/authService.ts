@@ -156,7 +156,7 @@ export const authService = {
         email: userRegistrationData.email,
         password: tempPassword,
         email_confirm: true,
-        user_meta { 
+        user_meta { // Corrected: Added colon
           name: userRegistrationData.name,
           phone: userRegistrationData.phone,
           user_type: userRegistrationData.user_type || "activity_provider"
@@ -224,8 +224,8 @@ export const authService = {
     if (error) throw error;
   },
 
-  async updateUserMetadata(meta UserMetadata) { 
-    const { data, error } = await supabase.auth.updateUser({  metadata }); 
+  async updateUserMetadata(metadata: UserMetadata) { // Corrected: parameter definition
+    const { data, error } = await supabase.auth.updateUser({  metadata }); // Corrected: pass metadata under 'data'
     if (error) throw error;
     return data.user;
   },
@@ -245,7 +245,11 @@ export const authService = {
       if (signInError) throw signInError;
       return { user: data.user, session: data.session };
     } else {
-      const { data, error } = await supabase.auth.signUp({ email, password, options: {  { name, verified: true } } }); 
+      const { data, error } = await supabase.auth.signUp({ 
+        email, 
+        password, 
+        options: {  { name, verified: true } } // Corrected: pass options.data
+      }); 
       if (error) throw error;
       return { user: data.user, session: data.session };
     }
