@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { supabaseAdmin } from "@/integrations/supabase/admin";
 import { v4 as uuidv4 } from "uuid";
@@ -156,7 +155,7 @@ export const authService = {
         email: userRegistrationData.email,
         password: tempPassword,
         email_confirm: true,
-        user_meta { // Corrected syntax
+        user_meta: { // Corrected syntax
           name: userRegistrationData.name,
           phone: userRegistrationData.phone,
           user_type: userRegistrationData.user_type || "activity_provider"
@@ -224,8 +223,8 @@ export const authService = {
     if (error) throw error;
   },
 
-  async updateUserMetadata(meta UserMetadata) { // Corrected parameter definition
-    const { data, error } = await supabase.auth.updateUser({  metadata }); // Corrected: pass metadata under 'data'
+  async updateUserMetadata(meta: UserMetadata) { // Corrected parameter definition
+    const { data, error } = await supabase.auth.updateUser({  metadata: meta }); // Corrected: pass metadata under 'data'
     if (error) throw error;
     return data.user;
   },
@@ -248,7 +247,7 @@ export const authService = {
       const { data, error } = await supabase.auth.signUp({ 
         email, 
         password, 
-        options: {  { name, verified: true } } // Corrected: pass options.data
+        options: {  data: { name, verified: true } } // Corrected: pass options.data
       }); 
       if (error) throw error;
       return { user: data.user, session: data.session };
@@ -273,7 +272,7 @@ export const authService = {
     
     let providerIdString: string | null = null;
     try {
-        const {  { user: authUser } } = await supabase.auth.getUser(); 
+        const {  user: authUser } = await supabase.auth.getUser(); 
         if (authUser && authUser.app_metadata && authUser.app_metadata.provider_id) {
             providerIdString = authUser.app_metadata.provider_id.toString();
         }
