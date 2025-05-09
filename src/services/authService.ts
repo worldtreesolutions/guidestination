@@ -156,7 +156,7 @@ export const authService = {
         email: userRegistrationData.email,
         password: tempPassword,
         email_confirm: true,
-        user_meta { // Corrected: Added colon
+        user_meta { // Corrected: Changed to user_metadata and added colon
           name: userRegistrationData.name,
           phone: userRegistrationData.phone,
           user_type: userRegistrationData.user_type || "activity_provider"
@@ -224,7 +224,7 @@ export const authService = {
     if (error) throw error;
   },
 
-  async updateUserMetadata(metadata: UserMetadata) { // Corrected: parameter definition
+  async updateUserMetadata(meta UserMetadata) { // Corrected: parameter definition
     const { data, error } = await supabase.auth.updateUser({  metadata }); // Corrected: pass metadata under 'data'
     if (error) throw error;
     return data.user;
