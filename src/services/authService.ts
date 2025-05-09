@@ -91,21 +91,21 @@ export const authService = {
    * This checks both auth.users and public.users tables
    */
   async checkUserExists(email: string): Promise<{ exists: boolean; userId?: string; authUserId?: string }> {
-    // First check in auth.users table
-    const { data: authData, error: authError } = await supabaseAdmin
-      .from("auth.users")
-      .select("id")
-      .eq("email", email)
-      .maybeSingle();
+    // First check in auth users table using the auth API
+    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.listUsers({
+      filter: {
+        email: email
+      }
+    });
     
-    if (authError && authError.code !== 'PGRST116') {
-      console.error("Error checking user existence in auth.users:", authError.message);
+    if (authError) {
+      console.error("Error checking user existence in auth users:", authError.message);
     }
     
     // Then check in public.users table
     const { data: userData, error: userError } = await supabaseAdmin
       .from("users")
-      .select("id")
+      .select("id, auth_user_id")
       .eq("email", email)
       .maybeSingle();
 
@@ -113,13 +113,23 @@ export const authService = {
       console.error("Error checking user existence in users table:", userError.message);
     }
 
-    const authUserExists = !!authData;
+    // Check if user exists in auth users
+    const authUserExists = authData && authData.users && authData.users.length > 0;
     const appUserExists = !!userData;
+    
+    // Get the auth user ID if it exists
+    let authUserId = null;
+    if (authUserExists && authData.users && authData.users.length > 0) {
+      authUserId = authData.users[0].id;
+    } else if (appUserExists && userData.auth_user_id) {
+      // If we didn't find it in auth users but it's stored in the users table
+      authUserId = userData.auth_user_id;
+    }
     
     return {
       exists: authUserExists || appUserExists,
       userId: userData?.id?.toString(), // ID from users table (might be numeric)
-      authUserId: authData?.id // UUID from auth.users table
+      authUserId: authUserId // UUID from auth users
     };
   },
 
@@ -152,22 +162,22 @@ export const authService = {
    * Create a new user in both auth.users and public.users tables
    * This ensures the user_id in activity_owners can reference the auth.users UUID
    */
-  async createUser(userData: UserRegistration): Promise<{ userId: string }> {
-    console.log("Creating new user with data:", { ...userData, password: userData.password ? "***" : undefined });
+  async createUser(userRegistration: UserRegistration): Promise<{ userId: string }> {
+    console.log("Creating new user with data:", { ...userRegistration, password: userRegistration.password ? "***" : undefined });
     
     try {
       // Generate a temporary password if none provided
-      const tempPassword = userData.password || `temp-${uuidv4().substring(0, 8)}`;
+      const tempPassword = userRegistration.password || `temp-${uuidv4().substring(0, 8)}`;
       
       // Step 1: Create user in auth.users table first to get the UUID
       const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
-        email: userData.email,
+        email: userRegistration.email,
         password: tempPassword,
         email_confirm: true, // Auto-confirm email to avoid verification issues
         user_metadata: {
-          name: userData.name,
-          phone: userData.phone,
-          user_type: userData.user_type || "activity_provider"
+          name: userRegistration.name,
+          phone: userRegistration.phone,
+          user_type: userRegistration.user_type || "activity_provider"
         }
       });
 
@@ -184,14 +194,14 @@ export const authService = {
       console.log("Created auth user with UUID:", authUserId);
 
       // Step 2: Create corresponding entry in public.users table with reference to auth user
-      const { data: userData, error: userError } = await supabaseAdmin
+      const { data: newUserData, error: userError } = await supabaseAdmin
         .from("users")
         .insert({
           auth_user_id: authUserId, // Store the auth.users UUID
-          name: userData.name,
-          email: userData.email,
-          phone: userData.phone || null,
-          user_type: userData.user_type || "activity_provider",
+          name: userRegistration.name,
+          email: userRegistration.email,
+          phone: userRegistration.phone || null,
+          user_type: userRegistration.user_type || "activity_provider",
           verified: false
         })
         .select("id")
@@ -208,7 +218,7 @@ export const authService = {
         throw userError;
       }
 
-      console.log("Created app user with ID:", userData?.id);
+      console.log("Created app user with ID:", newUserData?.id);
       
       // Return the auth user UUID, which is what we'll use for activity_owners.user_id
       return { userId: authUserId };
