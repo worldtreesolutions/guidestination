@@ -87,10 +87,6 @@ export const authService = {
     let authUserApiId: string | undefined = undefined;
 
     // Check in auth.users table using the admin API
-    // Corrected: listUsers does not take a filter string directly.
-    // It expects an object with options like `page`, `perPage`, or specific filters if supported by the version.
-    // For email filtering, it's often done by iterating or if the API supports a direct email filter.
-    // Assuming the intent is to find a user by email:
     const {  authUsersData, error: authUsersError } = await supabaseAdmin.auth.admin.listUsers();
 
 
@@ -160,7 +156,7 @@ export const authService = {
         email: userRegistrationData.email,
         password: tempPassword,
         email_confirm: true,
-        user_metadata: { // Corrected: Changed user_meta to user_metadata and added colon
+        user_meta { 
           name: userRegistrationData.name,
           phone: userRegistrationData.phone,
           user_type: userRegistrationData.user_type || "activity_provider"
@@ -182,12 +178,12 @@ export const authService = {
       const {  publicUserInsertData, error: publicUserInsertError } = await supabaseAdmin
         .from("users")
         .insert({
-          user_id: authUserId, // Correct column name for auth.users UUID
+          user_id: authUserId, 
           name: userRegistrationData.name,
           email: userRegistrationData.email,
           phone: userRegistrationData.phone || null,
           user_type: userRegistrationData.user_type || "activity_provider",
-          verified: false // New users are not verified by default in public.users
+          verified: false 
         })
         .select("id")
         .single();
@@ -203,10 +199,10 @@ export const authService = {
       }
 
       console.log("Created public.users app user with ID:", publicUserInsertData?.id);
-      return { userId: authUserId }; // Return the auth.users UUID
+      return { userId: authUserId }; 
     } catch (error) {
       console.error("Error in createUser:", error);
-      throw error; // Re-throw the error to be caught by the caller
+      throw error; 
     }
   },
 
@@ -228,8 +224,8 @@ export const authService = {
     if (error) throw error;
   },
 
-  async updateUserMetadata(meta UserMetadata) { // Corrected: Changed meta to metadata and added colon
-    const { data, error } = await supabase.auth.updateUser({  metadata }); // Corrected: Pass metadata as data property
+  async updateUserMetadata(meta UserMetadata) { 
+    const { data, error } = await supabase.auth.updateUser({  metadata }); 
     if (error) throw error;
     return data.user;
   },
@@ -249,19 +245,17 @@ export const authService = {
       if (signInError) throw signInError;
       return { user: data.user, session: data.session };
     } else {
-      // This case should ideally not be hit if checkUserExists works correctly and user is verified
-      const { data, error } = await supabase.auth.signUp({ email, password, options: {  { name, verified: true } } }); // Corrected: Pass options.data
+      const { data, error } = await supabase.auth.signUp({ email, password, options: {  { name, verified: true } } }); 
       if (error) throw error;
       return { user: data.user, session: data.session };
     }
   },
 
   async getUserDetails(authUuid: string): Promise<{ roleId: number | null; providerId: string | null }> {
-    // Query public.users table using the auth.users UUID
     const {  userRecord, error } = await supabaseAdmin
       .from('users')
-      .select('role_id') // Assuming role_id is in public.users
-      .eq('user_id', authUuid) // Query by the auth UUID stored in public.users.user_id
+      .select('role_id') 
+      .eq('user_id', authUuid) 
       .single();
 
     if (error && error.code !== 'PGRST116') {
@@ -273,19 +267,15 @@ export const authService = {
         return { roleId: null, providerId: null };
     }
     
-    // Attempt to get the current auth user to extract app_metadata.provider_id
-    // This might not be the correct user if authUuid is for a different user.
-    // Consider if providerId should be stored in public.users or fetched differently.
     let providerIdString: string | null = null;
     try {
-        const {  { user: authUser } } = await supabase.auth.getUser(); // Gets current session's user
+        const {  { user: authUser } } = await supabase.auth.getUser(); 
         if (authUser && authUser.app_metadata && authUser.app_metadata.provider_id) {
             providerIdString = authUser.app_metadata.provider_id.toString();
         }
     } catch (e) {
         console.error("Error getting current auth user for providerId:", e);
     }
-
 
     return {
       roleId: userRecord?.role_id ?? null,
