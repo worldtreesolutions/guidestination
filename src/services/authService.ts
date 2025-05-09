@@ -29,7 +29,7 @@ export const authService = {
    * Sign in with email and password using Supabase Auth
    */
   async signInWithEmail(email: string, password: string): Promise<{ user: User | null; session: Session | null; roleId: number | null; providerId: string | null }> {
-    const {  userRecord, error: userError } = await supabaseAdmin
+    const { user: userRecord, error: userError } = await supabaseAdmin
       .from('users')
       .select('id, verified, role_id')
       .eq('email', email)
@@ -86,8 +86,7 @@ export const authService = {
     let authUserApiId: string | undefined = undefined;
 
     // Check in auth.users table using the admin API
-    const {  authUsersData, error: authUsersError } = await supabaseAdmin.auth.admin.listUsers();
-
+    const { authUsersData, error: authUsersError } = await supabaseAdmin.auth.admin.listUsers();
 
     if (authUsersError) {
       console.error("Error listing users from auth.users:", authUsersError.message);
@@ -100,7 +99,7 @@ export const authService = {
     }
     
     // Check in public.users table
-    const {  publicUserData, error: publicUserError } = await supabaseAdmin
+    const { publicUserData, error: publicUserError } = await supabaseAdmin
       .from("users")
       .select("id, user_id") // Assuming 'user_id' in public.users stores the auth.users UUID
       .eq("email", email)
@@ -151,11 +150,11 @@ export const authService = {
     try {
       const tempPassword = userRegistrationData.password || `temp-${uuidv4().substring(0, 8)}`;
       
-      const {  authUserResponse, error: authError } = await supabaseAdmin.auth.admin.createUser({
+      const { authUserResponse, error: authError } = await supabaseAdmin.auth.admin.createUser({
         email: userRegistrationData.email,
         password: tempPassword,
         email_confirm: true,
-        user_meta: { // Corrected syntax
+        user_meta: { // Corrected syntax: added colon
           name: userRegistrationData.name,
           phone: userRegistrationData.phone,
           user_type: userRegistrationData.user_type || "activity_provider"
@@ -174,7 +173,7 @@ export const authService = {
       const authUserId = authUserResponse.user.id;
       console.log("Created auth user with UUID:", authUserId);
 
-      const {  publicUserInsertData, error: publicUserInsertError } = await supabaseAdmin
+      const { publicUserInsertData, error: publicUserInsertError } = await supabaseAdmin
         .from("users")
         .insert({
           user_id: authUserId, 
@@ -224,7 +223,7 @@ export const authService = {
   },
 
   async updateUserMetadata(meta: UserMetadata) { // Corrected parameter definition
-    const { data, error } = await supabase.auth.updateUser({  metadata: meta }); // Corrected: pass metadata under 'data'
+    const { data, error } = await supabase.auth.updateUser({ meta }); // Corrected: pass metadata under 'data' key
     if (error) throw error;
     return data.user;
   },
@@ -247,7 +246,7 @@ export const authService = {
       const { data, error } = await supabase.auth.signUp({ 
         email, 
         password, 
-        options: {  data: { name, verified: true } } // Corrected: pass options.data
+        options: { data: { name, verified: true } } // Corrected: pass options.data
       }); 
       if (error) throw error;
       return { user: data.user, session: data.session };
@@ -255,7 +254,7 @@ export const authService = {
   },
 
   async getUserDetails(authUuid: string): Promise<{ roleId: number | null; providerId: string | null }> {
-    const {  userRecord, error } = await supabaseAdmin
+    const { userRecord, error } = await supabaseAdmin
       .from('users')
       .select('role_id') 
       .eq('user_id', authUuid) 
@@ -272,7 +271,7 @@ export const authService = {
     
     let providerIdString: string | null = null;
     try {
-        const {  user: authUser } = await supabase.auth.getUser(); 
+        const { user: authUser } = await supabase.auth.getUser(); 
         if (authUser && authUser.app_metadata && authUser.app_metadata.provider_id) {
             providerIdString = authUser.app_metadata.provider_id.toString();
         }
