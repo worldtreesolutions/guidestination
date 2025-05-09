@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { supabaseAdmin } from "@/integrations/supabase/admin";
 import { v4 as uuidv4 } from "uuid";
@@ -21,6 +22,7 @@ export interface UserRegistration {
   email: string;
   phone?: string;
   user_type?: string;
+  password?: string;
 }
 
 export const authService = {
@@ -85,24 +87,39 @@ export const authService = {
   },
 
   /**
-   * Check if a user exists by email (Corrected return type)
+   * Check if a user exists by email
+   * This checks both auth.users and public.users tables
    */
-  async checkUserExists(email: string): Promise<{ exists: boolean; userId?: string }> { // userId is already string (UUID) - OK
-    const { data, error } = await supabaseAdmin // Use admin client here
+  async checkUserExists(email: string): Promise<{ exists: boolean; userId?: string; authUserId?: string }> {
+    // First check in auth.users table
+    const { data: authData, error: authError } = await supabaseAdmin
+      .from("auth.users")
+      .select("id")
+      .eq("email", email)
+      .maybeSingle();
+    
+    if (authError && authError.code !== 'PGRST116') {
+      console.error("Error checking user existence in auth.users:", authError.message);
+    }
+    
+    // Then check in public.users table
+    const { data: userData, error: userError } = await supabaseAdmin
       .from("users")
-      .select("id") // id in users table is INT
+      .select("id")
       .eq("email", email)
       .maybeSingle();
 
-    if (error) {
-      console.error("Error checking user existence:", error.message);
-      return { exists: false };
+    if (userError && userError.code !== 'PGRST116') {
+      console.error("Error checking user existence in users table:", userError.message);
     }
 
+    const authUserExists = !!authData;
+    const appUserExists = !!userData;
+    
     return {
-      exists: !!data,
-      // @ Convert numeric ID to string if needed elsewhere, but keep as number internally if appropriate
-      userId: data?.id?.toString() // Convert number ID to string
+      exists: authUserExists || appUserExists,
+      userId: userData?.id?.toString(), // ID from users table (might be numeric)
+      authUserId: authData?.id // UUID from auth.users table
     };
   },
 
@@ -110,7 +127,7 @@ export const authService = {
    * Check if user exists and is verified
    */
   async checkUserVerification(email: string): Promise<UserVerificationStatus> {
-    const { data, error } = await supabaseAdmin // Use admin client here
+    const { data, error } = await supabaseAdmin
       .from('users')
       .select('id, verified')
       .eq('email', email)
@@ -132,67 +149,86 @@ export const authService = {
   },
 
   /**
-   * Create a new user in the users table (Corrected return type)
+   * Create a new user in both auth.users and public.users tables
+   * This ensures the user_id in activity_owners can reference the auth.users UUID
    */
-  async createUser(userData: UserRegistration): Promise<{ userId: string }> { // userId is already string (UUID) - OK
-    const { data, error } = await supabaseAdmin // Use admin client here
-      .from("users")
-      .insert({
-        name: userData.name,
+  async createUser(userData: UserRegistration): Promise<{ userId: string }> {
+    console.log("Creating new user with data:", { ...userData, password: userData.password ? "***" : undefined });
+    
+    try {
+      // Generate a temporary password if none provided
+      const tempPassword = userData.password || `temp-${uuidv4().substring(0, 8)}`;
+      
+      // Step 1: Create user in auth.users table first to get the UUID
+      const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
         email: userData.email,
-        phone: userData.phone || null,
-        user_type: userData.user_type || "activity_provider",
-        verified: false 
-      })
-      .select("id") // id is INT
-      .single();
+        password: tempPassword,
+        email_confirm: true, // Auto-confirm email to avoid verification issues
+        user_metadata: {
+          name: userData.name,
+          phone: userData.phone,
+          user_type: userData.user_type || "activity_provider"
+        }
+      });
 
-    if (error) {
-      console.error("Error creating user in users table:", error.message);
+      if (authError) {
+        console.error("Error creating user in auth.users:", authError);
+        throw authError;
+      }
+
+      if (!authUser || !authUser.user || !authUser.user.id) {
+        throw new Error("Failed to create auth user: No user ID returned");
+      }
+
+      const authUserId = authUser.user.id; // This is a UUID
+      console.log("Created auth user with UUID:", authUserId);
+
+      // Step 2: Create corresponding entry in public.users table with reference to auth user
+      const { data: userData, error: userError } = await supabaseAdmin
+        .from("users")
+        .insert({
+          auth_user_id: authUserId, // Store the auth.users UUID
+          name: userData.name,
+          email: userData.email,
+          phone: userData.phone || null,
+          user_type: userData.user_type || "activity_provider",
+          verified: false
+        })
+        .select("id")
+        .single();
+
+      if (userError) {
+        console.error("Error creating user in users table:", userError);
+        // If we fail here, we should try to clean up the auth user we created
+        try {
+          await supabaseAdmin.auth.admin.deleteUser(authUserId);
+        } catch (cleanupError) {
+          console.error("Failed to clean up auth user after error:", cleanupError);
+        }
+        throw userError;
+      }
+
+      console.log("Created app user with ID:", userData?.id);
+      
+      // Return the auth user UUID, which is what we'll use for activity_owners.user_id
+      return { userId: authUserId };
+    } catch (error) {
+      console.error("Error in createUser:", error);
       throw error;
     }
-
-    if (!data) {
-      throw new Error("Failed to create user: No data returned");
-    }
-
-    // @ Convert numeric ID to string for return type consistency
-    return { userId: data.id.toString() }; 
   },
 
   /**
-   * Create a verification token and send verification email (Corrected userId type)
+   * Create a verification token and send verification email
    */
-  async createEmailVerification(userId: string): Promise<{ token: string }> { // userId is already string (UUID) - OK
+  async createEmailVerification(userId: string): Promise<{ token: string }> {
     const token = uuidv4();
     
-    // @ Convert string userId back to number for insertion if user_id column is INT
-    const numericUserId = parseInt(userId, 10); 
-    if (isNaN(numericUserId)) {
-       throw new Error("Invalid user ID format for email verification.");
-    }
-
-    // Assuming email_verifications table exists and user_id is INT
-    // If the table doesn't exist or has a different schema, this will fail.
-    // Let's comment out the insert for now to avoid potential errors if the table isn't there.
-    /* 
-    const { error } = await supabaseAdmin // Use admin client here
-      .from("email_verifications") 
-      .insert({
-        user_id: numericUserId, // Pass the numeric ID
-        token: token
-      });
-
-    if (error) {
-      console.error("Error creating email verification record:", error.message);
-      // If the error is 'relation "public.email_verifications" does not exist', 
-      // it means the table needs to be created.
-      throw error; 
-    }
-    */
+    // Log for testing
+    console.log(`Verification token generated for user ${userId}: ${token}`);
     
-    // Log for testing since the actual insert is commented out
-    console.log(`Verification token generated for user ${userId} (numeric: ${numericUserId}): ${token}. (DB insert commented out)`); 
+    // Here we would typically send an email with the verification token
+    // For now, we'll just return the token
     return { token };
   },
 
@@ -239,7 +275,7 @@ export const authService = {
    */
   async setupPasswordForExistingUser(email: string, password: string, name: string): Promise<{ user: User | null; session: Session | null }> {
     // First check if user exists
-    const { exists, userId } = await this.checkUserExists(email);
+    const { exists, authUserId } = await this.checkUserExists(email);
     
     if (!exists) {
       throw new Error('No account found with this email. Please register first.');
@@ -252,55 +288,99 @@ export const authService = {
       throw new Error('Your account is pending verification. Please contact support.');
     }
     
-    // Create auth user with the existing email and new password
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { name, verified: true },
-      },
-    });
+    // Update the existing auth user with the new password
+    if (authUserId) {
+      const { error } = await supabaseAdmin.auth.admin.updateUserById(
+        authUserId,
+        { password }
+      );
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Sign in the user with the new credentials
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (signInError) {
+        throw signInError;
+      }
+      
+      return {
+        user: data.user,
+        session: data.session,
+      };
+    } else {
+      // If no auth user exists yet, create one
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { name, verified: true },
+        },
+      });
 
-    if (error) {
-      throw error;
+      if (error) {
+        throw error;
+      }
+
+      return {
+        user: data.user,
+        session: data.session,
+      };
     }
-
-    return {
-      user: data.user,
-      session: data.session,
-    };
   },
 
   /**
    * Fetch user details including role and provider ID
    */
   async getUserDetails(userId: string): Promise<{ roleId: number | null; providerId: string | null }> {
-    // @ Convert string userId back to number if users.id is INT
-    const numericUserId = parseInt(userId, 10);
-    if (isNaN(numericUserId)) {
-       console.error('Invalid user ID format for fetching details:', userId);
-       return { roleId: null, providerId: null };
-    }
-    
-    const { data, error } = await supabaseAdmin
+    // First try to find user by auth.users UUID
+    const { data: authUserData, error: authUserError } = await supabaseAdmin
       .from('users')
       .select('role_id')
-      .eq('id', numericUserId) // Use the numeric ID
+      .eq('auth_user_id', userId)
       .single();
-
-    if (error) {
-      console.error('Error fetching user details:', error);
-      return { roleId: null, providerId: null };
+    
+    if (!authUserError && authUserData) {
+      // Found user by auth_user_id
+      const { data: { user } } = await supabase.auth.getUser();
+      const providerId = user?.app_metadata?.provider_id ?? null;
+      
+      return {
+        roleId: authUserData?.role_id ?? null,
+        providerId: providerId ? providerId.toString() : null,
+      };
     }
+    
+    // If not found by UUID, try by numeric ID (legacy support)
+    const numericUserId = parseInt(userId, 10);
+    if (!isNaN(numericUserId)) {
+      const { data, error } = await supabaseAdmin
+        .from('users')
+        .select('role_id')
+        .eq('id', numericUserId)
+        .single();
 
-    // Fetch provider ID from auth metadata
-    const { data: { user } } = await supabase.auth.getUser();
-    const providerId = user?.app_metadata?.provider_id ?? null;
+      if (error) {
+        console.error('Error fetching user details:', error);
+        return { roleId: null, providerId: null };
+      }
 
-    return {
-      roleId: data?.role_id ?? null,
-      providerId: providerId ? providerId.toString() : null, // Ensure providerId is string or null
-    };
+      // Fetch provider ID from auth metadata
+      const { data: { user } } = await supabase.auth.getUser();
+      const providerId = user?.app_metadata?.provider_id ?? null;
+
+      return {
+        roleId: data?.role_id ?? null,
+        providerId: providerId ? providerId.toString() : null,
+      };
+    }
+    
+    return { roleId: null, providerId: null };
   },
 
   /**

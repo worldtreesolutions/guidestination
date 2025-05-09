@@ -1,4 +1,6 @@
+
 import { supabase } from "@/integrations/supabase/client"
+import { supabaseAdmin } from "@/integrations/supabase/admin"
 import type { Database } from "@/integrations/supabase/types"
 import authService from './authService';
 import { v4 as uuidv4 } from 'uuid';
@@ -30,9 +32,9 @@ export const activityOwnerService = {
   /**
    * Register an activity owner with multi-table process:
    * 1. Check if activity owner with email exists - if yes, throw error
-   * 2. Check if user exists in users table
-   * 3. If not, create user with verified=false
-   * 4. Insert new activity owner record
+   * 2. Check if user exists in both auth.users and public.users tables
+   * 3. If not, create user in both tables with the same UUID
+   * 4. Insert new activity owner record with the auth.users UUID
    * 5. Create email verification record if new user
    */
   async registerActivityOwner(registrationData: ActivityOwnerRegistration): Promise<ActivityOwner & { isNewUser?: boolean; isExistingOwner?: boolean }> {
@@ -51,16 +53,15 @@ export const activityOwnerService = {
         throw error;
       }
       
-      // Step 2: Check if user exists in users table
-      const { exists: userExists, userId } = await authService.checkUserExists(registrationData.email);
+      // Step 2: Check if user exists in auth.users and users tables
+      const { exists: userExists, authUserId } = await authService.checkUserExists(registrationData.email);
       
-      // Corrected: userId is a string (UUID)
       let actualUserId: string; 
       let isNewUser = false;
       
-      // Step 3: If user doesn't exist, create one
+      // Step 3: If user doesn't exist, create one in both tables
       if (!userExists) {
-        console.log('User does not exist, creating new user');
+        console.log('User does not exist, creating new user in auth.users and users tables');
         const { userId: newUserId } = await authService.createUser({
           name: registrationData.owner_name,
           email: registrationData.email,
@@ -68,18 +69,23 @@ export const activityOwnerService = {
           user_type: 'activity_provider'
         });
         
-        actualUserId = newUserId; // Assign the string UUID
+        actualUserId = newUserId; // This is now the UUID from auth.users
         isNewUser = true;
         
-        // Step 4: Create email verification for new user (pass string UUID)
+        // Step 4: Create email verification for new user
         await authService.createEmailVerification(newUserId); 
       } else {
-        console.log('User already exists with ID:', userId);
-        actualUserId = userId!; // Assign the existing string UUID
+        console.log('User already exists with auth ID:', authUserId);
+        // Use the auth.users UUID if it exists
+        actualUserId = authUserId || ''; 
+        
+        if (!actualUserId) {
+          throw new Error('Failed to get valid user ID for existing user');
+        }
       }
       
       // Step 5: Insert new activity owner
-      console.log('Creating new activity owner record');
+      console.log('Creating new activity owner record with user_id:', actualUserId);
       
       // Generate a UUID for the activity owner record
       const ownerId = uuidv4();
@@ -100,7 +106,7 @@ export const activityOwnerService = {
         insurance_policy: registrationData.insurance_policy,
         insurance_amount: registrationData.insurance_amount,
         status: 'pending',
-        user_id: actualUserId // Link to the user record (string UUID)
+        user_id: actualUserId // Now using the UUID from auth.users
       };
 
       console.log('Inserting activity owner with data:', insertData);
