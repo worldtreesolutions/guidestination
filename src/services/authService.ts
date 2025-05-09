@@ -156,7 +156,7 @@ export const authService = {
         email: userRegistrationData.email,
         password: tempPassword,
         email_confirm: true,
-        user_meta { // Corrected: Added colon
+        user_meta { // Corrected: This should be user_metadata
           name: userRegistrationData.name,
           phone: userRegistrationData.phone,
           user_type: userRegistrationData.user_type || "activity_provider"
