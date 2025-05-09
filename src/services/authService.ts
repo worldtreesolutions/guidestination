@@ -29,7 +29,7 @@ export const authService = {
    * Sign in with email and password using Supabase Auth
    */
   async signInWithEmail(email: string, password: string): Promise<{ user: User | null; session: Session | null; roleId: number | null; providerId: string | null }> {
-    const { user: userRecord, error: userError } = await supabaseAdmin
+    const { userRecord, error: userError } = await supabaseAdmin
       .from('users')
       .select('id, verified, role_id')
       .eq('email', email)
