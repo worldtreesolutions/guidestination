@@ -1,176 +1,137 @@
 
-import { supabase } from "@/integrations/supabase/client"
-import { supabaseAdmin } from "@/integrations/supabase/admin"
-import type { Database } from "@/integrations/supabase/types"
-import authService from './authService';
-import { v4 as uuidv4 } from 'uuid';
+        import { supabase } from "@/integrations/supabase/client";
+        // Removed supabaseAdmin import - it should not be used client-side
+        import type { Database } from "@/integrations/supabase/types";
+        // Removed authService import for createUser/checkUserExists as logic moved to API
+        import { v4 as uuidv4 } from "uuid"; // Keep for potential client-side ID generation if needed elsewhere
 
-// Define types based on the database table structure
-// Ensure src/integrations/supabase/types.ts is up-to-date with your DB schema
-export type ActivityOwner = Database["public"]["Tables"]["activity_owners"]["Row"]
-export type ActivityOwnerInsert = Database["public"]["Tables"]["activity_owners"]["Insert"]
-export type ActivityOwnerUpdate = Database["public"]["Tables"]["activity_owners"]["Update"]
+        // Define types based on the database table structure
+        export type ActivityOwner = Database["public"]["Tables"]["activity_owners"]["Row"];
+        export type ActivityOwnerInsert = Database["public"]["Tables"]["activity_owners"]["Insert"];
+        export type ActivityOwnerUpdate = Database["public"]["Tables"]["activity_owners"]["Update"];
 
-// Define a specific type for the registration form data, mapping form fields to DB columns
-export interface ActivityOwnerRegistration {
-  business_name: string
-  owner_name: string
-  email: string
-  phone: string
-  business_type: string
-  tax_id: string
-  address: string
-  description: string
-  tourism_license_number: string
-  tat_license_number?: string | null
-  guide_card_number?: string | null
-  insurance_policy: string
-  insurance_amount: string
-}
-
-export const activityOwnerService = {
-  /**
-   * Register an activity owner with multi-table process:
-   * 1. Check if activity owner with email exists - if yes, throw error
-   * 2. Check if user exists in both auth.users and public.users tables
-   * 3. If not, create user in both tables with the same UUID
-   * 4. Insert new activity owner record with the auth.users UUID
-   * 5. Create email verification record if new user
-   */
-  async registerActivityOwner(registrationData: ActivityOwnerRegistration): Promise<ActivityOwner & { isNewUser?: boolean; isExistingOwner?: boolean }> {
-    console.log('Inside registerActivityOwner service method', registrationData);
-    
-    try {
-      // Step 1: Check if activity owner with this email already exists
-      const existingOwner = await this.getActivityOwnerByEmail(registrationData.email);
-      
-      if (existingOwner) {
-        // If an activity owner with this email already exists, throw an error
-        console.log('Activity owner with this email already exists');
-        const error = new Error('An account with this email already exists. Please use a different email address to register.');
-        // Add a custom code to identify this specific error
-        (error as any).code = 'ACTIVITY_OWNER_EXISTS';
-        throw error;
-      }
-      
-      // Step 2: Check if user exists in auth.users and users tables
-      const { exists: userExists, authUserId } = await authService.checkUserExists(registrationData.email);
-      
-      let actualUserId: string; 
-      let isNewUser = false;
-      
-      // Step 3: If user doesn't exist, create one in both tables
-      if (!userExists) {
-        console.log('User does not exist, creating new user in auth.users and users tables');
-        const { userId: newUserId } = await authService.createUser({
-          name: registrationData.owner_name,
-          email: registrationData.email,
-          phone: registrationData.phone,
-          user_type: 'activity_provider'
-        });
-        
-        actualUserId = newUserId; // This is now the UUID from auth.users
-        isNewUser = true;
-        
-        // Step 4: Create email verification for new user
-        await authService.createEmailVerification(newUserId); 
-      } else {
-        console.log('User already exists with auth ID:', authUserId);
-        // Use the auth.users UUID if it exists
-        actualUserId = authUserId || ''; 
-        
-        if (!actualUserId) {
-          throw new Error('Failed to get valid user ID for existing user');
+        // Define a specific type for the registration form data
+        // This structure will be sent to the API route
+        export interface ActivityOwnerRegistration {
+          business_name: string;
+          owner_name: string;
+          email: string;
+          phone: string;
+          business_type: string;
+          tax_id: string;
+          address: string;
+          description: string;
+          tourism_license_number: string;
+          tat_license_number?: string | null;
+          guide_card_number?: string | null;
+          insurance_policy: string;
+          insurance_amount: string;
         }
-      }
-      
-      // Step 5: Insert new activity owner
-      console.log('Creating new activity owner record with user_id:', actualUserId);
-      
-      // Generate a UUID for the activity owner record
-      const ownerId = uuidv4();
-      
-      const insertData: ActivityOwnerInsert = {
-        id: ownerId,
-        business_name: registrationData.business_name,
-        owner_name: registrationData.owner_name,
-        email: registrationData.email,
-        phone: registrationData.phone,
-        business_type: registrationData.business_type,
-        tax_id: registrationData.tax_id,
-        address: registrationData.address,
-        description: registrationData.description,
-        tourism_license_number: registrationData.tourism_license_number,
-        tat_license_number: registrationData.tat_license_number || null,
-        guide_card_number: registrationData.guide_card_number || null,
-        insurance_policy: registrationData.insurance_policy,
-        insurance_amount: registrationData.insurance_amount,
-        status: 'pending',
-        user_id: actualUserId // Now using the UUID from auth.users
-      };
 
-      console.log('Inserting activity owner with data:', insertData);
+        // Define the expected success response structure from the API route
+        interface RegistrationApiResponse {
+            message: string;
+             ActivityOwner;
+            isNewUser: boolean;
+        }
 
-      const { data, error } = await supabase
-        .from("activity_owners")
-        .insert(insertData)
-        .select()
-        .single();
+        // Define the expected error response structure from the API route
+        interface RegistrationApiErrorResponse {
+            message: string;
+            code?: string; // Optional error code (e.g., 'ACTIVITY_OWNER_EXISTS')
+        }
 
-      if (error) {
-        console.error("Supabase insert error:", error);
-        throw error;
-      }
-      
-      if (!data) {
-        throw new Error("Failed to register activity owner: No data returned.");
-      }
-      
-      // Return the data with the isNewUser flag
-      return { ...data, isNewUser, isExistingOwner: false };
-    } catch (err) {
-      console.error('Error in registerActivityOwner:', err);
-      throw err;
-    }
-  },
 
-  async getActivityOwnerByEmail(email: string): Promise<ActivityOwner | null> {
-    const { data, error } = await supabase
-      .from("activity_owners")
-      .select("*")
-      .eq("email", email)
-      .maybeSingle();
+        export const activityOwnerService = {
+          /**
+           * Register an activity owner by calling the server-side API route.
+           */
+          async registerActivityOwner(registrationData: ActivityOwnerRegistration): Promise<RegistrationApiResponse> {
+            console.log("Calling API route /api/register-activity-owner with ", registrationData);
 
-    if (error) {
-      console.error("Supabase select error:", error);
-      // PGRST116: 'Requested range not satisfiable' often means no rows found
-      if (error.code === 'PGRST116') { 
-        return null;
-      }
-      throw error;
-    }
-    return data;
-  },
+            try {
+              const response = await fetch("/api/register-activity-owner", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(registrationData),
+              });
 
-  async updateActivityOwner(id: string, updates: ActivityOwnerUpdate): Promise<ActivityOwner> {
-    const { data, error } = await supabase
-      .from("activity_owners")
-      .update(updates)
-      .eq("id", id)
-      .select()
-      .single();
+              const result = await response.json();
 
-    if (error) {
-      console.error("Supabase update error:", error);
-      throw error;
-    }
-    
-    if (!data) {
-      throw new Error("Failed to update activity owner: No data returned.");
-    }
-    
-    return data;
-  }
-}
+              if (!response.ok) {
+                console.error("API Error Response:", result);
+                // Throw an error object that includes the message and potentially a code
+                const error = new Error(result.message || `API request failed with status ${response.status}`);
+                (error as any).code = result.code; // Attach the code if present
+                 throw error;
+              }
 
-export default activityOwnerService
+              console.log("API Success Response:", result);
+              // Type assertion to ensure the success response matches our interface
+              return result as RegistrationApiResponse;
+
+            } catch (err) {
+              console.error("Error calling registration API:", err);
+              // Re-throw the error so the form can catch it
+              throw err;
+            }
+          },
+
+          /**
+           * Get Activity Owner by Email (Client-Side Safe)
+           * This uses the standard client which respects RLS.
+           * Ensure RLS allows fetching owners if needed publicly or by specific roles.
+           * If this needs admin privilege (e.g., checking existence before registration),
+           * it should be part of the API route logic.
+           * Keeping it here assumes it's for a different, RLS-safe purpose.
+           */
+          async getActivityOwnerByEmail(email: string): Promise<ActivityOwner | null> {
+            const { data, error } = await supabase // Use standard client
+              .from("activity_owners")
+              .select("*")
+              .eq("email", email)
+              .maybeSingle();
+
+            if (error) {
+              console.error("Supabase select error (getActivityOwnerByEmail):", error);
+              if (error.code === "PGRST116") {
+                return null; // Not found is not an error here
+              }
+              // Don't throw sensitive errors to the client unless necessary
+              // throw error;
+              return null; // Or handle differently based on RLS/policy
+            }
+            return data;
+          },
+
+          /**
+           * Update Activity Owner (Client-Side Safe)
+           * This uses the standard client. RLS must allow the logged-in user
+           * to update their own activity owner record.
+           */
+          async updateActivityOwner(id: string, updates: ActivityOwnerUpdate): Promise<ActivityOwner> {
+            const { data, error } = await supabase // Use standard client
+              .from("activity_owners")
+              .update(updates)
+              .eq("id", id) // Assuming 'id' is the UUID PK the user might know
+              // Or potentially filter by user_id: .eq('user_id', authUserId) if RLS uses it
+              .select()
+              .single();
+
+            if (error) {
+              console.error("Supabase update error (updateActivityOwner):", error);
+              throw new Error("Failed to update activity owner details."); // Generic error
+            }
+
+            if (!data) {
+              throw new Error("Failed to update activity owner: No data returned.");
+            }
+
+            return data;
+          },
+        };
+
+        export default activityOwnerService;
+   
