@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { email, owner_name, phone, ...ownerDetails } = registrationData;
 
     try {
-        // 1. Check if an activity_owner record with this email already exists in our public table
+        // 1. Check if an activity_owner record with this email already exists
         const {  existingOwner, error: ownerCheckError } = await supabaseAdmin
             .from("activity_owners")
             .select("provider_id")
@@ -47,7 +47,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         let isNewUser = false;
         const tempPassword = `temp-${uuidv4().substring(0, 8)}`; 
 
-        console.log("Attempting to create or identify auth user for email:", email);
+        console.log(`Attempting to create or identify auth user for email: "${email}"`);
         const {  createUserData, error: authError } = await supabaseAdmin.auth.admin.createUser({
             email: email,
             password: tempPassword,
@@ -70,7 +70,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                      ((authError as any).status === 400 && authError.message.toLowerCase().includes("user already exists"));
 
             if (isEmailExistsError) {
-                console.log("Auth user with email already exists. Attempting to retrieve their ID.");
+                console.log(`Auth user with email "${email}" already exists (reported by createUser). Attempting to retrieve their ID via listUsers.`);
                 const {  listUsersData, error: listUsersError_fetchExisting } = await supabaseAdmin.auth.admin.listUsers({
                     page: 1,
                     perPage: 100, 
@@ -80,21 +80,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     console.error("Error listing users to find existing user ID:", listUsersError_fetchExisting);
                     return res.status(500).json({ message: "Failed to verify existing user: " + listUsersError_fetchExisting.message });
                 }
+                
+                console.log("Raw listUsersData from Supabase:", JSON.stringify(listUsersData, null, 2));
 
-                const existingAuthUser = listUsersData?.users?.find(u => u.email?.toLowerCase() === email.toLowerCase());
+                const existingAuthUser = listUsersData?.users?.find(u => u.email?.trim().toLowerCase() === email.trim().toLowerCase());
+                
                 if (existingAuthUser && existingAuthUser.id) {
                     authUserId = existingAuthUser.id;
                     isNewUser = false; 
-                    console.log("Found existing auth user ID:", authUserId);
+                    console.log(`Found existing auth user ID: ${authUserId} for email "${email}"`);
                     const { error: updateUserMetaError } = await supabaseAdmin.auth.admin.updateUserById(
                         authUserId,
                         { user_meta: { name: owner_name, phone: phone, user_type: "activity_provider" } }
                     );
                     if (updateUserMetaError) {
-                        console.warn("Could not update metadata for existing auth user:", updateUserMetaError.message);
+                        console.warn(`Could not update metadata for existing auth user ${authUserId}:`, updateUserMetaError.message);
                     }
                 } else {
-                    console.error("Auth user with email exists (per createUser error), but could not be found via listUsers. Email:", email, "List response users count:", listUsersData?.users?.length);
+                    console.error(`Auth user with email "${email}" confirmed to exist (per createUser error), but could not be found via listUsers. Users found in list: ${listUsersData?.users?.length}.`);
+                    if (listUsersData?.users && listUsersData.users.length > 0) {
+                        console.log("Emails from listUsers (trimmed & lowercased):", listUsersData.users.map(u => u.email?.trim().toLowerCase()));
+                        console.log(`Searching for (trimmed & lowercased): "${email.trim().toLowerCase()}"`);
+                    }
                     return res.status(500).json({ message: "User confirmed to exist but could not retrieve ID. Please contact support." });
                 }
             } else {
@@ -108,7 +115,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         } else if (createUserData && createUserData.user && createUserData.user.id) {
             authUserId = createUserData.user.id;
             isNewUser = true;
-            console.log("Created new auth user with UUID:", authUserId);
+            console.log(`Created new auth user with UUID: ${authUserId} for email "${email}"`);
         } else {
             console.error("Failed to create auth user: No user data or user ID returned from createUser call, and no error.", createUserData);
             return res.status(500).json({ message: "Failed to create auth user: Unexpected response from Supabase.", error_details: "User object or ID missing in Supabase response without error."});
