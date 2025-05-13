@@ -1,8 +1,9 @@
+
 import { NextApiRequest, NextApiResponse } from "next";
 import { supabaseAdmin } from "@/integrations/supabase/admin";
 import type { Database } from "@/integrations/supabase/types";
 import { v4 as uuidv4 } from "uuid";
-import type { User } from "@supabase/supabase-js"; // Import User type
+import type { User } from "@supabase/supabase-js";
 
 type ActivityOwnerInsert = Database["public"]["Tables"]["activity_owners"]["Insert"];
 type UserInsert = Database["public"]["Tables"]["users"]["Insert"];
@@ -49,12 +50,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const tempPassword = `temp-${uuidv4().substring(0, 8)}`; 
 
         console.log(`Attempting to create or identify auth user for email: "${email}"`);
-        const {  createUserDataResponse, error: authError } = await supabaseAdmin.auth.admin.createUser({
+        const {  createUserData, error: authError } = await supabaseAdmin.auth.admin.createUser({
             email: email,
             password: tempPassword,
             email_confirm: true, 
             options: {
-                data: {
+                 { // user_metadata for createUser goes into options.data
                     name: owner_name,
                     phone: phone,
                     user_type: "activity_provider", 
@@ -77,13 +78,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 
                 let foundAuthUser: User | undefined;
                 let currentPage = 1;
-                const usersPerPage = 50; // Adjust as needed, max 1000 for some list operations
+                const usersPerPage = 50;
                 let moreUsersToList = true;
                 const targetEmailProcessed = email.trim().toLowerCase();
 
                 while (moreUsersToList && !foundAuthUser) {
                     console.log(`Fetching page ${currentPage} of users...`);
-                    const {  listUsersPageData, error: listUsersError } = await supabaseAdmin.auth.admin.listUsers({
+                    const {  listUsersPage, error: listUsersError } = await supabaseAdmin.auth.admin.listUsers({
                         page: currentPage,
                         perPage: usersPerPage,
                     });
@@ -93,30 +94,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         return res.status(500).json({ message: "Failed to verify existing user: " + listUsersError.message });
                     }
 
-                    if (listUsersPageData && listUsersPageData.users && listUsersPageData.users.length > 0) {
-                        console.log(`Page ${currentPage}: Found ${listUsersPageData.users.length} users. Searching for target email: "${targetEmailProcessed}"`);
-                        for (const u of listUsersPageData.users) {
+                    if (listUsersPage && listUsersPage.users && listUsersPage.users.length > 0) {
+                        console.log(`Page ${currentPage}: Found ${listUsersPage.users.length} users. Searching for target email: "${targetEmailProcessed}"`);
+                        for (const u of listUsersPage.users) {
                             const currentUserEmailProcessed = u.email?.trim().toLowerCase();
                             console.log(`  Comparing target: "${targetEmailProcessed}" with current user email: "${currentUserEmailProcessed}" (ID: ${u.id})`);
                             if (currentUserEmailProcessed === targetEmailProcessed) {
                                 foundAuthUser = u;
                                 console.log(`  Match FOUND for email "${targetEmailProcessed}"! User ID: ${u.id}`);
-                                break; // Exit inner for-loop
+                                break; 
                             }
                         }
 
                         if (foundAuthUser) {
-                            moreUsersToList = false; // Exit while-loop
-                        } else if (listUsersPageData.users.length < usersPerPage) {
-                            console.log(`Page ${currentPage}: End of user list reached (received ${listUsersPageData.users.length} users, less than perPage ${usersPerPage}).`);
-                            moreUsersToList = false; // Last page
+                            moreUsersToList = false; 
+                        } else if (listUsersPage.users.length < usersPerPage) {
+                            console.log(`Page ${currentPage}: End of user list reached (received ${listUsersPage.users.length} users, less than perPage ${usersPerPage}).`);
+                            moreUsersToList = false; 
                         }
                     } else {
                         console.log(`Page ${currentPage}: No users found or empty user list.`);
-                        moreUsersToList = false; // No users found or empty page
+                        moreUsersToList = false; 
                     }
                     
-                    if (moreUsersToList) { // Only increment if we are continuing
+                    if (moreUsersToList) { 
                         currentPage++;
                     }
 
@@ -132,7 +133,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     console.log(`Found existing auth user ID: ${authUserId} for email "${email}" after pagination search.`);
                     const { error: updateUserMetaError } = await supabaseAdmin.auth.admin.updateUserById(
                         authUserId,
-                        { user_metadata: { name: owner_name, phone: phone, user_type: "activity_provider" } }
+                        { user_metadata: { name: owner_name, phone: phone, user_type: "activity_provider" } } // user_metadata for updateUserById
                     );
                     if (updateUserMetaError) {
                         console.warn(`Could not update metadata for existing auth user ${authUserId}:`, updateUserMetaError.message);
@@ -143,7 +144,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 }
 
             } else {
-                // Handle other createUser errors
                 console.error("Error creating user in auth.users:", authError);
                 return res.status(500).json({
                     message: "Failed to create authentication user. Supabase message: " + authError.message,
@@ -151,12 +151,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     code: (authError as any).code || null
                 });
             }
-        } else if (createUserDataResponse && createUserDataResponse.user && createUserDataResponse.user.id) {
-            authUserId = createUserDataResponse.user.id;
+        } else if (createUserData && createUserData.user && createUserData.user.id) {
+            authUserId = createUserData.user.id;
             isNewUser = true;
             console.log(`Created new auth user with UUID: ${authUserId} for email "${email}"`);
         } else {
-            console.error("Failed to create auth user: No user data or user ID returned from createUser call, and no error.", createUserDataResponse);
+            console.error("Failed to create auth user: No user data or user ID returned from createUser call, and no error.", createUserData);
             return res.status(500).json({ message: "Failed to create auth user: Unexpected response from Supabase.", error_details: "User object or ID missing in Supabase response without error."});
         }
         
@@ -174,7 +174,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         if (publicUserCheckError) {
             console.error("Supabase error checking public.users:", publicUserCheckError);
-            if (isNewUser) { 
+            if (isNewUser && authUserId) { 
                 try { await supabaseAdmin.auth.admin.deleteUser(authUserId); } catch (delErr) { console.error("Failed to cleanup new auth user after public.users check error:", delErr); }
             }
             return res.status(500).json({
@@ -200,7 +200,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
             if (publicUserInsertError) {
                 console.error("Error creating user in public.users table:", publicUserInsertError);
-                if (isNewUser) { 
+                if (isNewUser && authUserId) { 
                      try { await supabaseAdmin.auth.admin.deleteUser(authUserId); } catch (delErr) { console.error("Failed to cleanup new auth user after public.users insert error:", delErr); }
                 }
                 return res.status(500).json({
@@ -253,7 +253,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (!newOwnerRecord) {
             console.error("Failed to register activity owner: No data returned after insert into activity_owners.");
              if (isNewUser && authUserId) {
-                try { await supabaseAdmin.auth.admin.deleteUser(authUserId); console.log("Rolled back new auth user creation as activity_owners insert returned no data."); } catch (delErr) { console.error("Failed to cleanup new auth user after activity_owners insert returned no ", delErr); }
+                try { await supabaseAdmin.auth.admin.deleteUser(authUserId); console.log("Rolled back new auth user creation as activity_owners insert returned no data."); } catch (delErr) { console.error("Failed to cleanup new auth user after activity_owners insert returned no data.", delErr); }
             }
             return res.status(500).json({ message: "Failed to register activity owner: No data returned after insert.", error_details: "Activity owner data missing post-insert."});
         }
