@@ -1,5 +1,4 @@
-
-        import { NextApiRequest, NextApiResponse } from "next";
+import { NextApiRequest, NextApiResponse } from "next";
         import { supabaseAdmin } from "@/integrations/supabase/admin";
         import type { Database } from "@/integrations/supabase/types";
         import { v4 as uuidv4 } from "uuid";
@@ -191,4 +190,3 @@
                 return res.status(500).json({ message: error.message || "An unexpected server error occurred." });
             }
         }
-   
