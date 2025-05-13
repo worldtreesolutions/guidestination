@@ -95,6 +95,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
                     if (listUsersPage && listUsersPage.users && listUsersPage.users.length > 0) {
                         console.log(`Page ${currentPage}: Found ${listUsersPage.users.length} users. Searching for target email: "${targetEmailProcessed}"`);
+                        
+                        // Added logging for emails on the first page if no immediate match
+                        if (currentPage === 1) {
+                            const emailsOnFirstPage = listUsersPage.users.map(usr => usr.email?.trim().toLowerCase()).filter(Boolean);
+                            console.log(`Emails on first page (processed for comparison): ${JSON.stringify(emailsOnFirstPage)}`);
+                        }
+
                         for (const u of listUsersPage.users) {
                             const currentUserEmailProcessed = u.email?.trim().toLowerCase();
                             console.log(`  Comparing target: "${targetEmailProcessed}" with current user email: "${currentUserEmailProcessed}" (ID: ${u.id})`);
