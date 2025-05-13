@@ -1,5 +1,4 @@
-
-        import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client";
         // Removed supabaseAdmin import - it should not be used client-side
         import type { Database } from "@/integrations/supabase/types";
         // Removed authService import for createUser/checkUserExists as logic moved to API
@@ -31,7 +30,7 @@
         // Define the expected success response structure from the API route
         interface RegistrationApiResponse {
             message: string;
-             ActivityOwner;
+            newOwner: ActivityOwner; // Corrected type name to match export
             isNewUser: boolean;
         }
 
@@ -134,4 +133,3 @@
         };
 
         export default activityOwnerService;
-   

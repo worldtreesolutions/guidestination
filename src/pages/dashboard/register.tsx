@@ -22,7 +22,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export default function RegisterPage() {
   const router = useRouter()
-  const { register, setupPasswordForExistingUser, checkUserExists, checkUserVerification } = useAuth()
+  const { register, setError: setAuthError } = useAuth()
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -109,7 +109,11 @@ export default function RegisterPage() {
     setIsLoading(true)
 
     try {
-      await register(email, password, name)
+      const { user, session, needsVerification, error: registrationError } = await register(
+        email,
+        password,
+        name
+      );
       router.push("/dashboard/overview")
     } catch (err: any) {
       console.error("Registration error:", err)

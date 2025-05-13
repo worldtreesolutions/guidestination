@@ -29,15 +29,13 @@ export const authService = {
    * Sign in with email and password using Supabase Auth
    */
   async signInWithEmail(email: string, password: string): Promise<{ user: User | null; session: Session | null; roleId: number | null; providerId: string | null }> {
-    // Sign in using the standard client
-    const { signInData, error: signInError } = await supabase.auth.signInWithPassword({
+    const { signInAuthData, error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
     if (signInError) {
       console.error("Supabase sign-in error:", signInError.message);
-      // Provide user-friendly error messages
       if (signInError.message.includes("Invalid login credentials")) {
           throw new Error("Invalid email or password.");
       } else if (signInError.message.includes("Email not confirmed")) {
@@ -46,36 +44,35 @@ export const authService = {
       throw new Error("Sign in failed. Please try again.");
     }
 
-    if (!signInData.session || !signInData.user) {
+    if (!signInAuthData.session || !signInAuthData.user) {
       throw new Error("Sign in failed. Please try again.");
     }
 
-    // Fetch additional user details (roleId, etc.) using the standard client
     let roleId: number | null = null;
     let providerId: string | null = null;
 
     try {
-        const { userProfile, error: profileError } = await supabase
+        const { userProfileData, error: profileError } = await supabase
             .from("users")
             .select("role_id")
-            .eq("user_id", signInData.user.id)
+            .eq("user_id", signInAuthData.user.id)
             .single();
 
         if (profileError && profileError.code !== 'PGRST116') {
             console.error("Error fetching user profile after login:", profileError.message);
-        } else if (userProfile) {
-            roleId = userProfile.role_id;
+        } else if (userProfileData) {
+            roleId = userProfileData.role_id;
         }
 
-        providerId = signInData.user.app_metadata?.provider || signInData.user.identities?.[0]?.provider || null;
+        providerId = signInAuthData.user.app_metadata?.provider || signInAuthData.user.identities?.[0]?.provider || null;
 
     } catch (e) {
          console.error("Error fetching user details post-login:", e);
     }
 
     return {
-      user: signInData.user,
-      session: signInData.session,
+      user: signInAuthData.user,
+      session: signInAuthData.session,
       roleId: roleId,
       providerId: providerId,
     };
@@ -97,8 +94,8 @@ export const authService = {
    * Check if user exists and is verified in public.users
    */
   async checkUserVerification(email: string): Promise<UserVerificationStatus> {
-     console.warn("checkUserVerification client-side might be insecure or unnecessary");
-     return { exists: false, verified: false };
+     console.warn("checkUserVerification client-side might be insecure or unnecessary and is not implemented in this service.");
+     return { exists: false, verified: false }; // Placeholder
   },
 
   /**
@@ -132,26 +129,28 @@ export const authService = {
    * Update User Metadata
    */
   async updateUserMetadata(meta: UserMetadata) {
-    const { data, error } = await supabase.auth.updateUser({ meta });
+    const { updatedUserData, error } = await supabase.auth.updateUser({ meta });
     if (error) {
         console.error("Error updating user meta", error);
         throw new Error(error.message || "Failed to update user profile.");
     }
-    return data.user;
+    return updatedUserData.user;
   },
 
   /**
    * Get User Details
    */
   async getUserDetails(): Promise<{ roleId: number | null; providerId: string | null }> {
-     const { user: authUser } = await supabase.auth.getUser();
-     if (!authUser) {
+     const { authUserResponse, error: authUserError } = await supabase.auth.getUser();
+     if (authUserError || !authUserResponse.user) {
+         if(authUserError) console.error("Error getting auth user:", authUserError);
          return { roleId: null, providerId: null };
      }
+     const authUser = authUserResponse.user;
 
      let roleId: number | null = null;
      try {
-         const { userProfile, error: profileError } = await supabase
+         const { userProfileDetails, error: profileError } = await supabase
              .from("users")
              .select("role_id")
              .eq("user_id", authUser.id)
@@ -159,8 +158,8 @@ export const authService = {
 
          if (profileError && profileError.code !== 'PGRST116') {
              console.error("Error fetching user details:", profileError.message);
-         } else if (userProfile) {
-             roleId = userProfile.role_id;
+         } else if (userProfileDetails) {
+             roleId = userProfileDetails.role_id;
          }
      } catch (e) {
          console.error("Error fetching user details:", e);

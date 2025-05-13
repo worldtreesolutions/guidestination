@@ -21,7 +21,7 @@ import { Loader2, AlertCircle, AlertTriangle } from 'lucide-react'
 
 export default function LoginPage() {
   const router = useRouter()
-  const { login, checkUserVerification } = useAuth()
+  const { login } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
@@ -36,17 +36,8 @@ export default function LoginPage() {
     setIsLoading(true)
 
     try {
-      // First check if user exists and is verified
-      const verificationStatus = await checkUserVerification(email);
-      
-      if (verificationStatus.exists && !verificationStatus.verified) {
-        setVerificationWarning('Your account is pending verification. Please contact support to verify your account.');
-        setIsLoading(false);
-        return;
-      }
-      
       // If user is verified or doesn't exist, proceed with login
-      await login(email, password, rememberMe)
+      const { user, session, roleId, providerId } = await login(email, password)
       router.push('/dashboard/overview')
     } catch (err: any) {
       console.error('Login error:', err)
