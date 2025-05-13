@@ -49,11 +49,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const tempPassword = `temp-${uuidv4().substring(0, 8)}`; 
 
         console.log(`Attempting to create or identify auth user for email: "${email}"`);
-        const {  createUserData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+        const {  createUserDataResponse, error: authError } = await supabaseAdmin.auth.admin.createUser({
             email: email,
             password: tempPassword,
             email_confirm: true, 
-            options: { // Corrected: metadata goes into options.data for createUser
+            options: {
                 data: {
                     name: owner_name,
                     phone: phone,
@@ -79,8 +79,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 let currentPage = 1;
                 const usersPerPage = 50; // Adjust as needed, max 1000 for some list operations
                 let moreUsersToList = true;
+                const targetEmailProcessed = email.trim().toLowerCase();
 
                 while (moreUsersToList && !foundAuthUser) {
+                    console.log(`Fetching page ${currentPage} of users...`);
                     const {  listUsersPageData, error: listUsersError } = await supabaseAdmin.auth.admin.listUsers({
                         page: currentPage,
                         perPage: usersPerPage,
@@ -92,18 +94,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     }
 
                     if (listUsersPageData && listUsersPageData.users && listUsersPageData.users.length > 0) {
-                        console.log(`Found ${listUsersPageData.users.length} users on page ${currentPage}. Searching for email: ${email}`);
-                        foundAuthUser = listUsersPageData.users.find(u => u.email?.trim().toLowerCase() === email.trim().toLowerCase());
-                        if (listUsersPageData.users.length < usersPerPage) {
+                        console.log(`Page ${currentPage}: Found ${listUsersPageData.users.length} users. Searching for target email: "${targetEmailProcessed}"`);
+                        for (const u of listUsersPageData.users) {
+                            const currentUserEmailProcessed = u.email?.trim().toLowerCase();
+                            console.log(`  Comparing target: "${targetEmailProcessed}" with current user email: "${currentUserEmailProcessed}" (ID: ${u.id})`);
+                            if (currentUserEmailProcessed === targetEmailProcessed) {
+                                foundAuthUser = u;
+                                console.log(`  Match FOUND for email "${targetEmailProcessed}"! User ID: ${u.id}`);
+                                break; // Exit inner for-loop
+                            }
+                        }
+
+                        if (foundAuthUser) {
+                            moreUsersToList = false; // Exit while-loop
+                        } else if (listUsersPageData.users.length < usersPerPage) {
+                            console.log(`Page ${currentPage}: End of user list reached (received ${listUsersPageData.users.length} users, less than perPage ${usersPerPage}).`);
                             moreUsersToList = false; // Last page
                         }
                     } else {
+                        console.log(`Page ${currentPage}: No users found or empty user list.`);
                         moreUsersToList = false; // No users found or empty page
                     }
-                    currentPage++;
-                    // Safety break for very large user bases if not found quickly, adjust if necessary
-                    if (currentPage > 20 && !foundAuthUser) { // e.g., max 1000 users (20*50)
-                        console.warn("Reached pagination limit while searching for user by email. If user exists but not found, increase limit or use a more direct lookup method if available.");
+                    
+                    if (moreUsersToList) { // Only increment if we are continuing
+                        currentPage++;
+                    }
+
+                    if (currentPage > 20 && !foundAuthUser) { 
+                        console.warn("Reached pagination limit (20 pages) while searching for user by email. If user exists but not found, increase limit or use a more direct lookup method if available.");
                         moreUsersToList = false;
                     }
                 }
@@ -111,16 +129,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 if (foundAuthUser && foundAuthUser.id) {
                     authUserId = foundAuthUser.id;
                     isNewUser = false; 
-                    console.log(`Found existing auth user ID: ${authUserId} for email "${email}" after pagination.`);
+                    console.log(`Found existing auth user ID: ${authUserId} for email "${email}" after pagination search.`);
                     const { error: updateUserMetaError } = await supabaseAdmin.auth.admin.updateUserById(
                         authUserId,
-                        { user_metadata: { name: owner_name, phone: phone, user_type: "activity_provider" } } // user_metadata is correct for updateUserById
+                        { user_metadata: { name: owner_name, phone: phone, user_type: "activity_provider" } }
                     );
                     if (updateUserMetaError) {
                         console.warn(`Could not update metadata for existing auth user ${authUserId}:`, updateUserMetaError.message);
                     }
                 } else {
-                    console.error(`Auth user with email "${email}" confirmed to exist (per createUser error), but could not be found via paginated listUsers.`);
+                    console.error(`Auth user with email "${email}" confirmed to exist (per createUser error), but could NOT be found via paginated listUsers. Final foundAuthUser: ${JSON.stringify(foundAuthUser)}`);
                     return res.status(500).json({ message: "User confirmed to exist but could not retrieve ID. Please contact support." });
                 }
 
@@ -133,12 +151,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     code: (authError as any).code || null
                 });
             }
-        } else if (createUserData && createUserData.user && createUserData.user.id) {
-            authUserId = createUserData.user.id;
+        } else if (createUserDataResponse && createUserDataResponse.user && createUserDataResponse.user.id) {
+            authUserId = createUserDataResponse.user.id;
             isNewUser = true;
             console.log(`Created new auth user with UUID: ${authUserId} for email "${email}"`);
         } else {
-            console.error("Failed to create auth user: No user data or user ID returned from createUser call, and no error.", createUserData);
+            console.error("Failed to create auth user: No user data or user ID returned from createUser call, and no error.", createUserDataResponse);
             return res.status(500).json({ message: "Failed to create auth user: Unexpected response from Supabase.", error_details: "User object or ID missing in Supabase response without error."});
         }
         
