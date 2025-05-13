@@ -12,14 +12,17 @@ interface AuthContextType {
   session: Session | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<{ user: User | null; session: Session | null; roleId?: string; providerId?: string }>;
+  userRole: number | null; // Corrected type
+  providerId: string | null; // Corrected type
+  error: string | null;
+  login: (email: string, password: string) => Promise<{ user: User | null; session: Session | null; roleId: number | null; providerId: string | null }>;
   logout: () => Promise<void>;
-  // @ Adjust register return type to match implementation
-  register: (email: string, password: string, name: string, phone?: string, user_type?: string) => Promise<{ user: User | null; session: Session | null; needsVerification?: boolean; error?: string }>; 
-  setupPasswordForExistingUser: (email: string, password: string, name: string) => Promise<void>;
+  register: (email: string, password: string, name: string, phone?: string, user_type?: string) => Promise<{ user: User | null; session: Session | null; needsVerification?: boolean; error?: string }>;
   resetPassword: (email: string) => Promise<void>;
-  checkUserVerification: (email: string) => Promise<UserVerificationStatus>;
-  checkUserExists: (email: string) => Promise<{ exists: boolean; userId?: string }>;
+  updatePassword: (newPassword: string) => Promise<void>; // Added for completeness
+  updateUserProfile: (metadata: any) => Promise<void>; // Added for completeness
+  setError: (error: string | null) => void; // Added for completeness
+  // Removed setupPasswordForExistingUser, checkUserVerification, checkUserExists as they are not standard auth operations for this context
 }
 
 // Create the context with a default value
@@ -32,18 +35,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [userRole, setUserRole] = useState<string | null>(null);
-  const [providerId, setProviderId] = useState<number | null>(null);
+  const [userRole, setUserRole] = useState<number | null>(null); // Corrected state type
+  const [providerId, setProviderId] = useState<string | null>(null); // Corrected state type
 
   // Check if user is logged in on mount and set up auth state listener
   useEffect(() => {
     // Get initial session
     const initializeAuth = async () => {
       try {
-        const { session } = await authService.getSession();
-        setSession(session);
-        setUser(session?.user ?? null);
-        setIsAuthenticated(!!session?.user);
+        const { session: currentSession } = await authService.getSession();
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
+        setIsAuthenticated(!!currentSession?.user);
+        if (currentSession?.user) {
+          // Fetch user details if session exists
+          const { roleId: currentRoleId, providerId: currentProviderId } = await authService.getUserDetails();
+          setUserRole(currentRoleId);
+          setProviderId(currentProviderId);
+        }
       } catch (error) {
         console.error("Error getting session:", error);
       } finally {
@@ -55,10 +64,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setIsAuthenticated(!!session?.user);
+      async (_event, newSession) => {
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
+        setIsAuthenticated(!!newSession?.user);
+        if (newSession?.user) {
+          const { roleId: currentRoleId, providerId: currentProviderId } = await authService.getUserDetails();
+          setUserRole(currentRoleId);
+          setProviderId(currentProviderId);
+        } else {
+          setUserRole(null);
+          setProviderId(null);
+        }
         setIsLoading(false);
       }
     );
@@ -74,16 +91,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     setError(null);
     try {
-      // Use the refactored authService.signInWithEmail which uses standard client
-      const { user: loggedInUser, session: loggedInSession, roleId, providerId } = await authService.signInWithEmail(email, password);
+      const { user: loggedInUser, session: loggedInSession, roleId, providerId: currentProviderId } = await authService.signInWithEmail(email, password);
       setUser(loggedInUser);
       setSession(loggedInSession);
-      setUserRole(roleId);
-      setProviderId(providerId);
-      return { user: loggedInUser, session: loggedInSession, roleId, providerId };
+      setUserRole(roleId); // roleId is number | null
+      setProviderId(currentProviderId); // providerId is string | null
+      setIsAuthenticated(!!loggedInUser);
+      return { user: loggedInUser, session: loggedInSession, roleId, providerId: currentProviderId };
     } catch (e: any) {
       console.error("Login error in AuthContext:", e);
       setError(e.message || "Login failed");
+      setIsAuthenticated(false);
       throw e; // Re-throw for the form to handle
     } finally {
       setIsLoading(false);
@@ -95,15 +113,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     setError(null);
     try {
-      // Use standard Supabase sign up
       const { signUpData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: {
+          data: { // Corrected: 'data' for user_metadata with standard signUp
             name: name,
             phone: phone,
-            user_type: user_type || "customer", // Default to customer if not specified
+            user_type: user_type || "customer",
           },
         },
       });
@@ -113,28 +130,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setError(signUpError.message || "Registration failed");
         throw signUpError;
       }
-
-      if (!signUpData.user || !signUpData.session) {
-        // Handle cases where user might exist but session isn't returned (e.g., email verification needed)
-        if (signUpData.user && !signUpData.session) {
-          setError("Registration successful, but requires email verification.");
-          return { user: signUpData.user, session: null, needsVerification: true };
-        }
-        throw new Error("Registration failed: No user or session returned.");
+      
+      // Handle cases where user might exist but session isn't returned (e.g., email verification needed)
+      if (signUpData.user && !signUpData.session && !signUpData.user.email_confirmed_at) {
+         setError("Registration successful. Please check your email for verification.");
+         // Don't set user/session yet, wait for verification/login
+         return { user: signUpData.user, session: null, needsVerification: true };
       }
 
+      if (!signUpData.user || !signUpData.session) {
+         throw new Error("Registration failed: No user or session returned, and email may already be confirmed or issue exists.");
+      }
+      
       // If sign up is successful and returns a session (e.g., auto-confirmation enabled)
       setUser(signUpData.user);
       setSession(signUpData.session);
+      setIsAuthenticated(true);
+      // Fetch role/provider after successful signup
+      const { roleId: currentRoleId, providerId: currentProviderId } = await authService.getUserDetails();
+      setUserRole(currentRoleId);
+      setProviderId(currentProviderId);
+
       return { user: signUpData.user, session: signUpData.session, needsVerification: !signUpData.user.email_confirmed_at };
 
     } catch (e: any) {
       console.error("Registration error in AuthContext:", e);
       if (e.message && e.message.includes("User already registered")) {
-        setError("An account with this email already exists.");
+          setError("An account with this email already exists.");
       } else {
-        setError(e.message || "Registration failed");
+          setError(e.message || "Registration failed");
       }
+      setIsAuthenticated(false);
       throw e; // Re-throw for the form to handle
     } finally {
       setIsLoading(false);
