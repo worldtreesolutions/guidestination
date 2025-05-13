@@ -113,11 +113,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     setError(null);
     try {
-      const { signUpData, error: signUpError } = await supabase.auth.signUp({
+      // Corrected destructuring: Use 'data' instead of 'signUpData'
+      const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: { // Corrected: 'data' for user_metadata with standard signUp
+          data: { // 'data' for user_metadata with standard signUp
             name: name,
             phone: phone,
             user_type: user_type || "customer",
@@ -130,28 +131,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setError(signUpError.message || "Registration failed");
         throw signUpError;
       }
-      
+
       // Handle cases where user might exist but session isn't returned (e.g., email verification needed)
-      if (signUpData.user && !signUpData.session && !signUpData.user.email_confirmed_at) {
+      // Use 'data.user' and 'data.session'
+      if (data.user && !data.session && !data.user.email_confirmed_at) {
          setError("Registration successful. Please check your email for verification.");
          // Don't set user/session yet, wait for verification/login
-         return { user: signUpData.user, session: null, needsVerification: true };
+         return { user: data.user, session: null, needsVerification: true };
       }
 
-      if (!signUpData.user || !signUpData.session) {
+      // Use 'data.user' and 'data.session'
+      if (!data.user || !data.session) {
          throw new Error("Registration failed: No user or session returned, and email may already be confirmed or issue exists.");
       }
-      
+
       // If sign up is successful and returns a session (e.g., auto-confirmation enabled)
-      setUser(signUpData.user);
-      setSession(signUpData.session);
+      // Use 'data.user' and 'data.session'
+      setUser(data.user);
+      setSession(data.session);
       setIsAuthenticated(true);
       // Fetch role/provider after successful signup
       const { roleId: currentRoleId, providerId: currentProviderId } = await authService.getUserDetails();
       setUserRole(currentRoleId);
       setProviderId(currentProviderId);
 
-      return { user: signUpData.user, session: signUpData.session, needsVerification: !signUpData.user.email_confirmed_at };
+      // Use 'data.user' and 'data.session'
+      return { user: data.user, session: data.session, needsVerification: !data.user.email_confirmed_at };
 
     } catch (e: any) {
       console.error("Registration error in AuthContext:", e);
