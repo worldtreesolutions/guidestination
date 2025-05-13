@@ -31,12 +31,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             .maybeSingle();
 
         if (ownerCheckError) {
-            console.error("Error checking existing activity owner:", ownerCheckError);
-            return res.status(500).json({ message: "Database error checking owner existence." });
+            console.error("Supabase error checking existing activity owner:", ownerCheckError); // Log the full error server-side
+            return res.status(500).json({
+                message: "Database error during owner existence check. Supabase message: " + ownerCheckError.message,
+                details: ownerCheckError.details || null,
+                code: ownerCheckError.code || null
+            });
         }
 
         if (existingOwnerData) {
-            console.log("Activity owner with this email already exists");
+            console.log("Activity owner with this email already exists:", existingOwnerData.id);
             return res.status(409).json({ message: "An activity owner account with this email already exists.", code: "ACTIVITY_OWNER_EXISTS" });
         }
 
@@ -45,10 +49,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         let isNewUser = false;
         let authUser = null;
 
-        const { listUsersData, error: listUsersError } = await supabaseAdmin.auth.admin.listUsers({ email: email });
+        const { data: listUsersData, error: listUsersError } = await supabaseAdmin.auth.admin.listUsers({ email: email });
 
         if (listUsersError) {
             console.error("Error listing users from auth.users:", listUsersError);
+            // Potentially return a more specific error, but for now, let it proceed to user creation if list fails but user might not exist
         } else if (listUsersData && listUsersData.users && listUsersData.users.length > 0) {
             authUser = listUsersData.users[0];
             authUserId = authUser.id;
@@ -73,12 +78,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             if (authError) {
                 console.error("Error creating user in auth.users:", authError);
                 if (authError.message.includes("User already registered")) {
-                    return res.status(409).json({ message: "An account with this email already exists.", code: "AUTH_USER_EXISTS" });
+                    return res.status(409).json({ message: "An account with this email already exists in authentication.", code: "AUTH_USER_EXISTS" });
                 }
-                return res.status(500).json({ message: "Failed to create authentication user." });
+                return res.status(500).json({ 
+                    message: "Failed to create authentication user. Supabase message: " + authError.message,
+                    details: (authError as any).details || null,
+                    code: (authError as any).code || null 
+                });
             }
 
             if (!createUserData || !createUserData.user || !createUserData.user.id) {
+                // This case should ideally be caught by authError, but as a safeguard:
+                console.error("Failed to create auth user: No user data returned from createUser call.");
                 throw new Error("Failed to create auth user: No user ID returned");
             }
 
@@ -88,7 +99,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         if (!authUserId) {
-            console.error("Critical error: Could not obtain authUserId.");
+            console.error("Critical error: Could not obtain authUserId after checking/creating auth user.");
             return res.status(500).json({ message: "Failed to obtain user authentication ID." });
         }
 
@@ -100,20 +111,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             .maybeSingle();
 
         if (publicUserCheckError) {
-            console.error("Error checking public.users:", publicUserCheckError);
-            if (isNewUser) await supabaseAdmin.auth.admin.deleteUser(authUserId);
-            return res.status(500).json({ message: "Database error checking user profile." });
+            console.error("Supabase error checking public.users:", publicUserCheckError);
+            if (isNewUser) { // Attempt to clean up newly created auth user if profile creation fails
+                try { await supabaseAdmin.auth.admin.deleteUser(authUserId); } catch (delErr) { console.error("Failed to cleanup auth user:", delErr); }
+            }
+            return res.status(500).json({ 
+                message: "Database error checking user profile. Supabase message: " + publicUserCheckError.message,
+                details: publicUserCheckError.details || null,
+                code: publicUserCheckError.code || null
+            });
         }
 
         if (!publicUserData) {
-            console.log("User does not exist in public.users, creating profile...");
+            console.log("User does not exist in public.users, creating profile for user_id:", authUserId);
             const userInsertData: UserInsert = {
                 user_id: authUserId,
                 name: owner_name,
                 email: email,
                 phone: phone || null,
                 user_type: "activity_provider",
-                verified: true,
+                verified: true, 
             };
             const { error: publicUserInsertError } = await supabaseAdmin
                 .from("users")
@@ -121,8 +138,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
             if (publicUserInsertError) {
                 console.error("Error creating user in public.users table:", publicUserInsertError);
-                if (isNewUser) await supabaseAdmin.auth.admin.deleteUser(authUserId);
-                return res.status(500).json({ message: "Failed to create user profile." });
+                if (isNewUser) { // Attempt to clean up newly created auth user
+                     try { await supabaseAdmin.auth.admin.deleteUser(authUserId); } catch (delErr) { console.error("Failed to cleanup auth user:", delErr); }
+                }
+                return res.status(500).json({ 
+                    message: "Failed to create user profile. Supabase message: " + publicUserInsertError.message,
+                    details: publicUserInsertError.details || null,
+                    code: publicUserInsertError.code || null
+                });
             }
             console.log("Created public.users profile linked to auth user:", authUserId);
         } else {
@@ -150,13 +173,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         if (insertError) {
             console.error("Supabase insert error for activity_owners:", insertError);
-            if (isNewUser) {
-                await supabaseAdmin.auth.admin.deleteUser(authUserId);
+            if (isNewUser) { // Attempt to clean up
+                try { await supabaseAdmin.auth.admin.deleteUser(authUserId); } catch (delErr) { console.error("Failed to cleanup auth user:", delErr); }
+                // Also consider deleting from public.users if it was created in this request
             }
-            return res.status(500).json({ message: "Failed to register activity owner details." });
+            return res.status(500).json({ 
+                message: "Failed to register activity owner details. Supabase message: " + insertError.message,
+                details: insertError.details || null,
+                code: insertError.code || null
+            });
         }
 
         if (!newOwnerData) {
+            // This should ideally be caught by insertError, but as a safeguard:
+            console.error("Failed to register activity owner: No data returned after insert.");
             throw new Error("Failed to register activity owner: No data returned after insert.");
         }
 
@@ -170,6 +200,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     } catch (error: any) {
         console.error("Unhandled error in /api/register-activity-owner:", error);
-        return res.status(500).json({ message: error.message || "An unexpected server error occurred." });
+        // Ensure a JSON response for all unhandled errors
+        return res.status(500).json({ 
+            message: error.message || "An unexpected server error occurred.",
+            error_details: error.toString() // Include string representation of the error
+        });
     }
 }
