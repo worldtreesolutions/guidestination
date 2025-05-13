@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { supabaseAdmin } from "@/integrations/supabase/admin";
 import type { Database } from "@/integrations/supabase/types";
 import { v4 as uuidv4 } from "uuid";
+import type { User } from "@supabase/supabase-js"; // Import User type
 
 type ActivityOwnerInsert = Database["public"]["Tables"]["activity_owners"]["Insert"];
 type UserInsert = Database["public"]["Tables"]["users"]["Insert"];
@@ -52,11 +53,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             email: email,
             password: tempPassword,
             email_confirm: true, 
-            user_meta: {
-                name: owner_name,
-                phone: phone,
-                user_type: "activity_provider", 
-            },
+            options: { // Corrected: metadata goes into options.data for createUser
+                data: {
+                    name: owner_name,
+                    phone: phone,
+                    user_type: "activity_provider", 
+                }
+            }
         });
 
         if (authError) {
@@ -70,54 +73,57 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                      ((authError as any).status === 400 && authError.message.toLowerCase().includes("user already exists"));
 
             if (isEmailExistsError) {
-                console.log(`Auth user with email "${email}" already exists (reported by createUser). Attempting to retrieve their ID via listUsers.`);
-                const {  listUsersData, error: listUsersError_fetchExisting } = await supabaseAdmin.auth.admin.listUsers({
-                    page: 1,
-                    perPage: 100, // Fetching up to 100 users
-                });
+                console.log(`Auth user with email "${email}" already exists (reported by createUser). Attempting to retrieve their ID via paginated listUsers.`);
+                
+                let foundAuthUser: User | undefined;
+                let currentPage = 1;
+                const usersPerPage = 50; // Adjust as needed, max 1000 for some list operations
+                let moreUsersToList = true;
 
-                if (listUsersError_fetchExisting) {
-                    console.error("Error listing users to find existing user ID:", listUsersError_fetchExisting);
-                    return res.status(500).json({ message: "Failed to verify existing user: " + listUsersError_fetchExisting.message });
+                while (moreUsersToList && !foundAuthUser) {
+                    const {  listUsersPageData, error: listUsersError } = await supabaseAdmin.auth.admin.listUsers({
+                        page: currentPage,
+                        perPage: usersPerPage,
+                    });
+
+                    if (listUsersError) {
+                        console.error(`Error listing users (page ${currentPage}) to find existing user ID:`, listUsersError);
+                        return res.status(500).json({ message: "Failed to verify existing user: " + listUsersError.message });
+                    }
+
+                    if (listUsersPageData && listUsersPageData.users && listUsersPageData.users.length > 0) {
+                        console.log(`Found ${listUsersPageData.users.length} users on page ${currentPage}. Searching for email: ${email}`);
+                        foundAuthUser = listUsersPageData.users.find(u => u.email?.trim().toLowerCase() === email.trim().toLowerCase());
+                        if (listUsersPageData.users.length < usersPerPage) {
+                            moreUsersToList = false; // Last page
+                        }
+                    } else {
+                        moreUsersToList = false; // No users found or empty page
+                    }
+                    currentPage++;
+                    // Safety break for very large user bases if not found quickly, adjust if necessary
+                    if (currentPage > 20 && !foundAuthUser) { // e.g., max 1000 users (20*50)
+                        console.warn("Reached pagination limit while searching for user by email. If user exists but not found, increase limit or use a more direct lookup method if available.");
+                        moreUsersToList = false;
+                    }
                 }
                 
-                // Log the raw response for debugging
-                console.log("Raw listUsersData from Supabase:", JSON.stringify(listUsersData, null, 2));
-
-                const targetEmailLower = email.trim().toLowerCase();
-                console.log(`Searching for email (trimmed & lowercased): "${targetEmailLower}"`);
-
-                // Find the user, ensuring case-insensitive and trimmed comparison
-                const existingAuthUser = listUsersData?.users?.find(u => {
-                    const userEmailLower = u.email?.trim().toLowerCase();
-                    return userEmailLower === targetEmailLower;
-                });
-                
-                // Log the result of the find operation *before* the conditional check
-                console.log("Result of find operation (existingAuthUser):", JSON.stringify(existingAuthUser, null, 2)); 
-                
-                if (existingAuthUser && existingAuthUser.id) {
-                    authUserId = existingAuthUser.id;
+                if (foundAuthUser && foundAuthUser.id) {
+                    authUserId = foundAuthUser.id;
                     isNewUser = false; 
-                    console.log(`Found existing auth user ID: ${authUserId} for email "${email}"`);
-                    // Update metadata for the existing user
+                    console.log(`Found existing auth user ID: ${authUserId} for email "${email}" after pagination.`);
                     const { error: updateUserMetaError } = await supabaseAdmin.auth.admin.updateUserById(
                         authUserId,
-                        { user_meta: { name: owner_name, phone: phone, user_type: "activity_provider" } }
+                        { user_metadata: { name: owner_name, phone: phone, user_type: "activity_provider" } } // user_metadata is correct for updateUserById
                     );
                     if (updateUserMetaError) {
                         console.warn(`Could not update metadata for existing auth user ${authUserId}:`, updateUserMetaError.message);
-                        // Decide if this is critical - maybe proceed anyway? For now, just warn.
                     }
                 } else {
-                    // This is the block that leads to the error message
-                    console.error(`Auth user with email "${email}" confirmed to exist (per createUser error), but find operation failed or user object lacked ID. Users found in list: ${listUsersData?.users?.length}.`);
-                    if (listUsersData?.users && listUsersData.users.length > 0) {
-                        console.log("Emails from listUsers (trimmed & lowercased):", listUsersData.users.map(u => u.email?.trim().toLowerCase()));
-                    }
-                    // Return the specific error
+                    console.error(`Auth user with email "${email}" confirmed to exist (per createUser error), but could not be found via paginated listUsers.`);
                     return res.status(500).json({ message: "User confirmed to exist but could not retrieve ID. Please contact support." });
                 }
+
             } else {
                 // Handle other createUser errors
                 console.error("Error creating user in auth.users:", authError);
@@ -128,17 +134,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 });
             }
         } else if (createUserData && createUserData.user && createUserData.user.id) {
-            // Handle successful new user creation
             authUserId = createUserData.user.id;
             isNewUser = true;
             console.log(`Created new auth user with UUID: ${authUserId} for email "${email}"`);
         } else {
-            // Handle unexpected response from createUser
             console.error("Failed to create auth user: No user data or user ID returned from createUser call, and no error.", createUserData);
             return res.status(500).json({ message: "Failed to create auth user: Unexpected response from Supabase.", error_details: "User object or ID missing in Supabase response without error."});
         }
         
-        // Check if we have an authUserId before proceeding
         if (!authUserId) {
             console.error("Critical error: Could not obtain authUserId after auth user handling.");
             return res.status(500).json({ message: "Failed to obtain user authentication ID." });
@@ -219,6 +222,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         if (insertError) {
             console.error("Supabase insert error for activity_owners:", insertError);
+            if (isNewUser && authUserId) {
+                try { await supabaseAdmin.auth.admin.deleteUser(authUserId); console.log("Rolled back new auth user creation due to activity_owners insert error."); } catch (delErr) { console.error("Failed to cleanup new auth user after activity_owners insert error:", delErr); }
+            }
             return res.status(500).json({
                 message: "Failed to register activity owner details. Supabase message: " + insertError.message,
                 details: insertError.details || null,
@@ -228,6 +234,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         if (!newOwnerRecord) {
             console.error("Failed to register activity owner: No data returned after insert into activity_owners.");
+             if (isNewUser && authUserId) {
+                try { await supabaseAdmin.auth.admin.deleteUser(authUserId); console.log("Rolled back new auth user creation as activity_owners insert returned no data."); } catch (delErr) { console.error("Failed to cleanup new auth user after activity_owners insert returned no ", delErr); }
+            }
             return res.status(500).json({ message: "Failed to register activity owner: No data returned after insert.", error_details: "Activity owner data missing post-insert."});
         }
 
