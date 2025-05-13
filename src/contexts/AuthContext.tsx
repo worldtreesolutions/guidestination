@@ -241,6 +241,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value = {
     user,
     session,
+    isAuthenticated, // Added missing property
     userRole,
     providerId,
     isLoading,
@@ -251,7 +252,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     resetPassword,
     updatePassword,
     updateUserProfile,
-    setError, // Expose setError if components need to manually set context errors
+    setError,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
