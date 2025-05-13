@@ -29,8 +29,7 @@ export const authService = {
    * Sign in with email and password using Supabase Auth
    */
   async signInWithEmail(email: string, password: string): Promise<{ user: User | null; session: Session | null; roleId: number | null; providerId: string | null }> {
-    // Corrected destructuring: use 'data' which contains user and session
-    const { signInResponse, error: signInError } = await supabase.auth.signInWithPassword({
+    const { signInData, error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -45,24 +44,22 @@ export const authService = {
       throw new Error("Sign in failed. Please try again.");
     }
 
-    // Access user and session from signInResponse
-    if (!signInResponse || !signInResponse.session || !signInResponse.user) {
-      throw new Error("Sign in failed. Please try again.");
+    if (!signInData || !signInData.session || !signInData.user) {
+      throw new Error("Sign in failed: No session or user data returned.");
     }
-    const { user, session } = signInResponse;
+    const { user, session } = signInData;
 
     let roleId: number | null = null;
     let providerId: string | null = null;
 
     try {
-        // Corrected destructuring for userProfile
         const { userProfile, error: profileError } = await supabase
             .from("users")
             .select("role_id")
             .eq("user_id", user.id)
             .single();
 
-        if (profileError && profileError.code !== 'PGRST116') { // PGRST116 means no rows found, which is not an error here
+        if (profileError && profileError.code !== 'PGRST116') { 
             console.error("Error fetching user profile after login:", profileError.message);
         } else if (userProfile) {
             roleId = userProfile.role_id;
@@ -133,30 +130,30 @@ export const authService = {
    * Update User Metadata
    */
   async updateUserMetadata(meta: UserMetadata) {
-    // Corrected destructuring for updateUser
-    const { updateResponse, error } = await supabase.auth.updateUser({ meta }); // user_metadata is passed via 'data' option for client updateUser
+    const { updateData, error } = await supabase.auth.updateUser({ meta }); 
     if (error) {
         console.error("Error updating user meta", error);
         throw new Error(error.message || "Failed to update user profile.");
     }
-    return updateResponse.user;
+    if (!updateData || !updateData.user) {
+        throw new Error("Failed to update user profile: No user data returned.");
+    }
+    return updateData.user;
   },
 
   /**
    * Get User Details
    */
   async getUserDetails(): Promise<{ roleId: number | null; providerId: string | null }> {
-     // Corrected destructuring for getUser
-     const { authUserResponse, error: authUserError } = await supabase.auth.getUser();
-     if (authUserError || !authUserResponse || !authUserResponse.user) {
+     const { authUserData, error: authUserError } = await supabase.auth.getUser();
+     if (authUserError || !authUserData || !authUserData.user) {
          if(authUserError) console.error("Error getting auth user:", authUserError);
          return { roleId: null, providerId: null };
      }
-     const authUser = authUserResponse.user;
+     const authUser = authUserData.user;
 
      let roleId: number | null = null;
      try {
-         // Corrected destructuring for userProfile
          const { userProfile, error: profileError } = await supabase
              .from("users")
              .select("role_id")
