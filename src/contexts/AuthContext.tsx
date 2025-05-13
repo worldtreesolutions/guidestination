@@ -12,10 +12,10 @@ interface AuthContextType {
   session: Session | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
+  login: (email: string, password: string) => Promise<{ user: User | null; session: Session | null; roleId?: string; providerId?: string }>;
   logout: () => Promise<void>;
   // @ Adjust register return type to match implementation
-  register: (email: string, password: string, name: string) => Promise<{ success: boolean; error?: string }>; 
+  register: (email: string, password: string, name: string, phone?: string, user_type?: string) => Promise<{ user: User | null; session: Session | null; needsVerification?: boolean; error?: string }>; 
   setupPasswordForExistingUser: (email: string, password: string, name: string) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   checkUserVerification: (email: string) => Promise<UserVerificationStatus>;
@@ -23,20 +23,7 @@ interface AuthContextType {
 }
 
 // Create the context with a default value
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  session: null,
-  isAuthenticated: false,
-  isLoading: true,
-  login: async () => {},
-  logout: async () => {},
-  // @ Update default register function to match new type
-  register: async () => ({ success: false, error: 'Default function not implemented' }), 
-  setupPasswordForExistingUser: async () => {},
-  resetPassword: async () => {},
-  checkUserVerification: async () => ({ exists: false, verified: false }),
-  checkUserExists: async () => ({ exists: false }),
-});
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Create a provider component
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -44,6 +31,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [providerId, setProviderId] = useState<number | null>(null);
 
   // Check if user is logged in on mount and set up auth state listener
   useEffect(() => {
@@ -80,41 +70,72 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Login function
-  const login = async (email: string, password: string, rememberMe?: boolean) => {
+  const login = async (email: string, password: string) => {
     setIsLoading(true);
+    setError(null);
     try {
-      const { user: authUser, session: authSession, roleId, providerId } = await authService.signInWithEmail(email, password);
-      
-      if (authUser && authSession) {
-        setUser(authUser);
-        setSession(authSession);
-        setIsAuthenticated(true);
-        
-        // Store role and provider ID in user metadata if available
-        if (roleId || providerId) {
-          const metadata: any = { ...authUser.user_metadata };
-          if (roleId) metadata.role_id = roleId;
-          if (providerId) {
-            // Ensure provider_id is stored as a number
-            metadata.provider_id = Number(providerId);
-            console.log('Setting provider_id in metadata:', metadata.provider_id, 'Type:', typeof metadata.provider_id);
-          }
-          
-          try {
-            // Update user metadata with provider_id
-            const updatedUser = await authService.updateUserMetadata(metadata);
-            console.log('Updated user metadata:', updatedUser.user_metadata);
-            
-            // Set the updated user with metadata
-            setUser(updatedUser);
-          } catch (metadataError) {
-            console.error('Error updating user metadata:', metadataError);
-          }
-        }
+      // Use the refactored authService.signInWithEmail which uses standard client
+      const { user: loggedInUser, session: loggedInSession, roleId, providerId } = await authService.signInWithEmail(email, password);
+      setUser(loggedInUser);
+      setSession(loggedInSession);
+      setUserRole(roleId);
+      setProviderId(providerId);
+      return { user: loggedInUser, session: loggedInSession, roleId, providerId };
+    } catch (e: any) {
+      console.error("Login error in AuthContext:", e);
+      setError(e.message || "Login failed");
+      throw e; // Re-throw for the form to handle
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Simplified register function using standard supabase.auth.signUp
+  const register = async (email: string, password: string, name: string, phone?: string, user_type?: string) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      // Use standard Supabase sign up
+      const { signUpData, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name: name,
+            phone: phone,
+            user_type: user_type || "customer", // Default to customer if not specified
+          },
+        },
+      });
+
+      if (signUpError) {
+        console.error("Registration error in AuthContext (signUp):", signUpError);
+        setError(signUpError.message || "Registration failed");
+        throw signUpError;
       }
-    } catch (error: any) {
-      console.error('Login error:', error);
-      throw error;
+
+      if (!signUpData.user || !signUpData.session) {
+        // Handle cases where user might exist but session isn't returned (e.g., email verification needed)
+        if (signUpData.user && !signUpData.session) {
+          setError("Registration successful, but requires email verification.");
+          return { user: signUpData.user, session: null, needsVerification: true };
+        }
+        throw new Error("Registration failed: No user or session returned.");
+      }
+
+      // If sign up is successful and returns a session (e.g., auto-confirmation enabled)
+      setUser(signUpData.user);
+      setSession(signUpData.session);
+      return { user: signUpData.user, session: signUpData.session, needsVerification: !signUpData.user.email_confirmed_at };
+
+    } catch (e: any) {
+      console.error("Registration error in AuthContext:", e);
+      if (e.message && e.message.includes("User already registered")) {
+        setError("An account with this email already exists.");
+      } else {
+        setError(e.message || "Registration failed");
+      }
+      throw e; // Re-throw for the form to handle
     } finally {
       setIsLoading(false);
     }
@@ -123,138 +144,86 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Logout function
   const logout = async () => {
     setIsLoading(true);
+    setError(null);
     try {
       await authService.signOut();
       setUser(null);
       setSession(null);
-      setIsAuthenticated(false);
-    } catch (error) {
-      console.error('Logout error:', error);
-      throw error;
+      setUserRole(null);
+      setProviderId(null);
+    } catch (e: any) {
+      console.error("Logout error:", e);
+      setError(e.message || "Logout failed");
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  // Register function
-  // @ Ensure return type matches the context definition
-  const register = async (email: string, password: string, name: string): Promise<{ success: boolean; error?: string }> => { 
-    setIsLoading(true);
-    try {
-      // Check if user already exists in the custom users table
-      const { exists, verified } = await authService.checkUserVerification(email);
-      
-      if (exists) {
-        // If user exists but is not verified, they need to contact support
-        if (!verified) {
-          return { success: false, error: 'Your account is pending verification. Please contact support.' };
-        }
-        
-        // If user exists and is verified, set up password for existing user
-        const { user: authUser, session: authSession } = await authService.setupPasswordForExistingUser(email, password, name);
-        
-        if (authUser && authSession) {
-          setUser(authUser);
-          setSession(authSession);
-          setIsAuthenticated(true);
-          return { success: true };
-        }
-      } else {
-        // If user doesn't exist, create a new user in the custom users table
-        // This is just a placeholder - in a real app, you'd have admin approval
-        const { userId } = await authService.createUser({
-          name,
-          email,
-          user_type: 'activity_provider'
-        });
-        
-        // Generate verification token (in a real app, you'd send an email)
-        await authService.createEmailVerification(userId);
-        
-        return { 
-          success: false, 
-          error: 'Registration submitted. Your account needs to be verified by an admin before you can log in.' 
-        };
-      }
-      
-      return { success: false, error: 'Registration failed' };
-    } catch (error: any) {
-      console.error('Registration error:', error);
-      return { success: false, error: error.message };
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Setup password for existing user
-  const setupPasswordForExistingUser = async (email: string, password: string, name: string) => {
-    setIsLoading(true);
-    try {
-      const { user, session } = await authService.setupPasswordForExistingUser(email, password, name);
-      
-      if (!user) {
-        throw new Error('Failed to set up password: No user returned');
-      }
-      
-      setUser(user);
-      setSession(session);
-    } catch (error) {
-      console.error('Setup password error:', error);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Check if user exists
-  const checkUserExists = async (email: string): Promise<{ exists: boolean; userId?: string }> => {
-    try {
-      return await authService.checkUserExists(email);
-    } catch (error) {
-      console.error('Check user exists error:', error);
-      throw error;
     }
   };
 
   // Reset password function
   const resetPassword = async (email: string) => {
+    setIsLoading(true);
+    setError(null);
     try {
       await authService.resetPassword(email);
-    } catch (error) {
-      console.error('Reset password error:', error);
-      throw error;
+    } catch (e: any) {
+      console.error("Reset password error:", e);
+      setError(e.message || "Failed to send reset password email.");
+      throw e;
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Check user verification status
-  const checkUserVerification = async (email: string): Promise<UserVerificationStatus> => {
+  // Update password function
+  const updatePassword = async (newPassword: string) => {
+    setIsLoading(true);
+    setError(null);
     try {
-      return await authService.checkUserVerification(email);
-    } catch (error) {
-      console.error('Check verification error:', error);
-      throw error;
+      await authService.updatePasswordWithResetToken(newPassword);
+    } catch (e: any) {
+      console.error("Update password error:", e);
+      setError(e.message || "Failed to update password.");
+      throw e;
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        session,
-        isAuthenticated,
-        isLoading,
-        login,
-        logout,
-        register,
-        setupPasswordForExistingUser,
-        resetPassword,
-        checkUserVerification,
-        checkUserExists,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+  // Update user profile function
+  const updateUserProfile = async (metadata: any) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const updatedUser = await authService.updateUserMetadata(metadata);
+      if (updatedUser) {
+        setUser(updatedUser);
+      }
+    } catch (e: any) {
+      console.error("Update profile error:", e);
+      setError(e.message || "Failed to update profile.");
+      throw e;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const value = {
+    user,
+    session,
+    userRole,
+    providerId,
+    isLoading,
+    error,
+    login,
+    register,
+    logout,
+    resetPassword,
+    updatePassword,
+    updateUserProfile,
+    setError, // Expose setError if components need to manually set context errors
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 // Create a hook to use the auth context
