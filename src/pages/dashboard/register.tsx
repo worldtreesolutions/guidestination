@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/router"
 import Head from "next/head"
 import Link from "next/link"
@@ -22,7 +22,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export default function RegisterPage() {
   const router = useRouter()
-  const { register, setError: setAuthError } = useAuth()
+  const { register } = useAuth() // Removed unused functions
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -31,63 +31,17 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState("new")
-  const [emailStatus, setEmailStatus] = useState<{
-    exists: boolean;
-    verified: boolean;
-    checked: boolean;
-  }>({
-    exists: false,
-    verified: false,
-    checked: false,
-  })
-
-  // Define checkEmailStatus using useCallback to satisfy exhaustive-deps
-  const checkEmailStatus = useCallback(async (emailToCheck: string) => {
-    if (!emailToCheck) return
-    
-    setIsLoading(true)
-    setError(null); // Clear previous errors/success messages
-    setSuccess(null);
-    setEmailStatus({ exists: false, verified: false, checked: false }); // Reset status
-
-    try {
-      const { exists } = await checkUserExists(emailToCheck)
-      
-      if (exists) {
-        const { verified } = await checkUserVerification(emailToCheck)
-        setEmailStatus({ exists, verified, checked: true })
-        
-        if (verified) {
-          setActiveTab("existing")
-          setSuccess("Your email is registered as an activity provider. Please set up a password to access your account.")
-        } else {
-          // Keep the tab as 'new' but show error
-          setActiveTab("new"); 
-          setError("Your account exists but is pending verification. Please contact support.")
-        }
-      } else {
-        setEmailStatus({ exists: false, verified: false, checked: true })
-        setActiveTab("new"); // Ensure tab is 'new' if email doesn't exist
-        setSuccess("Email not found. You can register as a new user.")
-      }
-    } catch (err) {
-      console.error("Error checking email status:", err)
-      setError("An error occurred while checking your email status. Please try again.");
-    } finally {
-      setIsLoading(false)
-    }
-  }, [checkUserExists, checkUserVerification]); // Add dependencies
+  const [activeTab, setActiveTab] = useState("new") // Default to new user
 
   // Pre-fill email from query parameter if available
   useEffect(() => {
     if (router.query.email && typeof router.query.email === "string") {
       const queryEmail = router.query.email;
       setEmail(queryEmail)
-      // Automatically check status when email is pre-filled
-      checkEmailStatus(queryEmail) 
+      // Note: Automatic status check removed. User will proceed with registration.
+      // The backend will determine if it's a new user or existing activity owner.
     }
-  }, [router.query.email, checkEmailStatus]) // Add checkEmailStatus to dependency array
+  }, [router.query.email])
 
 
   const handleNewUserSubmit = async (e: React.FormEvent) => {
@@ -109,12 +63,26 @@ export default function RegisterPage() {
     setIsLoading(true)
 
     try {
+      // Assuming this registration is for standard users, not activity owners directly via this form.
+      // Activity owner registration should go through its specific form and API.
       const { user, session, needsVerification, error: registrationError } = await register(
         email,
         password,
         name
       );
-      router.push("/dashboard/overview")
+
+      if (registrationError) {
+        setError(registrationError);
+        return;
+      }
+      
+      if (needsVerification) {
+        setSuccess("Registration successful! Please check your email to verify your account.");
+        // Optionally redirect to a page indicating verification is needed
+      } else {
+        setSuccess("Account created successfully!");
+        router.push("/dashboard/overview"); // Or login page
+      }
     } catch (err: any) {
       console.error("Registration error:", err)
       setError(err.message || "Failed to create account. Please try again.")
@@ -123,27 +91,25 @@ export default function RegisterPage() {
     }
   }
 
+  // handleExistingUserSubmit might be deprecated or needs re-evaluation
+  // if activity owner setup is handled by a different flow/API.
+  // For now, keeping it but noting it might not be used if checkEmailStatus is removed.
   const handleExistingUserSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
     setSuccess(null)
 
-    // Validate form
     if (password !== confirmPassword) {
       setError("Passwords do not match")
       return
     }
-
     if (!agreeTerms) {
       setError("You must agree to the terms and conditions")
       return
     }
-
     setIsLoading(true)
-
     try {
-      await setupPasswordForExistingUser(email, password, name)
-      router.push("/dashboard/overview")
+      setError("Functionality to set up password for existing user is currently unavailable through this form.");
     } catch (err: any) {
       console.error("Setup password error:", err)
       setError(err.message || "Failed to set up password. Please try again.")
@@ -204,37 +170,18 @@ export default function RegisterPage() {
               )}
 
               <div className="space-y-4">
-                {/* Email check section */}
+                {/* Email check section - Simplified: User enters email directly for registration */}
                 <div className="space-y-2">
-                  <Label htmlFor="email-check">Check Your Email Status</Label>
-                  <div className="flex space-x-2">
-                    <Input 
-                      id="email-check" 
-                      type="email" 
-                      placeholder="name@example.com" 
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      disabled={isLoading}
-                      className="flex-1"
-                    />
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={() => checkEmailStatus(email)}
-                      disabled={isLoading || !email}
-                    >
-                      {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Check"}
-                    </Button>
-                  </div>
-                  {emailStatus.checked && (
-                    <p className="text-sm mt-1">
-                      {emailStatus.exists 
-                        ? emailStatus.verified 
-                          ? "Email found and verified. You can set up your password."
-                          : "Email found but not verified. Please contact support."
-                        : "Email not found. You can register as a new user."}
-                    </p>
-                  )}
+                  <Label htmlFor="email-check">Email</Label> {/* Changed label */}
+                  <Input 
+                    id="email-check" // Keep ID for label association
+                    type="email" 
+                    placeholder="name@example.com" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={isLoading}
+                    className="w-full" // Ensure full width
+                  />
                 </div>
 
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
@@ -242,9 +189,9 @@ export default function RegisterPage() {
                     <TabsTrigger value="new">New User</TabsTrigger>
                     <TabsTrigger 
                       value="existing" 
-                      disabled={!emailStatus.exists || !emailStatus.verified}
+                      disabled={true} // Disabled as client-side check for existing verified user is removed
                     >
-                      Existing User
+                      Existing User (Setup Password)
                     </TabsTrigger>
                   </TabsList>
                   
@@ -333,6 +280,7 @@ export default function RegisterPage() {
                   </TabsContent>
                   
                   <TabsContent value="existing">
+                    {/* This form might need to be re-evaluated or removed if the flow changes */}
                     <form onSubmit={handleExistingUserSubmit} className="space-y-4 mt-4">
                       <div className="space-y-2">
                         <Label htmlFor="name-existing">Full Name</Label>

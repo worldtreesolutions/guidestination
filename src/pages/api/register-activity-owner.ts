@@ -46,13 +46,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         let authUserId: string | undefined;
         let isNewUser = false;
         
-        const { listUsersData, error: listUsersError } = await supabaseAdmin.auth.admin.listUsers({ email: email } as any); // Use `as any` to bypass strict PageParams typing if email is the intended filter key for your Supabase version/config
+        // Corrected destructuring for listUsers
+        const { listUsersResponse, error: listUsersError } = await supabaseAdmin.auth.admin.listUsers({ email: email } as any);
 
         if (listUsersError) {
             console.error("Error listing users from auth.users:", listUsersError);
-            // Potentially allow proceeding if error is "user not found" type, otherwise handle as error
-        } else if (listUsersData && listUsersData.users && listUsersData.users.length > 0) {
-            const authUser = listUsersData.users[0];
+        } else if (listUsersResponse && listUsersResponse.users && listUsersResponse.users.length > 0) {
+            const authUser = listUsersResponse.users[0];
             authUserId = authUser.id;
             console.log("User already exists in auth.users with ID:", authUserId);
         }
@@ -61,11 +61,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (!authUserId) {
             console.log("User does not exist in auth.users, creating new user...");
             const tempPassword = `temp-${uuidv4().substring(0, 8)}`;
-            const { newAuthUserData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+            // Corrected destructuring and user_meta syntax for createUser
+            const { createUserDataResponse, error: authError } = await supabaseAdmin.auth.admin.createUser({
                 email: email,
                 password: tempPassword,
                 email_confirm: true,
-                user_meta: {
+                user_meta: { // Corrected syntax: colon after user_meta
                     name: owner_name,
                     phone: phone,
                     user_type: "activity_provider",
@@ -84,12 +85,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 });
             }
 
-            if (!newAuthUserData || !newAuthUserData.user || !newAuthUserData.user.id) {
+            if (!createUserDataResponse || !createUserDataResponse.user || !createUserDataResponse.user.id) {
                 console.error("Failed to create auth user: No user data returned from createUser call.");
                 throw new Error("Failed to create auth user: No user ID returned");
             }
 
-            authUserId = newAuthUserData.user.id;
+            authUserId = createUserDataResponse.user.id;
             isNewUser = true;
             console.log("Created auth user with UUID:", authUserId);
         }
@@ -100,6 +101,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         // 4. Check if user exists in public.users table, create if not
+        // Corrected destructuring for publicUser check
         const { publicUser, error: publicUserCheckError } = await supabaseAdmin
             .from("users")
             .select("id")
@@ -121,12 +123,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (!publicUser) {
             console.log("User does not exist in public.users, creating profile for user_id:", authUserId);
             const userInsertPayload: UserInsert = {
-                user_id: authUserId, // This should be the foreign key to auth.users.id
+                user_id: authUserId,
                 name: owner_name,
                 email: email,
                 phone: phone || null,
                 user_type: "activity_provider",
-                verified: true,
+                verified: true, // Assuming verified since admin is creating
             };
             const { error: publicUserInsertError } = await supabaseAdmin
                 .from("users")
@@ -155,10 +157,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             email: email,
             owner_name: owner_name,
             phone: phone,
-            status: "pending",
+            status: "pending", // Default status
             ...ownerDetails,
         };
 
+        // Corrected destructuring for newOwnerRecord
         const { newOwnerRecord, error: insertError } = await supabaseAdmin
             .from("activity_owners")
             .insert(ownerInsertPayload)

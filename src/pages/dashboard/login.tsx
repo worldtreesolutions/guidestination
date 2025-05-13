@@ -21,7 +21,7 @@ import { Loader2, AlertCircle, AlertTriangle } from 'lucide-react'
 
 export default function LoginPage() {
   const router = useRouter()
-  const { login } = useAuth()
+  const { login } = useAuth() // checkUserVerification was removed from AuthContext
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
@@ -36,7 +36,8 @@ export default function LoginPage() {
     setIsLoading(true)
 
     try {
-      // If user is verified or doesn't exist, proceed with login
+      // Removed client-side call to checkUserVerification
+      // The login function in AuthContext and Supabase itself will handle verification status.
       const { user, session, roleId, providerId } = await login(email, password)
       router.push('/dashboard/overview')
     } catch (err: any) {

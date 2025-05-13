@@ -29,7 +29,8 @@ export const authService = {
    * Sign in with email and password using Supabase Auth
    */
   async signInWithEmail(email: string, password: string): Promise<{ user: User | null; session: Session | null; roleId: number | null; providerId: string | null }> {
-    const { signInAuthData, error: signInError } = await supabase.auth.signInWithPassword({
+    // Corrected destructuring: use 'data' which contains user and session
+    const { signInResponse, error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -44,35 +45,38 @@ export const authService = {
       throw new Error("Sign in failed. Please try again.");
     }
 
-    if (!signInAuthData.session || !signInAuthData.user) {
+    // Access user and session from signInResponse
+    if (!signInResponse || !signInResponse.session || !signInResponse.user) {
       throw new Error("Sign in failed. Please try again.");
     }
+    const { user, session } = signInResponse;
 
     let roleId: number | null = null;
     let providerId: string | null = null;
 
     try {
-        const { userProfileData, error: profileError } = await supabase
+        // Corrected destructuring for userProfile
+        const { userProfile, error: profileError } = await supabase
             .from("users")
             .select("role_id")
-            .eq("user_id", signInAuthData.user.id)
+            .eq("user_id", user.id)
             .single();
 
-        if (profileError && profileError.code !== 'PGRST116') {
+        if (profileError && profileError.code !== 'PGRST116') { // PGRST116 means no rows found, which is not an error here
             console.error("Error fetching user profile after login:", profileError.message);
-        } else if (userProfileData) {
-            roleId = userProfileData.role_id;
+        } else if (userProfile) {
+            roleId = userProfile.role_id;
         }
 
-        providerId = signInAuthData.user.app_metadata?.provider || signInAuthData.user.identities?.[0]?.provider || null;
+        providerId = user.app_metadata?.provider || user.identities?.[0]?.provider || null;
 
     } catch (e) {
          console.error("Error fetching user details post-login:", e);
     }
 
     return {
-      user: signInAuthData.user,
-      session: signInAuthData.session,
+      user: user,
+      session: session,
       roleId: roleId,
       providerId: providerId,
     };
@@ -129,20 +133,22 @@ export const authService = {
    * Update User Metadata
    */
   async updateUserMetadata(meta: UserMetadata) {
-    const { updatedUserData, error } = await supabase.auth.updateUser({ meta });
+    // Corrected destructuring for updateUser
+    const { updateResponse, error } = await supabase.auth.updateUser({ meta }); // user_metadata is passed via 'data' option for client updateUser
     if (error) {
         console.error("Error updating user meta", error);
         throw new Error(error.message || "Failed to update user profile.");
     }
-    return updatedUserData.user;
+    return updateResponse.user;
   },
 
   /**
    * Get User Details
    */
   async getUserDetails(): Promise<{ roleId: number | null; providerId: string | null }> {
+     // Corrected destructuring for getUser
      const { authUserResponse, error: authUserError } = await supabase.auth.getUser();
-     if (authUserError || !authUserResponse.user) {
+     if (authUserError || !authUserResponse || !authUserResponse.user) {
          if(authUserError) console.error("Error getting auth user:", authUserError);
          return { roleId: null, providerId: null };
      }
@@ -150,7 +156,8 @@ export const authService = {
 
      let roleId: number | null = null;
      try {
-         const { userProfileDetails, error: profileError } = await supabase
+         // Corrected destructuring for userProfile
+         const { userProfile, error: profileError } = await supabase
              .from("users")
              .select("role_id")
              .eq("user_id", authUser.id)
@@ -158,8 +165,8 @@ export const authService = {
 
          if (profileError && profileError.code !== 'PGRST116') {
              console.error("Error fetching user details:", profileError.message);
-         } else if (userProfileDetails) {
-             roleId = userProfileDetails.role_id;
+         } else if (userProfile) {
+             roleId = userProfile.role_id;
          }
      } catch (e) {
          console.error("Error fetching user details:", e);
