@@ -1,3 +1,4 @@
+
 import { NextApiRequest, NextApiResponse } from "next";
 import { supabaseAdmin } from "@/integrations/supabase/admin";
 import type { Database } from "@/integrations/supabase/types";
@@ -54,7 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             password: tempPassword,
             email_confirm: true, 
             options: {
-                data: { // user_metadata for createUser goes into options.data
+                 { 
                     name: owner_name,
                     phone: phone,
                     user_type: "activity_provider", 
@@ -73,80 +74,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                      ((authError as any).status === 400 && authError.message.toLowerCase().includes("user already exists"));
 
             if (isEmailExistsError) {
-                console.log(`Auth user with email "${email}" already exists (reported by createUser). Attempting to retrieve their ID via paginated listUsers.`);
-                
-                let foundAuthUser: User | undefined;
-                let currentPage = 1;
-                const usersPerPage = 50;
-                let moreUsersToList = true;
-                const targetEmailProcessed = email.trim().toLowerCase();
+                console.log(`Auth user with email "${email}" already exists (reported by createUser). Attempting to retrieve them directly by email.`);
+                const {  existingAuthUserData, error: getUserByEmailError } = await supabaseAdmin.auth.admin.getUserByEmail(email);
 
-                while (moreUsersToList && !foundAuthUser) {
-                    console.log(`Fetching page ${currentPage} of users...`);
-                    const {  listUsersPage, error: listUsersError } = await supabaseAdmin.auth.admin.listUsers({
-                        page: currentPage,
-                        perPage: usersPerPage,
-                    });
-
-                    if (listUsersError) {
-                        console.error(`Error listing users (page ${currentPage}) to find existing user ID:`, listUsersError);
-                        return res.status(500).json({ message: "Failed to verify existing user: " + listUsersError.message });
-                    }
-
-                    if (listUsersPage && listUsersPage.users && listUsersPage.users.length > 0) {
-                        console.log(`Page ${currentPage}: Found ${listUsersPage.users.length} users. Searching for target email: "${targetEmailProcessed}"`);
-                        
-                        // Added logging for emails on the first page if no immediate match
-                        if (currentPage === 1) {
-                            const emailsOnFirstPage = listUsersPage.users.map(usr => usr.email?.trim().toLowerCase()).filter(Boolean);
-                            console.log(`Emails on first page (processed for comparison): ${JSON.stringify(emailsOnFirstPage)}`);
-                        }
-
-                        for (const u of listUsersPage.users) {
-                            const currentUserEmailProcessed = u.email?.trim().toLowerCase();
-                            console.log(`  Comparing target: "${targetEmailProcessed}" with current user email: "${currentUserEmailProcessed}" (ID: ${u.id})`);
-                            if (currentUserEmailProcessed === targetEmailProcessed) {
-                                foundAuthUser = u;
-                                console.log(`  Match FOUND for email "${targetEmailProcessed}"! User ID: ${u.id}`);
-                                break; 
-                            }
-                        }
-
-                        if (foundAuthUser) {
-                            moreUsersToList = false; 
-                        } else if (listUsersPage.users.length < usersPerPage) {
-                            console.log(`Page ${currentPage}: End of user list reached (received ${listUsersPage.users.length} users, less than perPage ${usersPerPage}).`);
-                            moreUsersToList = false; 
-                        }
-                    } else {
-                        console.log(`Page ${currentPage}: No users found or empty user list.`);
-                        moreUsersToList = false; 
-                    }
-                    
-                    if (moreUsersToList) { 
-                        currentPage++;
-                    }
-
-                    if (currentPage > 20 && !foundAuthUser) { 
-                        console.warn("Reached pagination limit (20 pages) while searching for user by email. If user exists but not found, increase limit or use a more direct lookup method if available.");
-                        moreUsersToList = false;
-                    }
+                if (getUserByEmailError) {
+                    console.error(`Error retrieving existing user by email "${email}":`, getUserByEmailError);
+                    return res.status(500).json({ message: `Failed to retrieve existing user by email: ${getUserByEmailError.message}` });
                 }
-                
-                if (foundAuthUser && foundAuthUser.id) {
-                    authUserId = foundAuthUser.id;
+
+                const foundUser = existingAuthUserData?.user;
+
+                if (foundUser && foundUser.id) {
+                    authUserId = foundUser.id;
                     isNewUser = false; 
-                    console.log(`Found existing auth user ID: ${authUserId} for email "${email}" after pagination search.`);
+                    console.log(`Found existing auth user ID: ${authUserId} for email "${email}" using getUserByEmail.`);
                     const { error: updateUserMetaError } = await supabaseAdmin.auth.admin.updateUserById(
                         authUserId,
-                        { user_metadata: { name: owner_name, phone: phone, user_type: "activity_provider" } } // user_metadata for updateUserById
+                        { user_meta { name: owner_name, phone: phone, user_type: "activity_provider" } }
                     );
                     if (updateUserMetaError) {
                         console.warn(`Could not update metadata for existing auth user ${authUserId}:`, updateUserMetaError.message);
                     }
                 } else {
-                    console.error(`Auth user with email "${email}" confirmed to exist (per createUser error), but could NOT be found via paginated listUsers. Final foundAuthUser: ${JSON.stringify(foundAuthUser)}`);
-                    return res.status(500).json({ message: "User confirmed to exist but could not retrieve ID. Please contact support." });
+                    console.error(`Auth user with email "${email}" confirmed to exist (per createUser error), but could NOT be found via getUserByEmail. Response: ${JSON.stringify(existingAuthUserData)}`);
+                    return res.status(500).json({ message: "User confirmed to exist but could not be retrieved by email. Please contact support." });
                 }
 
             } else {
