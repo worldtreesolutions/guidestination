@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -50,11 +51,37 @@
 }
 
 @layer base {
+  html {
+    font-family: 'Poppins', sans-serif;
+  }
+  
   * {
     @apply border-border;
   }
+  
   body {
     @apply bg-background text-foreground;
+    font-family: 'Poppins', sans-serif;
     font-feature-settings: 'rlig' 1, 'calt' 1;
+  }
+}
+
+@layer components {
+  .btn,
+  .button,
+  button[type="submit"],
+  button[type="button"],
+  .ui-button,
+  .ui-btn {
+    @apply transition-colors duration-200;
+  }
+  
+  .btn:hover,
+  .button:hover,
+  button[type="submit"]:hover,
+  button[type="button"]:hover,
+  .ui-button:hover,
+  .ui-btn:hover {
+    background-color: #ededed !important;
   }
 }
