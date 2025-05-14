@@ -24,7 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     try {
         // 1. Check if an activity_owner record with this email already exists
-        const {  existingOwner, error: ownerCheckError } = await supabaseAdmin
+        const { data: existingOwner, error: ownerCheckError } = await supabaseAdmin
             .from("activity_owners")
             .select("provider_id")
             .eq("email", email)
@@ -54,12 +54,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             email: email,
             password: tempPassword,
             email_confirm: true, 
-            options: {
-                 { // Corrected: user_metadata for createUser goes into options.data
-                    name: owner_name,
-                    phone: phone,
-                    user_type: "activity_provider", 
-                }
+            user_meta { 
+                name: owner_name,
+                phone: phone,
+                user_type: "activity_provider", 
             }
         });
         
@@ -92,7 +90,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     const { error: updateUserMetaError } = await supabaseAdmin.auth.admin.updateUserById(
                         authUserId,
                         { 
-                            user_meta { // Corrected: This should be user_metadata
+                            user_meta { 
                                 name: owner_name, 
                                 phone: phone, 
                                 user_type: "activity_provider" 
