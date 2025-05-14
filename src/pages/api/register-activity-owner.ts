@@ -219,7 +219,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return res.status(500).json({ message: "Failed to register activity owner: No data returned after insert.", error_details: "Activity owner data missing post-insert."});
         }
 
-        console.log("Activity owner registered successfully, provider_id:", newOwnerRecord.provider_id);
+        // Assuming provider_id exists on newOwnerRecord due to user confirmation.
+        // If types.ts is out of sync, TypeScript might warn here, but it should work at runtime.
+        console.log("Activity owner registered successfully, provider_id:", (newOwnerRecord as any).provider_id);
         return res.status(201).json({
             message: "Activity owner registered successfully.",
             newOwner: newOwnerRecord,
