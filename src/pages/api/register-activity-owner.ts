@@ -3,7 +3,6 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { supabaseAdmin } from "@/integrations/supabase/admin";
 import type { Database } from "@/integrations/supabase/types";
 import { v4 as uuidv4 } from "uuid";
-// Removed unused User import: import type { User } from "@supabase/supabase-js";
 
 type ActivityOwnerInsert = Database["public"]["Tables"]["activity_owners"]["Insert"];
 type UserInsert = Database["public"]["Tables"]["users"]["Insert"];
@@ -54,7 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             email: email,
             password: tempPassword,
             email_confirm: true,
-            user_meta { // Corrected: user_metadata is a direct property for admin.createUser
+            user_meta { 
                 name: owner_name,
                 phone: phone,
                 user_type: "activity_provider"
@@ -90,7 +89,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     const { error: updateUserMetaError } = await supabaseAdmin.auth.admin.updateUserById(
                         authUserId,
                         {
-                            user_meta { // This is correct for updateUserById
+                            user_meta { 
                                 name: owner_name,
                                 phone: phone,
                                 user_type: "activity_provider"
