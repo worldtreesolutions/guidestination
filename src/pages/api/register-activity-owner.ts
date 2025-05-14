@@ -1,3 +1,4 @@
+
 import { NextApiRequest, NextApiResponse } from "next";
 import { supabaseAdmin } from "@/integrations/supabase/admin";
 import type { Database } from "@/integrations/supabase/types";
@@ -54,7 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             password: tempPassword,
             email_confirm: true, 
             options: {
-                data: { 
+                 { 
                     name: owner_name,
                     phone: phone,
                     user_type: "activity_provider", 
@@ -74,6 +75,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
             if (isEmailExistsError) {
                 console.log(`Auth user with email "${email}" already exists (reported by createUser). Attempting to retrieve them directly by email.`);
+                
+                // Debugging logs for getUserByEmail
+                console.log("DEBUG: supabaseAdmin.auth.admin object:", supabaseAdmin.auth.admin);
+                console.log("DEBUG: typeof supabaseAdmin.auth.admin.getUserByEmail:", typeof supabaseAdmin.auth.admin.getUserByEmail);
+
                 const {  existingAuthUserData, error: getUserByEmailError } = await supabaseAdmin.auth.admin.getUserByEmail(email);
 
                 if (getUserByEmailError) {
@@ -90,7 +96,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     const { error: updateUserMetaError } = await supabaseAdmin.auth.admin.updateUserById(
                         authUserId,
                         { 
-                            user_meta: { 
+                            user_meta { 
                                 name: owner_name, 
                                 phone: phone, 
                                 user_type: "activity_provider" 
