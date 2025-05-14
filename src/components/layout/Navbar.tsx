@@ -1,69 +1,78 @@
+
 import Link from "next/link"
 import { NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList } from "@/components/ui/navigation-menu"
 import { MobileMenu } from "./MobileMenu"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useAuth } from "@/contexts/AuthContext"; // Import useAuth
+import { Button } from "@/components/ui/button"; // Import Button component
 
 export function Navbar() {
   const isMobile = useIsMobile()
-  const { isAuthenticated, logout } = useAuth(); // Get auth state and logout function
+  const { user, logout } = useAuth(); // Get user state and logout function
 
   return (
-    <header className='sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
-      <div className='w-full'>
-        <div className='flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8 max-w-[2000px] mx-auto'>
-          <div className='flex items-center'>
-            <Link href='/' className='flex items-center gap-2 mr-6'>
-              <span className='text-xl font-bold'>Guidestination</span>
-            </Link>
+    &lt;header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"&gt;
+      &lt;div className="w-full"&gt;
+        &lt;div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8 max-w-[2000px] mx-auto"&gt;
+          &lt;div className="flex items-center"&gt;
+            &lt;Link href="/" className="flex items-center gap-2 mr-6"&gt;
+              &lt;span className="text-xl font-bold"&gt;Guidestination&lt;/span&gt;
+            &lt;/Link&gt;
             
-            <nav className='hidden md:flex items-center gap-6'>
-              <NavigationMenu>
-                <NavigationMenuList className="space-x-1 lg:space-x-4 flex-wrap justify-center">
-                  <NavigationMenuItem>
-                    <Link href="/recommendation" legacyBehavior passHref>
-                      <NavigationMenuLink className="inline-flex h-10 items-center justify-center rounded-md bg-transparent px-2 lg:px-4 py-2 text-sm font-medium transition-colors hover:bg-[#22C55E] hover:text-white focus:bg-[#22C55E] focus:text-white focus:outline-none disabled:pointer-events-none disabled:opacity-50">
+            &lt;nav className="hidden md:flex items-center gap-6"&gt;
+              &lt;NavigationMenu&gt;
+                &lt;NavigationMenuList className="space-x-1 lg:space-x-4 flex-wrap justify-center"&gt;
+                  &lt;NavigationMenuItem&gt;
+                    &lt;Link href="/recommendation" legacyBehavior passHref&gt;
+                      &lt;NavigationMenuLink className="inline-flex h-10 items-center justify-center rounded-md bg-transparent px-2 lg:px-4 py-2 text-sm font-medium transition-colors hover:bg-[#ededed] hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50"&gt;
                         AI Planning
-                      </NavigationMenuLink>
-                    </Link>
-                  </NavigationMenuItem>
-                  <NavigationMenuItem>
-                    <Link href="/activity-owner" legacyBehavior passHref>
-                      <NavigationMenuLink className="inline-flex h-10 items-center justify-center rounded-md bg-transparent px-2 lg:px-4 py-2 text-sm font-medium transition-colors hover:bg-[#22C55E] hover:text-white focus:bg-[#22C55E] focus:text-white focus:outline-none disabled:pointer-events-none disabled:opacity-50">
+                      &lt;/NavigationMenuLink&gt;
+                    &lt;/Link&gt;
+                  &lt;/NavigationMenuItem&gt;
+                  &lt;NavigationMenuItem&gt;
+                    &lt;Link href="/activity-owner" legacyBehavior passHref&gt;
+                      &lt;NavigationMenuLink className="inline-flex h-10 items-center justify-center rounded-md bg-transparent px-2 lg:px-4 py-2 text-sm font-medium transition-colors hover:bg-[#ededed] hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50"&gt;
                         List Your Activities
-                      </NavigationMenuLink>
-                    </Link>
-                  </NavigationMenuItem>
-                  <NavigationMenuItem>
-                    <Link href="/partner" legacyBehavior passHref>
-                      <NavigationMenuLink className="inline-flex h-10 items-center justify-center rounded-md bg-transparent px-2 lg:px-4 py-2 text-sm font-medium transition-colors hover:bg-[#22C55E] hover:text-white focus:bg-[#22C55E] focus:text-white focus:outline-none disabled:pointer-events-none disabled:opacity-50">
+                      &lt;/NavigationMenuLink&gt;
+                    &lt;/Link&gt;
+                  &lt;/NavigationMenuItem&gt;
+                  &lt;NavigationMenuItem&gt;
+                    &lt;Link href="/partner" legacyBehavior passHref&gt;
+                      &lt;NavigationMenuLink className="inline-flex h-10 items-center justify-center rounded-md bg-transparent px-2 lg:px-4 py-2 text-sm font-medium transition-colors hover:bg-[#ededed] hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50"&gt;
                         Become a Partner
-                      </NavigationMenuLink>
-                    </Link>
-                  </NavigationMenuItem>
-                  <NavigationMenuItem>
-                    <Link href="/dashboard/login" legacyBehavior passHref>
-                    {/* @ Update Link href from /activity-owner/dashboard to /dashboard/login */}
-                      <NavigationMenuLink className="inline-flex h-10 items-center justify-center rounded-md bg-transparent px-2 lg:px-4 py-2 text-sm font-medium transition-colors hover:bg-[#22C55E] hover:text-white focus:bg-[#22C55E] focus:text-white focus:outline-none disabled:pointer-events-none disabled:opacity-50">
+                      &lt;/NavigationMenuLink&gt;
+                    &lt;/Link&gt;
+                  &lt;/NavigationMenuItem&gt;
+                  &lt;NavigationMenuItem&gt;
+                    &lt;Link href="/dashboard/login" legacyBehavior passHref&gt;
+                      &lt;NavigationMenuLink className="inline-flex h-10 items-center justify-center rounded-md bg-transparent px-2 lg:px-4 py-2 text-sm font-medium transition-colors hover:bg-[#ededed] hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50"&gt;
                         Provider Dashboard
-                      </NavigationMenuLink>
-                    </Link>
-                  </NavigationMenuItem>
-                </NavigationMenuList>
-              </NavigationMenu>
-            </nav>
-          </div>
+                      &lt;/NavigationMenuLink&gt;
+                    &lt;/Link&gt;
+                  &lt;/NavigationMenuItem&gt;
+                &lt;/NavigationMenuList&gt;
+              &lt;/NavigationMenu&gt;
+            &lt;/nav&gt;
+          &lt;/div&gt;
           
-          <div className='flex items-center gap-4'>
-            <Link href="/activity-owner/login" className="hidden md:inline-flex h-10 items-center justify-center rounded-md bg-[#22C55E] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#1EA34D] focus:outline-none focus:ring-2 focus:ring-[#22C55E] focus:ring-offset-2">
-              Login
-            </Link>
-            <div className="md:hidden">
-              <MobileMenu />
-            </div>
-          </div>
-        </div>
-      </div>
-    </header>
+          &lt;div className="flex items-center gap-4"&gt;
+            {user ? (
+              &lt;Button variant="ghost" onClick={logout} className="hover:bg-[#ededed] hover:text-accent-foreground"&gt;
+                Logout
+              &lt;/Button&gt;
+            ) : (
+              &lt;Link href="/dashboard/login" passHref legacyBehavior&gt;
+                &lt;a className="hidden md:inline-flex items-center justify-center rounded-md h-10 px-4 py-2 text-sm font-medium transition-colors bg-primary text-primary-foreground shadow hover:bg-[#ededed] hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"&gt;
+                  Login
+                &lt;/a&gt;
+              &lt;/Link&gt;
+            )}
+            &lt;div className="md:hidden"&gt;
+              &lt;MobileMenu /&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/header&gt;
   )
 }
