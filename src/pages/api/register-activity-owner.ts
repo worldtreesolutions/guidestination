@@ -92,7 +92,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     const { error: updateUserMetaError } = await supabaseAdmin.auth.admin.updateUserById(
                         authUserId,
                         { 
-                            user_metadata: { // Corrected key for user_metadata and standard object syntax
+                            user_metadata: { 
                                 name: owner_name, 
                                 phone: phone, 
                                 user_type: "activity_provider" 
