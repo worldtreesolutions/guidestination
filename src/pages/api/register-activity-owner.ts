@@ -50,7 +50,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const tempPassword = `temp-${uuidv4().substring(0, 8)}`; 
 
         console.log(`Attempting to create or identify auth user for email: "${email}"`);
-        const {  createUserData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+        const {   createUserData, error: authError } = await supabaseAdmin.auth.admin.createUser({
             email: email,
             password: tempPassword,
             email_confirm: true, 
@@ -76,7 +76,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             if (isEmailExistsError) {
                 console.log(`Auth user with email "${email}" already exists (reported by createUser). Attempting to retrieve them by listing users.`);
                 
-                const {  listUsersData, error: listUsersError } = await supabaseAdmin.auth.admin.listUsers({ email: email });
+                const {   listUsersData, error: listUsersError } = await supabaseAdmin.auth.admin.listUsers({ email: email });
 
                 if (listUsersError) {
                     console.error(`Error listing users by email "${email}":`, listUsersError);
@@ -130,7 +130,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         // 3. Ensure user profile exists in public.users table
-        const {  publicUser, error: publicUserCheckError } = await supabaseAdmin
+        const {   publicUser, error: publicUserCheckError } = await supabaseAdmin
             .from("users")
             .select("id")
             .eq("user_id", authUserId)
@@ -196,7 +196,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             ...ownerDetails, 
         };
 
-        const {  newOwnerRecord, error: insertError } = await supabaseAdmin
+        const {   newOwnerRecord, error: insertError } = await supabaseAdmin
             .from("activity_owners")
             .insert(ownerInsertPayload)
             .select()
