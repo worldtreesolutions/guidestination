@@ -55,7 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             password: tempPassword,
             email_confirm: true, 
             options: {
-                 { // This is the corrected part for createUser
+                 { // Corrected: user_metadata for createUser goes into options.data
                     name: owner_name,
                     phone: phone,
                     user_type: "activity_provider", 
@@ -92,7 +92,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     const { error: updateUserMetaError } = await supabaseAdmin.auth.admin.updateUserById(
                         authUserId,
                         { 
-                            user_meta { // This is the corrected part for updateUserById
+                            user_metadata: { // Corrected key for user_metadata and standard object syntax
                                 name: owner_name, 
                                 phone: phone, 
                                 user_type: "activity_provider" 
