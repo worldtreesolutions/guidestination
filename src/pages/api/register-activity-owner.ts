@@ -24,7 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     try {
         // 1. Check if an activity_owner record with this email already exists
-        const {  existingOwner, error: ownerCheckError } = await supabaseAdmin
+        const { data: existingOwner, error: ownerCheckError } = await supabaseAdmin
             .from("activity_owners")
             .select("provider_id")
             .eq("email", email)
@@ -50,12 +50,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const tempPassword = `temp-${uuidv4().substring(0, 8)}`; 
 
         console.log(`Attempting to create or identify auth user for email: "${email}"`);
-        const {  createUserData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+        const { data: createUserData, error: authError } = await supabaseAdmin.auth.admin.createUser({
             email: email,
             password: tempPassword,
-            email_confirm: true, 
-            options: { // Corrected: user_metadata for createUser goes into options.data
-                 {
+            email_confirm: true,
+            options: {
+                data: {  // Corrected: user_metadata goes in options.data
                     name: owner_name,
                     phone: phone,
                     user_type: "activity_provider"
@@ -76,7 +76,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             if (isEmailExistsError) {
                 console.log(`Auth user with email "${email}" already exists (reported by createUser). Attempting to retrieve them by listing users.`);
                 
-                const {  listUsersData, error: listUsersError } = await supabaseAdmin.auth.admin.listUsers({ email: email });
+                const { data: listUsersData, error: listUsersError } = await supabaseAdmin.auth.admin.listUsers({ email: email });
 
                 if (listUsersError) {
                     console.error(`Error listing users by email "${email}":`, listUsersError);
@@ -91,12 +91,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     console.log(`Found existing auth user ID: ${authUserId} for email "${email}" using listUsers.`);
                     const { error: updateUserMetaError } = await supabaseAdmin.auth.admin.updateUserById(
                         authUserId,
-                        { 
-                            user_meta { // Corrected: key is user_metadata, followed by a colon
-                                name: owner_name, 
-                                phone: phone, 
-                                user_type: "activity_provider" 
-                            } 
+                        {
+                            user_metadata: {  // Corrected: proper key name for user metadata
+                                name: owner_name,
+                                phone: phone,
+                                user_type: "activity_provider"
+                            }
                         }
                     );
                     if (updateUserMetaError) {
@@ -130,7 +130,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         // 3. Ensure user profile exists in public.users table
-        const {  publicUser, error: publicUserCheckError } = await supabaseAdmin
+        const { data: publicUser, error: publicUserCheckError } = await supabaseAdmin
             .from("users")
             .select("id")
             .eq("user_id", authUserId)
@@ -156,7 +156,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 email: email,
                 phone: phone || null,
                 user_type: "activity_provider", 
-                verified: true, 
+                verified: true
             };
             const { error: publicUserInsertError } = await supabaseAdmin
                 .from("users")
@@ -193,10 +193,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             owner_name: owner_name,
             phone: phone,
             status: "pending", 
-            ...ownerDetails, 
+            ...ownerDetails
         };
 
-        const {  newOwnerRecord, error: insertError } = await supabaseAdmin
+        const { data: newOwnerRecord, error: insertError } = await supabaseAdmin
             .from("activity_owners")
             .insert(ownerInsertPayload)
             .select()
@@ -226,7 +226,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(201).json({
             message: "Activity owner registered successfully.",
             newOwner: newOwnerRecord,
-            isNewUser: isNewUser, 
+            isNewUser: isNewUser
         });
 
     } catch (error: any) {
