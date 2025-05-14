@@ -3,7 +3,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { supabaseAdmin } from "@/integrations/supabase/admin";
 import type { Database } from "@/integrations/supabase/types";
 import { v4 as uuidv4 } from "uuid";
-import type { User } from "@supabase/supabase-js";
+// Removed unused User import: import type { User } from "@supabase/supabase-js";
 
 type ActivityOwnerInsert = Database["public"]["Tables"]["activity_owners"]["Insert"];
 type UserInsert = Database["public"]["Tables"]["users"]["Insert"];
@@ -24,7 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     try {
         // 1. Check if an activity_owner record with this email already exists
-        const { data: existingOwner, error: ownerCheckError } = await supabaseAdmin
+        const {  existingOwner, error: ownerCheckError } = await supabaseAdmin
             .from("activity_owners")
             .select("provider_id")
             .eq("email", email)
@@ -50,16 +50,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const tempPassword = `temp-${uuidv4().substring(0, 8)}`; 
 
         console.log(`Attempting to create or identify auth user for email: "${email}"`);
-        const { data: createUserData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+        const {  createUserData, error: authError } = await supabaseAdmin.auth.admin.createUser({
             email: email,
             password: tempPassword,
             email_confirm: true,
-            options: {
-                data: {  // Corrected: user_metadata goes in options.data
-                    name: owner_name,
-                    phone: phone,
-                    user_type: "activity_provider"
-                }
+            user_meta { // Corrected: user_metadata is a direct property for admin.createUser
+                name: owner_name,
+                phone: phone,
+                user_type: "activity_provider"
             }
         });
         
@@ -76,7 +74,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             if (isEmailExistsError) {
                 console.log(`Auth user with email "${email}" already exists (reported by createUser). Attempting to retrieve them by listing users.`);
                 
-                const { data: listUsersData, error: listUsersError } = await supabaseAdmin.auth.admin.listUsers({ email: email });
+                const {  listUsersData, error: listUsersError } = await supabaseAdmin.auth.admin.listUsers({ email: email });
 
                 if (listUsersError) {
                     console.error(`Error listing users by email "${email}":`, listUsersError);
@@ -92,7 +90,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     const { error: updateUserMetaError } = await supabaseAdmin.auth.admin.updateUserById(
                         authUserId,
                         {
-                            user_metadata: {  // Corrected: proper key name for user metadata
+                            user_meta { // This is correct for updateUserById
                                 name: owner_name,
                                 phone: phone,
                                 user_type: "activity_provider"
@@ -130,7 +128,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         // 3. Ensure user profile exists in public.users table
-        const { data: publicUser, error: publicUserCheckError } = await supabaseAdmin
+        const {  publicUser, error: publicUserCheckError } = await supabaseAdmin
             .from("users")
             .select("id")
             .eq("user_id", authUserId)
@@ -196,7 +194,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             ...ownerDetails
         };
 
-        const { data: newOwnerRecord, error: insertError } = await supabaseAdmin
+        const {  newOwnerRecord, error: insertError } = await supabaseAdmin
             .from("activity_owners")
             .insert(ownerInsertPayload)
             .select()
