@@ -55,7 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             password: tempPassword,
             email_confirm: true, 
             options: {
-                 { // Corrected: user_metadata for createUser goes into options.data
+                 { // user_metadata for createUser goes into options.data
                     name: owner_name,
                     phone: phone,
                     user_type: "activity_provider", 
