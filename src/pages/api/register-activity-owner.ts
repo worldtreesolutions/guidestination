@@ -1,4 +1,3 @@
-
 import { NextApiRequest, NextApiResponse } from "next";
 import { supabaseAdmin } from "@/integrations/supabase/admin";
 import type { Database } from "@/integrations/supabase/types";
@@ -55,7 +54,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             password: tempPassword,
             email_confirm: true, 
             options: {
-                 { 
+                data: { 
                     name: owner_name,
                     phone: phone,
                     user_type: "activity_provider", 
@@ -90,7 +89,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     console.log(`Found existing auth user ID: ${authUserId} for email "${email}" using getUserByEmail.`);
                     const { error: updateUserMetaError } = await supabaseAdmin.auth.admin.updateUserById(
                         authUserId,
-                        { user_meta { name: owner_name, phone: phone, user_type: "activity_provider" } }
+                        { 
+                            user_meta: { 
+                                name: owner_name, 
+                                phone: phone, 
+                                user_type: "activity_provider" 
+                            } 
+                        }
                     );
                     if (updateUserMetaError) {
                         console.warn(`Could not update metadata for existing auth user ${authUserId}:`, updateUserMetaError.message);
