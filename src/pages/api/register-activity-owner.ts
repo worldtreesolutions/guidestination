@@ -1,3 +1,4 @@
+
 import { NextApiRequest, NextApiResponse } from "next";
 import { supabaseAdmin } from "@/integrations/supabase/admin";
 import type { Database } from "@/integrations/supabase/types";
@@ -54,14 +55,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             password: tempPassword,
             email_confirm: true, 
             options: {
-                data: { // Corrected: user_metadata for createUser goes into options.data
+                 { // Corrected: user_metadata for createUser goes into options.data
                     name: owner_name,
                     phone: phone,
                     user_type: "activity_provider", 
                 }
             }
         });
-
+        
         if (authError) {
             const emailExistsErrorMessages = [
                 "User already registered",
@@ -73,28 +74,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                      ((authError as any).status === 400 && authError.message.toLowerCase().includes("user already exists"));
 
             if (isEmailExistsError) {
-                console.log(`Auth user with email "${email}" already exists (reported by createUser). Attempting to retrieve them directly by email.`);
+                console.log(`Auth user with email "${email}" already exists (reported by createUser). Attempting to retrieve them by listing users.`);
                 
-                console.log("DEBUG: supabaseAdmin.auth.admin object:", supabaseAdmin.auth.admin);
-                console.log("DEBUG: typeof supabaseAdmin.auth.admin.getUserByEmail:", typeof supabaseAdmin.auth.admin.getUserByEmail);
+                const {  listUsersData, error: listUsersError } = await supabaseAdmin.auth.admin.listUsers({ email: email });
 
-                const {  existingAuthUserData, error: getUserByEmailError } = await supabaseAdmin.auth.admin.getUserByEmail(email);
-
-                if (getUserByEmailError) {
-                    console.error(`Error retrieving existing user by email "${email}":`, getUserByEmailError);
-                    return res.status(500).json({ message: `Failed to retrieve existing user by email: ${getUserByEmailError.message}` });
+                if (listUsersError) {
+                    console.error(`Error listing users by email "${email}":`, listUsersError);
+                    return res.status(500).json({ message: `Failed to list existing users by email: ${listUsersError.message}` });
                 }
 
-                const foundUser = existingAuthUserData?.user;
+                const foundUser = listUsersData && listUsersData.users && listUsersData.users.length > 0 ? listUsersData.users[0] : null;
 
                 if (foundUser && foundUser.id) {
                     authUserId = foundUser.id;
                     isNewUser = false; 
-                    console.log(`Found existing auth user ID: ${authUserId} for email "${email}" using getUserByEmail.`);
+                    console.log(`Found existing auth user ID: ${authUserId} for email "${email}" using listUsers.`);
                     const { error: updateUserMetaError } = await supabaseAdmin.auth.admin.updateUserById(
                         authUserId,
                         { 
-                            user_meta: { // Corrected: added colon
+                            user_meta { 
                                 name: owner_name, 
                                 phone: phone, 
                                 user_type: "activity_provider" 
@@ -105,7 +103,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         console.warn(`Could not update metadata for existing auth user ${authUserId}:`, updateUserMetaError.message);
                     }
                 } else {
-                    console.error(`Auth user with email "${email}" confirmed to exist (per createUser error), but could NOT be found via getUserByEmail. Response: ${JSON.stringify(existingAuthUserData)}`);
+                    console.error(`Auth user with email "${email}" confirmed to exist (per createUser error), but could NOT be found via listUsers. Response: ${JSON.stringify(listUsersData)}`);
                     return res.status(500).json({ message: "User confirmed to exist but could not be retrieved by email. Please contact support." });
                 }
 
@@ -198,7 +196,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             ...ownerDetails, 
         };
 
-        const {  newOwnerRecord, error: insertError } = await supabaseAdmin
+        const { data: newOwnerRecord, error: insertError } = await supabaseAdmin
             .from("activity_owners")
             .insert(ownerInsertPayload)
             .select()
