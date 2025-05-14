@@ -50,14 +50,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const tempPassword = `temp-${uuidv4().substring(0, 8)}`; 
 
         console.log(`Attempting to create or identify auth user for email: "${email}"`);
-        const {  createUserData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+        const { data: createUserData, error: authError } = await supabaseAdmin.auth.admin.createUser({
             email: email,
             password: tempPassword,
             email_confirm: true, 
-            user_meta { 
-                name: owner_name,
-                phone: phone,
-                user_type: "activity_provider"
+            options: {
+                data: { // user_metadata for createUser goes into options.data
+                    name: owner_name,
+                    phone: phone,
+                    user_type: "activity_provider"
+                }
             }
         });
         
@@ -90,7 +92,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     const { error: updateUserMetaError } = await supabaseAdmin.auth.admin.updateUserById(
                         authUserId,
                         { 
-                            user_meta { 
+                            user_meta { // user_metadata for updateUserById
                                 name: owner_name, 
                                 phone: phone, 
                                 user_type: "activity_provider" 
