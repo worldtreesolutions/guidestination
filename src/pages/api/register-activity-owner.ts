@@ -24,7 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     try {
         // 1. Check if an activity_owner record with this email already exists
-        const { data: existingOwner, error: ownerCheckError } = await supabaseAdmin
+        const {  existingOwner, error: ownerCheckError } = await supabaseAdmin
             .from("activity_owners")
             .select("provider_id")
             .eq("email", email)
