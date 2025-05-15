@@ -1,63 +1,87 @@
+
 import { useState } from "react"
 import Link from "next/link"
 import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { useAuth } from "@/contexts/AuthContext"
+import { useLanguage } from "@/contexts/LanguageContext"
+import { LanguageSelector } from "./LanguageSelector"
 
 export function MobileMenu() {
   const [open, setOpen] = useState(false)
-
-  const navItems = [
-    { href: '/recommendation', label: 'AI Planning' },
-    { href: '/activity-owner', label: 'List Your Activities' },
-    { href: '/partner', label: 'Become a Partner' },
-    { href: '/activity-owner/dashboard', label: 'Provider Dashboard' }
-  ]
+  const { user, logout } = useAuth()
+  const { t } = useLanguage()
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant='ghost' size='icon' className='text-white'>
-          <Menu className='h-6 w-6' />
-          <span className='sr-only'>Toggle menu</span>
+        <Button variant="ghost" size="icon" className="md:hidden">
+          <Menu className="h-5 w-5" />
+          <span className="sr-only">Toggle menu</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side='right' className='w-[80vw] max-w-[350px] bg-black border-l border-gray-800 p-4'>
-        <div className='flex flex-col h-full'>
-          <div className='flex items-center justify-between mb-6'>
-            <Link href='/' className='flex items-center' onClick={() => setOpen(false)}>
-              <span className='text-xl font-bold text-[#22C55E]'>Guidestination</span>
+      <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+        <div className="flex flex-col gap-6 py-4">
+          <div className="flex items-center justify-between">
+            <Link href="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
+              <span className="text-xl font-bold">Guidestination</span>
             </Link>
-            <Button variant='ghost' size='icon' onClick={() => setOpen(false)} className='text-white'>
-              <X className='h-6 w-6' />
-              <span className='sr-only'>Close menu</span>
+            <Button variant="ghost" size="icon" onClick={() => setOpen(false)}>
+              <X className="h-5 w-5" />
+              <span className="sr-only">Close menu</span>
             </Button>
           </div>
-          
-          <nav className='flex-1'>
-            <ul className='flex flex-col space-y-4'>
-              {navItems.map((item) => (
-                <li key={item.href}>
-                  <Link 
-                    href={item.href}
-                    className='block py-2 text-lg font-medium text-white hover:text-[#22C55E] transition-colors'
-                    onClick={() => setOpen(false)}
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-          
-          <div className='mt-auto pt-6 border-t border-gray-800'>
-            <Link 
-              href='/activity-owner/login' 
-              className='block w-full py-3 text-center rounded-md bg-[#22C55E] text-white font-medium hover:bg-[#1EA34D] transition-colors'
+          <nav className="flex flex-col gap-4">
+            <Link
+              href="/recommendation"
+              className="text-lg font-medium transition-colors hover:text-primary"
               onClick={() => setOpen(false)}
             >
-              Login
+              {t("nav.aiPlanning")}
             </Link>
+            <Link
+              href="/activity-owner"
+              className="text-lg font-medium transition-colors hover:text-primary"
+              onClick={() => setOpen(false)}
+            >
+              {t("nav.listActivities")}
+            </Link>
+            <Link
+              href="/partner"
+              className="text-lg font-medium transition-colors hover:text-primary"
+              onClick={() => setOpen(false)}
+            >
+              {t("nav.becomePartner")}
+            </Link>
+            <Link
+              href="/dashboard/login"
+              className="text-lg font-medium transition-colors hover:text-primary"
+              onClick={() => setOpen(false)}
+            >
+              {t("nav.providerDashboard")}
+            </Link>
+          </nav>
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center gap-2">
+              <LanguageSelector />
+              <span className="text-sm">Change Language</span>
+            </div>
+            {user ? (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  logout()
+                  setOpen(false)
+                }}
+              >
+                {t("nav.logout")}
+              </Button>
+            ) : (
+              <Link href="/dashboard/login" passHref onClick={() => setOpen(false)}>
+                <Button className="w-full">{t("nav.login")}</Button>
+              </Link>
+            )}
           </div>
         </div>
       </SheetContent>

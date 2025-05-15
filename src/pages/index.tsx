@@ -1,3 +1,4 @@
+
 import Head from "next/head"
 import Image from "next/image"
 import Link from "next/link"
@@ -9,9 +10,11 @@ import { CategoryNav } from "@/components/home/CategoryNav"
 import { ActivityCard } from "@/components/home/ActivityCard"
 import { Search, Calendar } from "lucide-react"
 import { usePlanning } from "@/contexts/PlanningContext"
+import { useLanguage } from "@/contexts/LanguageContext"
 
 export default function Home() {
   const { selectedActivities } = usePlanning()
+  const { t } = useLanguage()
 
   const featuredActivities = [
     {
@@ -125,16 +128,16 @@ export default function Home() {
             </div>
             <div className='relative w-full h-full flex flex-col items-center justify-center text-white px-4 sm:px-6 lg:px-8'>
               <h1 className='text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 text-center max-w-4xl'>
-                Discover the Magic of Chiang Mai
+                {t("home.hero.title")}
               </h1>
               <div className='w-full max-w-2xl flex flex-col sm:flex-row gap-2 bg-white/10 backdrop-blur-md p-2 rounded-lg'>
                 <Input
-                  placeholder='Search for activities...'
+                  placeholder={t("home.search.placeholder")}
                   className='bg-white/80 flex-1'
                 />
                 <Button className='w-full sm:w-auto mt-2 sm:mt-0'>
                   <Search className='h-5 w-5 mr-2' />
-                  Search
+                  {t("home.search.button")}
                 </Button>
               </div>
             </div>
@@ -148,7 +151,9 @@ export default function Home() {
 
           <section className='py-6 sm:py-8 md:py-12 w-full px-4 sm:px-6 lg:px-8'>
             <div className='max-w-7xl mx-auto w-full'>
-              <h2 className='text-xl sm:text-2xl md:text-3xl font-bold text-center mb-4 sm:mb-6 md:mb-8'>Popular Experiences in Chiang Mai</h2>
+              <h2 className='text-xl sm:text-2xl md:text-3xl font-bold text-center mb-4 sm:mb-6 md:mb-8'>
+                {t("home.popular.title")}
+              </h2>
               <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6'>
                 {featuredActivities.map((activity) => (
                   <ActivityCard key={activity.href} {...activity} />

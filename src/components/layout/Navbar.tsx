@@ -3,12 +3,15 @@ import Link from "next/link"
 import { NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList } from "@/components/ui/navigation-menu"
 import { MobileMenu } from "./MobileMenu"
 import { useIsMobile } from "@/hooks/use-mobile"
-import { useAuth } from "@/contexts/AuthContext"; 
-import { Button } from "@/components/ui/button"; 
+import { useAuth } from "@/contexts/AuthContext"
+import { Button } from "@/components/ui/button"
+import { LanguageSelector } from "./LanguageSelector"
+import { useLanguage } from "@/contexts/LanguageContext"
 
 export function Navbar() {
   const isMobile = useIsMobile()
-  const { user, logout } = useAuth(); 
+  const { user, logout } = useAuth()
+  const { t } = useLanguage()
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -25,28 +28,28 @@ export function Navbar() {
                   <NavigationMenuItem>
                     <Link href="/recommendation" legacyBehavior passHref>
                       <NavigationMenuLink className="inline-flex h-10 items-center justify-center rounded-md bg-transparent px-2 lg:px-4 py-2 text-sm font-medium transition-colors hover:bg-[#ededed] hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50">
-                        AI Planning
+                        {t("nav.aiPlanning")}
                       </NavigationMenuLink>
                     </Link>
                   </NavigationMenuItem>
                   <NavigationMenuItem>
                     <Link href="/activity-owner" legacyBehavior passHref>
                       <NavigationMenuLink className="inline-flex h-10 items-center justify-center rounded-md bg-transparent px-2 lg:px-4 py-2 text-sm font-medium transition-colors hover:bg-[#ededed] hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50">
-                        List Your Activities
+                        {t("nav.listActivities")}
                       </NavigationMenuLink>
                     </Link>
                   </NavigationMenuItem>
                   <NavigationMenuItem>
                     <Link href="/partner" legacyBehavior passHref>
                       <NavigationMenuLink className="inline-flex h-10 items-center justify-center rounded-md bg-transparent px-2 lg:px-4 py-2 text-sm font-medium transition-colors hover:bg-[#ededed] hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50">
-                        Become a Partner
+                        {t("nav.becomePartner")}
                       </NavigationMenuLink>
                     </Link>
                   </NavigationMenuItem>
                   <NavigationMenuItem>
                     <Link href="/dashboard/login" legacyBehavior passHref>
                       <NavigationMenuLink className="inline-flex h-10 items-center justify-center rounded-md bg-transparent px-2 lg:px-4 py-2 text-sm font-medium transition-colors hover:bg-[#ededed] hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50">
-                        Provider Dashboard
+                        {t("nav.providerDashboard")}
                       </NavigationMenuLink>
                     </Link>
                   </NavigationMenuItem>
@@ -56,14 +59,16 @@ export function Navbar() {
           </div>
           
           <div className="flex items-center gap-4">
+            <LanguageSelector />
+            
             {user ? (
               <Button variant="ghost" onClick={logout} className="hover:bg-[#ededed] hover:text-accent-foreground">
-                Logout
+                {t("nav.logout")}
               </Button>
             ) : (
               <Link href="/dashboard/login" passHref legacyBehavior>
                 <a className="hidden md:inline-flex items-center justify-center rounded-md h-10 px-4 py-2 text-sm font-medium transition-colors bg-primary text-primary-foreground shadow hover:bg-[#ededed] hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
-                  Login
+                  {t("nav.login")}
                 </a>
               </Link>
             )}

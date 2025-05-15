@@ -1,0 +1,17 @@
+
+{
+  "nav.aiPlanning": "วางแผนด้วย AI",
+  "nav.listActivities": "ลงทะเบียนกิจกรรมของคุณ",
+  "nav.becomePartner": "เป็นพาร์ทเนอร์กับเรา",
+  "nav.providerDashboard": "แดชบอร์ดผู้ให้บริการ",
+  "nav.login": "เข้าสู่ระบบ",
+  "nav.logout": "ออกจากระบบ",
+  "home.hero.title": "ค้นพบเสน่ห์ของเชียงใหม่",
+  "home.search.placeholder": "ค้นหากิจกรรม...",
+  "home.search.button": "ค้นหา",
+  "home.popular.title": "ประสบการณ์ยอดนิยมในเชียงใหม่",
+  "language.english": "อังกฤษ",
+  "language.thai": "ไทย",
+  "language.chinese": "จีน",
+  "language.spanish": "สเปน"
+}
