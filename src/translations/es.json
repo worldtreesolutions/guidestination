@@ -1,3 +1,4 @@
+
 {
   "nav.aiPlanning": "Planificación con IA",
   "nav.listActivities": "Registra tus Actividades",
@@ -24,5 +25,15 @@
   "activity.addToPlanning": "Añadir al plan",
   "activity.add": "Añadir",
   "activity.perPerson": "por persona",
-  "activity.rating": "Valoración"
+  "activity.rating": "Valoración",
+  "activities.location.chiangMai": "Chiang Mai, Tailandia",
+  "activities.doiSuthep.title": "Templo Doi Suthep y Pueblo Hmong",
+  "activities.cookingClass.title": "Clase de Cocina Tailandesa Tradicional con Visita a Granja Orgánica",
+  "activities.elephantPark.title": "Experiencia en el Santuario de Elefantes",
+  "activities.massage.title": "Taller de Masaje Tailandés en Spa Tradicional",
+  "activities.foodTour.title": "Tour Gastronómico por el Mercado Nocturno",
+  "activities.biking.title": "Aventura en Bicicleta de Montaña en Doi Suthep",
+  "activities.ceramics.title": "Taller de Cerámica Tradicional en Sankamphaeng",
+  "activities.templeBike.title": "Tour en Bicicleta por Templos al Atardecer",
+  "activities.meditation.title": "Retiro de Meditación en Templo Budista"
 }

@@ -1,3 +1,4 @@
+
 {
   "nav.aiPlanning": "AI 规划",
   "nav.listActivities": "列出您的活动",
@@ -24,5 +25,15 @@
   "activity.addToPlanning": "添加到计划",
   "activity.add": "添加",
   "activity.perPerson": "每人",
-  "activity.rating": "评分"
+  "activity.rating": "评分",
+  "activities.location.chiangMai": "清迈，泰国",
+  "activities.doiSuthep.title": "双龙寺和苗族村之旅",
+  "activities.cookingClass.title": "传统泰式烹饪课程与有机农场参观",
+  "activities.elephantPark.title": "大象自然公园体验",
+  "activities.massage.title": "传统水疗馆泰式按摩工作坊",
+  "activities.foodTour.title": "夜市美食之旅与当地美食",
+  "activities.biking.title": "双龙寺山地自行车冒险",
+  "activities.ceramics.title": "三甘烹传统陶艺工作坊",
+  "activities.templeBike.title": "日落寺庙自行车之旅",
+  "activities.meditation.title": "佛教寺庙冥想静修"
 }

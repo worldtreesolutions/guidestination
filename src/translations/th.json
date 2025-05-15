@@ -1,3 +1,4 @@
+
 {
   "nav.aiPlanning": "วางแผนด้วย AI",
   "nav.listActivities": "ลงทะเบียนกิจกรรมของคุณ",
@@ -24,5 +25,15 @@
   "activity.addToPlanning": "เพิ่มในแผน",
   "activity.add": "เพิ่ม",
   "activity.perPerson": "ต่อคน",
-  "activity.rating": "คะแนน"
+  "activity.rating": "คะแนน",
+  "activities.location.chiangMai": "เชียงใหม่, ประเทศไทย",
+  "activities.doiSuthep.title": "ทัวร์วัดพระธาตุดอยสุเทพและหมู่บ้านม้ง",
+  "activities.cookingClass.title": "คลาสเรียนทำอาหารไทยพร้อมเยี่ยมชมฟาร์มออร์แกนิค",
+  "activities.elephantPark.title": "ประสบการณ์ท่องเที่ยวปางช้างธรรมชาติ",
+  "activities.massage.title": "เวิร์คช็อปนวดแผนไทยที่สปาแบบดั้งเดิม",
+  "activities.foodTour.title": "ทัวร์อาหารตลาดกลางคืนและของอร่อยท้องถิ่น",
+  "activities.biking.title": "ผจญภัยปั่นจักรยานเสือภูเขาที่ดอยสุเทพ",
+  "activities.ceramics.title": "เวิร์คช็อปเครื่องปั้นดินเผาแบบดั้งเดิมที่สันกำแพง",
+  "activities.templeBike.title": "ทัวร์ปั่นจักรยานชมวัดยามพระอาทิตย์ตก",
+  "activities.meditation.title": "ปฏิบัติธรรมที่วัดพุทธ"
 }
