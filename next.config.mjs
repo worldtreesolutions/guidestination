@@ -3,13 +3,31 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: [
-      'images.unsplash.com',
-      'unsplash.com',
-      'pexels.com',
-      'pixabay.com',
-      'giphy.com',
-      'wikimedia.org'
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com'
+      },
+      {
+        protocol: 'https',
+        hostname: 'unsplash.com'
+      },
+      {
+        protocol: 'https',
+        hostname: 'pexels.com'
+      },
+      {
+        protocol: 'https',
+        hostname: 'pixabay.com'
+      },
+      {
+        protocol: 'https',
+        hostname: 'giphy.com'
+      },
+      {
+        protocol: 'https',
+        hostname: 'wikimedia.org'
+      }
     ]
   }
 }

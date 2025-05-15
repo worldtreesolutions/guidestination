@@ -32,8 +32,28 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
   useEffect(() => {
     const loadTranslations = async () => {
       try {
-        const translationModule = await import(`@/translations/${language}.json`);
-        setTranslations(translationModule.default);
+        // Dynamic import of translations
+        let translationData;
+        switch (language) {
+          case "en":
+            translationData = (await import("@/translations/en.json")).default;
+            break;
+          case "th":
+            translationData = (await import("@/translations/th.json")).default;
+            break;
+          case "zh":
+            translationData = (await import("@/translations/zh.json")).default;
+            break;
+          case "es":
+            translationData = (await import("@/translations/es.json")).default;
+            break;
+          case "fr":
+            translationData = (await import("@/translations/fr.json")).default;
+            break;
+          default:
+            translationData = (await import("@/translations/en.json")).default;
+        }
+        setTranslations(translationData);
       } catch (error) {
         console.error(`Failed to load translations for ${language}:`, error);
         // Fallback to English if translation file is missing
