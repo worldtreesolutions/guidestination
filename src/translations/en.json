@@ -1,3 +1,4 @@
+
 {
   "nav.aiPlanning": "AI Planning",
   "nav.listActivities": "List Your Activities",
@@ -24,5 +25,20 @@
   "activity.addToPlanning": "Add to plan",
   "activity.add": "Add",
   "activity.perPerson": "per person",
-  "activity.rating": "Rating"
+  "activity.rating": "Rating",
+  "activities.location.chiangMai": "Chiang Mai, Thailand",
+  "activities.doiSuthep.title": "Doi Suthep Temple & Hmong Village Tour",
+  "activities.cookingClass.title": "Traditional Thai Cooking Class with Organic Farm Visit",
+  "activities.elephantPark.title": "Elephant Nature Park Sanctuary Experience",
+  "activities.massage.title": "Thai Massage Workshop at Traditional Spa",
+  "activities.foodTour.title": "Night Market Food Tour & Local Delicacies",
+  "activities.biking.title": "Mountain Biking Adventure in Doi Suthep",
+  "activities.ceramics.title": "Traditional Ceramics Workshop in Sankamphaeng",
+  "activities.templeBike.title": "Sunset Temple Tour by Bicycle",
+  "activities.meditation.title": "Meditation Retreat at Buddhist Temple",
+  "meta.title": "Guidestination Chiang Mai - Discover Amazing Local Experiences",
+  "meta.description": "Find and book unforgettable activities in Chiang Mai, recommended by trusted local partners",
+  "hero.image.alt": "Beautiful temple in Chiang Mai",
+  "planning.view": "View planning",
+  "planning.short": "Planning"
 }
