@@ -23,9 +23,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     try {
         // 1. Check if an activity_owner record with this email already exists
-        const {  existingOwner, error: ownerCheckError } = await supabaseAdmin
+        const { data: existingOwner, error: ownerCheckError } = await supabaseAdmin
             .from("activity_owners")
-            .select("provider_id")
+            .select("id")  // Changed from provider_id to id since that's what caused an error earlier
             .eq("email", email)
             .maybeSingle();
 
@@ -49,11 +49,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const tempPassword = `temp-${uuidv4().substring(0, 8)}`; 
 
         console.log(`Attempting to create or identify auth user for email: "${email}"`);
-        const {  createUserData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+        const { data: createUserData, error: authError } = await supabaseAdmin.auth.admin.createUser({
             email: email,
             password: tempPassword,
             email_confirm: true,
-            user_meta: { 
+            user_metadata: { 
                 name: owner_name,
                 phone: phone,
                 user_type: "activity_provider"
@@ -71,25 +71,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                      ((authError as any).status === 400 && authError.message.toLowerCase().includes("user already exists"));
 
             if (isEmailExistsError) {
-                console.log(`Auth user with email "${email}" already exists (reported by createUser). Attempting to retrieve them by listing users.`);
+                console.log(`Auth user with email "${email}" already exists (reported by createUser). Attempting to retrieve them by email.`);
                 
-                const {  listUsersData, error: listUsersError } = await supabaseAdmin.auth.admin.listUsers({ email: email });
+                // Using getUserByEmail instead of listUsers
+                const { data: userData, error: getUserError } = await supabaseAdmin.auth.admin.getUserByEmail(email);
 
-                if (listUsersError) {
-                    console.error(`Error listing users by email "${email}":`, listUsersError);
-                    return res.status(500).json({ message: `Failed to list existing users by email: ${listUsersError.message}` });
+                if (getUserError) {
+                    console.error(`Error getting user by email "${email}":`, getUserError);
+                    return res.status(500).json({ message: `Failed to get existing user by email: ${getUserError.message}` });
                 }
 
-                const foundUser = listUsersData && listUsersData.users && listUsersData.users.length > 0 ? listUsersData.users[0] : null;
-
-                if (foundUser && foundUser.id) {
-                    authUserId = foundUser.id;
+                if (userData && userData.user && userData.user.id) {
+                    authUserId = userData.user.id;
                     isNewUser = false; 
-                    console.log(`Found existing auth user ID: ${authUserId} for email "${email}" using listUsers.`);
+                    console.log(`Found existing auth user ID: ${authUserId} for email "${email}"`);
                     const { error: updateUserMetaError } = await supabaseAdmin.auth.admin.updateUserById(
                         authUserId,
                         {
-                            user_meta: { 
+                            user_metadata: { 
                                 name: owner_name,
                                 phone: phone,
                                 user_type: "activity_provider"
@@ -100,7 +99,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         console.warn(`Could not update metadata for existing auth user ${authUserId}:`, updateUserMetaError.message);
                     }
                 } else {
-                    console.error(`Auth user with email "${email}" confirmed to exist (per createUser error), but could NOT be found via listUsers. Response: ${JSON.stringify(listUsersData)}`);
+                    console.error(`Auth user with email "${email}" confirmed to exist (per createUser error), but could NOT be found via getUserByEmail.`);
                     return res.status(500).json({ message: "User confirmed to exist but could not be retrieved by email. Please contact support." });
                 }
 
@@ -127,7 +126,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         // 3. Ensure user profile exists in public.users table
-        const {  publicUser, error: publicUserCheckError } = await supabaseAdmin
+        const { data: publicUser, error: publicUserCheckError } = await supabaseAdmin
             .from("users")
             .select("id")
             .eq("user_id", authUserId)
@@ -193,7 +192,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             ...ownerDetails
         };
 
-        const {  newOwnerRecord, error: insertError } = await supabaseAdmin
+        const { data: newOwnerRecord, error: insertError } = await supabaseAdmin
             .from("activity_owners")
             .insert(ownerInsertPayload)
             .select()
@@ -219,9 +218,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return res.status(500).json({ message: "Failed to register activity owner: No data returned after insert.", error_details: "Activity owner data missing post-insert."});
         }
 
-        // Assuming provider_id exists on newOwnerRecord due to user confirmation.
-        // If types.ts is out of sync, TypeScript might warn here, but it should work at runtime.
-        console.log("Activity owner registered successfully, provider_id:", (newOwnerRecord as any).provider_id);
+        console.log("Activity owner registered successfully");
         return res.status(201).json({
             message: "Activity owner registered successfully.",
             newOwner: newOwnerRecord,
