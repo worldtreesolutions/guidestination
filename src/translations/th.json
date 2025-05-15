@@ -13,5 +13,16 @@
   "language.thai": "ไทย",
   "language.chinese": "จีน",
   "language.spanish": "สเปน",
-  "language.french": "ฝรั่งเศส"
+  "language.french": "ฝรั่งเศส",
+  "category.adventure": "ผจญภัย",
+  "category.nature": "ธรรมชาติ",
+  "category.culture": "วัฒนธรรม",
+  "category.artCraft": "ศิลปะและหัตถกรรม",
+  "category.photography": "การถ่ายภาพ",
+  "category.sport": "กีฬา",
+  "category.cooking": "การทำอาหาร",
+  "activity.addToPlanning": "เพิ่มในแผน",
+  "activity.add": "เพิ่ม",
+  "activity.perPerson": "ต่อคน",
+  "activity.rating": "คะแนน"
 }

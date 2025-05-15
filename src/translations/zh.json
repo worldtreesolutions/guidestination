@@ -13,5 +13,16 @@
   "language.thai": "泰语",
   "language.chinese": "中文",
   "language.spanish": "西班牙语",
-  "language.french": "法语"
+  "language.french": "法语",
+  "category.adventure": "冒险",
+  "category.nature": "自然",
+  "category.culture": "文化",
+  "category.artCraft": "艺术与手工",
+  "category.photography": "摄影",
+  "category.sport": "运动",
+  "category.cooking": "烹饪",
+  "activity.addToPlanning": "添加到计划",
+  "activity.add": "添加",
+  "activity.perPerson": "每人",
+  "activity.rating": "评分"
 }
