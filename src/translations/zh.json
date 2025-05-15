@@ -1,4 +1,3 @@
-
 {
   "nav.aiPlanning": "AI 规划",
   "nav.listActivities": "列出您的活动",
@@ -13,5 +12,6 @@
   "language.english": "英语",
   "language.thai": "泰语",
   "language.chinese": "中文",
-  "language.spanish": "西班牙语"
+  "language.spanish": "西班牙语",
+  "language.french": "法语"
 }

@@ -1,4 +1,3 @@
-
 {
   "nav.aiPlanning": "วางแผนด้วย AI",
   "nav.listActivities": "ลงทะเบียนกิจกรรมของคุณ",
@@ -13,5 +12,6 @@
   "language.english": "อังกฤษ",
   "language.thai": "ไทย",
   "language.chinese": "จีน",
-  "language.spanish": "สเปน"
+  "language.spanish": "สเปน",
+  "language.french": "ฝรั่งเศส"
 }

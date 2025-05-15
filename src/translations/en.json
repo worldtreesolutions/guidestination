@@ -1,4 +1,3 @@
-
 {
   "nav.aiPlanning": "AI Planning",
   "nav.listActivities": "List Your Activities",
@@ -13,5 +12,6 @@
   "language.english": "English",
   "language.thai": "Thai",
   "language.chinese": "Chinese",
-  "language.spanish": "Spanish"
+  "language.spanish": "Spanish",
+  "language.french": "French"
 }
