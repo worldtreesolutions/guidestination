@@ -1,4 +1,3 @@
-
 {
   "nav.aiPlanning": "Planification IA",
   "nav.listActivities": "Ajouter vos Activités",
@@ -14,5 +13,16 @@
   "language.thai": "Thaïlandais",
   "language.chinese": "Chinois",
   "language.spanish": "Espagnol",
-  "language.french": "Français"
+  "language.french": "Français",
+  "category.adventure": "Aventure",
+  "category.nature": "Nature",
+  "category.culture": "Culture",
+  "category.artCraft": "Art & Artisanat",
+  "category.photography": "Photographie",
+  "category.sport": "Sport",
+  "category.cooking": "Cuisine",
+  "activity.addToPlanning": "Ajouter au plan",
+  "activity.add": "Ajouter",
+  "activity.perPerson": "par personne",
+  "activity.rating": "Note"
 }

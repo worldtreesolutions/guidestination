@@ -1,3 +1,4 @@
+
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Calendar, Heart } from "lucide-react"
@@ -5,6 +6,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { usePlanning } from "@/contexts/PlanningContext"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { useLanguage } from "@/contexts/LanguageContext"
 
 interface ActivityCardProps {
   title: string
@@ -25,6 +27,7 @@ export const ActivityCard = ({
 }: ActivityCardProps) => {
   const { addActivity } = usePlanning()
   const isMobile = useIsMobile()
+  const { t } = useLanguage()
 
   const handleAddToPlanning = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -58,9 +61,9 @@ export const ActivityCard = ({
             >
               <Calendar className='h-4 w-4 sm:h-5 sm:w-5' />
               {isMobile ? (
-                <span>Add</span>
+                <span>{t("activity.add")}</span>
               ) : (
-                <span>Add to plan</span>
+                <span>{t("activity.addToPlanning")}</span>
               )}
             </Button>
             <Button
@@ -76,7 +79,7 @@ export const ActivityCard = ({
           <h3 className='font-semibold mb-1 sm:mb-2 line-clamp-2 text-sm sm:text-base'>{title}</h3>
           <div className='flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0'>
             <div className='text-xs sm:text-sm text-muted-foreground'>{location}</div>
-            <div className='font-medium text-sm sm:text-base'>฿{formatPrice(price)} per person</div>
+            <div className='font-medium text-sm sm:text-base'>฿{formatPrice(price)} {t("activity.perPerson")}</div>
           </div>
           <div className='flex items-center gap-1 mt-1 sm:mt-2'>
             {'★'.repeat(rating)}{'☆'.repeat(5-rating)}

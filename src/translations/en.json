@@ -13,5 +13,16 @@
   "language.thai": "Thai",
   "language.chinese": "Chinese",
   "language.spanish": "Spanish",
-  "language.french": "French"
+  "language.french": "French",
+  "category.adventure": "Adventure",
+  "category.nature": "Nature",
+  "category.culture": "Culture",
+  "category.artCraft": "Art & Craft",
+  "category.photography": "Photography",
+  "category.sport": "Sport",
+  "category.cooking": "Cooking",
+  "activity.addToPlanning": "Add to plan",
+  "activity.add": "Add",
+  "activity.perPerson": "per person",
+  "activity.rating": "Rating"
 }
