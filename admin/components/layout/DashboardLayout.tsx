@@ -1,3 +1,4 @@
+
 import React from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
@@ -14,7 +15,6 @@ export default function DashboardLayout({ children, title = 'Dashboard' }: Dashb
   const { user, isLoading, isAdmin } = useAuth();
   const router = useRouter();
 
-  // Redirect if not authenticated or not an admin
   React.useEffect(() => {
     if (!isLoading && (!user || !isAdmin)) {
       router.push('/login');
