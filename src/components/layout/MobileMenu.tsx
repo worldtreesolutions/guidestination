@@ -1,13 +1,14 @@
-
 import { useState } from "react"
 import Link from "next/link"
-import { Menu } from "lucide-react"
+import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useAuth } from "@/contexts/AuthContext"
 import { useLanguage } from "@/contexts/LanguageContext"
+import { LanguageSelector } from "./LanguageSelector"
+import Image from "next/image"
 
-export function MobileMenu() {
+export default function MobileMenu() {
   const [open, setOpen] = useState(false)
   const { user } = useAuth()
   const { t } = useLanguage()

@@ -1,27 +1,28 @@
-
 import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Session, User } from '@supabase/supabase-js';
 
-export interface AuthContextType {
+interface AuthContextType {
   user: User | null;
   session: Session | null;
   isLoading: boolean;
-  isAdmin: boolean;
-  isSuperAdmin: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
+  isAdmin: boolean;
+  isSuperAdmin: boolean;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  session: null,
+  isLoading: true,
+  signIn: async () => ({ error: null }),
+  signOut: async () => {},
+  isAdmin: false,
+  isSuperAdmin: false
+});
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -121,24 +122,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOut = async () => {
     await supabase.auth.signOut();
-    setUser(null);
-    setSession(null);
-    setIsAdmin(false);
-    setIsSuperAdmin(false);
-  };
-
-  const value: AuthContextType = {
-    user,
-    session,
-    isLoading,
-    isAdmin,
-    isSuperAdmin,
-    signIn,
-    signOut,
   };
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider
+      value={{
+        user,
+        session,
+        isLoading,
+        signIn,
+        signOut,
+        isAdmin,
+        isSuperAdmin
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
