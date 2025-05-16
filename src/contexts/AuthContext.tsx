@@ -57,7 +57,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
     getInitialSession();
 
-    const { subscription: authListener } = supabase.auth.onAuthStateChange(async (_event, newSession) => { // Destructuring for subscription
+    const { subscription } = supabase.auth.onAuthStateChange(async (_event, newSession) => { // Corrected subscription destructuring
       setSession(newSession);
       setUser(newSession?.user ?? null);
       await checkAdminRole(newSession?.user ?? null);
@@ -70,7 +70,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
     });
 
     return () => {
-      authListener?.unsubscribe();
+      subscription?.unsubscribe(); // Use the destructured subscription
     };
   }, [loading]); // Added loading to dependency array as it's used in an effect conditional
 
