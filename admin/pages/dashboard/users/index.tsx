@@ -71,14 +71,14 @@ export default function UserManagement() {
       
       let authUsers: AuthUser[] = [];
       if (userIds.length > 0) {
-        const { listUsersResponse, error: authError } = await adminSupabase.auth.admin.listUsers({
+        const { listUsersData, error: authError } = await adminSupabase.auth.admin.listUsers({
           page: 1,
           perPage: 1000, // Adjust if you have more users
         });
         
         if (authError) throw authError;
-        if (listUsersResponse) {
-          authUsers = listUsersResponse.users;
+        if (listUsersData) {
+          authUsers = listUsersData.users;
         }
       }
       
@@ -115,14 +115,14 @@ export default function UserManagement() {
     try {
       // Create user in auth
       const adminSupabase = getAdminSupabase();
-      const { createUserResponse, error: authError } = await adminSupabase.auth.admin.createUser({
+      const { createUserData, error: authError } = await adminSupabase.auth.admin.createUser({
         email: newUser.email,
         password: newUser.password,
         email_confirm: true
       });
       
       if (authError) throw authError;
-      if (!createUserResponse || !createUserResponse.user) {
+      if (!createUserData || !createUserData.user) {
         throw new Error("Failed to create user in auth.");
       }
       
@@ -142,7 +142,7 @@ export default function UserManagement() {
       const { error: staffError } = await supabase
         .from('staff')
         .insert({
-          user_id: createUserResponse.user.id,
+          user_id: createUserData.user.id,
           role_id: roleData.id
         });
         
