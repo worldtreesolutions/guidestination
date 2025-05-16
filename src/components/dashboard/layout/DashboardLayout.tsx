@@ -1,15 +1,16 @@
-import { ReactNode, useState, useEffect } from "react"
-import { useRouter } from "next/router"
-import Link from "next/link"
-import { useAuth, User } from "@/contexts/AuthContext"
-import { Button } from "@/components/ui/button"
-import { Menu, LogOut } from "lucide-react"
-import { DashboardSidebar } from "./DashboardSidebar"
-import { useIsMobile } from "@/hooks/use-mobile"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { LanguageSelector } from "@/components/layout/LanguageSelector"
-import { useLanguage } from "@/contexts/LanguageContext"
+import React, { useState, useEffect, ReactNode } from "react";
+import { useRouter } from "next/router";
+import Link from "next/link";
+import { useAuth } from "@/contexts/AuthContext";
+import { User } from "@supabase/supabase-js"; // Corrected import for User
+import { Button } from "@/components/ui/button";
+import { Menu, LogOut } from "lucide-react";
+import { DashboardSidebar } from "./DashboardSidebar";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { LanguageSelector } from "@/components/layout/LanguageSelector";
+import { useLanguage } from "@/contexts/LanguageContext";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,8 +18,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu"
-import Head from "next/head"
+} from "@/components/ui/dropdown-menu";
+import Head from "next/head";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -28,8 +29,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
   const { t } = useLanguage();
   const router = useRouter();
-  const isMobile = useIsMobile()
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const isMobile = useIsMobile();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
