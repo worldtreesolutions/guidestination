@@ -1,6 +1,6 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { Session, User, AuthSubscription as Subscription } from "@supabase/supabase-js"; // Added AuthSubscription as Subscription
+import { Session, User, AuthSubscription } from "@supabase/supabase-js"; 
 import { supabase } from "@/integrations/supabase/client";
 import authService from "@/services/authService";
 
@@ -77,7 +77,6 @@ export default function AuthProvider({ children }: AuthProviderProps) {
     }
 
     return () => {
-      // Check if subscription exists before trying to unsubscribe
       if (subscription) {
         subscription.unsubscribe();
       }
