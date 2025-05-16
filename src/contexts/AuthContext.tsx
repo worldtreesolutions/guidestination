@@ -1,6 +1,6 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { Session, User, AuthSubscription } from "@supabase/supabase-js"; 
+import { Session, User, Subscription } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import authService from "@/services/authService";
 
@@ -45,8 +45,8 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     const getInitialSession = async () => {
       try {
-        const {  sessionData, error } = await supabase.auth.getSession();
-        const initialSession = sessionData?.session;
+        const { data, error } = await supabase.auth.getSession();
+        const initialSession = data?.session;
 
         if (error) {
           console.error("Error getting initial session:", error.message);
@@ -64,6 +64,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
     getInitialSession();
 
+    // Corrected destructuring for onAuthStateChange()
     const {  authListenerData, error: authListenerError } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
       setSession(newSession);
       setUser(newSession?.user ?? null);
@@ -85,7 +86,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         subscription.unsubscribe();
       }
     };
-  }, []); 
+  }, [loading]); 
 
   const handleSignOut = async () => {
     setLoading(true);
