@@ -1,6 +1,6 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { Session, User, Subscription } from "@supabase/supabase-js";
+import { Session, User } from "@supabase/supabase-js"; // Removed Subscription as it's implicitly typed
 import { supabase } from "@/integrations/supabase/client";
 import authService from "@/services/authService";
 
@@ -45,11 +45,9 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     const getInitialSession = async () => {
       try {
-        // Corrected destructuring: supabase.auth.getSession() returns {  { session }, error }
         const {  { session: initialSession }, error } = await supabase.auth.getSession();
         if (error) {
           console.error("Error getting initial session:", error.message);
-          // Potentially set user/session to null here if desired on error
         } else {
           setSession(initialSession);
           setUser(initialSession?.user ?? null);
@@ -64,13 +62,11 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
     getInitialSession();
 
-    // Corrected destructuring: onAuthStateChange returns {  { subscription }, error }
     const {  { subscription }, error: authListenerError } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
       setSession(newSession);
       setUser(newSession?.user ?? null);
       await checkAdminRole(newSession?.user ?? null);
       
-      // Simplified loading logic: if loading is true and we get an initial session or sign in/out event, set loading to false.
       if (loading && (_event === "INITIAL_SESSION" || _event === "SIGNED_IN" || _event === "SIGNED_OUT")) {
         setLoading(false);
       }
@@ -83,7 +79,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
     return () => {
       subscription?.unsubscribe();
     };
-  }, []); // Keep dependency array minimal, loading state is managed internally
+  }, []); 
 
   const handleSignOut = async () => {
     setLoading(true);
