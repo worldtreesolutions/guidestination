@@ -17,7 +17,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
 import { Input } from '../../../components/ui/input';
 import { Label } from '../../../components/ui/label';
-import { useRouter } from 'next/router';
+import { useRouter } from "next/router";
+import { User as AuthUser } from "@supabase/supabase-js";
 
 interface User {
   id: string;
@@ -51,7 +52,7 @@ export default function UserManagement() {
     setLoading(true);
     try {
       // Fetch staff users
-      const { data, error } = await supabase
+      const { staffData, error: staffFetchError } = await supabase
         .from("staff")
         .select(`
           user_id,
@@ -60,46 +61,46 @@ export default function UserManagement() {
             name
           )
         `)
-        // It's better to order by staff.created_at if available, or user's created_at later
-        // For now, let's assume staff table has created_at or we sort by authUser.created_at
         .order("created_at", { referencedTable: "staff", ascending: false });
 
-      if (error) throw error;
+      if (staffFetchError) throw staffFetchError;
 
       // Get user details from auth
       const adminSupabase = getAdminSupabase();
-      const userIds = data?.map(staff => staff.user_id) || [];
+      const userIds = staffData?.map(staff => staff.user_id) || [];
       
+      let authUsers: AuthUser[] = [];
       if (userIds.length > 0) {
-        const { authUsersData, error: authError } = await adminSupabase.auth.admin.listUsers({
+        const { listUsersResponse, error: authError } = await adminSupabase.auth.admin.listUsers({
           page: 1,
           perPage: 1000, // Adjust if you have more users
         });
         
         if (authError) throw authError;
-        
-        const formattedUsers = data?.map(staffMember => {
-          const authUser = authUsersData.users.find(user => user.id === staffMember.user_id);
-          const roleName = 
-            staffMember.roles && Array.isArray(staffMember.roles) && staffMember.roles.length > 0 
-            ? (staffMember.roles[0] as { name: string })?.name 
-            : staffMember.roles && typeof staffMember.roles === "object" && "name" in staffMember.roles 
-            // @ts-ignore
-            ? (staffMember.roles as { name: string }).name
-            : "Unknown";
-
-          return {
-            id: staffMember.user_id,
-            email: authUser?.email || "Unknown",
-            role: roleName,
-            created_at: authUser?.created_at || staffMember.created_at || new Date().toISOString()
-          };
-        }).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-        
-        setUsers(formattedUsers || []);
-      } else {
-        setUsers([]);
+        if (listUsersResponse) {
+          authUsers = listUsersResponse.users;
+        }
       }
+      
+      const formattedUsers = staffData?.map(staffMember => {
+        const authUser = authUsers.find(user => user.id === staffMember.user_id);
+        const roleName = 
+          staffMember.roles && Array.isArray(staffMember.roles) && staffMember.roles.length > 0 
+          ? (staffMember.roles[0] as { name: string })?.name 
+          : staffMember.roles && typeof staffMember.roles === "object" && "name" in staffMember.roles 
+          // @ts-ignore
+          ? (staffMember.roles as { name: string }).name
+          : "Unknown";
+
+        return {
+          id: staffMember.user_id,
+          email: authUser?.email || "Unknown",
+          role: roleName,
+          created_at: authUser?.created_at || staffMember.created_at || new Date().toISOString()
+        };
+      }).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      
+      setUsers(formattedUsers || []);
     } catch (error: any) {
       toast.error('Failed to fetch users: ' + error.message);
     } finally {
@@ -114,28 +115,34 @@ export default function UserManagement() {
     try {
       // Create user in auth
       const adminSupabase = getAdminSupabase();
-      const { data: authData, error: authError } = await adminSupabase.auth.admin.createUser({
+      const { createUserResponse, error: authError } = await adminSupabase.auth.admin.createUser({
         email: newUser.email,
         password: newUser.password,
         email_confirm: true
       });
       
       if (authError) throw authError;
+      if (!createUserResponse || !createUserResponse.user) {
+        throw new Error("Failed to create user in auth.");
+      }
       
       // Get role id
-      const { data: roleData, error: roleError } = await supabase
+      const { roleData, error: roleError } = await supabase
         .from('roles')
         .select('id')
         .eq('name', newUser.role)
         .single();
         
       if (roleError) throw roleError;
+      if (!roleData) {
+        throw new Error(`Role '${newUser.role}' not found.`);
+      }
       
       // Create staff record
       const { error: staffError } = await supabase
         .from('staff')
         .insert({
-          user_id: authData.user.id,
+          user_id: createUserResponse.user.id,
           role_id: roleData.id
         });
         
