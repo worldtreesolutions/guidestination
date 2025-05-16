@@ -1,8 +1,7 @@
-
 import { useState, useEffect } from 'react';
-import DashboardLayout from '@/components/layout/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { supabase } from '@/lib/supabase';
+import DashboardLayout from '../../components/layout/DashboardLayout';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { supabase } from '../../lib/supabase';
 import { Users, Hotel, AlertCircle } from 'lucide-react';
 
 export default function Dashboard() {

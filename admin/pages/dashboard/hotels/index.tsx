@@ -1,11 +1,10 @@
-
 import { useState, useEffect } from 'react';
-import DashboardLayout from '@/components/layout/DashboardLayout';
-import { supabase } from '@/lib/supabase';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import DashboardLayout from '../../../components/layout/DashboardLayout';
+import { supabase } from '../../../lib/supabase';
+import { Button } from '../../../components/ui/button';
+import { Badge } from '../../../components/ui/badge';
 import { toast } from 'sonner';
-import { formatDate } from '@/lib/utils';
+import { formatDate } from '../../../lib/utils';
 import {
   Table,
   TableBody,
@@ -13,7 +12,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from '../../../components/ui/table';
 
 interface Hotel {
   id: string;
