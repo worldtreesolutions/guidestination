@@ -45,11 +45,13 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     const getInitialSession = async () => {
       try {
-        const {  { session: initialSession }, error } = await supabase.auth.getSession();
+        const {  sessionData, error } = await supabase.auth.getSession();
+        const initialSession = sessionData?.session;
+
         if (error) {
           console.error("Error getting initial session:", error.message);
         } else {
-          setSession(initialSession);
+          setSession(initialSession ?? null);
           setUser(initialSession?.user ?? null);
           await checkAdminRole(initialSession?.user ?? null);
         }
@@ -62,7 +64,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
     getInitialSession();
 
-    const {  { subscription }, error: authListenerError } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
+    const {  authListenerData, error: authListenerError } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
       setSession(newSession);
       setUser(newSession?.user ?? null);
       await checkAdminRole(newSession?.user ?? null);
@@ -71,6 +73,8 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         setLoading(false);
       }
     });
+    const subscription = authListenerData?.subscription;
+
 
     if(authListenerError) {
       console.error("Error setting up onAuthStateChange listener:", authListenerError.message);
