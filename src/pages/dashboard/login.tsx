@@ -69,9 +69,9 @@ export default function LoginPage() {
         <meta name='viewport' content='width=device-width, initial-scale=1' />
       </Head>
 
-      <div className='min-h-screen w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 md:p-8'>
+      <div className='min-h-screen w-full flex items-center justify-center bg-background p-4 sm:p-6 md:p-8'>
         <div className='w-full max-w-md mx-auto'>
-          <div className='flex justify-center mb-6'>
+          <div className='flex justify-center mb-6 bg-background rounded-lg'>
             <Link href='/' className='flex items-center'>
               <Image 
                 src='/logo-maq9nil7.png' 
