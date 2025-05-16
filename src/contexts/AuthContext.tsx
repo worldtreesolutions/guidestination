@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -44,7 +45,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     const getInitialSession = async () => {
       try {
-        const { session: initialSession } = await supabase.auth.getSession(); // Corrected destructuring
+        const {  { session: initialSession } } = await supabase.auth.getSession(); // Corrected destructuring
         setSession(initialSession);
         setUser(initialSession?.user ?? null);
         await checkAdminRole(initialSession?.user ?? null);
@@ -57,14 +58,14 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
     getInitialSession();
 
-    const { subscription } = supabase.auth.onAuthStateChange(async (_event, newSession) => { // Corrected subscription destructuring
+    const {  { subscription } } = supabase.auth.onAuthStateChange(async (_event, newSession) => { // Corrected subscription destructuring
       setSession(newSession);
       setUser(newSession?.user ?? null);
       await checkAdminRole(newSession?.user ?? null);
       if (_event !== "INITIAL_SESSION") { 
         setLoading(false);
       }
-      if (_event === "INITIAL_SESSION" && loading) {
+      if (_event === "INITIAL_SESSION" && loading) { // Ensure loading is set to false after initial session is processed
         setLoading(false);
       }
     });
