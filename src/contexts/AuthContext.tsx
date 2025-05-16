@@ -45,16 +45,18 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     const getInitialSession = async () => {
       try {
+        // Corrected destructuring: supabase.auth.getSession() returns {  { session }, error }
         const {  { session: initialSession }, error } = await supabase.auth.getSession();
         if (error) {
-          console.error("Error getting initial session:", error);
+          console.error("Error getting initial session:", error.message);
+          // Potentially set user/session to null here if desired on error
         } else {
           setSession(initialSession);
           setUser(initialSession?.user ?? null);
           await checkAdminRole(initialSession?.user ?? null);
         }
-      } catch (error) {
-        console.error("Exception in getInitialSession:", error);
+      } catch (error: any) {
+        console.error("Exception in getInitialSession:", error.message);
       } finally {
         setLoading(false);
       }
@@ -62,29 +64,26 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
     getInitialSession();
 
+    // Corrected destructuring: onAuthStateChange returns {  { subscription }, error }
     const {  { subscription }, error: authListenerError } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
       setSession(newSession);
       setUser(newSession?.user ?? null);
       await checkAdminRole(newSession?.user ?? null);
-      // Ensure loading is set to false after the initial event or any subsequent event
-      // if it hasn't been set by getInitialSession's finally block yet.
+      
+      // Simplified loading logic: if loading is true and we get an initial session or sign in/out event, set loading to false.
       if (loading && (_event === "INITIAL_SESSION" || _event === "SIGNED_IN" || _event === "SIGNED_OUT")) {
         setLoading(false);
-      } else if (!loading && (_event !== "USER_UPDATED" && _event !== "TOKEN_REFRESHED" && _event !== "PASSWORD_RECOVERY")) {
-         // For other significant events, if not already loading, we might not need to change loading state
-         // but if an event implies a change that should stop a loading spinner, ensure it does.
-         // This part might need refinement based on specific UX needs for different auth events.
       }
     });
 
     if(authListenerError) {
-      console.error("Error setting up onAuthStateChange listener:", authListenerError);
+      console.error("Error setting up onAuthStateChange listener:", authListenerError.message);
     }
 
     return () => {
       subscription?.unsubscribe();
     };
-  }, []); // Removed loading from dependency array, initial loading is handled by finally and event checks
+  }, []); // Keep dependency array minimal, loading state is managed internally
 
   const handleSignOut = async () => {
     setLoading(true);
@@ -93,8 +92,8 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       setUser(null);
       setSession(null);
       setIsAdmin(false);
-    } catch (error) {
-      console.error("Error during sign out:", error);
+    } catch (error: any) {
+      console.error("Error during sign out:", error.message);
     } finally {
       setLoading(false);
     }
@@ -112,7 +111,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       await checkAdminRole(authedUser);
       return { user: authedUser, session: authedSession, error: null };
     } catch (error: any) {
-      console.error("Error during sign in:", error);
+      console.error("Error during sign in:", error.message);
       setUser(null);
       setSession(null);
       setIsAdmin(false);
