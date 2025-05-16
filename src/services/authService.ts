@@ -109,7 +109,7 @@ export const authService = {
     }
   },
 
-  async updateUserMetadata(meta CustomUserMetadata): Promise<User> {
+  async updateUserMetadata(meta: CustomUserMetadata): Promise<User> {
     const {  updateData, error } = await supabase.auth.updateUser({  metadata }); 
     if (error) {
         console.error("Error updating user metadata", error);
