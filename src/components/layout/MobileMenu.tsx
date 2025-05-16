@@ -26,11 +26,11 @@ export function MobileMenu() {
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
               <Image
-                src="/wts-logo-1-maq8url0.png"
+                src="/logo-maq9nil7.png"
                 alt="Guidestination"
-                width={300}
-                height={80}
-                className="h-14 w-auto"
+                width={400}
+                height={100}
+                className="h-16 w-auto"
                 priority
               />
             </Link>
