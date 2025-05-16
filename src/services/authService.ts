@@ -1,12 +1,15 @@
-import { supabase } from "@/integrations/supabase/client";
-import { supabaseAdmin } from "@/integrations/supabase/admin";
-import { v4 as uuidv4 } from "uuid";
-import { Session, User } from "@supabase/supabase-js";
 
-// Define a type for user metadata
-export interface UserMetadata {
+import { supabase } from "@/integrations/supabase/client";
+// supabaseAdmin cannot be used on the client-side, remove if not specifically for a server-side context within this file
+// import { supabaseAdmin } from "@/integrations/supabase/admin"; 
+import { Session, User, UserAttributes, WeakPassword } from "@supabase/supabase-js";
+
+// Define a type for user metadata (within user_metadata object)
+export interface CustomUserMetadata {
   name?: string;
   verified?: boolean;
+  user_type?: string;
+  phone?: string;
   [key: string]: any;
 }
 
@@ -29,7 +32,7 @@ export const authService = {
    * Sign in with email and password using Supabase Auth
    */
   async signInWithEmail(email: string, password: string): Promise<{ user: User | null; session: Session | null; roleId: number | null; providerId: string | null }> {
-    const { signInData, error: signInError } = await supabase.auth.signInWithPassword({
+    const {  signInData, error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -53,18 +56,20 @@ export const authService = {
     let providerId: string | null = null;
 
     try {
-        const { userProfile, error: profileError } = await supabase
-            .from("users")
-            .select("role_id")
-            .eq("user_id", user.id)
+        // Fetch from public.users table
+        const {  userProfile, error: profileError } = await supabase
+            .from("users") // Assuming your public table is named 'users'
+            .select("role_id") // Assuming 'role_id' column exists
+            .eq("id", user.id) // Assuming 'id' in 'users' table is FK to auth.users.id
             .single();
 
-        if (profileError && profileError.code !== 'PGRST116') { 
+        if (profileError && profileError.code !== "PGRST116") { // PGRST116: 0 rows
             console.error("Error fetching user profile after login:", profileError.message);
         } else if (userProfile) {
             roleId = userProfile.role_id;
         }
 
+        // Get provider from auth user object
         providerId = user.app_metadata?.provider || user.identities?.[0]?.provider || null;
 
     } catch (e) {
@@ -93,17 +98,26 @@ export const authService = {
 
   /**
    * Check if user exists and is verified in public.users
+   * This function should ideally be an API call to a backend endpoint for security.
+   * For client-side, it can only check auth status, not custom 'verified' field securely.
    */
   async checkUserVerification(email: string): Promise<UserVerificationStatus> {
-     console.warn("checkUserVerification client-side might be insecure or unnecessary and is not implemented in this service.");
-     return { exists: false, verified: false }; // Placeholder
+     console.warn("checkUserVerification client-side might be insecure for checking 'verified' field from 'users' table. This is a placeholder.");
+     // This is a simplified check. Real verification status should come from your backend.
+     const {  { user } } = await supabase.auth.getUser();
+     if (user && user.email === email) {
+        // Cannot securely check `public.users.verified` from client.
+        // This only confirms the auth user exists.
+        return { exists: true, verified: false }; // Assume not verified from client perspective
+     }
+     return { exists: false, verified: false };
   },
 
   /**
    * Reset Password
    */
   async resetPassword(email: string): Promise<void> {
-    const redirectUrl = `${typeof window !== "undefined" ? window.location.origin : ''}/dashboard/reset-password`;
+    const redirectUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/dashboard/reset-password`;
     console.log("Requesting password reset for", email, "with redirect to", redirectUrl);
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -116,7 +130,7 @@ export const authService = {
   },
 
   /**
-   * Update Password with Reset Token
+   * Update Password (when user is logged in and knows current hash, or via reset token)
    */
   async updatePasswordWithResetToken(newPassword: string): Promise<void> {
     const { error } = await supabase.auth.updateUser({ password: newPassword });
@@ -127,51 +141,54 @@ export const authService = {
   },
 
   /**
-   * Update User Metadata
+   * Update User Metadata (user_metadata)
    */
-  async updateUserMetadata(meta: UserMetadata) {
-    const { updateData, error } = await supabase.auth.updateUser({ meta }); 
+  async updateUserMetadata(meta CustomUserMetadata) {
+    // user_metadata is updated via the `data` property in UserAttributes
+    const {  updateData, error } = await supabase.auth.updateUser({  metadata }); 
     if (error) {
-        console.error("Error updating user meta", error);
+        console.error("Error updating user metadata", error);
         throw new Error(error.message || "Failed to update user profile.");
     }
     if (!updateData || !updateData.user) {
-        throw new Error("Failed to update user profile: No user data returned.");
+        throw new Error("Failed to update user profile: No user data returned after update.");
     }
     return updateData.user;
   },
 
   /**
-   * Get User Details
+   * Get User Details (including role_id from public.users table)
    */
-  async getUserDetails(): Promise<{ roleId: number | null; providerId: string | null }> {
-     const { authUserData, error: authUserError } = await supabase.auth.getUser();
+  async getUserDetails(): Promise<{ user: User | null; roleId: number | null; providerId: string | null }> {
+     const {  authUserData, error: authUserError } = await supabase.auth.getUser();
+     
      if (authUserError || !authUserData || !authUserData.user) {
-         if(authUserError) console.error("Error getting auth user:", authUserError);
-         return { roleId: null, providerId: null };
+         if(authUserError) console.error("Error getting auth user:", authUserError.message);
+         return { user: null, roleId: null, providerId: null };
      }
      const authUser = authUserData.user;
 
      let roleId: number | null = null;
      try {
-         const { userProfile, error: profileError } = await supabase
-             .from("users")
-             .select("role_id")
-             .eq("user_id", authUser.id)
+         const {  userProfile, error: profileError } = await supabase
+             .from("users") // Assuming your public table is named 'users'
+             .select("role_id") // Assuming 'role_id' column exists
+             .eq("id", authUser.id) // Assuming 'id' in 'users' table is FK to auth.users.id
              .single();
 
-         if (profileError && profileError.code !== 'PGRST116') {
-             console.error("Error fetching user details:", profileError.message);
+         if (profileError && profileError.code !== "PGRST116") { // PGRST116: 0 rows
+             console.error("Error fetching user details from public table:", profileError.message);
          } else if (userProfile) {
              roleId = userProfile.role_id;
          }
      } catch (e) {
-         console.error("Error fetching user details:", e);
+         console.error("Exception fetching user details from public table:", e);
      }
 
      const providerId = authUser.app_metadata?.provider || authUser.identities?.[0]?.provider || null;
 
      return {
+       user: authUser,
        roleId: roleId,
        providerId: providerId,
      };
@@ -184,6 +201,7 @@ export const authService = {
     const { error } = await supabase.auth.signOut();
     if (error) {
       console.error("Error signing out:", error);
+      // Optionally re-throw or handle more gracefully
     }
   },
 };

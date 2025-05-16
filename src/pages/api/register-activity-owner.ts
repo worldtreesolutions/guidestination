@@ -49,11 +49,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const tempPassword = `temp-${uuidv4().substring(0, 8)}`; 
 
         console.log(`Attempting to create or identify auth user for email: "${email}"`);
-        const { data: createUserData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+        const {  createUserData, error: authError } = await supabaseAdmin.auth.admin.createUser({
             email: email,
             password: tempPassword,
-            email_confirm: true,
-            user_metadata: { 
+            email_confirm: true, // Auto-confirm email for admin-created users
+            user_meta { 
                 name: owner_name,
                 phone: phone,
                 user_type: "activity_provider"
@@ -66,20 +66,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 "A user with this email address has already been registered",
                 "duplicate key value violates unique constraint" 
             ];
-            const isEmailExistsError = emailExistsErrorMessages.some(msg => authError.message.toLowerCase().includes(msg.toLowerCase())) ||
-                                     (authError as any).code === "email_exists" || 
-                                     ((authError as any).status === 400 && authError.message.toLowerCase().includes("user already exists"));
+            // More robust check for existing user error
+            const isEmailExistsError = (authError.message.includes("User already registered") || (authError as any).status === 400 || (authError as any).code === "user_already_exists");
+
 
             if (isEmailExistsError) {
-                console.log(`Auth user with email "${email}" already exists (reported by createUser). Attempting to retrieve them by listing users.`);
+                console.log(`Auth user with email "${email}" already exists (reported by createUser). Attempting to retrieve them.`);
                 
                 // Using listUsers with a filter for the email
-                const { data: listUsersData, error: listUsersError } = await supabaseAdmin.auth.admin.listUsers({
+                // Note: Supabase admin listUsers `filter` is a string, not an object.
+                const {  listUsersData, error: listUsersError } = await supabaseAdmin.auth.admin.listUsers({
                     page: 1,
                     perPage: 1,
-                    filters: {
-                        email: email
-                    }
+                    filter: `email = "${email}"` // Corrected filter syntax
                 });
 
                 if (listUsersError) {
@@ -93,10 +92,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     authUserId = foundUser.id;
                     isNewUser = false; 
                     console.log(`Found existing auth user ID: ${authUserId} for email "${email}" using listUsers.`);
+                    // Update metadata for existing user
                     const { error: updateUserMetaError } = await supabaseAdmin.auth.admin.updateUserById(
                         authUserId,
                         {
-                            user_metadata: { 
+                            user_meta { 
                                 name: owner_name,
                                 phone: phone,
                                 user_type: "activity_provider"
@@ -105,10 +105,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     );
                     if (updateUserMetaError) {
                         console.warn(`Could not update metadata for existing auth user ${authUserId}:`, updateUserMetaError.message);
+                        // Decide if this is a critical failure or just a warning
                     }
                 } else {
-                    console.error(`Auth user with email "${email}" confirmed to exist (per createUser error), but could NOT be found via listUsers. Response: ${JSON.stringify(listUsersData)}`);
-                    return res.status(500).json({ message: "User confirmed to exist but could not be retrieved by email. Please contact support." });
+                    console.error(`Auth user with email "${email}" reported as existing, but NOT found via listUsers. Response: ${JSON.stringify(listUsersData)}`);
+                    return res.status(500).json({ message: "User reported to exist but could not be retrieved. Please contact support." });
                 }
 
             } else {
@@ -136,8 +137,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // 3. Ensure user profile exists in public.users table
         const { data: publicUser, error: publicUserCheckError } = await supabaseAdmin
             .from("users")
-            .select("id")
-            .eq("user_id", authUserId)
+            .select("id") // Assuming 'id' is the PK in 'users' table that matches auth.users.id
+            .eq("id", authUserId) // Query by 'id' which should be the FK to auth.users.id
             .maybeSingle();
 
         if (publicUserCheckError) {
@@ -155,12 +156,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (!publicUser) {
             console.log("User does not exist in public.users, creating profile for user_id:", authUserId);
             const userInsertPayload: UserInsert = {
-                user_id: authUserId,
+                id: authUserId, // Corrected: 'id' should be the column in 'users' table that is FK to auth.users.id
                 name: owner_name,
                 email: email,
                 phone: phone || null,
                 user_type: "activity_provider", 
-                verified: true
+                verified: false // New users should be unverified by default
             };
             const { error: publicUserInsertError } = await supabaseAdmin
                 .from("users")
@@ -180,10 +181,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             console.log("Created public.users profile linked to auth user:", authUserId);
         } else {
             console.log("User profile already exists in public.users for auth user:", authUserId);
+            // Optionally update existing public.users profile if needed
             const { error: publicUserUpdateError } = await supabaseAdmin
                 .from("users")
-                .update({ name: owner_name, phone: phone || null, user_type: "activity_provider", verified: true })
-                .eq("user_id", authUserId);
+                .update({ name: owner_name, phone: phone || null, user_type: "activity_provider" }) // Don't automatically set verified to true here
+                .eq("id", authUserId);
             if (publicUserUpdateError) {
                 console.warn("Could not update existing public.users profile:", publicUserUpdateError.message);
             }
@@ -192,15 +194,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // 4. Insert new activity_owners record
         console.log("Creating new activity_owners record linked to user_id:", authUserId);
         const ownerInsertPayload: ActivityOwnerInsert = {
-            user_id: authUserId,
+            user_id: authUserId, // This should be the FK to auth.users.id
             email: email, 
             owner_name: owner_name,
             phone: phone,
-            status: "pending", 
+            status: "pending", // New owners are pending verification
             ...ownerDetails
         };
 
-        const { data: newOwnerRecord, error: insertError } = await supabaseAdmin
+        const {  newOwnerRecord, error: insertError } = await supabaseAdmin
             .from("activity_owners")
             .insert(ownerInsertPayload)
             .select()
@@ -226,9 +228,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return res.status(500).json({ message: "Failed to register activity owner: No data returned after insert.", error_details: "Activity owner data missing post-insert."});
         }
 
-        console.log("Activity owner registered successfully");
+        console.log("Activity owner registered successfully, pending verification.");
+        // TODO: Trigger notification to admin portal about new pending provider
+
         return res.status(201).json({
-            message: "Activity owner registered successfully.",
+            message: "Activity owner registered successfully. Verification pending.",
             newOwner: newOwnerRecord,
             isNewUser: isNewUser
         });
