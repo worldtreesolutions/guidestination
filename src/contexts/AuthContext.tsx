@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -45,7 +44,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     const getInitialSession = async () => {
       try {
-        const {  { session: initialSession } } = await supabase.auth.getSession();
+        const { session: initialSession } = await supabase.auth.getSession();
         setSession(initialSession);
         setUser(initialSession?.user ?? null);
         await checkAdminRole(initialSession?.user ?? null);
@@ -58,7 +57,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
     getInitialSession();
 
-    const {  { subscription: authListener } } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
+    const { subscription: authListener } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
       setSession(newSession);
       setUser(newSession?.user ?? null);
       await checkAdminRole(newSession?.user ?? null);
