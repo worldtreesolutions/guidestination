@@ -1,4 +1,3 @@
-
 import Head from "next/head"
 import Image from "next/image"
 import Link from "next/link"
@@ -106,6 +105,7 @@ export default function Home() {
         <title>{t("meta.title")}</title>
         <meta name="description" content={t("meta.description")} />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+        <link rel="icon" type="image/png" href="/wts-logo-maq82ya8.png" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
