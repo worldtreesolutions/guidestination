@@ -1,4 +1,5 @@
-
+import { useState, useEffect } from "react";
+import { useRouter } from "next/router"; // Corrected typo: removed 's'
 import { useLanguage, Language } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { 
