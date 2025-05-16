@@ -110,15 +110,15 @@ export const authService = {
   },
 
   async updateUserMetadata(meta: CustomUserMetadata): Promise<User> {
-    const {  updateData, error } = await supabase.auth.updateUser({  metadata }); 
+    const {  updatedUserResponse, error } = await supabase.auth.updateUser({  meta }); 
     if (error) {
         console.error("Error updating user metadata", error);
         throw new Error(error.message || "Failed to update user profile.");
     }
-    if (!updateData || !updateData.user) {
+    if (!updatedUserResponse || !updatedUserResponse.user) {
         throw new Error("Failed to update user profile: No user data returned after update.");
     }
-    return updateData.user;
+    return updatedUserResponse.user;
   },
 
   async getUserDetails(): Promise<{ user: User | null; roleId: number | null; providerId: string | null }> {

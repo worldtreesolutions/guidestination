@@ -2,16 +2,31 @@ import { useState } from "react"
 import Link from "next/link"
 import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet"
 import { useAuth } from "@/contexts/AuthContext"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { LanguageSelector } from "./LanguageSelector"
 import Image from "next/image"
+import { useRouter } from "next/router"
 
 export default function MobileMenu() {
   const [open, setOpen] = useState(false)
-  const { user } = useAuth()
+  const { user, signOut, loading, isAdmin } = useAuth()
   const { t } = useLanguage()
+  const router = useRouter()
+
+  const handleSignOut = async () => {
+    await signOut()
+    router.push("/")
+  }
+
+  const navLinks = [
+    { href: "/", labelKey: "nav.home" },
+    { href: "/recommendation", labelKey: "nav.recommend" },
+    { href: "/planning", labelKey: "nav.planning" },
+    { href: "/activity-owner", labelKey: "nav.partnerArea" },
+    { href: "/admin/dashboard", labelKey: "nav.adminPortal", adminOnly: true }
+  ]
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -27,41 +42,27 @@ export default function MobileMenu() {
             <Image src="/wts-logo-maq82ya8.png" alt="Logo" width={36} height={36} />
             <span className="font-bold">Guidestination</span>
           </Link>
-          <Button variant="ghost" size="icon" onClick={() => setOpen(false)}>
-            <X className="h-5 w-5" />
-            <span className="sr-only">Close menu</span>
-          </Button>
+          <SheetClose asChild>
+            <Button variant="ghost" size="icon" onClick={() => setOpen(false)}>
+              <X className="h-5 w-5" />
+              <span className="sr-only">Close menu</span>
+            </Button>
+          </SheetClose>
         </div>
         <div className="grid gap-2 py-6 px-6"> {/* Added px-6 for consistency */}
-          <Link
-            href="/activities"
-            className="flex w-full items-center py-2 text-sm font-medium"
-            onClick={() => setOpen(false)}
-          >
-            {t("nav.activities")}
-          </Link>
-          <Link
-            href="/recommendation"
-            className="flex w-full items-center py-2 text-sm font-medium"
-            onClick={() => setOpen(false)}
-          >
-            {t("nav.recommendation")}
-          </Link>
-          <Link
-            href="/partner"
-            className="flex w-full items-center py-2 text-sm font-medium"
-            onClick={() => setOpen(false)}
-          >
-            {t("nav.partner")}
-          </Link>
-          <Link
-            href="https://3000-sandbox-63cb7384.h1038.daytona.work/admin"
-            target="_blank"
-            className="flex w-full items-center py-2 text-sm font-medium"
-            onClick={() => setOpen(false)}
-          >
-            Admin Portal
-          </Link>
+          {navLinks.map((link) => {
+            if (link.adminOnly && !isAdmin) return null;
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="flex w-full items-center py-2 text-sm font-medium"
+                onClick={() => setOpen(false)}
+              >
+                {t(link.labelKey)}
+              </Link>
+            )
+          })}
           {user ? (
             <Link
               href="/dashboard"

@@ -52,7 +52,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const {  createUserData, error: authError } = await supabaseAdmin.auth.admin.createUser({
             email: email,
             password: tempPassword,
-            email_confirm: true, // Auto-confirm email for admin-created users
+            email_confirm: true, 
             user_meta: { 
                 name: owner_name,
                 phone: phone,
@@ -61,9 +61,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
         
         if (authError) {
-            // More robust check for existing user error
             const isEmailExistsError = (authError.message.includes("User already registered") || (authError as any).status === 400 || (authError as any).code === "user_already_exists" || authError.message.toLowerCase().includes("duplicate key value violates unique constraint"));
-
 
             if (isEmailExistsError) {
                 console.log(`Auth user with email "${email}" already exists (reported by createUser). Attempting to retrieve them.`);
