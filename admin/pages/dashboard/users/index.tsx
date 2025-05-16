@@ -52,7 +52,7 @@ export default function UserManagement() {
     setLoading(true);
     try {
       // Fetch staff users
-      const { staffData, error: staffFetchError } = await supabase
+      const staffResponse = await supabase
         .from("staff")
         .select(`
           user_id,
@@ -63,6 +63,9 @@ export default function UserManagement() {
         `)
         .order("created_at", { referencedTable: "staff", ascending: false });
 
+      const staffData = staffResponse.data;
+      const staffFetchError = staffResponse.error;
+
       if (staffFetchError) throw staffFetchError;
 
       // Get user details from auth
@@ -71,11 +74,13 @@ export default function UserManagement() {
       
       let authUsers: AuthUser[] = [];
       if (userIds.length > 0) {
-        // Correctly destructure 'data' and then access 'users' from it
-        const { listUsersResponseData, error: authError } = await adminSupabase.auth.admin.listUsers({
+        const listUsersResponse = await adminSupabase.auth.admin.listUsers({
           page: 1,
           perPage: 1000, // Adjust if you have more users
         });
+        
+        const listUsersResponseData = listUsersResponse.data;
+        const authError = listUsersResponse.error;
         
         if (authError) throw authError;
         if (listUsersResponseData) {
@@ -116,12 +121,14 @@ export default function UserManagement() {
     try {
       // Create user in auth
       const adminSupabase = getAdminSupabase();
-      // Correctly destructure 'data' and then access 'user' from it
-      const { createUserDataResponse, error: authError } = await adminSupabase.auth.admin.createUser({
+      const createUserResponse = await adminSupabase.auth.admin.createUser({
         email: newUser.email,
         password: newUser.password,
         email_confirm: true
       });
+      
+      const createUserDataResponse = createUserResponse.data;
+      const authError = createUserResponse.error;
       
       if (authError) throw authError;
       if (!createUserDataResponse || !createUserDataResponse.user) {
@@ -129,12 +136,14 @@ export default function UserManagement() {
       }
       
       // Get role id
-      // Correctly destructure 'data'
-      const { roleData, error: roleError } = await supabase
+      const roleResponse = await supabase
         .from('roles')
         .select('id')
         .eq('name', newUser.role)
         .single();
+        
+      const roleData = roleResponse.data;
+      const roleError = roleResponse.error;
         
       if (roleError) throw roleError;
       if (!roleData) {
@@ -142,12 +151,14 @@ export default function UserManagement() {
       }
       
       // Create staff record
-      const { error: staffError } = await supabase
+      const staffInsertResponse = await supabase
         .from('staff')
         .insert({
-          user_id: createUserDataResponse.user.id, // Use the user from the destructured data
+          user_id: createUserDataResponse.user.id, 
           role_id: roleData.id
         });
+      
+      const staffError = staffInsertResponse.error;
         
       if (staffError) throw staffError;
       
