@@ -106,7 +106,6 @@ export default function Home() {
         <meta name="description" content={t("meta.description")} />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
         <link rel="icon" type="image/png" href="/wts-logo-maq82ya8.png" />
-        <link rel="icon" href="/favicon.ico" />
       </Head>
 
       <div className="min-h-screen flex flex-col w-full">
