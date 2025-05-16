@@ -1,7 +1,6 @@
+
 import Link from "next/link"
-import { NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList } from "@/components/ui/navigation-menu"
 import { MobileMenu } from "./MobileMenu"
-import { useIsMobile } from "@/hooks/use-mobile"
 import { useAuth } from "@/contexts/AuthContext"
 import { Button } from "@/components/ui/button"
 import { LanguageSelector } from "./LanguageSelector"
@@ -9,8 +8,7 @@ import { useLanguage } from "@/contexts/LanguageContext"
 import Image from "next/image"
 
 export function Navbar() {
-  const isMobile = useIsMobile()
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
   const { t } = useLanguage()
 
   return (
