@@ -28,9 +28,9 @@ export function MobileMenu() {
               <Image
                 src="/wts-logo-1-maq8url0.png"
                 alt="Guidestination"
-                width={160}
-                height={35}
-                className="h-12 w-auto"
+                width={300}
+                height={80}
+                className="h-14 w-auto"
                 priority
               />
             </Link>

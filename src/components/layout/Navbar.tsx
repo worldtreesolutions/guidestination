@@ -22,9 +22,9 @@ export function Navbar() {
               <Image
                 src="/wts-logo-1-maq8url0.png"
                 alt="Guidestination"
-                width={180}
-                height={40}
-                className="h-14 w-auto"
+                width={400}
+                height={100}
+                className="h-16 w-auto"
                 priority
               />
             </Link>
