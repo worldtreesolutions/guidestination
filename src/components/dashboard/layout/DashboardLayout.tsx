@@ -26,17 +26,17 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
-  const { user, isAuthenticated, isLoading, logout } = useAuth();
+  const { user, isLoading, signOut } = useAuth(); // Removed isAuthenticated, logout; Added signOut
   const { t } = useLanguage();
   const router = useRouter();
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
+    if (!isLoading && !user) { // Changed from !isAuthenticated to !user
       router.push('/dashboard/login');
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [user, isLoading, router]); // Changed isAuthenticated to user
 
   if (isLoading) {
     return (
@@ -49,12 +49,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     );
   }
 
-  if (!isAuthenticated) {
+  if (!user) { // Changed from !isAuthenticated to !user
     return null;
   }
 
   const handleLogout = async () => {
-    await logout();
+    await signOut(); // Changed from logout to signOut
     router.push("/dashboard/login");
   };
 
