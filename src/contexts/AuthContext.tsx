@@ -1,6 +1,6 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { Session, User } from "@supabase/supabase-js";
+import { Session, User, Subscription } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import authService from "@/services/authService";
 
@@ -45,12 +45,16 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     const getInitialSession = async () => {
       try {
-        const {  { session: initialSession } } = await supabase.auth.getSession(); // Corrected destructuring
-        setSession(initialSession);
-        setUser(initialSession?.user ?? null);
-        await checkAdminRole(initialSession?.user ?? null);
+        const {  { session: initialSession }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error("Error getting initial session:", error);
+        } else {
+          setSession(initialSession);
+          setUser(initialSession?.user ?? null);
+          await checkAdminRole(initialSession?.user ?? null);
+        }
       } catch (error) {
-        console.error("Error getting initial session:", error);
+        console.error("Exception in getInitialSession:", error);
       } finally {
         setLoading(false);
       }
@@ -58,22 +62,29 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
     getInitialSession();
 
-    const {  { subscription } } = supabase.auth.onAuthStateChange(async (_event, newSession) => { // Corrected subscription destructuring
+    const {  { subscription }, error: authListenerError } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
       setSession(newSession);
       setUser(newSession?.user ?? null);
       await checkAdminRole(newSession?.user ?? null);
-      if (_event !== "INITIAL_SESSION") { 
+      // Ensure loading is set to false after the initial event or any subsequent event
+      // if it hasn't been set by getInitialSession's finally block yet.
+      if (loading && (_event === "INITIAL_SESSION" || _event === "SIGNED_IN" || _event === "SIGNED_OUT")) {
         setLoading(false);
-      }
-      if (_event === "INITIAL_SESSION" && loading) { // Ensure loading is set to false after initial session is processed
-        setLoading(false);
+      } else if (!loading && (_event !== "USER_UPDATED" && _event !== "TOKEN_REFRESHED" && _event !== "PASSWORD_RECOVERY")) {
+         // For other significant events, if not already loading, we might not need to change loading state
+         // but if an event implies a change that should stop a loading spinner, ensure it does.
+         // This part might need refinement based on specific UX needs for different auth events.
       }
     });
 
+    if(authListenerError) {
+      console.error("Error setting up onAuthStateChange listener:", authListenerError);
+    }
+
     return () => {
-      subscription?.unsubscribe(); // Use the destructured subscription
+      subscription?.unsubscribe();
     };
-  }, [loading]); // Added loading to dependency array as it's used in an effect conditional
+  }, []); // Removed loading from dependency array, initial loading is handled by finally and event checks
 
   const handleSignOut = async () => {
     setLoading(true);
