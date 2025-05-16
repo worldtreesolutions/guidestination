@@ -20,11 +20,11 @@ export function Navbar() {
           <div className="flex items-center">
             <Link href="/" className="flex items-center gap-2 mr-6">
               <Image
-                src="/wts-logo-2-maq8na5y.png"
-                alt="World Tree Solutions"
+                src="/wts-logo-1-maq8url0.png"
+                alt="Guidestination"
                 width={180}
                 height={40}
-                className="h-8 w-auto dark:invert"
+                className="h-8 w-auto"
                 priority
               />
             </Link>
