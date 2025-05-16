@@ -71,14 +71,15 @@ export default function UserManagement() {
       
       let authUsers: AuthUser[] = [];
       if (userIds.length > 0) {
-        const { listUsersData, error: authError } = await adminSupabase.auth.admin.listUsers({
+        // Correctly destructure 'data' and then access 'users' from it
+        const { listUsersResponseData, error: authError } = await adminSupabase.auth.admin.listUsers({
           page: 1,
           perPage: 1000, // Adjust if you have more users
         });
         
         if (authError) throw authError;
-        if (listUsersData) {
-          authUsers = listUsersData.users;
+        if (listUsersResponseData) {
+          authUsers = listUsersResponseData.users;
         }
       }
       
@@ -115,18 +116,20 @@ export default function UserManagement() {
     try {
       // Create user in auth
       const adminSupabase = getAdminSupabase();
-      const { createUserData, error: authError } = await adminSupabase.auth.admin.createUser({
+      // Correctly destructure 'data' and then access 'user' from it
+      const { createUserDataResponse, error: authError } = await adminSupabase.auth.admin.createUser({
         email: newUser.email,
         password: newUser.password,
         email_confirm: true
       });
       
       if (authError) throw authError;
-      if (!createUserData || !createUserData.user) {
+      if (!createUserDataResponse || !createUserDataResponse.user) {
         throw new Error("Failed to create user in auth.");
       }
       
       // Get role id
+      // Correctly destructure 'data'
       const { roleData, error: roleError } = await supabase
         .from('roles')
         .select('id')
@@ -142,7 +145,7 @@ export default function UserManagement() {
       const { error: staffError } = await supabase
         .from('staff')
         .insert({
-          user_id: createUserData.user.id,
+          user_id: createUserDataResponse.user.id, // Use the user from the destructured data
           role_id: roleData.id
         });
         
