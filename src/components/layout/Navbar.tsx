@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList } from "@/components/ui/navigation-menu"
-import { MobileMenu } from "./MobileMenu"
+import MobileMenu from "./MobileMenu" // Changed to default import
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useAuth } from "@/contexts/AuthContext"
 import { Button } from "@/components/ui/button"
