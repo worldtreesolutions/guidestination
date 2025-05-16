@@ -26,19 +26,19 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
-  const { user, isLoading, signOut } = useAuth(); // Removed isAuthenticated, logout; Added signOut
+  const { user, loading, signOut } = useAuth(); // Changed isLoading to loading
   const { t } = useLanguage();
   const router = useRouter();
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    if (!isLoading && !user) { // Changed from !isAuthenticated to !user
+    if (!loading && !user) { // Changed isLoading to loading
       router.push('/dashboard/login');
     }
-  }, [user, isLoading, router]); // Changed isAuthenticated to user
+  }, [user, loading, router]); // Changed isLoading to loading
 
-  if (isLoading) {
+  if (loading) { // Changed isLoading to loading
     return (
       <div className='min-h-screen flex items-center justify-center w-full'>
         <div className='flex flex-col items-center gap-2'>
