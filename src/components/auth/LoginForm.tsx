@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -35,7 +34,7 @@ export function LoginForm() {
     },
   });
 
-  const onSubmit = async ( LoginFormValues) => {
+  const onSubmit = async (data: LoginFormValues) => { // Added type annotation for data
     setIsLoading(true);
     setError(null);
     try {
