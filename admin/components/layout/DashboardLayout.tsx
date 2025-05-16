@@ -1,8 +1,8 @@
 import React from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-// Changed from '@/contexts/AuthContext' to relative path
-import { useAuth } from '../contexts/AuthContext'; 
+// Corrected relative path for AuthContext
+import { useAuth } from '../../contexts/AuthContext'; 
 import Sidebar from './Sidebar';
 import LoadingScreen from '../ui/LoadingScreen';
 
