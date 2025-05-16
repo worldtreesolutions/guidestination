@@ -74,19 +74,13 @@ export default function LoginPage() {
           <div className='flex justify-center mb-6'>
             <Link href='/' className='flex items-center'>
               <Image 
-                src='/logo.png' 
+                src='/logo-maq9nil7.png' 
                 alt='Guidestination Logo' 
-                width={180} 
-                height={40}
-                className='h-10 w-auto'
-                onError={(e) => {
-                  // Fallback if logo doesn't exist
-                  const target = e.target as HTMLImageElement;
-                  target.onerror = null;
-                  target.style.display = 'none';
-                }}
+                width={400} 
+                height={100}
+                className='h-16 w-auto'
+                priority
               />
-              <span className='text-2xl font-bold ml-2'>Guidestination</span>
             </Link>
           </div>
 
