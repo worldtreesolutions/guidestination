@@ -24,7 +24,7 @@ export function Navbar() {
                 alt="Guidestination"
                 width={180}
                 height={40}
-                className="h-12 w-auto"
+                className="h-14 w-auto"
                 priority
               />
             </Link>

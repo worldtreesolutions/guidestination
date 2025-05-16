@@ -30,7 +30,7 @@ export function MobileMenu() {
                 alt="Guidestination"
                 width={160}
                 height={35}
-                className="h-10 w-auto"
+                className="h-12 w-auto"
                 priority
               />
             </Link>
