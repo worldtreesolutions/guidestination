@@ -1,4 +1,4 @@
-import { User } from "@/contexts/AuthContext"; // Import User type explicitly
+import { User } from "@supabase/supabase-js"; // Corrected: Import User from supabase-js
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { CalendarDays, Users, CreditCard, TrendingUp } from "lucide-react"
 
