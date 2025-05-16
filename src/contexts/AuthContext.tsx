@@ -11,7 +11,6 @@ export interface AuthContextType {
   isAdmin: boolean;
   signOut: () => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<{ user: User | null; session: Session | null; error: Error | null }>;
-  // Add other auth methods if they are part of the context, e.g., signUp
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -36,10 +35,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
   const checkAdminRole = async (currentUser: User | null) => {
     if (currentUser) {
-      // Check user_metadata for role.
-      // This metadata should be set during user registration or by an admin.
       const userType = currentUser.user_metadata?.user_type;
-      // console.log("Current user_metadata for isAdmin check:", currentUser.user_metadata);
       setIsAdmin(userType === "admin" || userType === "super_admin");
     } else {
       setIsAdmin(false);
@@ -62,15 +58,13 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
     getInitialSession();
 
-    const {  authListener } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
+    const {  { subscription: authListener } } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
       setSession(newSession);
       setUser(newSession?.user ?? null);
       await checkAdminRole(newSession?.user ?? null);
-      // Avoid redundant loading set on initial check if INITIAL_SESSION event also triggers this
       if (_event !== "INITIAL_SESSION") { 
         setLoading(false);
       }
-      // If it's the initial session event, loading might have already been set by getInitialSession
       if (_event === "INITIAL_SESSION" && loading) {
         setLoading(false);
       }
@@ -79,8 +73,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
     return () => {
       authListener?.unsubscribe();
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps 
-  // Added eslint-disable for exhaustive-deps as checkAdminRole is stable if not dependent on external state changing frequently
+  }, [loading]); // Added loading to dependency array as it's used in an effect conditional
 
   const handleSignOut = async () => {
     setLoading(true);
@@ -91,7 +84,6 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       setIsAdmin(false);
     } catch (error) {
       console.error("Error during sign out:", error);
-      // Handle error appropriately, maybe set an error state
     } finally {
       setLoading(false);
     }
