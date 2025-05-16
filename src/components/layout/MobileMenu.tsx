@@ -8,9 +8,9 @@ import { useLanguage } from "@/contexts/LanguageContext"
 import { LanguageSelector } from "./LanguageSelector"
 import Image from "next/image"
 
-export function MobileMenu() {
+export default function MobileMenu() {
   const [open, setOpen] = useState(false)
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
   const { t } = useLanguage()
 
   return (
@@ -22,74 +22,47 @@ export function MobileMenu() {
         </Button>
       </SheetTrigger>
       <SheetContent side="right" className="w-[300px] sm:w-[400px]">
-        <div className="flex flex-col gap-6 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
-              <Image
-                src="/logo-maq9nil7.png"
-                alt="Guidestination"
-                width={400}
-                height={100}
-                className="h-14 w-auto"
-                priority
-              />
-            </Link>
-            <Button variant="ghost" size="icon" onClick={() => setOpen(false)}>
-              <X className="h-5 w-5" />
-              <span className="sr-only">Close menu</span>
-            </Button>
-          </div>
-          <nav className="flex flex-col gap-4">
+        <div className="grid gap-2 py-6">
+          <Link
+            href="/activities"
+            className="flex w-full items-center py-2 text-sm font-medium"
+          >
+            {t('nav.activities')}
+          </Link>
+          <Link
+            href="/recommendation"
+            className="flex w-full items-center py-2 text-sm font-medium"
+          >
+            {t('nav.recommendation')}
+          </Link>
+          <Link
+            href="/partner"
+            className="flex w-full items-center py-2 text-sm font-medium"
+          >
+            {t('nav.partner')}
+          </Link>
+          <Link
+            href="https://3000-sandbox-63cb7384.h1038.daytona.work/admin"
+            target="_blank"
+            className="flex w-full items-center py-2 text-sm font-medium"
+          >
+            Admin Portal
+          </Link>
+          {user ? (
             <Link
-              href="/recommendation"
-              className="text-lg font-medium transition-colors hover:text-primary"
-              onClick={() => setOpen(false)}
+              href="/dashboard"
+              className="flex w-full items-center py-2 text-sm font-medium"
             >
-              {t("nav.aiPlanning")}
+              {t('nav.dashboard')}
             </Link>
-            <Link
-              href="/activity-owner"
-              className="text-lg font-medium transition-colors hover:text-primary"
-              onClick={() => setOpen(false)}
-            >
-              {t("nav.listActivities")}
-            </Link>
-            <Link
-              href="/partner"
-              className="text-lg font-medium transition-colors hover:text-primary"
-              onClick={() => setOpen(false)}
-            >
-              {t("nav.becomePartner")}
-            </Link>
+          ) : (
             <Link
               href="/dashboard/login"
-              className="text-lg font-medium transition-colors hover:text-primary"
-              onClick={() => setOpen(false)}
+              className="flex w-full items-center py-2 text-sm font-medium"
             >
-              {t("nav.providerDashboard")}
+              {t('nav.login')}
             </Link>
-          </nav>
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-2">
-              <LanguageSelector />
-              <span className="text-sm">Change Language</span>
-            </div>
-            {user ? (
-              <Button
-                variant="outline"
-                onClick={() => {
-                  logout()
-                  setOpen(false)
-                }}
-              >
-                {t("nav.logout")}
-              </Button>
-            ) : (
-              <Link href="/dashboard/login" passHref onClick={() => setOpen(false)}>
-                <Button className="w-full">{t("nav.login")}</Button>
-              </Link>
-            )}
-          </div>
+          )}
         </div>
       </SheetContent>
     </Sheet>

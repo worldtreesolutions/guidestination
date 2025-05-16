@@ -15,74 +15,48 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="w-full">
-        <div className="flex h-20 items-center justify-between px-4 sm:px-6 lg:px-8 max-w-[2000px] mx-auto">
-          <div className="flex items-center">
-            <Link href="/" className="flex items-center gap-2 mr-6">
-              <Image
-                src="/logo-maq9nil7.png"
-                alt="Guidestination"
-                width={500}
-                height={120}
-                className="h-16 w-auto"
-                priority
-              />
+      <div className="container flex h-16 items-center">
+        <div className="mr-4 flex">
+          <Link href="/" className="mr-6 flex items-center space-x-2">
+            <Image src="/wts-logo-maq82ya8.png" alt="Logo" width={48} height={48} />
+          </Link>
+          <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
+            <Link href="/activities" className="transition-colors hover:text-foreground/80">
+              {t('nav.activities')}
             </Link>
-            
-            <nav className="hidden md:flex items-center gap-6">
-              <NavigationMenu>
-                <NavigationMenuList className="space-x-1 lg:space-x-4 flex-wrap justify-center">
-                  <NavigationMenuItem>
-                    <Link href="/recommendation" legacyBehavior passHref>
-                      <NavigationMenuLink className="inline-flex h-10 items-center justify-center rounded-md bg-transparent px-2 lg:px-4 py-2 text-sm font-medium transition-colors hover:bg-[#ededed] hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50">
-                        {t("nav.aiPlanning")}
-                      </NavigationMenuLink>
-                    </Link>
-                  </NavigationMenuItem>
-                  <NavigationMenuItem>
-                    <Link href="/activity-owner" legacyBehavior passHref>
-                      <NavigationMenuLink className="inline-flex h-10 items-center justify-center rounded-md bg-transparent px-2 lg:px-4 py-2 text-sm font-medium transition-colors hover:bg-[#ededed] hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50">
-                        {t("nav.listActivities")}
-                      </NavigationMenuLink>
-                    </Link>
-                  </NavigationMenuItem>
-                  <NavigationMenuItem>
-                    <Link href="/partner" legacyBehavior passHref>
-                      <NavigationMenuLink className="inline-flex h-10 items-center justify-center rounded-md bg-transparent px-2 lg:px-4 py-2 text-sm font-medium transition-colors hover:bg-[#ededed] hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50">
-                        {t("nav.becomePartner")}
-                      </NavigationMenuLink>
-                    </Link>
-                  </NavigationMenuItem>
-                  <NavigationMenuItem>
-                    <Link href="/dashboard/login" legacyBehavior passHref>
-                      <NavigationMenuLink className="inline-flex h-10 items-center justify-center rounded-md bg-transparent px-2 lg:px-4 py-2 text-sm font-medium transition-colors hover:bg-[#ededed] hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50">
-                        {t("nav.providerDashboard")}
-                      </NavigationMenuLink>
-                    </Link>
-                  </NavigationMenuItem>
-                </NavigationMenuList>
-              </NavigationMenu>
-            </nav>
-          </div>
-          
-          <div className="flex items-center gap-4">
-            <LanguageSelector />
-            
+            <Link href="/recommendation" className="transition-colors hover:text-foreground/80">
+              {t('nav.recommendation')}
+            </Link>
+            <Link href="/partner" className="transition-colors hover:text-foreground/80">
+              {t('nav.partner')}
+            </Link>
+            <Link 
+              href="https://3000-sandbox-63cb7384.h1038.daytona.work/admin" 
+              target="_blank"
+              className="transition-colors hover:text-foreground/80"
+            >
+              Admin Portal
+            </Link>
+          </nav>
+        </div>
+        <div className="flex flex-1 items-center justify-end space-x-4">
+          <LanguageSelector />
+          <nav className="flex items-center space-x-2">
             {user ? (
-              <Button variant="ghost" onClick={logout} className="hover:bg-[#ededed] hover:text-accent-foreground">
-                {t("nav.logout")}
-              </Button>
+              <Link href="/dashboard">
+                <Button variant="outline" size="sm">
+                  {t('nav.dashboard')}
+                </Button>
+              </Link>
             ) : (
-              <Link href="/dashboard/login" passHref legacyBehavior>
-                <a className="hidden md:inline-flex items-center justify-center rounded-md h-10 px-4 py-2 text-sm font-medium transition-colors bg-primary text-primary-foreground shadow hover:bg-[#ededed] hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
-                  {t("nav.login")}
-                </a>
+              <Link href="/dashboard/login">
+                <Button variant="outline" size="sm">
+                  {t('nav.login')}
+                </Button>
               </Link>
             )}
-            <div className="md:hidden">
-              <MobileMenu />
-            </div>
-          </div>
+          </nav>
+          <MobileMenu />
         </div>
       </div>
     </header>

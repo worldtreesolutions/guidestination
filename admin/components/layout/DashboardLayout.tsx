@@ -1,10 +1,9 @@
-
 import React from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useAuth } from '@/contexts/AuthContext';
 import Sidebar from './Sidebar';
-import LoadingScreen from '@/components/ui/LoadingScreen';
+import LoadingScreen from '../ui/LoadingScreen';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
