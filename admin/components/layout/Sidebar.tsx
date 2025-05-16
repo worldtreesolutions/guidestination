@@ -1,8 +1,8 @@
-
 import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useAuth } from '@/contexts/AuthContext';
+// Changed from '@/contexts/AuthContext' to relative path
+import { useAuth } from '../../contexts/AuthContext'; 
 import { 
   Users, 
   Hotel, 
