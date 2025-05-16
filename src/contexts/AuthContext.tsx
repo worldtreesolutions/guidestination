@@ -57,7 +57,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
     getInitialSession();
 
-    const { subscription: authListener } = supabase.auth.onAuthStateChange(async (_event, newSession) => { // Corrected destructuring for onAuthStateChange as well for consistency
+    const { subscription: authListener } = supabase.auth.onAuthStateChange(async (_event, newSession) => { // Destructuring for subscription
       setSession(newSession);
       setUser(newSession?.user ?? null);
       await checkAdminRole(newSession?.user ?? null);
