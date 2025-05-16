@@ -1,4 +1,3 @@
-
 import Link from "next/link"
 import { useRouter } from "next/router"
 import {
@@ -14,6 +13,7 @@ import {
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button" // Added Button import
 import { useAuth } from "@/contexts/AuthContext" // Added AuthContext import
+import { useLanguage } from "@/contexts/LanguageContext"; // Added LanguageContext import
 
 interface SidebarNavItemProps {
   href: string
@@ -43,12 +43,13 @@ const SidebarNavItem = ({ href, icon, title }: SidebarNavItemProps) => {
 }
 
 export function DashboardSidebar() {
-  const { logout } = useAuth() // Get logout function
+  const { signOut } = useAuth() // Changed logout to signOut
   const router = useRouter() // Get router for logout redirect
+  const { t } = useLanguage();
 
   const handleLogout = async () => {
-    await logout();
-    router.push("/dashboard/login"); // Redirect to dashboard login after logout
+    await signOut(); // Changed logout to signOut
+    router.push("/dashboard/login"); // Redirect to login after logout
   };
 
   const navItems = [
