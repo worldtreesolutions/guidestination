@@ -3,7 +3,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Session, User } from '@supabase/supabase-js';
 
-interface AuthContextType {
+export interface AuthContextType {
   user: User | null;
   session: Session | null;
   isLoading: boolean;
@@ -13,19 +13,11 @@ interface AuthContextType {
   signOut: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  session: null,
-  isLoading: true,
-  isAdmin: false,
-  isSuperAdmin: false,
-  signIn: async () => ({ error: null }),
-  signOut: async () => {},
-});
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
+  if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
@@ -135,18 +127,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setIsSuperAdmin(false);
   };
 
+  const value: AuthContextType = {
+    user,
+    session,
+    isLoading,
+    isAdmin,
+    isSuperAdmin,
+    signIn,
+    signOut,
+  };
+
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        session,
-        isLoading,
-        isAdmin,
-        isSuperAdmin,
-        signIn,
-        signOut,
-      }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
