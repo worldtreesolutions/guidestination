@@ -52,14 +52,17 @@ export default function UserManagement() {
     try {
       // Fetch staff users
       const { data, error } = await supabase
-        .from('staff')
+        .from("staff")
         .select(`
           user_id,
+          created_at, 
           roles (
             name
           )
         `)
-        .order('created_at', { ascending: false });
+        // It's better to order by staff.created_at if available, or user's created_at later
+        // For now, let's assume staff table has created_at or we sort by authUser.created_at
+        .order("created_at", { referencedTable: "staff", ascending: false });
 
       if (error) throw error;
 
@@ -68,19 +71,30 @@ export default function UserManagement() {
       const userIds = data?.map(staff => staff.user_id) || [];
       
       if (userIds.length > 0) {
-        const { data: authUsers, error: authError } = await adminSupabase.auth.admin.listUsers();
+        const { authUsersData, error: authError } = await adminSupabase.auth.admin.listUsers({
+          page: 1,
+          perPage: 1000, // Adjust if you have more users
+        });
         
         if (authError) throw authError;
         
-        const formattedUsers = data?.map(staff => {
-          const authUser = authUsers.users.find(user => user.id === staff.user_id);
+        const formattedUsers = data?.map(staffMember => {
+          const authUser = authUsersData.users.find(user => user.id === staffMember.user_id);
+          const roleName = 
+            staffMember.roles && Array.isArray(staffMember.roles) && staffMember.roles.length > 0 
+            ? (staffMember.roles[0] as { name: string })?.name 
+            : staffMember.roles && typeof staffMember.roles === "object" && "name" in staffMember.roles 
+            // @ts-ignore
+            ? (staffMember.roles as { name: string }).name
+            : "Unknown";
+
           return {
-            id: staff.user_id,
-            email: authUser?.email || 'Unknown',
-            role: staff.roles?.name || 'Unknown',
-            created_at: authUser?.created_at || new Date().toISOString()
+            id: staffMember.user_id,
+            email: authUser?.email || "Unknown",
+            role: roleName,
+            created_at: authUser?.created_at || staffMember.created_at || new Date().toISOString()
           };
-        });
+        }).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
         
         setUsers(formattedUsers || []);
       } else {
