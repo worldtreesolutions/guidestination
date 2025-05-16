@@ -1,4 +1,3 @@
-
 import { useState } from "react"
 import Link from "next/link"
 import { Menu, X } from "lucide-react"
@@ -7,6 +6,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useAuth } from "@/contexts/AuthContext"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { LanguageSelector } from "./LanguageSelector"
+import Image from "next/image"
 
 export function MobileMenu() {
   const [open, setOpen] = useState(false)
@@ -25,7 +25,14 @@ export function MobileMenu() {
         <div className="flex flex-col gap-6 py-4">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
-              <span className="text-xl font-bold">Guidestination</span>
+              <Image
+                src="/wts-logo-1-maq8hoxc.png"
+                alt="Guidestination"
+                width={160}
+                height={35}
+                className="h-7 w-auto"
+                priority
+              />
             </Link>
             <Button variant="ghost" size="icon" onClick={() => setOpen(false)}>
               <X className="h-5 w-5" />

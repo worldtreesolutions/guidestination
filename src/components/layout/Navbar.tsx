@@ -1,4 +1,3 @@
-
 import Link from "next/link"
 import { NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList } from "@/components/ui/navigation-menu"
 import { MobileMenu } from "./MobileMenu"
@@ -7,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext"
 import { Button } from "@/components/ui/button"
 import { LanguageSelector } from "./LanguageSelector"
 import { useLanguage } from "@/contexts/LanguageContext"
+import Image from "next/image"
 
 export function Navbar() {
   const isMobile = useIsMobile()
@@ -19,7 +19,14 @@ export function Navbar() {
         <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8 max-w-[2000px] mx-auto">
           <div className="flex items-center">
             <Link href="/" className="flex items-center gap-2 mr-6">
-              <span className="text-xl font-bold">Guidestination</span>
+              <Image
+                src="/wts-logo-1-maq8hoxc.png"
+                alt="Guidestination"
+                width={180}
+                height={40}
+                className="h-8 w-auto"
+                priority
+              />
             </Link>
             
             <nav className="hidden md:flex items-center gap-6">
