@@ -17,14 +17,13 @@ const authService = {
     password: string,
     additionalData?: Record<string, any>
   ): Promise<AuthResponse> {
-    const response = await supabase.auth.signUp({
+    return supabase.auth.signUp({
       email,
       password,
       options: {
-         additionalData, // Supabase expects additionalData directly, not nested under options.data
+        data: additionalData,
       },
     });
-    return response;
   },
 
   async signInWithEmail(email: string, password: string): Promise<AuthResponse> {
@@ -35,20 +34,21 @@ const authService = {
   },
 
   async signInWithProvider(provider: Provider): Promise<AuthResponse> {
-    const {  oauthFlowData, error: oauthError } = await supabase.auth.signInWithOAuth({
+    const { data, error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
         redirectTo: `${window.location.origin}/dashboard`,
       },
     });
 
-    if (oauthError) {
-      return {  { user: null, session: null }, error: oauthError };
-    }
-    // If no error, a redirect is expected. User/session will be available after redirect.
-    // oauthFlowData contains { provider, url } which is not part of AuthResponse.data
-    // We return a structure that matches AuthResponse, indicating no immediate user/session.
-    return {  { user: null, session: null }, error: null };
+    // Return a properly structured AuthResponse
+    return {
+      data: {
+        user: null,
+        session: null,
+      },
+      error: error,
+    };
   },
 
   async signOut(): Promise<{ error: AuthError | null }> {
@@ -56,12 +56,12 @@ const authService = {
   },
 
   async getUser(): Promise<User | null> {
-    const {  { user } } = await supabase.auth.getUser(); // Corrected destructuring
+    const { data: { user } } = await supabase.auth.getUser();
     return user;
   },
 
   async getSession(): Promise<Session | null> {
-    const {  { session } } = await supabase.auth.getSession(); // Corrected destructuring
+    const { data: { session } } = await supabase.auth.getSession();
     return session;
   },
 
@@ -80,8 +80,8 @@ const authService = {
     return supabase.auth.updateUser({ email });
   },
 
-  async updateUserMetadata(meta Record<string, any>): Promise<AuthResponse> { // Corrected parameter syntax
-    return supabase.auth.updateUser({  metadata }); // Corrected to use 'data' for user_metadata
+  async updateUserMetadata(metadata: Record<string, any>): Promise<AuthResponse> {
+    return supabase.auth.updateUser({ data: metadata });
   },
 
   async getUserProfile(userId: string): Promise<UserProfile | null> {
