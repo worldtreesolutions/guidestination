@@ -38,7 +38,7 @@ export default function ActivityOwnerActivitiesPage() {
 
       setDataLoading(true)
       try {
-        const { data: ownerData, error: ownerError } = await supabase
+        const {  ownerData, error: ownerError } = await supabase
           .from("activity_owners")
           .select("id")
           .eq("user_id", user.id)
@@ -93,7 +93,7 @@ export default function ActivityOwnerActivitiesPage() {
     }
   }, [user, toast])
 
-  const handleDeleteActivity = async (activityId: string) => {
+  const handleDeleteActivity = async (activityId: number) => {
     if (!confirm("Are you sure you want to delete this activity? This action cannot be undone.")) {
       return
     }
@@ -206,7 +206,7 @@ export default function ActivityOwnerActivitiesPage() {
                         <Button 
                           variant="outline" 
                           size="icon" 
-                          onClick={() => handleDeleteActivity(activity.id)}
+                          onClick={() => handleDeleteActivity(activity.id as number)}
                           aria-label="Delete Activity"
                         >
                           <Trash2 className="h-4 w-4 text-red-500" />
