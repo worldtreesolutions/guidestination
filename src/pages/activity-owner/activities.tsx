@@ -38,7 +38,6 @@ export default function ActivityOwnerActivitiesPage() {
 
       setDataLoading(true)
       try {
-        // Corrected destructuring: alias 'data' to 'ownerData'
         const {  ownerData, error: ownerError } = await supabase
           .from("activity_owners")
           .select("id")
