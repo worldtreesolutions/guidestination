@@ -1,158 +1,111 @@
 
 import { useState } from "react"
-import { useRouter } from "next/router"
-import Head from "next/head"
-import Link from "next/link"
-import Image from "next/image"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import * as z from "zod"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, AlertCircle, ArrowLeft, CheckCircle } from "lucide-react"
-import authService from "@/services/authService"
+import { useAuth } from "@/contexts/AuthContext"
+import Link from "next/link"
+
+const forgotPasswordSchema = z.object({
+  email: z.string().email({ message: "Please enter a valid email address." }),
+})
+
+type ForgotPasswordValues = z.infer<typeof forgotPasswordSchema>
 
 export default function ForgotPasswordPage() {
-  const router = useRouter()
-  const [email, setEmail] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const { resetPasswordForEmail } = useAuth()
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
+  const form = useForm<ForgotPasswordValues>({
+    resolver: zodResolver(forgotPasswordSchema),
+    defaultValues: {
+      email: "",
+    },
+  })
+
+  async function onSubmit({ email }: ForgotPasswordValues) {
     setIsLoading(true)
+    setError(null)
 
     try {
-      await authService.resetPassword(email)
+      const { error } = await resetPasswordForEmail(email)
+      if (error) throw error
       setSuccess(true)
     } catch (err: any) {
       console.error("Reset password error:", err)
-      if (err.message) {
-        setError(err.message)
-      } else {
-        setError("An error occurred. Please try again.")
-      }
+      setError(err.message || "Failed to send reset password email")
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <>
-      <Head>
-        <title>Reset Password - Dashboard</title>
-        <meta name="description" content="Reset your password" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-      </Head>
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8">
+      <div className="w-full max-w-md space-y-8">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold tracking-tight">Reset Password</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Enter your email address and we'll send you a link to reset your password.
+          </p>
+        </div>
 
-      <div className="min-h-screen w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 md:p-8">
-        <div className="w-full max-w-md mx-auto">
-          <div className="flex justify-center mb-6">
-            <Link href="/" className="flex items-center">
-              <Image 
-                src="/logo.png" 
-                alt="Guidestination Logo" 
-                width={180} 
-                height={40}
-                className="h-10 w-auto"
-                onError={(e) => {
-                  // Fallback if logo doesn't exist
-                  const target = e.target as HTMLImageElement;
-                  target.onerror = null;
-                  target.style.display = 'none';
-                }}
-              />
-              <span className="text-2xl font-bold ml-2">Guidestination</span>
-            </Link>
+        {success ? (
+          <div className="space-y-4">
+            <Alert>
+              <AlertDescription>
+                Check your email for a link to reset your password.
+              </AlertDescription>
+            </Alert>
+            <div className="text-center">
+              <Link href="/dashboard/login">
+                <Button variant="link" className="mt-4">
+                  Back to Login
+                </Button>
+              </Link>
+            </div>
           </div>
+        ) : (
+          <form onSubmit={form.handleSubmit(onSubmit)} className="mt-8 space-y-6">
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="email">Email address</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="name@example.com"
+                {...form.register("email")}
+                disabled={isLoading}
+              />
+              {form.formState.errors.email && (
+                <p className="text-sm text-red-500">
+                  {form.formState.errors.email.message}
+                </p>
+              )}
+            </div>
 
-          <Card className="w-full shadow-lg">
-            <CardHeader className="space-y-1 pb-6 text-center">
-              <CardTitle className="text-2xl font-bold">Reset Password</CardTitle>
-              <CardDescription>
-                {!success 
-                  ? "Enter your email and we'll send you a link to reset your password" 
-                  : "Check your email for a password reset link"}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {error && (
-                <Alert variant="destructive" className="mb-6">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-              
-              {success ? (
-                <div className="text-center py-6">
-                  <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
-                  <p className="text-lg font-medium mb-2">Reset link sent!</p>
-                  <p className="text-muted-foreground mb-6">
-                    We've sent a password reset link to <strong>{email}</strong>. 
-                    Please check your email and follow the instructions.
-                  </p>
-                  <Button 
-                    variant="outline" 
-                    className="mt-2" 
-                    onClick={() => router.push("/dashboard/login")}
-                  >
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back to Login
-                  </Button>
-                </div>
-              ) : (
-                <form onSubmit={handleSubmit} className="space-y-5">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input 
-                      id="email" 
-                      type="email" 
-                      placeholder="name@example.com" 
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      disabled={isLoading}
-                      className="w-full"
-                    />
-                  </div>
-                  <Button 
-                    type="submit" 
-                    className="w-full py-6 mt-6" 
-                    disabled={isLoading}
-                    size="lg"
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                        Sending reset link...
-                      </>
-                    ) : (
-                      "Send Reset Link"
-                    )}
-                  </Button>
-                </form>
-              )}
-            </CardContent>
-            <CardFooter className="flex flex-col space-y-4 pt-4 pb-6 border-t">
-              <div className="text-center text-sm w-full">
-                <Link href="/dashboard/login" className="text-primary font-medium hover:underline">
-                  <ArrowLeft className="inline-block mr-1 h-4 w-4" />
-                  Back to login
+            <div className="space-y-4">
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? "Sending..." : "Send Reset Link"}
+              </Button>
+              <div className="text-center">
+                <Link href="/dashboard/login">
+                  <Button variant="link">Back to Login</Button>
                 </Link>
               </div>
-            </CardFooter>
-          </Card>
-        </div>
+            </div>
+          </form>
+        )}
       </div>
-    </>
+    </div>
   )
 }
