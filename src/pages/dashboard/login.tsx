@@ -1,201 +1,126 @@
-import { useState } from 'react'
-import { useRouter } from 'next/router'
-import Head from 'next/head'
-import Link from 'next/link'
-import Image from 'next/image'
-import { useAuth } from '@/contexts/AuthContext'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert' // Import AlertTitle
-import { Loader2, AlertCircle, AlertTriangle } from 'lucide-react'
+
+import { useState } from "react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import * as z from "zod"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { useAuth } from "@/contexts/AuthContext"
+import { useRouter } from "next/router"
+import Link from "next/link"
+import Image from "next/image"
+
+const loginSchema = z.object({
+  email: z.string().email({ message: "Invalid email address." }),
+  password: z.string().min(6, { message: "Password must be at least 6 characters." }),
+})
+
+type LoginFormValues = z.infer<typeof loginSchema>
 
 export default function LoginPage() {
+  const { login } = useAuth()
   const router = useRouter()
-  const { login } = useAuth() // checkUserVerification was removed from AuthContext
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [rememberMe, setRememberMe] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [verificationWarning, setVerificationWarning] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
-    setVerificationWarning(null)
+  const form = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  })
+
+  async function onSubmit({ email, password }: LoginFormValues) {
     setIsLoading(true)
+    setError(null)
 
     try {
-      // Removed client-side call to checkUserVerification
-      // The login function in AuthContext and Supabase itself will handle verification status.
-      const { user, session, roleId, providerId } = await login(email, password)
-      router.push('/dashboard/overview')
-    } catch (err: any) {
-      console.error('Login error:', err)
-      // Handle Supabase auth errors with more specific messages
-      if (err.message) {
-        if (err.message.includes('Invalid login credentials')) {
-          setError('Invalid email or password. Please try again.')
-        } else if (err.message.includes('Email not confirmed')) {
-          setError('Please confirm your email address before logging in.')
-        } else if (err.message.includes('pending verification')) {
-          setVerificationWarning(err.message);
-        } else {
-          setError(err.message)
-        }
-      } else {
-        setError('An error occurred during login. Please try again.')
+      const { data, error: signInError } = await login(email, password)
+
+      if (signInError) {
+        setError(signInError.message || "An unexpected error occurred during login.")
+        return
       }
+
+      if (data?.session) {
+        router.push("/dashboard/overview")
+      } else {
+        setError("Login successful, but no session was created. Please try again.")
+      }
+    } catch (err: any) {
+      console.error("Login error:", err)
+      setError(err.message || "An unexpected error occurred.")
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <>
-      <Head>
-        <title>Login - Dashboard</title>
-        <meta name='description' content='Login to access your dashboard' />
-        <meta name='viewport' content='width=device-width, initial-scale=1' />
-      </Head>
-
-      <div className='min-h-screen w-full flex items-center justify-center bg-background p-4 sm:p-6 md:p-8'>
-        <div className='w-full max-w-md mx-auto'>
-          <div className='flex justify-center mb-6 bg-background rounded-lg'>
-            <Link href='/' className='flex items-center'>
-              <Image 
-                src='/logo-maq9nil7.png' 
-                alt='Guidestination Logo' 
-                width={400} 
-                height={100}
-                className='h-16 w-auto'
-                priority
-              />
-            </Link>
-          </div>
-
-          <Card className='w-full shadow-lg'>
-            <CardHeader className='space-y-1 pb-6 text-center'>
-              <CardTitle className='text-2xl font-bold'>Sign in to Dashboard</CardTitle>
-              <CardDescription>
-                Enter your credentials to access your account
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {error && (
-                <Alert variant='destructive' className='mb-6'>
-                  <AlertCircle className='h-4 w-4' />
-                  <AlertTitle>Error</AlertTitle>
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-              
-              {verificationWarning && (
-                // Removed variant='warning', using custom classes for styling
-                <Alert className='mb-6 border-yellow-500/50 text-yellow-700 dark:border-yellow-400/50 dark:text-yellow-300 [&>svg]:text-yellow-500 dark:[&>svg]:text-yellow-400'>
-                  <AlertTriangle className='h-4 w-4' />
-                  <AlertTitle>Verification Pending</AlertTitle>
-                  <AlertDescription>{verificationWarning}</AlertDescription>
-                </Alert>
-              )}
-              
-              <form onSubmit={handleSubmit} className='space-y-5'>
-                <div className='space-y-2'>
-                  <Label htmlFor='email'>Email</Label>
-                  <Input 
-                    id='email' 
-                    type='email' 
-                    placeholder='name@example.com' 
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    disabled={isLoading}
-                    className='w-full'
-                  />
-                </div>
-                <div className='space-y-2'>
-                  <div className='flex items-center justify-between'>
-                    <Label htmlFor='password'>Password</Label>
-                    <Link 
-                      href='/dashboard/forgot-password' 
-                      className='text-sm text-primary hover:underline'
-                    >
-                      Forgot password?
-                    </Link>
-                  </div>
-                  <Input 
-                    id='password' 
-                    type='password' 
-                    placeholder='••••••••' 
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    disabled={isLoading}
-                    className='w-full'
-                  />
-                </div>
-                <div className='flex items-center space-x-2'>
-                  <Checkbox 
-                    id='remember' 
-                    checked={rememberMe}
-                    onCheckedChange={(checked) => setRememberMe(checked === true)}
-                    disabled={isLoading}
-                  />
-                  <Label 
-                    htmlFor='remember' 
-                    className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'
-                  >
-                    Remember me
-                  </Label>
-                </div>
-                <Button 
-                  type='submit' 
-                  className='w-full py-6 mt-6' 
-                  disabled={isLoading}
-                  size='lg'
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className='mr-2 h-5 w-5 animate-spin' />
-                      Signing in...
-                    </>
-                  ) : (
-                    'Sign In'
-                  )}
-                </Button>
-              </form>
-            </CardContent>
-            <CardFooter className='flex flex-col space-y-4 pt-4 pb-6 border-t'>
-              <div className='text-center text-sm w-full'>
-                Don't have an account?{' '}
-                <Link href='/dashboard/register' className='text-primary font-medium hover:underline'>
-                  Create an account
-                </Link>
-              </div>
-              <div className='text-center text-xs text-muted-foreground'>
-                By signing in, you agree to our{' '}
-                <Link href='/terms' className='hover:underline'>
-                  Terms of Service
-                </Link>{' '}
-                and{' '}
-                <Link href='/privacy' className='hover:underline'>
-                  Privacy Policy
-                </Link>
-              </div>
-            </CardFooter>
-          </Card>
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8">
+      <div className="w-full max-w-md space-y-8">
+        <div className="flex flex-col items-center justify-center">
+          <Link href="/" className="mb-6">
+            <Image
+              src="/logo-masdxep0.png"
+              alt="Guidestination"
+              width={180}
+              height={32}
+              priority
+              className="h-8 w-auto"
+            />
+          </Link>
+          <h2 className="text-3xl font-bold tracking-tight">Sign in to your account</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Enter your email below to access your account
+          </p>
         </div>
+
+        <form onSubmit={form.handleSubmit(onSubmit)} className="mt-8 space-y-6">
+          {error && (
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="m@example.com"
+              {...form.register("email")}
+              disabled={isLoading}
+            />
+            {form.formState.errors.email && (
+              <p className="text-sm text-red-500">{form.formState.errors.email.message}</p>
+            )}
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">Password</Label>
+              <Link href="/dashboard/forgot-password" legacyBehavior>
+                <a className="text-sm font-medium text-primary hover:underline">
+                  Forgot password?
+                </a>
+              </Link>
+            </div>
+            <Input
+              id="password"
+              type="password"
+              {...form.register("password")}
+              disabled={isLoading}
+            />
+            {form.formState.errors.password && (
+              <p className="text-sm text-red-500">{form.formState.errors.password.message}</p>
+            )}
+          </div>
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? "Signing In..." : "Sign In"}
+          </Button>
+        </form>
       </div>
-    </>
+    </div>
   )
 }
