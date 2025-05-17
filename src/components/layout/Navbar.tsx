@@ -2,7 +2,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import MobileMenu from "./MobileMenu"
-import LanguageSelector from "./LanguageSelector"
+import { LanguageSelector } from "./LanguageSelector"
 import { useAuth } from "@/contexts/AuthContext"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/router"

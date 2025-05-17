@@ -8,7 +8,7 @@ import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/s
 import { useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "next/router"
 import React from "react"
-import LanguageSelector from "./LanguageSelector"
+import { LanguageSelector } from "./LanguageSelector"
 
 export default function MobileMenu() {
   const [open, setOpen] = useState(false)
