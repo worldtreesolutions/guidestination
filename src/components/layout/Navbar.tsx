@@ -43,21 +43,24 @@ export function Navbar() {
             <NavigationMenuItem>
               <Link href="/activity-owner" legacyBehavior passHref>
                 <NavigationMenuLink className={navLinkClassName}>
-                  List Your Activities
+                  <span className="hidden lg:inline">List Your Activities</span>
+                  <span className="md:inline lg:hidden">List Activities</span>
                 </NavigationMenuLink>
               </Link>
             </NavigationMenuItem>
             <NavigationMenuItem>
               <Link href="/partner" legacyBehavior passHref>
                 <NavigationMenuLink className={navLinkClassName}>
-                  Become a Partner
+                  <span className="hidden lg:inline">Become a Partner</span>
+                  <span className="md:inline lg:hidden">Partners</span>
                 </NavigationMenuLink>
               </Link>
             </NavigationMenuItem>
             <NavigationMenuItem>
               <Link href="/dashboard/login" legacyBehavior passHref>
                 <NavigationMenuLink className={navLinkClassName}>
-                  Provider Dashboard
+                  <span className="hidden lg:inline">Provider Dashboard</span>
+                  <span className="md:inline lg:hidden">Provider Hub</span>
                 </NavigationMenuLink>
               </Link>
             </NavigationMenuItem>
