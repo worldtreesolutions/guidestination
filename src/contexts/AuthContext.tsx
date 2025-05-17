@@ -64,8 +64,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
     getInitialSession();
 
-    // Correctly destructure the 'data' property and alias it to 'authListenerData'
-    const { data: authListenerData } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
+    const {  authListenerData } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
       setSession(newSession);
       setUser(newSession?.user ?? null);
       await checkAdminRole(newSession?.user ?? null);
@@ -75,7 +74,6 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       }
     });
     
-    // Access the subscription from the correctly aliased 'authListenerData'
     const subscription = authListenerData?.subscription;
 
     if (!subscription) {
@@ -106,10 +104,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   const handleSignInWithEmail = async (email: string, password: string) => {
     setLoading(true);
     try {
-      const { user: authedUser, session: authedSession, error } = await authService.signInWithEmail(email, password);
-      if (error) {
-        throw error;
-      }
+      const { user: authedUser, session: authedSession } = await authService.signInWithEmail(email, password);
       setUser(authedUser);
       setSession(authedSession);
       await checkAdminRole(authedUser);
