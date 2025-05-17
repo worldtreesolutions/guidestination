@@ -54,13 +54,11 @@
 
       const login = async (email: string, password: string): Promise<AuthResponse> => {
         const response = await authService.signIn(email, password);
-        // Assuming authService.signIn directly returns AuthResponse or a compatible structure
         return response; 
       };
       
       const register = async (email: string, password: string, additionalData?: Record<string, any>): Promise<AuthResponse> => {
         const response = await authService.signUp(email, password, additionalData);
-        // Assuming authService.signUp directly returns AuthResponse or a compatible structure
         return response;
       };
 
