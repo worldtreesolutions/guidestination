@@ -7,6 +7,12 @@ import { useAuth } from "@/contexts/AuthContext"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/router"
 import React from "react"
+import {
+  NavigationMenu,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+} from "@/components/ui/navigation-menu"
 
 export function Navbar() {
   const { user, signOut } = useAuth()
@@ -17,12 +23,7 @@ export function Navbar() {
     router.push("/")
   }
 
-  const navLinks = [
-    { href: "/", label: "Home" },
-    { href: "/activities", label: "Activities" },
-    { href: "/planning", label: "My Planning" },
-    { href: "/activity-owner", label: "Partner Area" }
-  ]
+  const navLinkClassName = "inline-flex h-10 items-center justify-center rounded-md bg-transparent px-2 lg:px-4 py-2 text-sm font-medium transition-colors hover:bg-[#22C55E] hover:text-white focus:bg-[#22C55E] focus:text-white focus:outline-none disabled:pointer-events-none disabled:opacity-50"
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -36,19 +37,33 @@ export function Navbar() {
             priority
           />
         </Link>
-        <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
-          {navLinks.map(link => (
-            <Link 
-              key={link.href} 
-              href={link.href} 
-              className={`transition-colors hover:text-foreground/80 ${
-                router.pathname === link.href ? "text-primary" : "text-foreground/60"
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
-        </nav>
+        
+        <NavigationMenu className="hidden md:flex">
+          <NavigationMenuList className="space-x-1">
+            <NavigationMenuItem>
+              <Link href="/activity-owner" legacyBehavior passHref>
+                <NavigationMenuLink className={navLinkClassName}>
+                  List Your Activities
+                </NavigationMenuLink>
+              </Link>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
+              <Link href="/partner" legacyBehavior passHref>
+                <NavigationMenuLink className={navLinkClassName}>
+                  Become a Partner
+                </NavigationMenuLink>
+              </Link>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
+              <Link href="/dashboard/login" legacyBehavior passHref>
+                <NavigationMenuLink className={navLinkClassName}>
+                  Provider Dashboard
+                </NavigationMenuLink>
+              </Link>
+            </NavigationMenuItem>
+          </NavigationMenuList>
+        </NavigationMenu>
+
         <div className="flex flex-1 items-center justify-end space-x-4">
           <LanguageSelector />
           <nav className="flex items-center space-x-2">

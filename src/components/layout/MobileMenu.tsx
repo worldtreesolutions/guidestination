@@ -25,7 +25,9 @@ export default function MobileMenu() {
     { href: "/", label: "Home" },
     { href: "/activities", label: "Activities" },
     { href: "/planning", label: "My Planning" },
-    { href: "/activity-owner", label: "Partner Area" }
+    { href: "/activity-owner", label: "List Your Activities" },
+    { href: "/partner", label: "Become a Partner" },
+    { href: "/dashboard/login", label: "Provider Dashboard" },
   ]
 
   return (
@@ -60,7 +62,7 @@ export default function MobileMenu() {
               key={link.href}
               href={link.href}
               className={`flex w-full items-center py-2 text-sm font-medium ${
-                router.pathname === link.href ? "text-primary" : "text-foreground/60"
+                router.pathname === link.href ? "text-primary" : "text-foreground/60 hover:text-primary"
               }`}
               onClick={() => setOpen(false)}
             >
