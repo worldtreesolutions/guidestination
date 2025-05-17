@@ -1,7 +1,7 @@
 
     import { createContext, useContext, useEffect, useState, ReactNode } from "react";
     import { supabase } from "@/integrations/supabase/client";
-    import { Session, User, AuthError, AuthResponse, AuthSubscription } from "@supabase/supabase-js";
+    import { Session, User, AuthError, AuthResponse, Subscription } from "@supabase/supabase-js"; // Changed AuthSubscription to Subscription
     import authService from "@/services/authService";
 
     interface AuthContextType {
@@ -43,13 +43,11 @@
           (_event, newSession) => {
             setSession(newSession);
             setUser(newSession?.user ?? null);
-            setLoading(false); // Ensure loading is false after auth state change
+            setLoading(false); 
           }
         );
 
         return () => {
-          // The returned object from onAuthStateChange has a `data` property, 
-          // which in turn has a `subscription` property.
           authListener.data.subscription?.unsubscribe();
         };
       }, []);
