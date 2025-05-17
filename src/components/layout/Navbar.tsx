@@ -38,36 +38,38 @@ export function Navbar() {
           />
         </Link>
         
-        <NavigationMenu className="hidden md:flex">
-          <NavigationMenuList className="space-x-1">
-            <NavigationMenuItem>
-              <Link href="/activity-owner" legacyBehavior passHref>
-                <NavigationMenuLink className={navLinkClassName}>
-                  <span className="hidden lg:inline">List Your Activities</span>
-                  <span className="md:inline lg:hidden">List Activities</span>
-                </NavigationMenuLink>
-              </Link>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <Link href="/partner" legacyBehavior passHref>
-                <NavigationMenuLink className={navLinkClassName}>
-                  <span className="hidden lg:inline">Become a Partner</span>
-                  <span className="md:inline lg:hidden">Partners</span>
-                </NavigationMenuLink>
-              </Link>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <Link href="/dashboard/login" legacyBehavior passHref>
-                <NavigationMenuLink className={navLinkClassName}>
-                  <span className="hidden lg:inline">Provider Dashboard</span>
-                  <span className="md:inline lg:hidden">Provider Hub</span>
-                </NavigationMenuLink>
-              </Link>
-            </NavigationMenuItem>
-          </NavigationMenuList>
-        </NavigationMenu>
+        <div className="hidden md:flex flex-grow justify-center">
+            <NavigationMenu>
+              <NavigationMenuList>
+                <NavigationMenuItem>
+                  <Link href="/activity-owner" legacyBehavior passHref>
+                    <NavigationMenuLink className={navLinkClassName}>
+                      <span className="hidden lg:inline whitespace-nowrap">List Your Activities</span>
+                      <span className="md:inline lg:hidden whitespace-nowrap">List Activities</span>
+                    </NavigationMenuLink>
+                  </Link>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <Link href="/partner" legacyBehavior passHref>
+                    <NavigationMenuLink className={navLinkClassName}>
+                      <span className="hidden lg:inline whitespace-nowrap">Become a Partner</span>
+                      <span className="md:inline lg:hidden whitespace-nowrap">Partners</span>
+                    </NavigationMenuLink>
+                  </Link>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <Link href="/dashboard/login" legacyBehavior passHref>
+                    <NavigationMenuLink className={navLinkClassName}>
+                      <span className="hidden lg:inline whitespace-nowrap">Provider Dashboard</span>
+                      <span className="md:inline lg:hidden whitespace-nowrap">Provider Hub</span>
+                    </NavigationMenuLink>
+                  </Link>
+                </NavigationMenuItem>
+              </NavigationMenuList>
+            </NavigationMenu>
+        </div>
 
-        <div className="flex flex-1 items-center justify-end space-x-4">
+        <div className="flex items-center justify-end space-x-4">
           <LanguageSelector />
           <nav className="flex items-center space-x-2">
             {user ? (
