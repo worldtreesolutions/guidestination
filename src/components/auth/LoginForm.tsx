@@ -19,7 +19,7 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>
 
 export function LoginForm() {
-  const { login } = useAuth(); // Changed from signInWithEmail to login
+  const { login } = useAuth()
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -36,24 +36,17 @@ export function LoginForm() {
     setIsLoading(true)
     setError(null)
     try {
-      const { data, error: signInError } = await login(values.email, values.password); // Changed from signInWithEmail to login
+      const { data, error: signInError } = await login(values.email, values.password)
 
       if (signInError) {
         setError(signInError.message || "An unexpected error occurred during login.")
-        setIsLoading(false)
         return
       }
 
-      if (data.user) {
-        // Check for admin role if your app has one
-        // const isAdmin = data.user.app_metadata?.roles?.includes("admin")
-        // if (isAdmin) {
-        //   router.push("/admin/dashboard")
-        // } else {
-        router.push("/dashboard") // Default redirect for non-admin users
-        // }
+      if (data?.session) {
+        router.push("/dashboard/overview")
       } else {
-        setError("Login successful, but no user data received. Please try again.")
+        setError("Login successful, but no session was created. Please try again.")
       }
     } catch (e: any) {
       console.error("Login error:", e)
