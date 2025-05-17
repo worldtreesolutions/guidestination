@@ -1,5 +1,4 @@
 
-    
 import Link from "next/link"
 import Image from "next/image"
 import MobileMenu from "./MobileMenu"
@@ -24,7 +23,7 @@ export function Navbar() {
     router.push("/")
   }
 
-  const navLinkClassName = "inline-flex h-10 items-center justify-center rounded-md bg-transparent px-2 lg:px-4 py-2 text-sm font-medium transition-colors hover:bg-[#ededed] hover:text-accent-foreground hover:border hover:border-input focus:bg-[#ededed] focus:text-accent-foreground focus:border focus:border-input focus:outline-none disabled:pointer-events-none disabled:opacity-50"
+  const navLinkClassName = "flex w-full items-center justify-center rounded-md bg-transparent px-4 py-2 text-sm font-medium transition-colors hover:bg-[#ededed] hover:text-foreground focus:bg-[#ededed] focus:text-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50"
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -32,42 +31,40 @@ export function Navbar() {
         <Link href="/" className="mr-6 flex items-center">
           <Image
             src="/logo-masdxep0.png"
-            alt="Guidestination Logo"
+            alt="Guidestination"
             width={180}
             height={32}
             priority
+            className="h-8 w-auto"
           />
         </Link>
         
-        <div className="hidden md:flex flex-grow justify-center">
-            <NavigationMenu>
-              <NavigationMenuList>
-                <NavigationMenuItem>
-                  <Link href="/activity-owner" legacyBehavior passHref>
-                    <NavigationMenuLink className={navLinkClassName}>
-                      <span className="hidden lg:inline whitespace-nowrap">List Your Activities</span>
-                      <span className="md:inline lg:hidden whitespace-nowrap">List Activities</span>
-                    </NavigationMenuLink>
-                  </Link>
-                </NavigationMenuItem>
-                <NavigationMenuItem>
-                  <Link href="/partner" legacyBehavior passHref>
-                    <NavigationMenuLink className={navLinkClassName}>
-                      <span className="hidden lg:inline whitespace-nowrap">Become a Partner</span>
-                      <span className="md:inline lg:hidden whitespace-nowrap">Partners</span>
-                    </NavigationMenuLink>
-                  </Link>
-                </NavigationMenuItem>
-                <NavigationMenuItem>
-                  <Link href="/dashboard/login" legacyBehavior passHref>
-                    <NavigationMenuLink className={navLinkClassName}>
-                      <span className="hidden lg:inline whitespace-nowrap">Provider Dashboard</span>
-                      <span className="md:inline lg:hidden whitespace-nowrap">Provider Hub</span>
-                    </NavigationMenuLink>
-                  </Link>
-                </NavigationMenuItem>
-              </NavigationMenuList>
-            </NavigationMenu>
+        <div className="hidden md:flex flex-1 justify-center">
+          <NavigationMenu className="max-w-full w-full">
+            <NavigationMenuList className="grid grid-cols-3 w-full gap-2">
+              <NavigationMenuItem className="w-full">
+                <Link href="/activity-owner" legacyBehavior passHref>
+                  <NavigationMenuLink className={navLinkClassName}>
+                    List Your Activities
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+              <NavigationMenuItem className="w-full">
+                <Link href="/partner" legacyBehavior passHref>
+                  <NavigationMenuLink className={navLinkClassName}>
+                    Become a Partner
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+              <NavigationMenuItem className="w-full">
+                <Link href="/dashboard/login" legacyBehavior passHref>
+                  <NavigationMenuLink className={navLinkClassName}>
+                    Provider Dashboard
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+            </NavigationMenuList>
+          </NavigationMenu>
         </div>
 
         <div className="flex items-center justify-end space-x-4">
@@ -98,4 +95,3 @@ export function Navbar() {
     </header>
   )
 }
-  
