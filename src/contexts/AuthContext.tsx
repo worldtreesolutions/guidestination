@@ -36,14 +36,14 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
 
     fetchSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    const subscription = supabase.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession);
       setUser(newSession?.user ?? null);
       setLoading(false);
     });
 
     return () => {
-      subscription.unsubscribe();
+      subscription.data.subscription.unsubscribe();
     };
   }, []);
 

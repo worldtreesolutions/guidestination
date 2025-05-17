@@ -70,8 +70,8 @@ export default async function handler(
             return res.status(500).json({ error: "Failed to create user" })
         }
 
-        // 3. Create activity owner record
-        const ownerInsertData: Partial<ActivityOwner> = {
+        // 3. Create activity owner record with correct types
+        const ownerInsertData = {
             user_id: authData.user.id,
             owner_name: `${firstName} ${lastName}`,
             email,
@@ -82,7 +82,6 @@ export default async function handler(
             address: businessAddress,
             description: "",
             tourism_license_number: "",
-            bank_account_number: bankAccount,
             bank_name: bankName,
             bank_branch: bankBranch,
             status: "pending"
