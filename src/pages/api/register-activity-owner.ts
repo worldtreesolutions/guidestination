@@ -1,234 +1,109 @@
 
-import { NextApiRequest, NextApiResponse } from "next";
-import { supabaseAdmin } from "@/integrations/supabase/admin";
-import type { Database } from "@/integrations/supabase/types";
-import { v4 as uuidv4 } from "uuid";
+import { NextApiRequest, NextApiResponse } from "next"
+import { supabaseAdmin } from "@/integrations/supabase/admin"
 
-type ActivityOwnerInsert = Database["public"]["Tables"]["activity_owners"]["Insert"];
-type UserInsert = Database["public"]["Tables"]["users"]["Insert"];
-
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+    req: NextApiRequest,
+    res: NextApiResponse
+) {
     if (req.method !== "POST") {
-        res.setHeader("Allow", ["POST"]);
-        return res.status(405).json({ message: `Method ${req.method} Not Allowed` });
+        return res.status(405).json({ error: "Method not allowed" })
     }
 
-    const registrationData = req.body;
+    const {
+        email,
+        password,
+        firstName,
+        lastName,
+        phoneNumber,
+        businessName,
+        businessAddress,
+        businessType,
+        taxId,
+        bankAccount,
+        bankName,
+        bankBranch,
+    } = req.body
 
-    if (!registrationData || !registrationData.email) {
-        return res.status(400).json({ message: "Missing registration data or email" });
+    if (!email || !password || !firstName || !lastName || !phoneNumber) {
+        return res.status(400).json({ error: "Missing required fields" })
     }
-
-    const { email, owner_name, phone, ...ownerDetails } = registrationData;
 
     try {
         // 1. Check if an activity_owner record with this email already exists
-        const {  existingOwner, error: ownerCheckError } = await supabaseAdmin
+        const { data: existingOwnerData, error: ownerCheckError } = await supabaseAdmin
             .from("activity_owners")
             .select("id")
             .eq("email", email)
-            .maybeSingle();
+            .single()
 
-        if (ownerCheckError) {
-            console.error("Supabase error checking existing activity_owners record:", ownerCheckError);
-            return res.status(500).json({
-                message: "Database error during owner existence check. Supabase message: " + ownerCheckError.message,
-                details: ownerCheckError.details || null,
-                code: ownerCheckError.code || null
-            });
+        if (ownerCheckError && ownerCheckError.code !== "PGRST116") {
+            console.error("Error checking existing owner:", ownerCheckError)
+            return res.status(500).json({ error: "Error checking existing owner" })
         }
 
-        if (existingOwner) {
-            console.log("Activity owner profile already exists in activity_owners table with email:", email);
-            return res.status(409).json({ message: "An activity owner account with this email already exists.", code: "ACTIVITY_OWNER_EXISTS" });
+        if (existingOwnerData) {
+            return res.status(400).json({ error: "An activity owner with this email already exists" })
         }
 
-        // 2. Handle auth.users: Create or find existing auth user
-        let authUserId: string | undefined;
-        let isNewUser = false;
-        const tempPassword = `temp-${uuidv4().substring(0, 8)}`; 
-
-        console.log(`Attempting to create or identify auth user for email: "${email}"`);
-        const {  createUserData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-            email: email,
-            password: tempPassword,
-            email_confirm: true, 
-            user_meta: { 
-                name: owner_name,
-                phone: phone,
-                user_type: "activity_provider"
+        // 2. Create auth user
+        const { data: authData, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
+            email,
+            password,
+            email_confirm: true,
+            user_metadata: {
+                firstName,
+                lastName,
+                role: "activity_owner"
             }
-        });
-        
-        if (authError) {
-            const isEmailExistsError = (authError.message.includes("User already registered") || (authError as any).status === 400 || (authError as any).code === "user_already_exists" || authError.message.toLowerCase().includes("duplicate key value violates unique constraint"));
+        })
 
-            if (isEmailExistsError) {
-                console.log(`Auth user with email "${email}" already exists (reported by createUser). Attempting to retrieve them.`);
-                
-                const {  listUsersData, error: listUsersError } = await supabaseAdmin.auth.admin.listUsers({
-                    page: 1,
-                    perPage: 1,
-                    filter: `email = "${email}"` 
-                });
-
-                if (listUsersError) {
-                    console.error(`Error listing users by email "${email}":`, listUsersError);
-                    return res.status(500).json({ message: `Failed to list existing users by email: ${listUsersError.message}` });
-                }
-
-                const foundUser = listUsersData?.users?.[0];
-
-                if (foundUser && foundUser.id) {
-                    authUserId = foundUser.id;
-                    isNewUser = false; 
-                    console.log(`Found existing auth user ID: ${authUserId} for email "${email}" using listUsers.`);
-                    const { error: updateUserMetaError } = await supabaseAdmin.auth.admin.updateUserById(
-                        authUserId,
-                        {
-                            user_meta: { 
-                                name: owner_name,
-                                phone: phone,
-                                user_type: "activity_provider"
-                            }
-                        }
-                    );
-                    if (updateUserMetaError) {
-                        console.warn(`Could not update metadata for existing auth user ${authUserId}:`, updateUserMetaError.message);
-                    }
-                } else {
-                    console.error(`Auth user with email "${email}" reported as existing, but NOT found via listUsers. Response: ${JSON.stringify(listUsersData)}`);
-                    return res.status(500).json({ message: "User reported to exist but could not be retrieved. Please contact support." });
-                }
-
-            } else {
-                console.error("Error creating user in auth.users:", authError);
-                return res.status(500).json({
-                    message: "Failed to create authentication user. Supabase message: " + authError.message,
-                    details: (authError as any).details || null,
-                    code: (authError as any).code || null
-                });
-            }
-        } else if (createUserData && createUserData.user && createUserData.user.id) {
-            authUserId = createUserData.user.id;
-            isNewUser = true;
-            console.log(`Created new auth user with UUID: ${authUserId} for email "${email}"`);
-        } else {
-            console.error("Failed to create auth user: No user data or user ID returned from createUser call, and no error.", createUserData);
-            return res.status(500).json({ message: "Failed to create auth user: Unexpected response from Supabase.", error_details: "User object or ID missing in Supabase response without error."});
-        }
-        
-        if (!authUserId) {
-            console.error("Critical error: Could not obtain authUserId after auth user handling.");
-            return res.status(500).json({ message: "Failed to obtain user authentication ID." });
+        if (createUserError) {
+            console.error("Error creating user:", createUserError)
+            return res.status(500).json({ error: createUserError.message })
         }
 
-        // 3. Ensure user profile exists in public.users table
-        const {  publicUser, error: publicUserCheckError } = await supabaseAdmin
-            .from("users")
-            .select("id") 
-            .eq("id", authUserId) 
-            .maybeSingle();
-
-        if (publicUserCheckError) {
-            console.error("Supabase error checking public.users:", publicUserCheckError);
-            if (isNewUser && authUserId) { 
-                try { await supabaseAdmin.auth.admin.deleteUser(authUserId); } catch (delErr: any) { console.error("Failed to cleanup new auth user after public.users check error:", delErr.message); }
-            }
-            return res.status(500).json({
-                message: "Database error checking user profile. Supabase message: " + publicUserCheckError.message,
-                details: publicUserCheckError.details || null,
-                code: publicUserCheckError.code || null
-            });
+        if (!authData.user) {
+            return res.status(500).json({ error: "Failed to create user" })
         }
 
-        if (!publicUser) {
-            console.log("User does not exist in public.users, creating profile for user_id:", authUserId);
-            const userInsertPayload: UserInsert = {
-                id: authUserId, 
-                name: owner_name,
-                email: email,
-                phone: phone || null,
-                user_type: "activity_provider", 
-                verified: false 
-            };
-            const { error: publicUserInsertError } = await supabaseAdmin
-                .from("users")
-                .insert(userInsertPayload);
-
-            if (publicUserInsertError) {
-                console.error("Error creating user in public.users table:", publicUserInsertError);
-                if (isNewUser && authUserId) { 
-                     try { await supabaseAdmin.auth.admin.deleteUser(authUserId); } catch (delErr: any) { console.error("Failed to cleanup new auth user after public.users insert error:", delErr.message); }
-                }
-                return res.status(500).json({
-                    message: "Failed to create user profile. Supabase message: " + publicUserInsertError.message,
-                    details: publicUserInsertError.details || null,
-                    code: publicUserInsertError.code || null
-                });
-            }
-            console.log("Created public.users profile linked to auth user:", authUserId);
-        } else {
-            console.log("User profile already exists in public.users for auth user:", authUserId);
-            const { error: publicUserUpdateError } = await supabaseAdmin
-                .from("users")
-                .update({ name: owner_name, phone: phone || null, user_type: "activity_provider" }) 
-                .eq("id", authUserId);
-            if (publicUserUpdateError) {
-                console.warn("Could not update existing public.users profile:", publicUserUpdateError.message);
-            }
-        }
-
-        // 4. Insert new activity_owners record
-        console.log("Creating new activity_owners record linked to user_id:", authUserId);
-        const ownerInsertPayload: ActivityOwnerInsert = {
-            user_id: authUserId, 
-            email: email, 
-            owner_name: owner_name,
-            phone: phone,
-            status: "pending", 
-            ...ownerDetails
-        };
-
-        const {  newOwnerRecord, error: insertError } = await supabaseAdmin
+        // 3. Create activity owner record
+        const { data: ownerData, error: createOwnerError } = await supabaseAdmin
             .from("activity_owners")
-            .insert(ownerInsertPayload)
+            .insert([
+                {
+                    user_id: authData.user.id,
+                    email,
+                    first_name: firstName,
+                    last_name: lastName,
+                    phone_number: phoneNumber,
+                    business_name: businessName,
+                    business_address: businessAddress,
+                    business_type: businessType,
+                    tax_id: taxId,
+                    bank_account: bankAccount,
+                    bank_name: bankName,
+                    bank_branch: bankBranch,
+                    status: "pending"
+                }
+            ])
             .select()
-            .single();
+            .single()
 
-        if (insertError) {
-            console.error("Supabase insert error for activity_owners:", insertError);
-            if (isNewUser && authUserId) {
-                try { await supabaseAdmin.auth.admin.deleteUser(authUserId); console.log("Rolled back new auth user creation due to activity_owners insert error."); } catch (delErr: any) { console.error("Failed to cleanup new auth user after activity_owners insert error:", delErr.message); }
-            }
-            return res.status(500).json({
-                message: "Failed to register activity owner details. Supabase message: " + insertError.message,
-                details: insertError.details || null,
-                code: insertError.code || null
-            });
+        if (createOwnerError) {
+            console.error("Error creating owner record:", createOwnerError)
+            // Attempt to delete the auth user since owner creation failed
+            await supabaseAdmin.auth.admin.deleteUser(authData.user.id)
+            return res.status(500).json({ error: "Failed to create owner record" })
         }
 
-        if (!newOwnerRecord) {
-            console.error("Failed to register activity owner: No data returned after insert into activity_owners.");
-             if (isNewUser && authUserId) {
-                try { await supabaseAdmin.auth.admin.deleteUser(authUserId); console.log("Rolled back new auth user creation as activity_owners insert returned no data."); } catch (delErr: any) { console.error("Failed to cleanup new auth user after activity_owners insert returned no data.", delErr.message); }
-            }
-            return res.status(500).json({ message: "Failed to register activity owner: No data returned after insert.", error_details: "Activity owner data missing post-insert."});
-        }
+        return res.status(200).json({ 
+            message: "Activity owner registered successfully",
+            data: ownerData
+        })
 
-        console.log("Activity owner registered successfully, pending verification.");
-
-        return res.status(201).json({
-            message: "Activity owner registered successfully. Verification pending.",
-            newOwner: newOwnerRecord,
-            isNewUser: isNewUser
-        });
-
-    } catch (error: any) {
-        console.error("Unhandled error in /api/register-activity-owner:", error);
-        return res.status(500).json({
-            message: error.message || "An unexpected server error occurred.",
-            error_details: error.toString()
-        });
+    } catch (error) {
+        console.error("Server error:", error)
+        return res.status(500).json({ error: "Internal server error" })
     }
 }
