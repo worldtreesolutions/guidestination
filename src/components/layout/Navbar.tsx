@@ -41,25 +41,25 @@ export function Navbar() {
         
         <div className="hidden md:flex flex-1 justify-center">
           <NavigationMenu className="max-w-full w-full">
-            <NavigationMenuList className="flex w-full justify-center gap-4">
+            <NavigationMenuList className="flex w-full justify-center space-x-4">
               <NavigationMenuItem className="flex-1 max-w-[200px]">
                 <Link href="/activity-owner" legacyBehavior passHref>
                   <NavigationMenuLink className={navLinkClassName}>
-                    <span className="text-sm lg:text-base text-center">List Your Activities</span>
+                    <span className="text-sm lg:text-base">List Your Activities</span>
                   </NavigationMenuLink>
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem className="flex-1 max-w-[200px]">
                 <Link href="/partner" legacyBehavior passHref>
                   <NavigationMenuLink className={navLinkClassName}>
-                    <span className="text-sm lg:text-base text-center">Become a Partner</span>
+                    <span className="text-sm lg:text-base">Become a Partner</span>
                   </NavigationMenuLink>
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem className="flex-1 max-w-[200px]">
                 <Link href="/dashboard/login" legacyBehavior passHref>
                   <NavigationMenuLink className={navLinkClassName}>
-                    <span className="text-sm lg:text-base text-center">Provider Dashboard</span>
+                    <span className="text-sm lg:text-base">Provider Dashboard</span>
                   </NavigationMenuLink>
                 </Link>
               </NavigationMenuItem>
