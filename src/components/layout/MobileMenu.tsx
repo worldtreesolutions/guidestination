@@ -1,3 +1,4 @@
+
 import { useState } from "react"
 import Link from "next/link"
 import { Menu, X } from "lucide-react"
@@ -18,15 +19,20 @@ export default function MobileMenu() {
   const handleSignOut = async () => {
     await signOut()
     router.push("/")
+    setOpen(false)
   }
 
   const navLinks = [
     { href: "/", labelKey: "nav.home" },
-    { href: "/recommendation", labelKey: "nav.recommend" },
+    { href: "/activities", labelKey: "nav.activities" },
     { href: "/planning", labelKey: "nav.planning" },
-    { href: "/activity-owner", labelKey: "nav.partnerArea" },
-    { href: "/admin/dashboard", labelKey: "nav.adminPortal", adminOnly: true }
+    { href: "/activity-owner", labelKey: "nav.partnerArea" }
   ]
+
+  // Add admin link if user is admin
+  if (isAdmin) {
+    navLinks.push({ href: "/admin/dashboard", labelKey: "nav.adminPortal" })
+  }
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -39,7 +45,7 @@ export default function MobileMenu() {
       <SheetContent side="right" className="w-[300px] sm:w-[400px]">
         <div className="flex justify-between items-center px-6 py-4 border-b">
           <Link href="/" className="flex items-center space-x-2" onClick={() => setOpen(false)}>
-            <Image src="/wts-logo-maq82ya8.png" alt="Logo" width={36} height={36} />
+            <Image src="/logo.png" alt="Logo" width={36} height={36} />
             <span className="font-bold">Guidestination</span>
           </Link>
           <SheetClose asChild>
@@ -49,28 +55,36 @@ export default function MobileMenu() {
             </Button>
           </SheetClose>
         </div>
-        <div className="grid gap-2 py-6 px-6"> {/* Added px-6 for consistency */}
-          {navLinks.map((link) => {
-            if (link.adminOnly && !isAdmin) return null;
-            return (
+        <div className="grid gap-2 py-6 px-6">
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`flex w-full items-center py-2 text-sm font-medium ${
+                router.pathname === link.href ? "text-primary" : ""
+              }`}
+              onClick={() => setOpen(false)}
+            >
+              {t(link.labelKey)}
+            </Link>
+          ))}
+          {user ? (
+            <>
               <Link
-                key={link.href}
-                href={link.href}
+                href="/dashboard"
                 className="flex w-full items-center py-2 text-sm font-medium"
                 onClick={() => setOpen(false)}
               >
-                {t(link.labelKey)}
+                {t("nav.dashboard")}
               </Link>
-            )
-          })}
-          {user ? (
-            <Link
-              href="/dashboard"
-              className="flex w-full items-center py-2 text-sm font-medium"
-              onClick={() => setOpen(false)}
-            >
-              {t("nav.dashboard")}
-            </Link>
+              <Button 
+                variant="ghost" 
+                className="justify-start p-2 h-auto font-medium"
+                onClick={handleSignOut}
+              >
+                {t("nav.signOut")}
+              </Button>
+            </>
           ) : (
             <Link
               href="/dashboard/login"
