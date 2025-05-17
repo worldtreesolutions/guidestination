@@ -1,294 +1,235 @@
+
+"use client"
+
 import { useEffect, useState } from "react"
-import { useRouter } from "next/router"
-import Head from "next/head"
 import Link from "next/link"
+import { useRouter } from "next/router"
 import { useAuth } from "@/contexts/AuthContext"
-import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout" // Add DashboardLayout import
-import { activityService, Activity } from "@/services/activityService"
+import { supabase } from "@/integrations/supabase/client"
+import type { Database } from "@/integrations/supabase/types"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
+import { PlusCircle, Edit3, Trash2, Eye } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { Edit, Eye, Plus, Trash2 } from "lucide-react"
-import Image from "next/image" // Import next/image
+import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout"
+
+type Activity = Database["public"]["Tables"]["activities"]["Row"] & {
+  category: Database["public"]["Tables"]["categories"]["Row"] | null
+}
 
 export default function ActivityOwnerActivitiesPage() {
-  const { user, isAuthenticated } = useAuth();
-  const router = useRouter();
-  const { toast } = useToast();
-  const [activities, setActivities] = useState<Activity[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [activityToDelete, setActivityToDelete] = useState<string | null>(null);
+  const { user, loading } = useAuth()
+  const router = useRouter()
+  const { toast } = useToast()
+  const [activities, setActivities] = useState<Activity[]>([])
+  const [dataLoading, setDataLoading] = useState(true)
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.push("/activity-owner/login");
-      return;
+    if (!loading && !user) {
+      router.push("/activity-owner/login")
     }
+  }, [user, loading, router])
 
+  useEffect(() => {
     const fetchActivities = async () => {
-      if (!user) return;
-      
+      if (!user) return
+
+      setDataLoading(true)
       try {
-        const data = await activityService.getActivitiesByProvider(user.id);
-        setActivities(data);
-      } catch (error) {
-        console.error("Error fetching activities:", error);
+        const {  ownerData, error: ownerError } = await supabase
+          .from("activity_owners")
+          .select("id")
+          .eq("user_id", user.id)
+          .single()
+
+        if (ownerError || !ownerData) {
+          console.error("Error fetching activity owner:", ownerError)
+          toast({
+            title: "Error",
+            description: "Could not fetch your provider details. Please try again.",
+            variant: "destructive",
+          })
+          setDataLoading(false)
+          return
+        }
+
+        const ownerId = ownerData.id
+
+        const { data, error } = await supabase
+          .from("activities")
+          .select(`
+            *,
+            category:categories(*)
+          `)
+          .eq("owner_id", ownerId)
+          .order("created_at", { ascending: false })
+
+        if (error) {
+          console.error("Error fetching activities:", error)
+          toast({
+            title: "Error",
+            description: "Could not fetch activities. Please try again.",
+            variant: "destructive",
+          })
+        } else if (data) {
+          setActivities(data as Activity[])
+        }
+      } catch (e) {
+        console.error("Unexpected error fetching activities:", e)
         toast({
           title: "Error",
-          description: "Failed to load activities. Please try again.",
-          variant: "destructive"
-        });
+          description: "An unexpected error occurred.",
+          variant: "destructive",
+        })
       } finally {
-        setLoading(false);
+        setDataLoading(false)
       }
-    };
+    }
 
-    fetchActivities();
-  }, [user, isAuthenticated, router, toast]);
+    if (user) {
+      fetchActivities()
+    }
+  }, [user, toast])
 
-  const handleDeleteActivity = async () => {
-    if (!activityToDelete) return;
-    
+  const handleDeleteActivity = async (activityId: string) => {
+    if (!confirm("Are you sure you want to delete this activity? This action cannot be undone.")) {
+      return
+    }
+
     try {
-      await activityService.deleteActivity(activityToDelete);
-      setActivities(activities.filter(activity => activity.id !== activityToDelete));
+      const { error } = await supabase
+        .from("activities")
+        .delete()
+        .eq("id", activityId)
+
+      if (error) {
+        throw error
+      }
+
+      setActivities(activities.filter((act) => act.id !== activityId))
       toast({
-        title: "Activity deleted",
-        description: "The activity has been successfully deleted.",
-      });
-    } catch (error) {
+        title: "Success",
+        description: "Activity deleted successfully.",
+      })
+    } catch (error: any) {
+      console.error("Error deleting activity:", error)
       toast({
         title: "Error",
-        description: "Failed to delete activity. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setActivityToDelete(null);
+        description: error.message || "Failed to delete activity. Please try again.",
+        variant: "destructive",
+      })
     }
-  };
+  }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "published":
-        return "bg-green-100 text-green-800 hover:bg-green-100/80";
-      case "draft":
-        return "bg-yellow-100 text-yellow-800 hover:bg-yellow-100/80";
-      case "archived":
-        return "bg-gray-100 text-gray-800 hover:bg-gray-100/80";
-      default:
-        return "";
-    }
-  };
-
-  const publishedActivities = activities.filter(a => a.status === "published");
-  const draftActivities = activities.filter(a => a.status === "draft");
-  const archivedActivities = activities.filter(a => a.status === "archived");
-
-  if (loading) {
+  if (loading || dataLoading) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center h-full">
-          <p>Loading activities...</p>
+        <div className="flex items-center justify-center h-[calc(100vh-150px)]">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
         </div>
       </DashboardLayout>
-    );
+    )
+  }
+
+  if (!user) {
+    return null; // Or a message indicating redirection
   }
 
   return (
-    <>
-      <Head>
-        <title>Manage Activities - Activity Owner</title>
-        <meta name="description" content="Manage your listed activities" />
-      </Head>
-
-      <DashboardLayout>
-        <Card>
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <div>
-                <CardTitle>Manage Activities</CardTitle>
-                <CardDescription>
-                  View, edit, and manage all your listed activities.
-                </CardDescription>
-              </div>
-              <Button asChild>
-                <Link href="/activity-owner/list-activity">
-                  <Plus className="h-4 w-4 mr-2" />
-                  List New Activity
-                </Link>
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {activities.length === 0 ? (
-              <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
-                <h3 className="mb-2 text-lg font-semibold">No activities yet</h3>
-                <p className="text-sm text-muted-foreground">
-                  You haven't listed any activities yet. Get started by listing one!
-                </p>
-                <Button className="mt-4" asChild>
-                  <Link href="/activity-owner/list-activity">
-                    List New Activity
-                  </Link>
-                </Button>
-              </div>
-            ) : (
-              <div className="rounded-md border">
-                <Tabs defaultValue="all" className="w-full">
-                  <TabsList>
-                    <TabsTrigger value="all">All ({activities.length})</TabsTrigger>
-                    <TabsTrigger value="published">Published ({publishedActivities.length})</TabsTrigger>
-                    <TabsTrigger value="draft">Drafts ({draftActivities.length})</TabsTrigger>
-                    <TabsTrigger value="archived">Archived ({archivedActivities.length})</TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="all" className="mt-6">
-                    <ActivityGrid 
-                      activities={activities} 
-                      onDelete={setActivityToDelete} 
-                      getStatusColor={getStatusColor}
-                    />
-                  </TabsContent>
-                  
-                  <TabsContent value="published" className="mt-6">
-                    <ActivityGrid 
-                      activities={publishedActivities} 
-                      onDelete={setActivityToDelete} 
-                      getStatusColor={getStatusColor}
-                    />
-                  </TabsContent>
-                  
-                  <TabsContent value="draft" className="mt-6">
-                    <ActivityGrid 
-                      activities={draftActivities} 
-                      onDelete={setActivityToDelete} 
-                      getStatusColor={getStatusColor}
-                    />
-                  </TabsContent>
-                  
-                  <TabsContent value="archived" className="mt-6">
-                    <ActivityGrid 
-                      activities={archivedActivities} 
-                      onDelete={setActivityToDelete} 
-                      getStatusColor={getStatusColor}
-                    />
-                  </TabsContent>
-                </Tabs>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <AlertDialog open={!!activityToDelete} onOpenChange={(open) => !open && setActivityToDelete(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete the activity and remove it from our servers.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDeleteActivity}>Delete</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </DashboardLayout>
-    </>
-  );
-}
-
-interface ActivityGridProps {
-  activities: Activity[];
-  onDelete: (id: string) => void;
-  getStatusColor: (status: string) => string;
-}
-
-function ActivityGrid({ activities, onDelete, getStatusColor }: ActivityGridProps) {
-  if (activities.length === 0) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-muted-foreground">No activities found</p>
+    <DashboardLayout>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-3xl font-bold">Your Activities</h1>
+          <p className="text-muted-foreground">Manage your listed activities and create new ones.</p>
+        </div>
+        <Link href="/dashboard/activities/new" passHref>
+          <Button>
+            <PlusCircle className="mr-2 h-4 w-4" /> Add New Activity
+          </Button>
+        </Link>
       </div>
-    );
-  }
 
-  return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {activities.map((activity) => (
-        <Card key={activity.id} className="overflow-hidden">
-          <div className="aspect-video relative bg-muted">
-            {activity.images && activity.images.length > 0 ? (
-              <Image 
-                src={activity.images[0]} 
-                alt={activity.title}
-                layout="fill"
-                objectFit="cover"
-                className="w-full h-full"
-              />
-            ) : (
-              <div className="flex items-center justify-center h-full text-muted-foreground">
-                No image
-              </div>
-            )}
-            <Badge 
-              className={`absolute top-2 right-2 ${getStatusColor(activity.status)}`}
-              variant="outline"
-            >
-              {activity.status.charAt(0).toUpperCase() + activity.status.slice(1)}
-            </Badge>
-          </div>
-          
-          <CardHeader>
-            <CardTitle className="line-clamp-1">{activity.title}</CardTitle>
-            <CardDescription className="flex items-center justify-between">
-              <span className="capitalize">{activity.category.replace('_', ' ')}</span>
-              <span>฿{activity.basePrice.toLocaleString()}</span>
-            </CardDescription>
-          </CardHeader>
-          
-          <CardContent>
-            <div className="flex justify-between items-center">
-              <div>
-                {activity.rating ? (
-                  <div className="flex items-center">
-                    <span className="mr-1">{activity.rating}</span>
-                    <span className="text-yellow-500">★</span>
-                    <span className="text-xs text-muted-foreground ml-1">
-                      ({activity.reviewCount})
-                    </span>
-                  </div>
-                ) : (
-                  <span className="text-xs text-muted-foreground">No ratings</span>
-                )}
-              </div>
-              
-              <div className="flex space-x-2">
-                <Link href={`/activities/${activity.id}`}>
-                  <Button variant="outline" size="icon">
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                </Link>
-                <Link href={`/activity-owner/edit-activity/${activity.id}`}>
-                  <Button variant="outline" size="icon">
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                </Link>
-                <Button 
-                  variant="outline" 
-                  size="icon"
-                  onClick={() => onDelete(activity.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Activity List</CardTitle>
+          <CardDescription>
+            A list of all activities you have created.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {activities.length === 0 ? (
+            <div className="text-center py-10">
+              <p className="text-lg text-muted-foreground mb-2">No activities found.</p>
+              <p className="text-sm text-muted-foreground">Get started by adding your first activity!</p>
             </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  );
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Price (THB)</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {activities.map((activity) => (
+                  <TableRow key={activity.id}>
+                    <TableCell className="font-medium">{activity.name}</TableCell>
+                    <TableCell>{activity.category?.name || "N/A"}</TableCell>
+                    <TableCell>{activity.price ? activity.price.toLocaleString() : "N/A"}</TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant={
+                          activity.status === "published" ? "default" :
+                          activity.status === "draft" ? "secondary" :
+                          activity.status === "archived" ? "outline" : "destructive"
+                        }
+                        className={
+                          activity.status === "published" ? "bg-green-500 hover:bg-green-600 text-white" :
+                          activity.status === "pending_approval" ? "bg-yellow-500 hover:bg-yellow-600 text-white" : ""
+                        }
+                      >
+                        {activity.status ? activity.status.replace("_", " ").toUpperCase() : "UNKNOWN"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Link href={`/dashboard/activities/${activity.id}`} passHref>
+                          <Button variant="outline" size="icon" aria-label="Edit Activity">
+                            <Edit3 className="h-4 w-4" />
+                          </Button>
+                        </Link>
+                        <Button 
+                          variant="outline" 
+                          size="icon" 
+                          onClick={() => handleDeleteActivity(activity.id)}
+                          aria-label="Delete Activity"
+                        >
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                        </Button>
+                         <Link href={`/activities/${activity.slug || activity.id}`} passHref target="_blank">
+                          <Button variant="outline" size="icon" aria-label="View Activity">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </Link>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+        {activities.length > 0 && (
+          <CardFooter className="text-xs text-muted-foreground">
+            Showing {activities.length} activit{activities.length === 1 ? "y" : "ies"}.
+          </CardFooter>
+        )}
+      </Card>
+    </DashboardLayout>
+  )
 }
