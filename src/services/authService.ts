@@ -26,11 +26,16 @@ const authService = {
     });
   },
 
-  async signInWithEmail(email: string, password: string): Promise<AuthResponse> {
+  async login(email: string, password: string): Promise<AuthResponse> {
     return supabase.auth.signInWithPassword({
       email,
       password,
     });
+  },
+
+  // Alias for login to maintain backwards compatibility
+  signInWithEmail: (email: string, password: string): Promise<AuthResponse> => {
+    return authService.login(email, password);
   },
 
   async signInWithProvider(provider: Provider): Promise<AuthResponse> {
@@ -41,7 +46,6 @@ const authService = {
       },
     });
 
-    // Return a properly structured AuthResponse
     return {
       data: {
         user: null,

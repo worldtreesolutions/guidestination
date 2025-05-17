@@ -45,21 +45,21 @@ export function Navbar() {
               <NavigationMenuItem className="flex-1">
                 <Link href="/activity-owner" legacyBehavior passHref>
                   <NavigationMenuLink className={navLinkClassName}>
-                    List Your Activities
+                    <span className="text-sm lg:text-base whitespace-nowrap">List Your Activities</span>
                   </NavigationMenuLink>
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem className="flex-1">
                 <Link href="/partner" legacyBehavior passHref>
                   <NavigationMenuLink className={navLinkClassName}>
-                    Become a Partner
+                    <span className="text-sm lg:text-base whitespace-nowrap">Become a Partner</span>
                   </NavigationMenuLink>
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem className="flex-1">
                 <Link href="/dashboard/login" legacyBehavior passHref>
                   <NavigationMenuLink className={navLinkClassName}>
-                    Provider Dashboard
+                    <span className="text-sm lg:text-base whitespace-nowrap">Provider Dashboard</span>
                   </NavigationMenuLink>
                 </Link>
               </NavigationMenuItem>
