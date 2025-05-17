@@ -24,12 +24,9 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const fetchSession = async () => {
       try {
-        const { data, error } = await supabase.auth.getSession();
-        if (error) {
-          console.error("Error getting session:", error.message);
-        }
-        setSession(data.session);
-        setUser(data.session?.user ?? null);
+        const { data: { session } } = await supabase.auth.getSession();
+        setSession(session);
+        setUser(session?.user ?? null);
       } catch (e: any) {
         console.error("Exception in fetchSession:", e.message);
       } finally {
@@ -39,16 +36,14 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
 
     fetchSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, newSession) => {
-        setSession(newSession);
-        setUser(newSession?.user ?? null);
-        setLoading(false);
-      }
-    );
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      setSession(newSession);
+      setUser(newSession?.user ?? null);
+      setLoading(false);
+    });
 
     return () => {
-      subscription.unsubscribe();
+      authListener?.subscription.unsubscribe();
     };
   }, []);
 
