@@ -6,13 +6,12 @@ import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet"
 import { useAuth } from "@/contexts/AuthContext"
 import { useLanguage } from "@/contexts/LanguageContext"
-import { LanguageSelector } from "./LanguageSelector"
-import Image from "next/image"
+// LanguageSelector is not directly used here but part of the overall Navbar context
 import { useRouter } from "next/router"
 
 export default function MobileMenu() {
   const [open, setOpen] = useState(false)
-  const { user, signOut, loading, isAdmin } = useAuth()
+  const { user, signOut, loading } = useAuth() // Removed isAdmin
   const { t } = useLanguage()
   const router = useRouter()
 
@@ -29,11 +28,6 @@ export default function MobileMenu() {
     { href: "/activity-owner", labelKey: "nav.partnerArea" }
   ]
 
-  // Add admin link if user is admin
-  if (isAdmin) {
-    navLinks.push({ href: "/admin/dashboard", labelKey: "nav.adminPortal" })
-  }
-
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
@@ -44,9 +38,8 @@ export default function MobileMenu() {
       </SheetTrigger>
       <SheetContent side="right" className="w-[300px] sm:w-[400px]">
         <div className="flex justify-between items-center px-6 py-4 border-b">
-          <Link href="/" className="flex items-center space-x-2" onClick={() => setOpen(false)}>
-            <Image src="/wts-logo-maq82ya8.png" alt="Logo" width={36} height={36} />
-            <span className="font-bold">Guidestination</span>
+          <Link href="/" className="flex items-center" onClick={() => setOpen(false)}>
+            <span className="text-lg font-bold">{t("nav.brand")}</span>
           </Link>
           <SheetClose asChild>
             <Button variant="ghost" size="icon" onClick={() => setOpen(false)}>
