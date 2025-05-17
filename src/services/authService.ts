@@ -1,160 +1,156 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { Session, User } from "@supabase/supabase-js"; // Removed UserAttributes as it's not directly used for parameters here
+import type { Database } from "@/integrations/supabase/types";
+import {
+  AuthResponse,
+  AuthError,
+  User,
+  Session,
+  Provider,
+} from "@supabase/supabase-js";
 
-export interface CustomUserMetadata {
-  name?: string;
-  verified?: boolean;
-  user_type?: string;
-  phone?: string;
-  [key: string]: any;
-}
+export type UserProfile = Database["public"]["Tables"]["profiles"]["Row"];
 
-export interface UserVerificationStatus {
-  exists: boolean;
-  verified: boolean;
-}
+const authService = {
+  async signUp(
+    email: string,
+    password: string,
+    additionalData?: Record<string, any>
+  ): Promise<AuthResponse> {
+    const response = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+         additionalData,
+      },
+    });
+    return response;
+  },
 
-export interface UserRegistration {
-  name: string;
-  email: string;
-  phone?: string;
-  user_type?: string;
-  password?: string;
-}
-
-export const authService = {
-  async signInWithEmail(email: string, password: string): Promise<{ user: User | null; session: Session | null; roleId: number | null; providerId: string | null }> {
-    const {  signInData, error: signInError } = await supabase.auth.signInWithPassword({
+  async signInWithEmail(email: string, password: string): Promise<AuthResponse> {
+    // Directly return the Supabase auth response
+    return supabase.auth.signInWithPassword({
       email,
       password,
     });
-
-    if (signInError) {
-      console.error("Supabase sign-in error:", signInError.message);
-      if (signInError.message.includes("Invalid login credentials")) {
-          throw new Error("Invalid email or password.");
-      } else if (signInError.message.includes("Email not confirmed")) {
-           throw new Error("Please verify your email address before logging in.");
-      }
-      throw new Error("Sign in failed. Please try again.");
-    }
-
-    if (!signInData || !signInData.session || !signInData.user) {
-      throw new Error("Sign in failed: No session or user data returned.");
-    }
-    const { user, session } = signInData;
-
-    let roleId: number | null = null;
-    let providerId: string | null = null;
-
-    try {
-        const {  userProfile, error: profileError } = await supabase
-            .from("users") 
-            .select("role_id") 
-            .eq("id", user.id) 
-            .single();
-
-        if (profileError && profileError.code !== "PGRST116") { 
-            console.error("Error fetching user profile after login:", profileError.message);
-        } else if (userProfile) {
-            roleId = userProfile.role_id;
-        }
-        providerId = user.app_metadata?.provider || user.identities?.[0]?.provider || null;
-    } catch (e: any) {
-         console.error("Error fetching user details post-login:", e.message);
-    }
-    return { user, session, roleId, providerId };
   },
 
-  async getSession(): Promise<{ session: Session | null }> {
-    const { data, error } = await supabase.auth.getSession();
-    if (error) {
-      console.error("Error getting session:", error.message);
-      throw error;
-    }
-    return { session: data.session };
-  },
-
-  async checkUserVerification(email: string): Promise<UserVerificationStatus> {
-     console.warn("checkUserVerification client-side might be insecure for checking 'verified' field from 'users' table. This is a placeholder.");
-     const { data, error: getUserError } = await supabase.auth.getUser();
-     if (getUserError) {
-        console.error("Error getting user for verification check:", getUserError.message);
-        return { exists: false, verified: false };
-     }
-     const user = data?.user;
-     if (user && user.email === email) {
-        return { exists: true, verified: false }; 
-     }
-     return { exists: false, verified: false };
-  },
-
-  async resetPassword(email: string): Promise<void> {
-    const redirectUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/dashboard/reset-password`;
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: redirectUrl,
+  async signInWithProvider(provider: Provider): Promise<AuthResponse> {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${window.location.origin}/dashboard`,
+      },
     });
-    if (error) {
-        console.error("Error sending password reset email:", error);
-        throw new Error(error.message || "Failed to send password reset email.");
-    }
+    // signInWithOAuth doesn't directly return a session/user in the same way as password auth
+    // It navigates the user. The session is established upon redirect.
+    // So, we construct a compatible AuthResponse shape.
+    // If there's an error, it will be in the 'error' object.
+    // If successful, 'data' will contain the provider link, but not user/session immediately.
+    return {  { user: null, session: null, ...data }, error } as AuthResponse;
   },
 
-  async updatePasswordWithResetToken(newPassword: string): Promise<void> {
-    const { error } = await supabase.auth.updateUser({ password: newPassword });
-    if (error) {
-        console.error("Error updating password:", error);
-        throw new Error(error.message || "Failed to update password.");
-    }
+  async signOut(): Promise<{ error: AuthError | null }> {
+    return supabase.auth.signOut();
   },
 
-  async updateUserMetadata(meta: CustomUserMetadata): Promise<User> {
-    const {  updatedUserResponse, error } = await supabase.auth.updateUser({  meta }); 
-    if (error) {
-        console.error("Error updating user metadata", error);
-        throw new Error(error.message || "Failed to update user profile.");
-    }
-    if (!updatedUserResponse || !updatedUserResponse.user) {
-        throw new Error("Failed to update user profile: No user data returned after update.");
-    }
-    return updatedUserResponse.user;
+  async getUser(): Promise<User | null> {
+    const {
+       { user },
+    } = await supabase.auth.getUser();
+    return user;
   },
 
-  async getUserDetails(): Promise<{ user: User | null; roleId: number | null; providerId: string | null }> {
-     const {  authUserData, error: authUserError } = await supabase.auth.getUser();
-     
-     if (authUserError || !authUserData || !authUserData.user) {
-         if(authUserError) console.error("Error getting auth user:", authUserError.message);
-         return { user: null, roleId: null, providerId: null };
-     }
-     const authUser = authUserData.user;
-
-     let roleId: number | null = null;
-     try {
-         const {  userProfile, error: profileError } = await supabase
-             .from("users") 
-             .select("role_id") 
-             .eq("id", authUser.id) 
-             .single();
-
-         if (profileError && profileError.code !== "PGRST116") { 
-             console.error("Error fetching user details from public table:", profileError.message);
-         } else if (userProfile) {
-             roleId = userProfile.role_id;
-         }
-     } catch (e: any) {
-         console.error("Exception fetching user details from public table:", e.message);
-     }
-     const providerId = authUser.app_metadata?.provider || authUser.identities?.[0]?.provider || null;
-     return { user: authUser, roleId, providerId };
+  async getSession(): Promise<Session | null> {
+    const {
+       { session },
+    } = await supabase.auth.getSession();
+    return session;
   },
 
-  async signOut(): Promise<void> {
-    const { error } = await supabase.auth.signOut();
+  async resetPasswordForEmail(email: string): Promise<{ error: AuthError | null }> {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/dashboard/reset-password`,
+    });
+    return { error };
+  },
+
+  async updateUserPassword(password: string): Promise<AuthResponse> {
+    return supabase.auth.updateUser({ password });
+  },
+
+  async updateUserEmail(email: string): Promise<AuthResponse> {
+    return supabase.auth.updateUser({ email });
+  },
+
+  async updateUserMetadata(meta Record<string, any>): Promise<AuthResponse> {
+    return supabase.auth.updateUser({  metadata });
+  },
+
+  async getUserProfile(userId: string): Promise<UserProfile | null> {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", userId)
+      .single();
+
     if (error) {
-      console.error("Error signing out:", error);
+      console.error("Error fetching user profile:", error);
+      return null;
     }
+    return data;
+  },
+
+  async updateUserProfile(
+    userId: string,
+    updates: Partial<UserProfile>
+  ): Promise<UserProfile | null> {
+    const { data, error } = await supabase
+      .from("profiles")
+      .update(updates)
+      .eq("id", userId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error updating user profile:", error);
+      return null;
+    }
+    return data;
+  },
+
+  onAuthStateChange(
+    callback: (event: string, session: Session | null) => void
+  ) {
+    return supabase.auth.onAuthStateChange(callback);
+  },
+
+  async deleteUserAccount(userId: string): Promise<{ error: AuthError | null }> {
+    // This typically needs to be an admin operation.
+    // If you have a Supabase Edge Function for this:
+    // const { error } = await supabase.functions.invoke('delete-user', {
+    //   body: { userId },
+    // })
+    // return { error };
+
+    // Placeholder if direct client-side deletion is not set up or allowed
+    console.warn(
+      "Direct client-side user deletion is not recommended or might be restricted by RLS."
+    );
+    // For now, let's assume this is handled by an admin or a secure function.
+    // If you intend for users to delete their own accounts from the client,
+    // ensure RLS policies on auth.users allow this, which is generally not default.
+    // A common pattern is to call a server-side function.
+    // This is a simplified example and might not work without proper backend setup.
+    // const { error } = await supabase.rpc('delete_user_account'); // Example of calling a pg function
+    // return { error };
+    return {
+      error: {
+        name: "NotImplementedError",
+        message: "User deletion from client-side is not fully implemented.",
+        status: 501,
+      } as AuthError,
+    };
   },
 };
 
