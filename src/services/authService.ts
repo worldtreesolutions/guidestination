@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { Session, User, UserAttributes } from "@supabase/supabase-js";
+import { Session, User } from "@supabase/supabase-js"; // Removed UserAttributes as it's not directly used for parameters here
 
 export interface CustomUserMetadata {
   name?: string;
@@ -61,8 +61,8 @@ export const authService = {
             roleId = userProfile.role_id;
         }
         providerId = user.app_metadata?.provider || user.identities?.[0]?.provider || null;
-    } catch (e) {
-         console.error("Error fetching user details post-login:", e);
+    } catch (e: any) {
+         console.error("Error fetching user details post-login:", e.message);
     }
     return { user, session, roleId, providerId };
   },
@@ -143,8 +143,8 @@ export const authService = {
          } else if (userProfile) {
              roleId = userProfile.role_id;
          }
-     } catch (e) {
-         console.error("Exception fetching user details from public table:", e);
+     } catch (e: any) {
+         console.error("Exception fetching user details from public table:", e.message);
      }
      const providerId = authUser.app_metadata?.provider || authUser.identities?.[0]?.provider || null;
      return { user: authUser, roleId, providerId };

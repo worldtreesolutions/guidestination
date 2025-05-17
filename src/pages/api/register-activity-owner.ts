@@ -53,7 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             email: email,
             password: tempPassword,
             email_confirm: true, 
-            user_meta: { 
+            user_meta { 
                 name: owner_name,
                 phone: phone,
                 user_type: "activity_provider"
@@ -86,7 +86,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     const { error: updateUserMetaError } = await supabaseAdmin.auth.admin.updateUserById(
                         authUserId,
                         {
-                            user_meta: { 
+                            user_meta { 
                                 name: owner_name,
                                 phone: phone,
                                 user_type: "activity_provider"
@@ -133,7 +133,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (publicUserCheckError) {
             console.error("Supabase error checking public.users:", publicUserCheckError);
             if (isNewUser && authUserId) { 
-                try { await supabaseAdmin.auth.admin.deleteUser(authUserId); } catch (delErr) { console.error("Failed to cleanup new auth user after public.users check error:", delErr); }
+                try { await supabaseAdmin.auth.admin.deleteUser(authUserId); } catch (delErr: any) { console.error("Failed to cleanup new auth user after public.users check error:", delErr.message); }
             }
             return res.status(500).json({
                 message: "Database error checking user profile. Supabase message: " + publicUserCheckError.message,
@@ -159,7 +159,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             if (publicUserInsertError) {
                 console.error("Error creating user in public.users table:", publicUserInsertError);
                 if (isNewUser && authUserId) { 
-                     try { await supabaseAdmin.auth.admin.deleteUser(authUserId); } catch (delErr) { console.error("Failed to cleanup new auth user after public.users insert error:", delErr); }
+                     try { await supabaseAdmin.auth.admin.deleteUser(authUserId); } catch (delErr: any) { console.error("Failed to cleanup new auth user after public.users insert error:", delErr.message); }
                 }
                 return res.status(500).json({
                     message: "Failed to create user profile. Supabase message: " + publicUserInsertError.message,
@@ -199,7 +199,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (insertError) {
             console.error("Supabase insert error for activity_owners:", insertError);
             if (isNewUser && authUserId) {
-                try { await supabaseAdmin.auth.admin.deleteUser(authUserId); console.log("Rolled back new auth user creation due to activity_owners insert error."); } catch (delErr) { console.error("Failed to cleanup new auth user after activity_owners insert error:", delErr); }
+                try { await supabaseAdmin.auth.admin.deleteUser(authUserId); console.log("Rolled back new auth user creation due to activity_owners insert error."); } catch (delErr: any) { console.error("Failed to cleanup new auth user after activity_owners insert error:", delErr.message); }
             }
             return res.status(500).json({
                 message: "Failed to register activity owner details. Supabase message: " + insertError.message,
@@ -211,7 +211,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (!newOwnerRecord) {
             console.error("Failed to register activity owner: No data returned after insert into activity_owners.");
              if (isNewUser && authUserId) {
-                try { await supabaseAdmin.auth.admin.deleteUser(authUserId); console.log("Rolled back new auth user creation as activity_owners insert returned no data."); } catch (delErr) { console.error("Failed to cleanup new auth user after activity_owners insert returned no data.", delErr); }
+                try { await supabaseAdmin.auth.admin.deleteUser(authUserId); console.log("Rolled back new auth user creation as activity_owners insert returned no data."); } catch (delErr: any) { console.error("Failed to cleanup new auth user after activity_owners insert returned no data.", delErr.message); }
             }
             return res.status(500).json({ message: "Failed to register activity owner: No data returned after insert.", error_details: "Activity owner data missing post-insert."});
         }

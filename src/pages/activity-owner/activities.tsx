@@ -48,7 +48,7 @@ export default function ActivityOwnerActivitiesPage() {
           console.error("Error fetching activity owner:", ownerError)
           toast({
             title: "Error",
-            description: "Could not fetch your provider details. Please try again.",
+            description: ownerError?.message || "Could not fetch your provider details. Please try again.",
             variant: "destructive",
           })
           setDataLoading(false)
@@ -70,17 +70,17 @@ export default function ActivityOwnerActivitiesPage() {
           console.error("Error fetching activities:", error)
           toast({
             title: "Error",
-            description: "Could not fetch activities. Please try again.",
+            description: error.message || "Could not fetch activities. Please try again.",
             variant: "destructive",
           })
         } else if (data) {
           setActivities(data as Activity[])
         }
-      } catch (e) {
+      } catch (e: any) {
         console.error("Unexpected error fetching activities:", e)
         toast({
           title: "Error",
-          description: "An unexpected error occurred.",
+          description: e.message || "An unexpected error occurred.",
           variant: "destructive",
         })
       } finally {
