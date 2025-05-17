@@ -1,7 +1,7 @@
 
     import { createContext, useContext, useEffect, useState, ReactNode } from "react";
     import { supabase } from "@/integrations/supabase/client";
-    import { Session, User, AuthError, AuthResponse, Subscription } from "@supabase/supabase-js"; // Changed AuthSubscription to Subscription
+    import { Session, User, AuthError, AuthResponse, Subscription } from "@supabase/supabase-js";
     import authService from "@/services/authService";
 
     interface AuthContextType {
@@ -53,7 +53,8 @@
       }, []);
 
       const login = async (email: string, password: string): Promise<AuthResponse> => {
-        const response = await authService.signIn(email, password);
+        // Corrected to use signInWithEmail as per authService definition
+        const response = await authService.signInWithEmail(email, password); 
         return response; 
       };
       
