@@ -16,7 +16,7 @@ const NavigationMenu = React.forwardRef<
   <NavigationMenuPrimitive.Root
     ref={ref}
     className={cn(
-      "relative z-10 flex flex-1 items-center justify-center", // Re-added flex-1
+      "relative z-10 flex flex-1 items-center justify-center", 
       className
     )}
     {...props}
@@ -34,7 +34,7 @@ const NavigationMenuList = React.forwardRef<
   <NavigationMenuPrimitive.List
     ref={ref}
     className={cn(
-      "group flex list-none items-center space-x-1 flex-nowrap", // Ensures items stay in a single row, sized by content
+      "group flex w-full list-none items-center justify-center space-x-1 flex-nowrap", // Added w-full and justify-center
       className
     )}
     {...props}
