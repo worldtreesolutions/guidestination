@@ -70,23 +70,23 @@ export default async function handler(
         // 3. Create activity owner record
         const { data: ownerData, error: createOwnerError } = await supabaseAdmin
             .from("activity_owners")
-            .insert([
-                {
-                    user_id: authData.user.id,
-                    email,
-                    first_name: firstName,
-                    last_name: lastName,
-                    phone_number: phoneNumber,
-                    business_name: businessName,
-                    business_address: businessAddress,
-                    business_type: businessType,
-                    tax_id: taxId,
-                    bank_account: bankAccount,
-                    bank_name: bankName,
-                    bank_branch: bankBranch,
-                    status: "pending"
-                }
-            ])
+            .insert({
+                user_id: authData.user.id,
+                owner_name: `${firstName} ${lastName}`,
+                email,
+                phone: phoneNumber,
+                business_name: businessName,
+                business_type: businessType,
+                tax_id: taxId,
+                address: businessAddress,
+                description: "",
+                tourism_license_number: "",
+                bank_account_name: bankName,
+                bank_account_number: bankAccount,
+                bank_name: bankName,
+                bank_branch: bankBranch,
+                status: "pending"
+            })
             .select()
             .single()
 
