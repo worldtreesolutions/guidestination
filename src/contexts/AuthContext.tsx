@@ -1,7 +1,7 @@
 
     import { createContext, useContext, useEffect, useState, ReactNode } from "react";
     import { supabase } from "@/integrations/supabase/client";
-    import { Session, User, AuthError } from "@supabase/supabase-js";
+    import { Session, User, AuthError, AuthResponse } from "@supabase/supabase-js";
     import authService from "@/services/authService";
 
     interface AuthContextType {
@@ -9,11 +9,8 @@
       session: Session | null;
       loading: boolean;
       isAuthenticated: boolean;
-      // Using Supabase specific types for signIn and signUp if they come directly from supabase.auth
-      // If authService wraps them and changes signature, adjust accordingly.
-      // For now, assuming authService methods match common patterns.
-      login: (email: string, password: string) => Promise<{  { user: User | null; session: Session | null; }; error: AuthError | null; }>;
-      register: (email: string, password: string, additionalData?: Record<string, any>) => Promise<{  { user: User | null; session: Session | null; }; error: AuthError | null; }>;
+      login: (email: string, password: string) => Promise<AuthResponse>;
+      register: (email: string, password: string, additionalData?: Record<string, any>) => Promise<AuthResponse>;
       signOut: () => Promise<{ error: AuthError | null }>;
     }
 
@@ -27,12 +24,12 @@
       useEffect(() => {
         const fetchSession = async () => {
           try {
-            const {  { session: currentSession }, error } = await supabase.auth.getSession();
+            const { data, error } = await supabase.auth.getSession();
             if (error) {
               console.error("Error getting session:", error.message);
             }
-            setSession(currentSession);
-            setUser(currentSession?.user ?? null);
+            setSession(data.session);
+            setUser(data.session?.user ?? null);
           } catch (e: any) {
             console.error("Exception in fetchSession:", e.message);
           } finally {
@@ -42,37 +39,35 @@
 
         fetchSession();
 
-        const {  authListener } = supabase.auth.onAuthStateChange(
+        const {  { subscription } } = supabase.auth.onAuthStateChange(
           (_event, newSession) => {
             setSession(newSession);
             setUser(newSession?.user ?? null);
-            setLoading(false); // Ensure loading is set to false on auth state change
+            setLoading(false);
           }
         );
 
         return () => {
-          authListener?.unsubscribe();
+          subscription?.unsubscribe();
         };
       }, []);
 
-      // Ensure functions from authService are correctly typed and bound
-      // These might need adjustment based on the actual implementation in authService.ts
-      const login = async (email: string, password: string) => {
-        // This is a common pattern, adjust if authService.signIn is different
+      const login = async (email: string, password: string): Promise<AuthResponse> => {
         const response = await authService.signIn(email, password);
-        return response as {  { user: User | null; session: Session | null; }; error: AuthError | null; };
+        // Assuming authService.signIn directly returns AuthResponse or a compatible structure
+        return response; 
       };
       
-      const register = async (email: string, password: string, additionalData?: Record<string, any>) => {
+      const register = async (email: string, password: string, additionalData?: Record<string, any>): Promise<AuthResponse> => {
         const response = await authService.signUp(email, password, additionalData);
-        return response as {  { user: User | null; session: Session | null; }; error: AuthError | null; };
+        // Assuming authService.signUp directly returns AuthResponse or a compatible structure
+        return response;
       };
 
-      const signOut = async () => {
+      const signOut = async (): Promise<{ error: AuthError | null }> => {
         const response = await authService.signOut();
-        return response as { error: AuthError | null; };
+        return response;
       };
-
 
       const contextValue: AuthContextType = {
         user,
