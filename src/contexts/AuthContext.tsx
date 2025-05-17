@@ -1,133 +1,101 @@
 
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { Session, User, Subscription } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
-import authService from "@/services/authService";
+    import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+    import { supabase } from "@/integrations/supabase/client";
+    import { Session, User, AuthError } from "@supabase/supabase-js";
+    import authService from "@/services/authService";
 
-export interface AuthContextType {
-  user: User | null;
-  session: Session | null;
-  loading: boolean;
-  isAdmin: boolean;
-  signOut: () => Promise<void>;
-  signInWithEmail: (email: string, password: string) => Promise<{ user: User | null; session: Session | null; error: Error | null }>;
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
-};
-
-interface AuthProviderProps {
-  children: ReactNode;
-}
-
-export default function AuthProvider({ children }: AuthProviderProps) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
-
-  const checkAdminRole = async (currentUser: User | null) => {
-    if (currentUser) {
-      const userType = currentUser.user_metadata?.user_type;
-      setIsAdmin(userType === "admin" || userType === "super_admin");
-    } else {
-      setIsAdmin(false);
+    interface AuthContextType {
+      user: User | null;
+      session: Session | null;
+      loading: boolean;
+      isAuthenticated: boolean;
+      // Using Supabase specific types for signIn and signUp if they come directly from supabase.auth
+      // If authService wraps them and changes signature, adjust accordingly.
+      // For now, assuming authService methods match common patterns.
+      login: (email: string, password: string) => Promise<{  { user: User | null; session: Session | null; }; error: AuthError | null; }>;
+      register: (email: string, password: string, additionalData?: Record<string, any>) => Promise<{  { user: User | null; session: Session | null; }; error: AuthError | null; }>;
+      signOut: () => Promise<{ error: AuthError | null }>;
     }
-  };
 
-  useEffect(() => {
-    const getInitialSession = async () => {
-      try {
-        const { data, error } = await supabase.auth.getSession();
-        const initialSession = data?.session;
+    const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-        if (error) {
-          console.error("Error getting initial session:", error.message);
-        } else {
-          setSession(initialSession ?? null);
-          setUser(initialSession?.user ?? null);
-          await checkAdminRole(initialSession?.user ?? null);
-        }
-      } catch (error: any) {
-        console.error("Exception in getInitialSession:", error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
+    export default function AuthProvider({ children }: { children: ReactNode }) {
+      const [user, setUser] = useState<User | null>(null);
+      const [session, setSession] = useState<Session | null>(null);
+      const [loading, setLoading] = useState(true);
 
-    getInitialSession();
+      useEffect(() => {
+        const fetchSession = async () => {
+          try {
+            const {  { session: currentSession }, error } = await supabase.auth.getSession();
+            if (error) {
+              console.error("Error getting session:", error.message);
+            }
+            setSession(currentSession);
+            setUser(currentSession?.user ?? null);
+          } catch (e: any) {
+            console.error("Exception in fetchSession:", e.message);
+          } finally {
+            setLoading(false);
+          }
+        };
 
-    const { data } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
-      setSession(newSession);
-      setUser(newSession?.user ?? null);
-      await checkAdminRole(newSession?.user ?? null);
+        fetchSession();
+
+        const {  authListener } = supabase.auth.onAuthStateChange(
+          (_event, newSession) => {
+            setSession(newSession);
+            setUser(newSession?.user ?? null);
+            setLoading(false); // Ensure loading is set to false on auth state change
+          }
+        );
+
+        return () => {
+          authListener?.unsubscribe();
+        };
+      }, []);
+
+      // Ensure functions from authService are correctly typed and bound
+      // These might need adjustment based on the actual implementation in authService.ts
+      const login = async (email: string, password: string) => {
+        // This is a common pattern, adjust if authService.signIn is different
+        const response = await authService.signIn(email, password);
+        return response as {  { user: User | null; session: Session | null; }; error: AuthError | null; };
+      };
       
-      if (loading && (_event === "INITIAL_SESSION" || _event === "SIGNED_IN" || _event === "SIGNED_OUT")) {
-        setLoading(false);
-      }
-    });
-    
-    const subscription = data?.subscription;
+      const register = async (email: string, password: string, additionalData?: Record<string, any>) => {
+        const response = await authService.signUp(email, password, additionalData);
+        return response as {  { user: User | null; session: Session | null; }; error: AuthError | null; };
+      };
 
-    if (!subscription) {
-      console.error("Error setting up onAuthStateChange listener: No subscription returned or listener setup failed.");
+      const signOut = async () => {
+        const response = await authService.signOut();
+        return response as { error: AuthError | null; };
+      };
+
+
+      const contextValue: AuthContextType = {
+        user,
+        session,
+        loading,
+        isAuthenticated: !!user,
+        login,
+        register,
+        signOut,
+      };
+
+      return (
+        <AuthContext.Provider value={contextValue}>
+          {children}
+        </AuthContext.Provider>
+      );
     }
 
-    return () => {
-      if (subscription) {
-        subscription.unsubscribe();
+    export const useAuth = (): AuthContextType => {
+      const context = useContext(AuthContext);
+      if (context === undefined) {
+        throw new Error("useAuth must be used within an AuthProvider");
       }
+      return context;
     };
-  }, [loading]); 
-
-  const handleSignOut = async () => {
-    setLoading(true);
-    try {
-      await authService.signOut();
-      setUser(null);
-      setSession(null);
-      setIsAdmin(false);
-    } catch (error: any) {
-      console.error("Error during sign out:", error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSignInWithEmail = async (email: string, password: string) => {
-    setLoading(true);
-    try {
-      const { user: authedUser, session: authedSession } = await authService.signInWithEmail(email, password);
-      setUser(authedUser);
-      setSession(authedSession);
-      await checkAdminRole(authedUser);
-      return { user: authedUser, session: authedSession, error: null };
-    } catch (error: any) {
-      console.error("Error during sign in:", error.message);
-      setUser(null);
-      setSession(null);
-      setIsAdmin(false);
-      return { user: null, session: null, error };
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const value = {
-    user,
-    session,
-    loading,
-    isAdmin,
-    signOut: handleSignOut,
-    signInWithEmail: handleSignInWithEmail,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
+  
