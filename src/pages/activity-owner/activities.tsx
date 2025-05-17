@@ -45,7 +45,7 @@ export default function ActivityOwnerActivitiesPage() {
           .single()
 
         if (ownerError || !ownerData) {
-          console.error("Error fetching activity owner:", ownerError)
+          console.error("Error fetching activity owner:", ownerError?.message)
           toast({
             title: "Error",
             description: ownerError?.message || "Could not fetch your provider details. Please try again.",
