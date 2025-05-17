@@ -64,7 +64,8 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
     getInitialSession();
 
-    const {  authListenerData } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
+    // Correctly destructure the 'data' property and alias it to 'authListenerData'
+    const { data: authListenerData } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
       setSession(newSession);
       setUser(newSession?.user ?? null);
       await checkAdminRole(newSession?.user ?? null);
@@ -74,6 +75,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       }
     });
     
+    // Access the subscription from the correctly aliased 'authListenerData'
     const subscription = authListenerData?.subscription;
 
     if (!subscription) {
