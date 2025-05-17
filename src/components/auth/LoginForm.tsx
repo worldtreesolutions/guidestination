@@ -1,30 +1,28 @@
-"use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useAuth } from "@/contexts/AuthContext";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal } from "lucide-react";
-import Link from "next/link";
+import { useState } from "react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import * as z from "zod"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { useAuth } from "@/contexts/AuthContext"
+import { useRouter } from "next/router"
+import Link from "next/link"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 const loginSchema = z.object({
-  email: z.string().email({ message: "Invalid email address" }),
-  password: z.string().min(6, { message: "Password must be at least 6 characters" }),
-});
+  email: z.string().email({ message: "Invalid email address." }),
+  password: z.string().min(6, { message: "Password must be at least 6 characters." }),
+})
 
-type LoginFormValues = z.infer<typeof loginSchema>;
+type LoginFormValues = z.infer<typeof loginSchema>
 
 export function LoginForm() {
-  const { signInWithEmail } = useAuth(); // Changed from login to signInWithEmail
-  const router = useRouter();
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const { login } = useAuth(); // Changed from signInWithEmail to login
+  const router = useRouter()
+  const [error, setError] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -32,30 +30,43 @@ export function LoginForm() {
       email: "",
       password: "",
     },
-  });
+  })
 
-  const onSubmit = async (data: LoginFormValues) => { // Added type annotation for data
-    setIsLoading(true);
-    setError(null);
+  async function onSubmit(values: LoginFormValues) {
+    setIsLoading(true)
+    setError(null)
     try {
-      const { error: signInError } = await signInWithEmail(data.email, data.password); // Changed from login to signInWithEmail
+      const { data, error: signInError } = await login(values.email, values.password); // Changed from signInWithEmail to login
+
       if (signInError) {
-        throw signInError;
+        setError(signInError.message || "An unexpected error occurred during login.")
+        setIsLoading(false)
+        return
       }
-      router.push("/dashboard/overview");
-    } catch (err: any) {
-      setError(err.message || "An unexpected error occurred. Please try again.");
+
+      if (data.user) {
+        // Check for admin role if your app has one
+        // const isAdmin = data.user.app_metadata?.roles?.includes("admin")
+        // if (isAdmin) {
+        //   router.push("/admin/dashboard")
+        // } else {
+        router.push("/dashboard") // Default redirect for non-admin users
+        // }
+      } else {
+        setError("Login successful, but no user data received. Please try again.")
+      }
+    } catch (e: any) {
+      console.error("Login error:", e)
+      setError(e.message || "An unexpected error occurred.")
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
       {error && (
         <Alert variant="destructive">
-          <Terminal className="h-4 w-4" />
-          <AlertTitle>Login Failed</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
@@ -75,10 +86,10 @@ export function LoginForm() {
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label htmlFor="password">Password</Label>
-          <Link href="/dashboard/forgot-password" passHref>
-            <Button variant="link" className="px-0 text-sm font-medium">
+          <Link href="/dashboard/forgot-password" legacyBehavior>
+            <a className="text-sm font-medium text-primary hover:underline">
               Forgot password?
-            </Button>
+            </a>
           </Link>
         </div>
         <Input
@@ -95,5 +106,5 @@ export function LoginForm() {
         {isLoading ? "Signing In..." : "Sign In"}
       </Button>
     </form>
-  );
+  )
 }
