@@ -64,8 +64,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
     getInitialSession();
 
-    // Corrected destructuring for onAuthStateChange()
-    const { data, error: authListenerError } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
+    const {  authListenerData } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
       setSession(newSession);
       setUser(newSession?.user ?? null);
       await checkAdminRole(newSession?.user ?? null);
@@ -74,11 +73,10 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         setLoading(false);
       }
     });
-    const subscription = data?.subscription;
+    const subscription = authListenerData?.subscription;
 
-
-    if(authListenerError) {
-      console.error("Error setting up onAuthStateChange listener:", authListenerError.message);
+    if (!subscription) {
+      console.error("Error setting up onAuthStateChange listener: No subscription returned.");
     }
 
     return () => {
