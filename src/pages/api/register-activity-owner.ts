@@ -84,7 +84,9 @@ export default async function handler(
             tourism_license_number: "",
             bank_name: bankName,
             bank_branch: bankBranch,
-            status: "pending"
+            status: "pending",
+            insurance_policy: "",
+            insurance_amount: 0
         }
 
         const { data: ownerData, error: createOwnerError } = await supabaseAdmin

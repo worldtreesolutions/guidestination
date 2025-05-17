@@ -9,9 +9,9 @@ import { useRouter } from "next/router"
 import React from "react"
 import {
   NavigationMenu,
+  NavigationMenuList,
   NavigationMenuItem,
   NavigationMenuLink,
-  NavigationMenuList,
 } from "@/components/ui/navigation-menu"
 
 export function Navbar() {
@@ -41,25 +41,25 @@ export function Navbar() {
         
         <div className="hidden md:flex flex-1 justify-center">
           <NavigationMenu className="max-w-full w-full">
-            <NavigationMenuList className="flex w-full justify-center gap-2">
-              <NavigationMenuItem className="flex-1">
+            <NavigationMenuList className="flex w-full justify-center gap-4">
+              <NavigationMenuItem className="flex-1 max-w-[200px]">
                 <Link href="/activity-owner" legacyBehavior passHref>
                   <NavigationMenuLink className={navLinkClassName}>
-                    <span className="text-sm lg:text-base whitespace-nowrap">List Your Activities</span>
+                    <span className="text-sm lg:text-base text-center">List Your Activities</span>
                   </NavigationMenuLink>
                 </Link>
               </NavigationMenuItem>
-              <NavigationMenuItem className="flex-1">
+              <NavigationMenuItem className="flex-1 max-w-[200px]">
                 <Link href="/partner" legacyBehavior passHref>
                   <NavigationMenuLink className={navLinkClassName}>
-                    <span className="text-sm lg:text-base whitespace-nowrap">Become a Partner</span>
+                    <span className="text-sm lg:text-base text-center">Become a Partner</span>
                   </NavigationMenuLink>
                 </Link>
               </NavigationMenuItem>
-              <NavigationMenuItem className="flex-1">
+              <NavigationMenuItem className="flex-1 max-w-[200px]">
                 <Link href="/dashboard/login" legacyBehavior passHref>
                   <NavigationMenuLink className={navLinkClassName}>
-                    <span className="text-sm lg:text-base whitespace-nowrap">Provider Dashboard</span>
+                    <span className="text-sm lg:text-base text-center">Provider Dashboard</span>
                   </NavigationMenuLink>
                 </Link>
               </NavigationMenuItem>
