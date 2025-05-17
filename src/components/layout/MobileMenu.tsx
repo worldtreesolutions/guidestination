@@ -8,25 +8,6 @@ import { useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "next/router"
 import React from "react"
 
-function MountainIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="m8 3 4 8 5-5 5 15H2L8 3z" />
-    </svg>
-  )
-}
-
 export default function MobileMenu() {
   const [open, setOpen] = useState(false)
   const { user, signOut } = useAuth()
@@ -55,9 +36,8 @@ export default function MobileMenu() {
       </SheetTrigger>
       <SheetContent side="right" className="w-[300px] sm:w-[400px]">
         <div className="flex justify-between items-center px-6 py-4 border-b">
-          <Link href="/" className="flex items-center space-x-2" onClick={() => setOpen(false)}>
-            <MountainIcon className="h-6 w-6" />
-            <span className="font-bold">Guidestination</span>
+          <Link href="/" className="flex items-center" onClick={() => setOpen(false)}>
+            <span className="text-lg font-bold">Guidestination</span>
           </Link>
           <SheetClose asChild>
             <Button variant="ghost" size="icon" onClick={() => setOpen(false)}>
