@@ -74,6 +74,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       }
     });
     
+    // Ensure authListenerData and its subscription property are correctly accessed
     const subscription = authListenerData?.subscription;
 
     if (!subscription) {
