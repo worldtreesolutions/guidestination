@@ -86,7 +86,7 @@ export default async function handler(
             bank_branch: bankBranch,
             status: "pending",
             insurance_policy: "",
-            insurance_amount: 0
+            insurance_amount: "0" // Changed to string to match database schema
         }
 
         const { data: ownerData, error: createOwnerError } = await supabaseAdmin

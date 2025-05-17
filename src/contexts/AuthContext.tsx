@@ -12,6 +12,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<AuthResponse>;
   register: (email: string, password: string, additionalData?: Record<string, any>) => Promise<AuthResponse>;
   signOut: () => Promise<{ error: AuthError | null }>;
+  resetPasswordForEmail: (email: string) => Promise<{ error: AuthError | null }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -36,14 +37,14 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
 
     fetchSession();
 
-    const subscription = supabase.auth.onAuthStateChange((_event, newSession) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession);
       setUser(newSession?.user ?? null);
       setLoading(false);
     });
 
     return () => {
-      subscription.data.subscription.unsubscribe();
+      subscription.unsubscribe();
     };
   }, []);
 
@@ -59,6 +60,10 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     return authService.signOut();
   };
 
+  const resetPasswordForEmail = async (email: string): Promise<{ error: AuthError | null }> => {
+    return authService.resetPasswordForEmail(email);
+  };
+
   const contextValue: AuthContextType = {
     user,
     session,
@@ -67,6 +72,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     login,
     register,
     signOut,
+    resetPasswordForEmail,
   };
 
   return (

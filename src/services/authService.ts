@@ -33,11 +33,6 @@ const authService = {
     });
   },
 
-  // Alias for login to maintain backwards compatibility
-  signInWithEmail: (email: string, password: string): Promise<AuthResponse> => {
-    return authService.login(email, password);
-  },
-
   async signInWithProvider(provider: Provider): Promise<AuthResponse> {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider,
