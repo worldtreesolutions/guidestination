@@ -21,14 +21,13 @@ const authService = {
       email,
       password,
       options: {
-         additionalData,
+         additionalData, // Supabase expects additionalData directly, not nested under options.data
       },
     });
     return response;
   },
 
   async signInWithEmail(email: string, password: string): Promise<AuthResponse> {
-    // Directly return the Supabase auth response
     return supabase.auth.signInWithPassword({
       email,
       password,
@@ -36,18 +35,20 @@ const authService = {
   },
 
   async signInWithProvider(provider: Provider): Promise<AuthResponse> {
-    const { data, error } = await supabase.auth.signInWithOAuth({
+    const {  oauthFlowData, error: oauthError } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
         redirectTo: `${window.location.origin}/dashboard`,
       },
     });
-    // signInWithOAuth doesn't directly return a session/user in the same way as password auth
-    // It navigates the user. The session is established upon redirect.
-    // So, we construct a compatible AuthResponse shape.
-    // If there's an error, it will be in the 'error' object.
-    // If successful, 'data' will contain the provider link, but not user/session immediately.
-    return {  { user: null, session: null, ...data }, error } as AuthResponse;
+
+    if (oauthError) {
+      return {  { user: null, session: null }, error: oauthError };
+    }
+    // If no error, a redirect is expected. User/session will be available after redirect.
+    // oauthFlowData contains { provider, url } which is not part of AuthResponse.data
+    // We return a structure that matches AuthResponse, indicating no immediate user/session.
+    return {  { user: null, session: null }, error: null };
   },
 
   async signOut(): Promise<{ error: AuthError | null }> {
@@ -55,16 +56,12 @@ const authService = {
   },
 
   async getUser(): Promise<User | null> {
-    const {
-       { user },
-    } = await supabase.auth.getUser();
+    const {  { user } } = await supabase.auth.getUser(); // Corrected destructuring
     return user;
   },
 
   async getSession(): Promise<Session | null> {
-    const {
-       { session },
-    } = await supabase.auth.getSession();
+    const {  { session } } = await supabase.auth.getSession(); // Corrected destructuring
     return session;
   },
 
@@ -83,8 +80,8 @@ const authService = {
     return supabase.auth.updateUser({ email });
   },
 
-  async updateUserMetadata(meta Record<string, any>): Promise<AuthResponse> {
-    return supabase.auth.updateUser({  metadata });
+  async updateUserMetadata(meta Record<string, any>): Promise<AuthResponse> { // Corrected parameter syntax
+    return supabase.auth.updateUser({  metadata }); // Corrected to use 'data' for user_metadata
   },
 
   async getUserProfile(userId: string): Promise<UserProfile | null> {
@@ -126,24 +123,9 @@ const authService = {
   },
 
   async deleteUserAccount(userId: string): Promise<{ error: AuthError | null }> {
-    // This typically needs to be an admin operation.
-    // If you have a Supabase Edge Function for this:
-    // const { error } = await supabase.functions.invoke('delete-user', {
-    //   body: { userId },
-    // })
-    // return { error };
-
-    // Placeholder if direct client-side deletion is not set up or allowed
     console.warn(
       "Direct client-side user deletion is not recommended or might be restricted by RLS."
     );
-    // For now, let's assume this is handled by an admin or a secure function.
-    // If you intend for users to delete their own accounts from the client,
-    // ensure RLS policies on auth.users allow this, which is generally not default.
-    // A common pattern is to call a server-side function.
-    // This is a simplified example and might not work without proper backend setup.
-    // const { error } = await supabase.rpc('delete_user_account'); // Example of calling a pg function
-    // return { error };
     return {
       error: {
         name: "NotImplementedError",
