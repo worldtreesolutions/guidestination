@@ -36,19 +36,19 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
 
     fetchSession();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession);
       setUser(newSession?.user ?? null);
       setLoading(false);
     });
 
     return () => {
-      authListener?.subscription.unsubscribe();
+      subscription.unsubscribe();
     };
   }, []);
 
   const login = async (email: string, password: string): Promise<AuthResponse> => {
-    return authService.signInWithEmail(email, password);
+    return authService.login(email, password);
   };
   
   const register = async (email: string, password: string, additionalData?: Record<string, any>): Promise<AuthResponse> => {

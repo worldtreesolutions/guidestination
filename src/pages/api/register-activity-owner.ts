@@ -1,6 +1,9 @@
 
 import { NextApiRequest, NextApiResponse } from "next"
 import { supabaseAdmin } from "@/integrations/supabase/admin"
+import type { Database } from "@/integrations/supabase/types"
+
+type ActivityOwner = Database["public"]["Tables"]["activity_owners"]["Row"]
 
 export default async function handler(
     req: NextApiRequest,
@@ -68,25 +71,26 @@ export default async function handler(
         }
 
         // 3. Create activity owner record
+        const ownerInsertData: Partial<ActivityOwner> = {
+            user_id: authData.user.id,
+            owner_name: `${firstName} ${lastName}`,
+            email,
+            phone: phoneNumber,
+            business_name: businessName,
+            business_type: businessType,
+            tax_id: taxId,
+            address: businessAddress,
+            description: "",
+            tourism_license_number: "",
+            bank_account_number: bankAccount,
+            bank_name: bankName,
+            bank_branch: bankBranch,
+            status: "pending"
+        }
+
         const { data: ownerData, error: createOwnerError } = await supabaseAdmin
             .from("activity_owners")
-            .insert({
-                user_id: authData.user.id,
-                owner_name: `${firstName} ${lastName}`,
-                email,
-                phone: phoneNumber,
-                business_name: businessName,
-                business_type: businessType,
-                tax_id: taxId,
-                address: businessAddress,
-                description: "",
-                tourism_license_number: "",
-                bank_account_name: bankName,
-                bank_account_number: bankAccount,
-                bank_name: bankName,
-                bank_branch: bankBranch,
-                status: "pending"
-            })
+            .insert(ownerInsertData)
             .select()
             .single()
 
