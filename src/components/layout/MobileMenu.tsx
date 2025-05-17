@@ -5,14 +5,11 @@ import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet"
 import { useAuth } from "@/contexts/AuthContext"
-import { useLanguage } from "@/contexts/LanguageContext"
-// LanguageSelector is not directly used here but part of the overall Navbar context
 import { useRouter } from "next/router"
 
 export default function MobileMenu() {
   const [open, setOpen] = useState(false)
-  const { user, signOut, loading } = useAuth() // Removed isAdmin
-  const { t } = useLanguage()
+  const { user, signOut } = useAuth()
   const router = useRouter()
 
   const handleSignOut = async () => {
@@ -22,10 +19,10 @@ export default function MobileMenu() {
   }
 
   const navLinks = [
-    { href: "/", labelKey: "nav.home" },
-    { href: "/activities", labelKey: "nav.activities" },
-    { href: "/planning", labelKey: "nav.planning" },
-    { href: "/activity-owner", labelKey: "nav.partnerArea" }
+    { href: "/", label: "Home" },
+    { href: "/activities", label: "Activities" },
+    { href: "/planning", label: "My Planning" },
+    { href: "/activity-owner", label: "Partner Area" }
   ]
 
   return (
@@ -39,7 +36,7 @@ export default function MobileMenu() {
       <SheetContent side="right" className="w-[300px] sm:w-[400px]">
         <div className="flex justify-between items-center px-6 py-4 border-b">
           <Link href="/" className="flex items-center" onClick={() => setOpen(false)}>
-            <span className="text-lg font-bold">{t("nav.brand")}</span>
+            <span className="text-lg font-bold">Guidestination</span>
           </Link>
           <SheetClose asChild>
             <Button variant="ghost" size="icon" onClick={() => setOpen(false)}>
@@ -58,7 +55,7 @@ export default function MobileMenu() {
               }`}
               onClick={() => setOpen(false)}
             >
-              {t(link.labelKey)}
+              {link.label}
             </Link>
           ))}
           {user ? (
@@ -68,14 +65,14 @@ export default function MobileMenu() {
                 className="flex w-full items-center py-2 text-sm font-medium"
                 onClick={() => setOpen(false)}
               >
-                {t("nav.dashboard")}
+                Dashboard
               </Link>
               <Button 
                 variant="ghost" 
                 className="justify-start p-2 h-auto font-medium"
                 onClick={handleSignOut}
               >
-                {t("nav.signOut")}
+                Sign Out
               </Button>
             </>
           ) : (
@@ -84,7 +81,7 @@ export default function MobileMenu() {
               className="flex w-full items-center py-2 text-sm font-medium"
               onClick={() => setOpen(false)}
             >
-              {t("nav.login")}
+              Login
             </Link>
           )}
         </div>
