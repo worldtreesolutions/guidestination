@@ -45,7 +45,7 @@ export default function MobileMenu() {
       <SheetContent side="right" className="w-[300px] sm:w-[400px]">
         <div className="flex justify-between items-center px-6 py-4 border-b">
           <Link href="/" className="flex items-center space-x-2" onClick={() => setOpen(false)}>
-            <Image src="/logo.png" alt="Logo" width={36} height={36} />
+            <Image src="/wts-logo-maq82ya8.png" alt="Logo" width={36} height={36} />
             <span className="font-bold">Guidestination</span>
           </Link>
           <SheetClose asChild>
