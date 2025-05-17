@@ -1,12 +1,14 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet"
 import { useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "next/router"
 import React from "react"
+import LanguageSelector from "./LanguageSelector"
 
 export default function MobileMenu() {
   const [open, setOpen] = useState(false)
@@ -37,7 +39,13 @@ export default function MobileMenu() {
       <SheetContent side="right" className="w-[300px] sm:w-[400px]">
         <div className="flex justify-between items-center px-6 py-4 border-b">
           <Link href="/" className="flex items-center" onClick={() => setOpen(false)}>
-            <span className="text-lg font-bold">Guidestination</span>
+            <Image
+              src="/logo-masdxep0.png"
+              alt="Guidestination Logo"
+              width={180}
+              height={32}
+              priority
+            />
           </Link>
           <SheetClose asChild>
             <Button variant="ghost" size="icon" onClick={() => setOpen(false)}>
@@ -52,7 +60,7 @@ export default function MobileMenu() {
               key={link.href}
               href={link.href}
               className={`flex w-full items-center py-2 text-sm font-medium ${
-                router.pathname === link.href ? "text-primary" : ""
+                router.pathname === link.href ? "text-primary" : "text-foreground/60"
               }`}
               onClick={() => setOpen(false)}
             >
@@ -70,7 +78,7 @@ export default function MobileMenu() {
               </Link>
               <Button 
                 variant="ghost" 
-                className="justify-start p-2 h-auto font-medium"
+                className="justify-start p-2 h-auto font-medium text-sm text-foreground/60 hover:text-primary"
                 onClick={handleSignOut}
               >
                 Sign Out
@@ -79,12 +87,15 @@ export default function MobileMenu() {
           ) : (
             <Link
               href="/dashboard/login"
-              className="flex w-full items-center py-2 text-sm font-medium"
+              className="flex w-full items-center py-2 text-sm font-medium text-foreground/60 hover:text-primary"
               onClick={() => setOpen(false)}
             >
               Login
             </Link>
           )}
+          <div className="mt-4 border-t pt-4">
+            <LanguageSelector />
+          </div>
         </div>
       </SheetContent>
     </Sheet>
