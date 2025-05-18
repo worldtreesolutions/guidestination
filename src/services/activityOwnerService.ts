@@ -34,24 +34,24 @@ interface RegistrationResult {
 const activityOwnerService = {
   async registerActivityOwner(registrationData: ActivityOwnerRegistrationData): Promise<RegistrationResult> {
     try {
-      // First check if the user already exists with this email
-      const {  existingOwners, error: checkError } = await supabase
+      // First check if an activity_owner record with this email already exists in the database
+      const {  existingDbOwners, error: dbCheckError } = await supabase
         .from("activity_owners")
-        .select("*")
+        .select("id")
         .eq("email", registrationData.email);
 
-      if (checkError && checkError.code !== "PGRST116") { // PGRST116 means no rows found, which is fine
-        console.error(`Error checking existing owners: ${checkError.message}`);
-        throw new Error(`Error checking existing owners: ${checkError.message}`);
+      if (dbCheckError && dbCheckError.code !== "PGRST116") { // PGRST116: No rows found
+        console.error(`Error checking existing owners in DB: ${dbCheckError.message}`);
+        throw new Error(`Error checking existing owners in DB: ${dbCheckError.message}`);
       }
 
-      if (existingOwners && existingOwners.length > 0) {
-        throw { 
-          code: "ACTIVITY_OWNER_EXISTS", 
-          message: "An activity owner with this email already exists" 
+      if (existingDbOwners && existingDbOwners.length > 0) {
+        throw {
+          code: "ACTIVITY_OWNER_EXISTS",
+          message: "An activity owner with this email already exists in our records."
         };
       }
-
+      
       // Prepare data for API call
       const apiData = {
         email: registrationData.email,
@@ -63,6 +63,13 @@ const activityOwnerService = {
         businessAddress: registrationData.address,
         businessType: registrationData.business_type,
         taxId: registrationData.tax_id,
+        // Pass all other relevant fields from registrationData to the API
+        description: registrationData.description,
+        tourism_license_number: registrationData.tourism_license_number,
+        tat_license_number: registrationData.tat_license_number,
+        guide_card_number: registrationData.guide_card_number,
+        insurance_policy: registrationData.insurance_policy,
+        insurance_amount: registrationData.insurance_amount,
         location_lat: registrationData.location_lat,
         location_lng: registrationData.location_lng,
         place_id: registrationData.place_id
@@ -80,20 +87,22 @@ const activityOwnerService = {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || "Failed to register activity owner");
+        // Forward the error message from the API if available
+        throw new Error(result.error || `API request failed with status ${response.status}`);
       }
 
       return {
         success: true,
-        message: "Activity owner registered successfully",
-         result.data, 
-        isNewUser: true, // Assuming API always creates a new auth user or links to existing
+        message: result.message || "Activity owner registered successfully",
+         result.data, // Correctly assign the data property
+        isNewUser: result.isNewUser !== undefined ? result.isNewUser : true, // Handle isNewUser if API provides it
       };
     } catch (error: any) {
       console.error("Error registering activity owner:", error);
       if (error.code === "ACTIVITY_OWNER_EXISTS") {
-        throw error;
+        throw error; // Re-throw custom error
       }
+      // Ensure a meaningful message is thrown
       throw new Error(error.message || "An unexpected error occurred during registration.");
     }
   },
@@ -126,7 +135,7 @@ const activityOwnerService = {
       const { data, error } = await supabase
         .from("activity_owners")
         .update(updates)
-        .eq("id", ownerId as unknown as string) // Casting to satisfy TS, Supabase should handle numeric ID
+        .eq("id", ownerId as unknown as string) 
         .select()
         .single();
 

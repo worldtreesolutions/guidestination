@@ -3,7 +3,7 @@ import { NextApiRequest, NextApiResponse } from "next"
 import { supabaseAdmin } from "@/integrations/supabase/admin"
 import type { Database } from "@/integrations/supabase/types"
 
-type ActivityOwner = Database["public"]["Tables"]["activity_owners"]["Row"]
+type ActivityOwnerInsert = Database["public"]["Tables"]["activity_owners"]["Insert"]
 
 export default async function handler(
     req: NextApiRequest,
@@ -17,104 +17,133 @@ export default async function handler(
         email,
         password,
         firstName,
-        lastName,
+        lastName, // Can be empty
         phoneNumber,
         businessName,
         businessAddress,
         businessType,
         taxId,
-        bankAccount,
-        bankName,
-        bankBranch,
+        // Fields from ActivityOwnerRegistrationData that are part of activity_owners table
+        description,
+        tourism_license_number,
+        tat_license_number,
+        guide_card_number,
+        insurance_policy,
+        insurance_amount,
         location_lat,
         location_lng,
-        place_id
+        place_id,
+        // Bank details might not be directly in activity_owners, handle if needed elsewhere or add to table
+        // bankAccount, 
+        // bankName,
+        // bankBranch,
     } = req.body
 
-    if (!email || !password || !firstName || !lastName || !phoneNumber) {
-        return res.status(400).json({ error: "Missing required fields" })
+    // Core fields for auth user and initial check
+    if (!email || !password || !firstName || !phoneNumber || !businessName || !businessAddress || !businessType || !taxId || !description || !tourism_license_number || !insurance_policy || !insurance_amount) {
+        // Log which fields are missing
+        const missingFields = [];
+        if (!email) missingFields.push("email");
+        if (!password) missingFields.push("password");
+        if (!firstName) missingFields.push("firstName");
+        if (!phoneNumber) missingFields.push("phoneNumber");
+        if (!businessName) missingFields.push("businessName");
+        if (!businessAddress) missingFields.push("businessAddress");
+        if (!businessType) missingFields.push("businessType");
+        if (!taxId) missingFields.push("taxId");
+        if (!description) missingFields.push("description");
+        if (!tourism_license_number) missingFields.push("tourism_license_number");
+        if (!insurance_policy) missingFields.push("insurance_policy");
+        if (!insurance_amount) missingFields.push("insurance_amount");
+        
+        console.error("Missing required fields:", missingFields.join(", "));
+        return res.status(400).json({ error: `Missing required fields: ${missingFields.join(", ")}` })
     }
 
     try {
         // 1. Check if an activity_owner record with this email already exists
-        const { data: existingOwnerData, error: ownerCheckError } = await supabaseAdmin
+        const {  existingOwnerData, error: ownerCheckError } = await supabaseAdmin
             .from("activity_owners")
             .select("id")
             .eq("email", email)
             .single()
 
-        if (ownerCheckError && ownerCheckError.code !== "PGRST116") {
-            console.error("Error checking existing owner:", ownerCheckError)
-            return res.status(500).json({ error: "Error checking existing owner" })
+        if (ownerCheckError && ownerCheckError.code !== "PGRST116") { // PGRST116: No rows found
+            console.error("Error checking existing owner in DB:", ownerCheckError)
+            return res.status(500).json({ error: "Error checking existing owner details." })
         }
 
         if (existingOwnerData) {
-            return res.status(400).json({ error: "An activity owner with this email already exists" })
+            return res.status(400).json({ error: "An activity owner with this email already exists." })
         }
 
         // 2. Create auth user
-        const { data: authData, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
+        const {  authData, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
             email,
             password,
-            email_confirm: true,
-            user_metadata: {
-                firstName,
-                lastName,
+            email_confirm: true, // Set to true to send confirmation email
+            user_meta {
+                firstName: firstName,
+                lastName: lastName || "", // Ensure lastName is a string
                 role: "activity_owner"
             }
         })
 
         if (createUserError) {
-            console.error("Error creating user:", createUserError)
-            return res.status(500).json({ error: createUserError.message })
+            console.error("Error creating auth user:", createUserError)
+            return res.status(500).json({ error: createUserError.message || "Failed to create authentication user." })
         }
 
         if (!authData.user) {
-            return res.status(500).json({ error: "Failed to create user" })
+            return res.status(500).json({ error: "Auth user creation did not return a user object." })
         }
 
-        // 3. Create activity owner record with correct types
-        const ownerInsertData = {
+        // 3. Create activity owner record
+        const ownerInsertData: ActivityOwnerInsert = {
             user_id: authData.user.id,
-            owner_name: `${firstName} ${lastName}`,
+            owner_name: `${firstName} ${lastName || ""}`.trim(),
             email,
             phone: phoneNumber,
             business_name: businessName,
             business_type: businessType,
             tax_id: taxId,
             address: businessAddress,
-            description: "",
-            tourism_license_number: "",
-            bank_name: bankName,
-            bank_branch: bankBranch,
-            status: "pending",
-            insurance_policy: "",
-            insurance_amount: "0", // Changed to string to match database schema
+            description: description,
+            tourism_license_number: tourism_license_number,
+            tat_license_number: tat_license_number || null,
+            guide_card_number: guide_card_number || null,
+            // bank_name: bankName || null, // Add if these fields exist in your table
+            // bank_branch: bankBranch || null, // Add if these fields exist in your table
+            status: "pending", // Default status
+            insurance_policy: insurance_policy,
+            insurance_amount: insurance_amount.toString(), // Ensure it's a string if db expects text/varchar
             location_lat: location_lat || null,
             location_lng: location_lng || null,
-            place_id: place_id || null
+            place_id: place_id || null,
         }
 
-        const { data: ownerData, error: createOwnerError } = await supabaseAdmin
+        const {  newOwnerData, error: createOwnerError } = await supabaseAdmin
             .from("activity_owners")
             .insert(ownerInsertData)
             .select()
             .single()
 
         if (createOwnerError) {
-            console.error("Error creating owner record:", createOwnerError)
+            console.error("Error creating owner record in DB:", createOwnerError)
             // Attempt to delete the auth user since owner creation failed
             await supabaseAdmin.auth.admin.deleteUser(authData.user.id)
-            return res.status(500).json({ error: "Failed to create owner record" })
+            return res.status(500).json({ error: "Failed to create activity owner profile in database." })
         }
 
         return res.status(200).json({ 
-            message: "Activity owner registered successfully",
-            data: ownerData
+            message: "Activity owner registered successfully. Please check your email for verification.",
+             newOwnerData,
+            isNewUser: true // Since we create an auth user here
         })
 
-    } catch (error) {
-        console.error("Server error:", error)
-        return res.status(500).json({ error: "Internal server error" })
+    } catch (error: any) {
+        console.error("Server error during registration:", error)
+        return res.status(500).json({ error: error.message || "Internal server error during registration." })
     }
 }
+  
