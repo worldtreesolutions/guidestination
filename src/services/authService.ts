@@ -8,7 +8,7 @@ import {
   Provider,
 } from "@supabase/supabase-js";
 
-// Instead of using the Database type for UserProfile, we'll define our own interface
+// Define our own UserProfile interface since we don't have access to the profiles table
 export interface UserProfile {
   id: string;
   user_id: string;
@@ -80,19 +80,47 @@ const authService = {
   },
 
   async updatePasswordWithResetToken(password: string): Promise<AuthResponse> {
-    return supabase.auth.updateUser({ password });
+    const { data, error } = await supabase.auth.updateUser({ password });
+    return {
+      data: {
+        user: data.user,
+        session: null
+      },
+      error
+    };
   },
 
   async updateUserPassword(password: string): Promise<AuthResponse> {
-    return supabase.auth.updateUser({ password });
+    const { data, error } = await supabase.auth.updateUser({ password });
+    return {
+      data: {
+        user: data.user,
+        session: null
+      },
+      error
+    };
   },
 
   async updateUserEmail(email: string): Promise<AuthResponse> {
-    return supabase.auth.updateUser({ email });
+    const { data, error } = await supabase.auth.updateUser({ email });
+    return {
+      data: {
+        user: data.user,
+        session: null
+      },
+      error
+    };
   },
 
   async updateUserMetadata(metadata: Record<string, any>): Promise<AuthResponse> {
-    return supabase.auth.updateUser({ data: metadata });
+    const { data, error } = await supabase.auth.updateUser({ data: metadata });
+    return {
+      data: {
+        user: data.user,
+        session: null
+      },
+      error
+    };
   },
 
   async getUserProfile(userId: string): Promise<UserProfile | null> {
