@@ -1,4 +1,5 @@
 
+    
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -84,7 +85,7 @@ const activityOwnerService = {
       return {
         success: true,
         message: "Activity owner registered successfully",
-        data: result.data, 
+         result.data, 
         isNewUser: true, // Assuming API always creates a new auth user or links to existing
       };
     } catch (error: any) {
@@ -162,3 +163,4 @@ const activityOwnerService = {
 };
 
 export default activityOwnerService;
+  
