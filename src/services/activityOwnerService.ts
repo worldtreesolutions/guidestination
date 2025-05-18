@@ -124,7 +124,7 @@ const activityOwnerService = {
       const { data, error } = await supabase
         .from("activity_owners")
         .update(updates)
-        .eq("id", ownerId) 
+        .eq("id", ownerId as unknown as string) // Casting to satisfy TS, Supabase should handle numeric ID
         .select()
         .single();
 
