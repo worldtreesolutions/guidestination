@@ -31,16 +31,17 @@ interface RegistrationResult {
 }
 
 const activityOwnerService = {
-  async registerActivityOwner(data: ActivityOwnerRegistrationData): Promise<RegistrationResult> {
+  async registerActivityOwner( ActivityOwnerRegistrationData): Promise<RegistrationResult> {
     try {
       // First check if the user already exists with this email
-      const { data: existingOwners, error: checkError } = await supabase
+      const {  existingOwners, error: checkError } = await supabase
         .from("activity_owners")
         .select("*")
         .eq("email", data.email);
 
       if (checkError) {
-        throw { message: "Error checking existing owners", ...checkError };
+        // Throw a new error object to avoid overwriting message property
+        throw new Error(`Error checking existing owners: ${checkError.message}`);
       }
 
       if (existingOwners && existingOwners.length > 0) {
@@ -78,18 +79,23 @@ const activityOwnerService = {
       const result = await response.json();
 
       if (!response.ok) {
-        throw { message: result.error || "Failed to register activity owner" };
+         // Throw a new error object to avoid overwriting message property
+        throw new Error(result.error || "Failed to register activity owner");
       }
 
       return {
         success: true,
         message: "Activity owner registered successfully",
-        data: result.data,
-        isNewUser: true,
+         result.data,
+        isNewUser: true, // Assuming API always creates a new auth user or links to existing
       };
     } catch (error: any) {
       console.error("Error registering activity owner:", error);
-      throw error;
+      // Re-throw the original error or a new one with more context
+      if (error.code === "ACTIVITY_OWNER_EXISTS") {
+        throw error;
+      }
+      throw new Error(error.message || "An unexpected error occurred during registration.");
     }
   },
 
@@ -114,14 +120,14 @@ const activityOwnerService = {
   },
 
   async updateActivityOwner(
-    ownerId: number,
+    ownerId: number, // Assuming ownerId is indeed a number based on schema
     updates: Partial<ActivityOwner>
   ): Promise<ActivityOwner | null> {
     try {
       const { data, error } = await supabase
         .from("activity_owners")
         .update(updates)
-        .eq("id", ownerId)
+        .eq("id", ownerId) // Supabase client should handle number types for eq filters correctly
         .select()
         .single();
 
