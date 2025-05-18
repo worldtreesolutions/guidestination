@@ -26,6 +26,9 @@ export default async function handler(
         bankAccount,
         bankName,
         bankBranch,
+        location_lat,
+        location_lng,
+        place_id
     } = req.body
 
     if (!email || !password || !firstName || !lastName || !phoneNumber) {
@@ -86,7 +89,10 @@ export default async function handler(
             bank_branch: bankBranch,
             status: "pending",
             insurance_policy: "",
-            insurance_amount: "0" // Changed to string to match database schema
+            insurance_amount: "0", // Changed to string to match database schema
+            location_lat: location_lat || null,
+            location_lng: location_lng || null,
+            place_id: place_id || null
         }
 
         const { data: ownerData, error: createOwnerError } = await supabaseAdmin

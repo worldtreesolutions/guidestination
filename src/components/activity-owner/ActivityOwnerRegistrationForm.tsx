@@ -1,3 +1,4 @@
+
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -26,7 +27,8 @@ import {
 import { useToast } from '@/hooks/use-toast'
 import activityOwnerService from '@/services/activityOwnerService'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { InfoIcon } from 'lucide-react'
+import { InfoIcon, MapPin } from 'lucide-react'
+import { PlacesAutocomplete, PlaceData } from "@/components/ui/places-autocomplete"
 
 const formSchema = z.object({
   businessName: z.string().min(2, 'Business name must be at least 2 characters'),
@@ -54,6 +56,7 @@ export const ActivityOwnerRegistrationForm = () => {
     message: string | null;
     isNewUser?: boolean;
   }>({ type: null, message: null })
+  const [locationData, setLocationData] = useState<PlaceData | null>(null)
   const { toast } = useToast()
   
   const form = useForm<z.infer<typeof formSchema>>({
@@ -76,6 +79,11 @@ export const ActivityOwnerRegistrationForm = () => {
     },
   })
 
+  const handlePlaceSelect = (placeData: PlaceData) => {
+    setLocationData(placeData)
+    form.setValue('address', placeData.address)
+  }
+
   // Main form submission handler
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
@@ -96,6 +104,10 @@ export const ActivityOwnerRegistrationForm = () => {
         guide_card_number: values.guideCardNumber || null,
         insurance_policy: values.insurancePolicy,
         insurance_amount: values.insuranceAmount,
+        // Add location data if available
+        location_lat: locationData?.lat || null,
+        location_lng: locationData?.lng || null,
+        place_id: locationData?.placeId || null,
       };
       
       try {
@@ -122,6 +134,7 @@ export const ActivityOwnerRegistrationForm = () => {
         });
         
         form.reset(); // Reset form on success
+        setLocationData(null); // Reset location data
       } catch (serviceError: any) {
         // Check for our custom error code for existing activity owner
         if (serviceError.code === 'ACTIVITY_OWNER_EXISTS') {
@@ -377,14 +390,23 @@ export const ActivityOwnerRegistrationForm = () => {
             name='address'
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Business Address</FormLabel>
+                <FormLabel className="flex items-center">
+                  Business Address <MapPin className="ml-1 h-4 w-4 text-muted-foreground" />
+                </FormLabel>
                 <FormControl>
-                  <Textarea 
-                    placeholder='Full address in Chiang Mai'
-                    className='min-h-[100px]'
-                    {...field}
+                  <PlacesAutocomplete 
+                    value={field.value}
+                    onChange={field.onChange}
+                    onPlaceSelect={handlePlaceSelect}
+                    placeholder="Search for your business address"
+                    disabled={isSubmitting}
                   />
                 </FormControl>
+                {locationData && (
+                  <FormDescription>
+                    Location coordinates: {locationData.lat.toFixed(6)}, {locationData.lng.toFixed(6)}
+                  </FormDescription>
+                )}
                 <FormMessage />
               </FormItem>
             )}
