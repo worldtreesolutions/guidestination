@@ -10,6 +10,10 @@ const nextConfig = {
   images: {
     domains: ['images.unsplash.com', 'unsplash.com', 'pexels.com', 'pixabay.com', 'giphy.com', 'wikimedia.org'],
   },
+  i18n: {
+    locales: ['en', 'fr', 'es', 'th', 'zh'],
+    defaultLocale: 'en',
+  },
 };
 
 export default nextConfig;
