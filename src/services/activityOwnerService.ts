@@ -76,7 +76,7 @@ const activityOwnerService = {
       return {
         success: true,
         message: result.message || "Activity owner registered successfully",
-         result.data as ActivityOwner, 
+         result.newOwnerData as ActivityOwner, // This was the problematic line, now corrected
         isNewUser: result.isNewUser !== undefined ? result.isNewUser : true,
       };
     } catch (error: any) {
