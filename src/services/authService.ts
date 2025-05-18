@@ -80,19 +80,47 @@ const authService = {
   },
 
   async updatePasswordWithResetToken(password: string): Promise<AuthResponse> {
-    return supabase.auth.updateUser({ password });
+    const { data, error } = await supabase.auth.updateUser({ password });
+    return {
+      data: {
+        user: data?.user || null,
+        session: null
+      },
+      error
+    };
   },
 
   async updateUserPassword(password: string): Promise<AuthResponse> {
-    return supabase.auth.updateUser({ password });
+    const { data, error } = await supabase.auth.updateUser({ password });
+    return {
+      data: {
+        user: data?.user || null,
+        session: null
+      },
+      error
+    };
   },
 
   async updateUserEmail(email: string): Promise<AuthResponse> {
-    return supabase.auth.updateUser({ email });
+    const { data, error } = await supabase.auth.updateUser({ email });
+    return {
+      data: {
+        user: data?.user || null,
+        session: null
+      },
+      error
+    };
   },
 
   async updateUserMetadata(metadata: Record<string, any>): Promise<AuthResponse> {
-    return supabase.auth.updateUser({ data: metadata });
+    const { data, error } = await supabase.auth.updateUser({ data: metadata });
+    return {
+      data: {
+        user: data?.user || null,
+        session: null
+      },
+      error
+    };
   },
 
   async getUserProfile(userId: string): Promise<UserProfile | null> {
