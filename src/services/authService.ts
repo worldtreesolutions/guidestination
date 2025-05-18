@@ -1,6 +1,5 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import type { Database } from "@/integrations/supabase/types";
 import {
   AuthResponse,
   AuthError,
@@ -9,7 +8,16 @@ import {
   Provider,
 } from "@supabase/supabase-js";
 
-export type UserProfile = Database["public"]["Tables"]["profiles"]["Row"];
+// Instead of using the Database type for UserProfile, we'll define our own interface
+export interface UserProfile {
+  id: string;
+  user_id: string;
+  name: string;
+  email: string;
+  avatar_url?: string;
+  created_at?: string;
+  updated_at?: string;
+}
 
 const authService = {
   async signUp(
