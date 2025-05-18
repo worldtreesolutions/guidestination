@@ -26,34 +26,20 @@ interface ActivityOwnerRegistrationData {
 interface RegistrationResult {
   success: boolean;
   message: string;
-  data?: ActivityOwner;
+  data?: ActivityOwner; // This should match the type of 'newOwnerData' from the API
   isNewUser: boolean;
 }
 
 const activityOwnerService = {
   async registerActivityOwner(registrationData: ActivityOwnerRegistrationData): Promise<RegistrationResult> {
     try {
-      // First check if an activity_owner record with this email already exists in the database
-      const {  existingDbOwners, error: dbCheckError } = await supabase
-        .from("activity_owners")
-        .select("provider_id") 
-        .eq("email", registrationData.email);
-
-      if (dbCheckError && dbCheckError.code !== "PGRST116") { // PGRST116: No rows found for non-unique query
-        console.error(`Error checking existing owners in DB: ${dbCheckError.message}`);
-        throw new Error(`Error checking existing owners in DB: ${dbCheckError.message}`);
-      }
-
-      if (existingDbOwners && existingDbOwners.length > 0) {
-        throw {
-          code: "ACTIVITY_OWNER_EXISTS",
-          message: "An activity owner with this email already exists in our records."
-        };
-      }
+      // The client-side service no longer directly checks the DB for existing owners.
+      // This check is now handled by the API route.
       
       const apiData = {
         email: registrationData.email,
-        password: "temporary-password", 
+        // Password is set server-side by the API route
+        // password: "temporary-password", 
         firstName: registrationData.owner_name.split(" ")[0],
         lastName: registrationData.owner_name.split(" ").slice(1).join(" "),
         phoneNumber: registrationData.phone,
@@ -83,22 +69,23 @@ const activityOwnerService = {
       const result = await response.json();
 
       if (!response.ok) {
+        // The API route now returns specific error messages and codes (e.g., 409 for existing auth user)
+        // We can throw an error with the message from the API
         throw new Error(result.error || `API request failed with status ${response.status}`);
       }
 
+      // The API now returns 'data' which contains the newOwnerData (ActivityOwnerRow)
       return {
         success: true,
         message: result.message || "Activity owner registered successfully",
-        data: result.data, 
+         result.data as ActivityOwner, // Cast to ActivityOwner
         isNewUser: result.isNewUser !== undefined ? result.isNewUser : true,
       };
     } catch (error: any) {
-      console.error("Error registering activity owner:", error);
-      if (error.code === "ACTIVITY_OWNER_EXISTS") {
-        throw error; 
-      }
-      const errorMessage = error && typeof error.message === "string" ? error.message : "An unexpected error occurred during registration.";
-      throw new Error(errorMessage);
+      console.error("Error registering activity owner (service):", error);
+      // Re-throw the error so the form can catch it and display the message
+      // The error message should now be more specific from the API
+      throw error; 
     }
   },
 
