@@ -26,7 +26,7 @@ interface ActivityOwnerRegistrationData {
 interface RegistrationResult {
   success: boolean;
   message: string;
-  data?: ActivityOwner;
+  data?: ActivityOwner; // Changed from ownerData to data to match API response
   isNewUser: boolean;
 }
 
@@ -89,7 +89,7 @@ const activityOwnerService = {
       return {
         success: true,
         message: result.message || "Activity owner registered successfully",
-         result.data, 
+         result.data, // Correctly assign the data from the API response
         isNewUser: result.isNewUser !== undefined ? result.isNewUser : true,
       };
     } catch (error: any) {
