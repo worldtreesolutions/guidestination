@@ -14,8 +14,13 @@ export interface UserProfile {
   user_id: string;
   name: string;
   email: string;
+  password_hash: string | null;
+  phone: string | null;
+  user_type: string | null;
+  created_at: string | null;
+  role_id: number | null;
+  verified: boolean;
   avatar_url?: string;
-  created_at?: string;
   updated_at?: string;
 }
 
@@ -102,7 +107,24 @@ const authService = {
       console.error("Error fetching user profile:", error);
       return null;
     }
-    return data;
+
+    // Transform the data to match UserProfile interface
+    const userProfile: UserProfile = {
+      id: data.id,
+      user_id: data.user_id,
+      name: data.name,
+      email: data.email,
+      password_hash: data.password_hash,
+      phone: data.phone,
+      user_type: data.user_type,
+      created_at: data.created_at,
+      role_id: data.role_id,
+      verified: data.verified,
+      avatar_url: data.avatar_url,
+      updated_at: data.updated_at
+    };
+
+    return userProfile;
   },
 
   async updateUserProfile(
@@ -120,7 +142,24 @@ const authService = {
       console.error("Error updating user profile:", error);
       return null;
     }
-    return data;
+
+    // Transform the data to match UserProfile interface
+    const userProfile: UserProfile = {
+      id: data.id,
+      user_id: data.user_id,
+      name: data.name,
+      email: data.email,
+      password_hash: data.password_hash,
+      phone: data.phone,
+      user_type: data.user_type,
+      created_at: data.created_at,
+      role_id: data.role_id,
+      verified: data.verified,
+      avatar_url: data.avatar_url,
+      updated_at: data.updated_at
+    };
+
+    return userProfile;
   },
 
   onAuthStateChange(
