@@ -37,7 +37,7 @@ const activityOwnerService = {
       // First check if an activity_owner record with this email already exists in the database
       const {  existingDbOwners, error: dbCheckError } = await supabase
         .from("activity_owners")
-        .select("provider_id") // Changed "id" to "provider_id"
+        .select("provider_id") 
         .eq("email", registrationData.email);
 
       if (dbCheckError && dbCheckError.code !== "PGRST116") { // PGRST116: No rows found
@@ -52,10 +52,9 @@ const activityOwnerService = {
         };
       }
       
-      // Prepare data for API call, ensuring all fields from registrationData are included
       const apiData = {
         email: registrationData.email,
-        password: "temporary-password", // This will be set by the user later
+        password: "temporary-password", 
         firstName: registrationData.owner_name.split(" ")[0],
         lastName: registrationData.owner_name.split(" ").slice(1).join(" "),
         phoneNumber: registrationData.phone,
@@ -74,34 +73,31 @@ const activityOwnerService = {
         place_id: registrationData.place_id
       };
 
-      // Call the API endpoint to register the activity owner
       const response = await fetch("/api/register-activity-owner", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(apiData), // All fields from apiData will be stringified
+        body: JSON.stringify(apiData), 
       });
 
       const result = await response.json();
 
       if (!response.ok) {
-        // Forward the error message from the API if available
         throw new Error(result.error || `API request failed with status ${response.status}`);
       }
 
       return {
         success: true,
         message: result.message || "Activity owner registered successfully",
-         result.data, // Corrected: Added '' prefix
+         result.data, 
         isNewUser: result.isNewUser !== undefined ? result.isNewUser : true,
       };
     } catch (error: any) {
       console.error("Error registering activity owner:", error);
       if (error.code === "ACTIVITY_OWNER_EXISTS") {
-        throw error; // Re-throw custom error
+        throw error; 
       }
-      // Ensure the error message is a string
       const errorMessage = error && typeof error.message === "string" ? error.message : "An unexpected error occurred during registration.";
       throw new Error(errorMessage);
     }
@@ -128,14 +124,14 @@ const activityOwnerService = {
   },
 
   async updateActivityOwner(
-    ownerId: string, // Changed type to string for UUID (provider_id)
+    ownerId: string, 
     updates: Partial<ActivityOwner>
   ): Promise<ActivityOwner | null> {
     try {
       const { data, error } = await supabase
         .from("activity_owners")
         .update(updates)
-        .eq("provider_id", ownerId) // Changed "id" to "provider_id"
+        .eq("provider_id", ownerId) 
         .select()
         .single();
 
