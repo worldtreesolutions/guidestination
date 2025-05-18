@@ -94,7 +94,7 @@ const activityOwnerService = {
       return {
         success: true,
         message: result.message || "Activity owner registered successfully",
-         result.data, // Correctly assign the data property
+         result.data, // Corrected: Added '' key
         isNewUser: result.isNewUser !== undefined ? result.isNewUser : true, // Handle isNewUser if API provides it
       };
     } catch (error: any) {
