@@ -70,7 +70,7 @@ export default async function handler(
         }
 
         // Attempt to create the authentication user
-        const {  authCreationResponse, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
+        const {  authCreationResponseData, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
             email,
             password,
             email_confirm: true, 
@@ -92,12 +92,12 @@ export default async function handler(
             return res.status(500).json({ error: createUserError.message || "Failed to create authentication user." });
         }
 
-        if (!authCreationResponse || !authCreationResponse.user) { 
-            console.error("Auth user creation did not return a user object.", authCreationResponse);
+        if (!authCreationResponseData || !authCreationResponseData.user) { 
+            console.error("Auth user creation did not return a user object.", authCreationResponseData);
             return res.status(500).json({ error: "Auth user creation did not return a user object." });
         }
         
-        const authUser: User = authCreationResponse.user;
+        const authUser: User = authCreationResponseData.user;
 
         // Create the activity_owner profile in the database
         const ownerInsertData: ActivityOwnerInsert = {
