@@ -150,3 +150,4 @@ const activityOwnerService = {
       console.error("Error in getActivityOwnerProfile:", error);
       return null;
     }
+  }
