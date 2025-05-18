@@ -112,7 +112,7 @@ export default async function handler(
             place_id: place_id || null,
         }
 
-        const {  newOwnerData, error: createOwnerError } = await supabaseAdmin
+        const { data: newOwnerData, error: createOwnerError } = await supabaseAdmin
             .from("activity_owners")
             .insert(ownerInsertData)
             .select() 
