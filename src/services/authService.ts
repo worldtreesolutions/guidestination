@@ -108,10 +108,11 @@ const authService = {
       return null;
     }
 
-    // Transform the data to match UserProfile interface
-    const userProfile: UserProfile = {
+    if (!data) return null;
+
+    return {
       id: data.id,
-      user_id: data.user_id,
+      user_id: data.user_id || userId, // Ensure user_id is always present
       name: data.name,
       email: data.email,
       password_hash: data.password_hash,
@@ -123,8 +124,6 @@ const authService = {
       avatar_url: data.avatar_url,
       updated_at: data.updated_at
     };
-
-    return userProfile;
   },
 
   async updateUserProfile(
@@ -143,10 +142,11 @@ const authService = {
       return null;
     }
 
-    // Transform the data to match UserProfile interface
-    const userProfile: UserProfile = {
+    if (!data) return null;
+
+    return {
       id: data.id,
-      user_id: data.user_id,
+      user_id: data.user_id || userId, // Ensure user_id is always present
       name: data.name,
       email: data.email,
       password_hash: data.password_hash,
@@ -158,8 +158,6 @@ const authService = {
       avatar_url: data.avatar_url,
       updated_at: data.updated_at
     };
-
-    return userProfile;
   },
 
   onAuthStateChange(
