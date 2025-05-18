@@ -35,7 +35,7 @@ const activityOwnerService = {
     try {
       const apiData = {
         email: registrationData.email,
-        password: "temporary-password", // Added temporary password
+        password: "temporary-password", // Ensure temporary password is included
         firstName: registrationData.owner_name.split(" ")[0],
         lastName: registrationData.owner_name.split(" ").slice(1).join(" "),
         phoneNumber: registrationData.phone,
@@ -72,7 +72,7 @@ const activityOwnerService = {
       return {
         success: true,
         message: result.message || "Activity owner registered successfully",
-         result.data as ActivityOwner, // Corrected: Added 'data' key
+         result.data as ActivityOwner, // Corrected: Added '' key
         isNewUser: result.isNewUser !== undefined ? result.isNewUser : true,
       };
     } catch (error: any) {
