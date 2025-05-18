@@ -36,7 +36,7 @@ export default async function handler(
         place_id,
     } = req.body
 
-    console.log("Received location data in API:", { location_lat, location_lng, place_id });
+    console.log("API: Received raw location ", { location_lat, location_lng, place_id });
 
     const requiredFields: Record<string, any> = {
         email, password, firstName, phoneNumber, businessName, 
@@ -62,17 +62,18 @@ export default async function handler(
             .eq("email", email)
             .single();
 
-        if (ownerCheckError && ownerCheckError.code !== "PGRST116") { // PGRST116: "No rows found" - this is okay if no owner exists
-            console.error("Error checking existing owner in DB:", ownerCheckError);
+        if (ownerCheckError && ownerCheckError.code !== "PGRST116") { // PGRST116: "No rows found" - this is okay
+            console.error("API Error: Error checking existing owner in DB:", ownerCheckError);
             return res.status(500).json({ error: "Error checking existing owner details." });
         }
 
         if (existingDbOwner) {
+            console.log("API Info: Activity owner with this email already exists in activity_owners table.");
             return res.status(400).json({ error: "An activity owner with this email already exists in our records." });
         }
 
         // Attempt to create the authentication user
-        const {  authCreationData, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
+        const {  authCreationResponse, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
             email,
             password,
             email_confirm: true, 
@@ -83,27 +84,26 @@ export default async function handler(
             }
         });
         
-        console.log("Auth Creation Attempt Response: Data:", JSON.stringify(authCreationData), "Error:", JSON.stringify(createUserError));
-
+        console.log("API: Auth Creation Attempt Response: Data:", JSON.stringify(authCreationResponse), "Error:", JSON.stringify(createUserError));
 
         if (createUserError) {
-            console.error("Error creating auth user:", createUserError.message, "Full error:", JSON.stringify(createUserError));
-            // Check if the error is due to the user already being registered in the auth system
+            console.error("API Error: Error creating auth user:", createUserError.message, "Full error:", JSON.stringify(createUserError));
             if (createUserError.message && 
                 (createUserError.message.toLowerCase().includes("user already registered") || 
-                 createUserError.message.toLowerCase().includes("email address has already been registered"))) {
+                 createUserError.message.toLowerCase().includes("email address has already been registered") ||
+                 createUserError.message.toLowerCase().includes("duplicate key value violates unique constraint"))) { 
                 return res.status(409).json({ error: "A user with this email address has already been registered. Please try logging in or use a different email." });
             }
             return res.status(500).json({ error: createUserError.message || "Failed to create authentication user." });
         }
 
-        if (!authCreationData || !authCreationData.user) { 
-            console.error("Auth user creation did not return a user object. Full authCreationData object:", JSON.stringify(authCreationData));
+        const authUser = authCreationResponse?.user;
+
+        if (!authUser) { 
+            console.error("API Error: Auth user creation did not return a user object. Full authCreationResponse object:", JSON.stringify(authCreationResponse));
             return res.status(500).json({ error: "Auth user creation did not return a user object." });
         }
         
-        const authUser: User = authCreationData.user;
-
         // Create the activity_owner profile in the database
         const ownerInsertData: ActivityOwnerInsert = {
             user_id: authUser.id, 
@@ -121,12 +121,12 @@ export default async function handler(
             status: "pending", 
             insurance_policy: insurance_policy,
             insurance_amount: insurance_amount.toString(), 
-            location_lat: location_lat || null,
-            location_lng: location_lng || null,
-            place_id: place_id || null,
+            location_lat: typeof location_lat === "number" ? location_lat : null,
+            location_lng: typeof location_lng === "number" ? location_lng : null,
+            place_id: typeof place_id === "string" ? place_id : null,
         };
 
-        console.log("Data being prepared for insert into activity_owners:", ownerInsertData);
+        console.log("API: Data being prepared for insert into activity_owners:", JSON.stringify(ownerInsertData, null, 2));
 
         const {  newOwnerData, error: createOwnerError } = await supabaseAdmin
             .from("activity_owners")
@@ -135,12 +135,14 @@ export default async function handler(
             .single<ActivityOwnerRow>();
 
         if (createOwnerError) {
-            console.error("Error creating owner record in DB:", createOwnerError);
+            console.error("API Error: Error creating owner record in DB:", createOwnerError);
             // If creating the DB record fails, roll back the auth user creation
             await supabaseAdmin.auth.admin.deleteUser(authUser.id);
-            return res.status(500).json({ error: "Failed to create activity owner profile in database." });
+            console.log(`API Info: Rolled back auth user creation for ${authUser.id} due to DB insert failure.`);
+            return res.status(500).json({ error: "Failed to create activity owner profile in database. " + createOwnerError.message });
         }
 
+        console.log("API Success: Activity owner registered successfully. DB Data:", newOwnerData);
         return res.status(200).json({ 
             message: "Activity owner registered successfully. Please check your email for verification.",
              newOwnerData, 
@@ -148,7 +150,7 @@ export default async function handler(
         });
 
     } catch (error: any) {
-        console.error("Server error during registration:", error);
+        console.error("API Error: Server error during registration:", error);
         const errorMessage = error && typeof error.message === "string" ? error.message : "Internal server error during registration.";
         return res.status(500).json({ error: errorMessage });
     }

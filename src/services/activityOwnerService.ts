@@ -35,7 +35,7 @@ const activityOwnerService = {
     try {
       const apiData = {
         email: registrationData.email,
-        password: "temporary-password", // Ensure temporary password is included
+        password: "temporary-password", 
         firstName: registrationData.owner_name.split(" ")[0],
         lastName: registrationData.owner_name.split(" ").slice(1).join(" "),
         phoneNumber: registrationData.phone,
@@ -54,6 +54,8 @@ const activityOwnerService = {
         place_id: registrationData.place_id
       };
 
+      console.log("Service: Sending to API:", apiData);
+
       const response = await fetch("/api/register-activity-owner", {
         method: "POST",
         headers: {
@@ -63,20 +65,22 @@ const activityOwnerService = {
       });
 
       const result = await response.json();
+      console.log("Service: Received from API:", result);
+
 
       if (!response.ok) {
-        console.error("API Error in registerActivityOwner:", result.error || `API request failed with status ${response.status}`);
+        console.error("Service Error: API Error in registerActivityOwner:", result.error || `API request failed with status ${response.status}`);
         throw new Error(result.error || `API request failed with status ${response.status}`);
       }
 
       return {
         success: true,
         message: result.message || "Activity owner registered successfully",
-        data: result.data as ActivityOwner,
+         result.data as ActivityOwner, 
         isNewUser: result.isNewUser !== undefined ? result.isNewUser : true,
       };
     } catch (error: any) {
-      console.error("Error registering activity owner (service):", error.message || error);
+      console.error("Service Error: Error registering activity owner (service):", error.message || error);
       throw error; 
     }
   },
