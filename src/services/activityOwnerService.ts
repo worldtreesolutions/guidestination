@@ -34,7 +34,7 @@ const activityOwnerService = {
   async registerActivityOwner(registrationData: ActivityOwnerRegistrationData): Promise<RegistrationResult> {
     try {
       // First check if the user already exists with this email
-      const {  existingOwners, error: checkError } = await supabase
+      const { data: existingOwners, error: checkError } = await supabase
         .from("activity_owners")
         .select("*")
         .eq("email", registrationData.email);
@@ -84,7 +84,7 @@ const activityOwnerService = {
       return {
         success: true,
         message: "Activity owner registered successfully",
-         result.data, // Corrected this line
+         result.data, 
         isNewUser: true, // Assuming API always creates a new auth user or links to existing
       };
     } catch (error: any) {
