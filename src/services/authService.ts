@@ -41,12 +41,21 @@ const authService = {
   },
 
   async signInWithProvider(provider: Provider): Promise<AuthResponse> {
-    return supabase.auth.signInWithOAuth({
+    const { data, error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
         redirectTo: `${window.location.origin}/dashboard`,
       },
     });
+
+    // Convert OAuthResponse to AuthResponse
+    return {
+      data: {
+        user: null,
+        session: null
+      },
+      error
+    };
   },
 
   async signOut(): Promise<{ error: AuthError | null }> {
