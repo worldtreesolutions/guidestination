@@ -38,7 +38,7 @@ export default function LoginPage() {
     setError(null)
 
     try {
-      const {  authData, error: signInError } = await login(email, password)
+      const { data, error: signInError } = await login(email, password)
 
       if (signInError) {
         setError(signInError.message || "An unexpected error occurred during login.")
@@ -46,8 +46,8 @@ export default function LoginPage() {
         return
       }
 
-      if (authData?.user) {
-        const role = authData.user.user_metadata?.role
+      if (data?.user) {
+        const role = data.user.user_metadata?.role
         console.log("User role from meta", role) // For debugging
 
         if (role === "activity_owner") {
@@ -57,7 +57,7 @@ export default function LoginPage() {
         } else {
           router.push("/dashboard/overview") // Default dashboard
         }
-      } else if (authData?.session) {
+      } else if (data?.session) {
         // Session exists, but user object (and thus metadata) might not be immediately available.
         // The AuthContext's onAuthStateChange listener should handle full user profile loading.
         // Redirect to a default page; role-based redirection might be handled by a layout component.
