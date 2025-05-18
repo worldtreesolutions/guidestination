@@ -1,5 +1,5 @@
 
-import { useState } from "react"
+import { useState, useCallback } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -79,10 +79,10 @@ export const ActivityOwnerRegistrationForm = () => {
     },
   })
 
-  const handlePlaceSelect = (placeData: PlaceData) => {
+  const handlePlaceSelect = useCallback((placeData: PlaceData) => {
     setLocationData(placeData)
-    form.setValue('address', placeData.address)
-  }
+    form.setValue('address', placeData.address, { shouldValidate: true, shouldDirty: true })
+  }, [form])
 
   // Main form submission handler
   const onSubmit = async (values: z.infer<typeof formSchema>) => {

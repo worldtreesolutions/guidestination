@@ -11,8 +11,8 @@ export interface PlaceData {
 
 interface PlacesAutocompleteProps {
   value: string
-  onChange: (value: string) => void
-  onPlaceSelect: (placeData: PlaceData) => void
+  onChange: (value: string) => void // This is RHF's field.onChange for manual input
+  onPlaceSelect: (placeData: PlaceData) => void // Custom handler for when a place is selected
   placeholder?: string
   className?: string
   disabled?: boolean
@@ -22,7 +22,7 @@ const GOOGLE_MAPS_SCRIPT_ID = "google-maps-places-script";
 
 export function PlacesAutocomplete({
   value,
-  onChange,
+  onChange, 
   onPlaceSelect,
   placeholder = "Enter an address",
   className,
@@ -30,11 +30,16 @@ export function PlacesAutocomplete({
 }: PlacesAutocompleteProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null)
+  const placeChangedListenerRef = useRef<google.maps.MapsEventListener | null>(null);
   const [isLoaded, setIsLoaded] = useState(false)
 
-  // Load Google Maps API script
+  const onPlaceSelectRef = useRef(onPlaceSelect);
   useEffect(() => {
-    // Check if the script is already loaded by ID or if window.google.maps.places exists
+    onPlaceSelectRef.current = onPlaceSelect;
+  }, [onPlaceSelect]);
+
+  // Effect to load the Google Maps API script
+  useEffect(() => {
     if (document.getElementById(GOOGLE_MAPS_SCRIPT_ID) || (window.google && window.google.maps && window.google.maps.places)) {
       setIsLoaded(true)
       return
@@ -49,67 +54,85 @@ export function PlacesAutocomplete({
     script.onerror = () => console.error("Google Maps script could not be loaded.")
     document.head.appendChild(script)
 
-    // No cleanup needed for the script tag itself if we're checking by ID,
-    // as we don't want to remove it if other instances might need it.
-    // The browser will handle one script with the same src.
-  }, [])
+    return () => {
+        const existingScript = document.getElementById(GOOGLE_MAPS_SCRIPT_ID);
+        // Only remove if it was our script and it hasn't loaded yet (isLoaded is false)
+        // If isLoaded is true, it means the script loaded successfully and should remain.
+        if (existingScript && !isLoaded) { 
+            existingScript.remove();
+        }
+    }
+  }, [isLoaded]) // Added isLoaded to dependency array to avoid re-running if script is already loaded by other means.
 
-  // Initialize autocomplete when script is loaded and input is available
+  // Effect to initialize the Google Autocomplete instance and add listeners
   useEffect(() => {
     if (!isLoaded || !inputRef.current || !window.google || !window.google.maps || !window.google.maps.places) {
-      return
-    }
-    
-    if (autocompleteRef.current) { // Avoid re-initializing if already done
-        return;
+      return; // Prerequisites not met
     }
 
-    autocompleteRef.current = new google.maps.places.Autocomplete(inputRef.current, {
-      types: ["establishment", "geocode"], // You can customize types e.g., ['address']
-      fields: ["address_components", "formatted_address", "geometry", "place_id", "name"] // Added name
-    })
+    // Initialize Autocomplete only if it hasn't been already for this input
+    if (!autocompleteRef.current) {
+      const instance = new google.maps.places.Autocomplete(inputRef.current, {
+        types: ["establishment", "geocode"], 
+        fields: ["address_components", "formatted_address", "geometry", "place_id", "name"]
+      });
+      autocompleteRef.current = instance;
 
-    const listener = autocompleteRef.current.addListener("place_changed", () => {
-      const place = autocompleteRef.current?.getPlace()
-      
-      if (!place || !place.geometry || !place.geometry.location) {
-        console.warn("Autocomplete place_changed event: Invalid place object or missing geometry.", place)
-        // Optionally, clear the input or notify the user if the selection is invalid
-        // onChange(""); // Example: clear input if selection is not valid
-        return
+      // Add the place_changed listener and store its handle
+      if (placeChangedListenerRef.current) {
+        placeChangedListenerRef.current.remove(); // Remove old listener if any
       }
+      placeChangedListenerRef.current = instance.addListener("place_changed", () => {
+        const place = autocompleteRef.current?.getPlace();
+        
+        if (!place || !place.geometry || !place.geometry.location) {
+          console.warn("Autocomplete place_changed event: Invalid place object or missing geometry.", place);
+          return;
+        }
 
-      const placeData: PlaceData = {
-        address: place.formatted_address || place.name || "",
-        lat: place.geometry.location.lat(),
-        lng: place.geometry.location.lng(),
-        placeId: place.place_id || ""
-      }
+        const placeData: PlaceData = {
+          address: place.formatted_address || place.name || "",
+          lat: place.geometry.location.lat(),
+          lng: place.geometry.location.lng(),
+          placeId: place.place_id || ""
+        };
+        onPlaceSelectRef.current(placeData); // Call the memoized callback from parent
+      });
+    }
 
-      onChange(placeData.address) // Update the input field with the selected address
-      onPlaceSelect(placeData)    // Pass the detailed place data to the parent
-    })
-
+    // Cleanup function for this effect
     return () => {
-      // Clean up the specific listener when the component unmounts or dependencies change
-      if (window.google && window.google.maps && window.google.maps.event && listener) {
-        google.maps.event.removeListener(listener);
+      // Remove the specific place_changed listener
+      if (placeChangedListenerRef.current) {
+        placeChangedListenerRef.current.remove();
+        placeChangedListenerRef.current = null;
       }
-      // Do not remove autocompleteRef.current here as it might break if other instances are still active.
-      // google.maps.event.clearInstanceListeners(inputRef.current); // Alternative cleanup
-    }
-  }, [isLoaded, onChange, onPlaceSelect]) // Ensure dependencies are correct
+      
+      // Clear any other Google Maps listeners from the input element itself
+      // This is important if the input element is being removed/re-created
+      // or if the component unmounts.
+      const currentInputNode = inputRef.current; // Capture for cleanup closure
+      if (currentInputNode && window.google && window.google.maps && window.google.maps.event) {
+        google.maps.event.clearInstanceListeners(currentInputNode);
+      }
+      
+      // When the component unmounts, we can also nullify the autocompleteRef
+      // so that if it remounts (e.g. due to conditional rendering), it gets a fresh instance.
+      autocompleteRef.current = null; 
+    };
+  }, [isLoaded]); // Dependency: This effect runs when `isLoaded` changes.
 
   return (
     <Input
       ref={inputRef}
       type="text"
-      value={value}
-      onChange={(e) => onChange(e.target.value)} // Allow manual typing
+      value={value} // Controlled by React Hook Form
+      onChange={(e) => {
+        onChange(e.target.value); // Propagate manual input changes to RHF
+      }}
       placeholder={placeholder}
       className={className}
-      disabled={disabled || !isLoaded} // Disable input if API not loaded or explicitly disabled
+      disabled={disabled || !isLoaded} 
     />
   )
 }
-  
