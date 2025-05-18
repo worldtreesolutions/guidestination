@@ -6,6 +6,7 @@ import {
   User,
   Session,
   Provider,
+  OAuthResponse,
 } from "@supabase/supabase-js";
 
 export interface UserProfile {
@@ -28,7 +29,7 @@ const authService = {
       email,
       password,
       options: {
-        data: additionalData,
+         additionalData,
       },
     });
   },
@@ -41,21 +42,22 @@ const authService = {
   },
 
   async signInWithProvider(provider: Provider): Promise<AuthResponse> {
-    const { data, error } = await supabase.auth.signInWithOAuth({
+    // signInWithOAuth returns OAuthResponse, not AuthResponse directly
+    // We need to handle the redirect and let onAuthStateChange update user/session
+    const oauthResponse: OAuthResponse = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${window.location.origin}/dashboard`,
+        redirectTo: `${typeof window !== "undefined" ? window.location.origin : ""}/dashboard`,
       },
     });
 
-    // Convert OAuthResponse to AuthResponse
-    return {
-      data: {
-        user: null,
-        session: null
-      },
-      error
-    };
+    if (oauthResponse.error) {
+      return {  { user: null, session: null }, error: oauthResponse.error };
+    }
+    
+    // For OAuth, the user/session is typically available after redirect and handled by onAuthStateChange
+    // So, we return a compliant AuthResponse structure, acknowledging the OAuth process has started.
+    return {  { user: null, session: null }, error: null };
   },
 
   async signOut(): Promise<{ error: AuthError | null }> {
@@ -63,7 +65,7 @@ const authService = {
   },
 
   async getUser(): Promise<User | null> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {  { user } } = await supabase.auth.getUser();
     return user;
   },
 
@@ -74,53 +76,25 @@ const authService = {
 
   async resetPasswordForEmail(email: string): Promise<{ error: AuthError | null }> {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/dashboard/reset-password`,
+      redirectTo: `${typeof window !== "undefined" ? window.location.origin : ""}/dashboard/reset-password`,
     });
     return { error };
   },
 
   async updatePasswordWithResetToken(password: string): Promise<AuthResponse> {
-    const { data, error } = await supabase.auth.updateUser({ password });
-    return {
-      data: {
-        user: data?.user || null,
-        session: null
-      },
-      error
-    };
+    return supabase.auth.updateUser({ password });
   },
 
   async updateUserPassword(password: string): Promise<AuthResponse> {
-    const { data, error } = await supabase.auth.updateUser({ password });
-    return {
-      data: {
-        user: data?.user || null,
-        session: null
-      },
-      error
-    };
+    return supabase.auth.updateUser({ password });
   },
 
   async updateUserEmail(email: string): Promise<AuthResponse> {
-    const { data, error } = await supabase.auth.updateUser({ email });
-    return {
-      data: {
-        user: data?.user || null,
-        session: null
-      },
-      error
-    };
+    return supabase.auth.updateUser({ email });
   },
 
-  async updateUserMetadata(metadata: Record<string, any>): Promise<AuthResponse> {
-    const { data, error } = await supabase.auth.updateUser({ data: metadata });
-    return {
-      data: {
-        user: data?.user || null,
-        session: null
-      },
-      error
-    };
+  async updateUserMetadata(meta Record<string, any>): Promise<AuthResponse> {
+    return supabase.auth.updateUser({  metadata });
   },
 
   async getUserProfile(userId: string): Promise<UserProfile | null> {
