@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -25,20 +26,17 @@ interface ActivityOwnerRegistrationData {
 interface RegistrationResult {
   success: boolean;
   message: string;
-  data?: ActivityOwner; // This should match the type of 'newOwnerData' from the API
+  data?: ActivityOwner; 
   isNewUser: boolean;
 }
 
 const activityOwnerService = {
   async registerActivityOwner(registrationData: ActivityOwnerRegistrationData): Promise<RegistrationResult> {
     try {
-      // The client-side service no longer directly checks the DB for existing owners.
-      // This check is now handled by the API route.
-      
       const apiData = {
         email: registrationData.email,
-        // Password is set server-side by the API route
-        // password: "temporary-password", 
+        // Password is now set by the API route, so we don't pass it from client-side service
+        // password: "temporary-password", // Example, should be handled securely
         firstName: registrationData.owner_name.split(" ")[0],
         lastName: registrationData.owner_name.split(" ").slice(1).join(" "),
         phoneNumber: registrationData.phone,
@@ -62,29 +60,24 @@ const activityOwnerService = {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(apiData), 
+        body: JSON.stringify(apiData),
       });
 
       const result = await response.json();
 
       if (!response.ok) {
-        // The API route now returns specific error messages and codes (e.g., 409 for existing auth user)
-        // We can throw an error with the message from the API
         throw new Error(result.error || `API request failed with status ${response.status}`);
       }
 
-      // The API now returns 'data' which contains the newOwnerData (ActivityOwnerRow)
       return {
         success: true,
         message: result.message || "Activity owner registered successfully",
-        data:result.data as ActivityOwner, // Corrected: Added the 'data' key
+         result.data as ActivityOwner, // Corrected: Added the 'data' key
         isNewUser: result.isNewUser !== undefined ? result.isNewUser : true,
       };
     } catch (error: any) {
       console.error("Error registering activity owner (service):", error);
-      // Re-throw the error so the form can catch it and display the message
-      // The error message should now be more specific from the API
-      throw error; 
+      throw error; // Re-throw to be caught by the form
     }
   },
 
@@ -97,26 +90,29 @@ const activityOwnerService = {
         .single();
 
       if (error) {
-        console.error("Error fetching activity owner:", error);
+        // It's common for single() to return an error if no row is found.
+        // We might not want to log this as an error every time if it's an expected case.
+        if (error.code !== "PGRST116") { // PGRST116: "No rows found"
+          console.error("Error fetching activity owner by user ID:", error);
+        }
         return null;
       }
-
       return data;
     } catch (error) {
-      console.error("Error in getActivityOwnerByUserId:", error);
+      console.error("Unexpected error in getActivityOwnerByUserId:", error);
       return null;
     }
   },
 
   async updateActivityOwner(
-    ownerId: string, 
+    ownerId: string, // Assuming this is the provider_id (PK of activity_owners)
     updates: Partial<ActivityOwner>
   ): Promise<ActivityOwner | null> {
     try {
       const { data, error } = await supabase
         .from("activity_owners")
         .update(updates)
-        .eq("provider_id", ownerId) 
+        .eq("provider_id", ownerId) // Ensure this matches your primary key column name
         .select()
         .single();
 
@@ -124,10 +120,9 @@ const activityOwnerService = {
         console.error("Error updating activity owner:", error);
         return null;
       }
-
       return data;
     } catch (error) {
-      console.error("Error in updateActivityOwner:", error);
+      console.error("Unexpected error in updateActivityOwner:", error);
       return null;
     }
   },
@@ -137,17 +132,21 @@ const activityOwnerService = {
       const { data, error } = await supabase
         .from("activity_owners")
         .select("*")
-        .eq("user_id", userId)
+        .eq("user_id", userId) // Assuming user_id is the foreign key to auth.users
         .single();
 
       if (error) {
-        console.error("Error fetching activity owner profile:", error);
+        if (error.code !== "PGRST116") {
+          console.error("Error fetching activity owner profile:", error);
+        }
         return null;
       }
-
       return data;
-    } catch (error: any) { 
-      console.error("Error in getActivityOwnerProfile:", error);
+    } catch (error: any) {
+      console.error("Unexpected error in getActivityOwnerProfile:", error);
       return null;
     }
   }
+};
+
+export default activityOwnerService;
