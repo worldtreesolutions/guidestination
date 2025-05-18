@@ -84,7 +84,7 @@ const activityOwnerService = {
       return {
         success: true,
         message: "Activity owner registered successfully",
-         result.data,
+         result.data, // Corrected this line
         isNewUser: true, // Assuming API always creates a new auth user or links to existing
       };
     } catch (error: any) {
