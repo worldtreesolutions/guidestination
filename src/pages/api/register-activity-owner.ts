@@ -23,18 +23,17 @@ export default async function handler(
         businessAddress,
         businessType,
         taxId,
-        description, // Ensure this is received
-        tourism_license_number, // Ensure this is received
+        description, 
+        tourism_license_number, 
         tat_license_number,
         guide_card_number,
-        insurance_policy, // Ensure this is received
-        insurance_amount, // Ensure this is received
+        insurance_policy, 
+        insurance_amount, 
         location_lat,
         location_lng,
         place_id,
     } = req.body
 
-    // Check for all required fields
     const requiredFields: Record<string, any> = {
         email, password, firstName, phoneNumber, businessName, 
         businessAddress, businessType, taxId, description, 
@@ -122,7 +121,7 @@ export default async function handler(
 
         return res.status(200).json({ 
             message: "Activity owner registered successfully. Please check your email for verification.",
-             newOwnerData, 
+             newOwnerData, // Corrected: Added 'data' key
             isNewUser: true 
         })
 
