@@ -6,6 +6,7 @@ import {
   User,
   Session,
   Provider,
+  OAuthResponse
 } from "@supabase/supabase-js";
 
 export interface UserProfile {
@@ -40,7 +41,7 @@ const authService = {
     });
   },
 
-  async signInWithProvider(provider: Provider): Promise<AuthResponse> {
+  async signInWithProvider(provider: Provider): Promise<OAuthResponse> {
     return supabase.auth.signInWithOAuth({
       provider,
       options: {
