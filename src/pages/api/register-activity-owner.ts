@@ -53,7 +53,7 @@ export default async function handler(
     }
 
     try {
-        const { data: existingOwnerData, error: ownerCheckError } = await supabaseAdmin
+        const {  existingOwnerData, error: ownerCheckError } = await supabaseAdmin
             .from("activity_owners")
             .select("provider_id") 
             .eq("email", email)
@@ -72,7 +72,7 @@ export default async function handler(
             email,
             password,
             email_confirm: true, 
-            user_meta { 
+            user_meta: { 
                 firstName: firstName,
                 lastName: lastName || "", 
                 role: "activity_owner"
@@ -112,7 +112,7 @@ export default async function handler(
             place_id: place_id || null,
         }
 
-        const { data: newOwnerData, error: createOwnerError } = await supabaseAdmin
+        const {  newOwnerData, error: createOwnerError } = await supabaseAdmin
             .from("activity_owners")
             .insert(ownerInsertData)
             .select() 
