@@ -34,16 +34,21 @@ export default async function handler(
         place_id,
     } = req.body
 
+    // Check for all required fields
     const requiredFields: Record<string, any> = {
         email, password, firstName, phoneNumber, businessName, 
         businessAddress, businessType, taxId, description, 
         tourism_license_number, insurance_policy, insurance_amount
     };
 
-    const missingFields = Object.keys(requiredFields).filter(key => !requiredFields[key]);
+    const missingFields = Object.keys(requiredFields).filter(key => {
+      const value = requiredFields[key];
+      // Consider a field missing if it's null, undefined, or an empty string
+      return value === null || value === undefined || value === "";
+    });
 
     if (missingFields.length > 0) {
-        console.error("Missing required fields:", missingFields.join(", "));
+        console.error("API Error - Missing required fields:", missingFields.join(", "), "Received body:", req.body);
         return res.status(400).json({ error: `Missing required fields: ${missingFields.join(", ")}` })
     }
 
@@ -67,7 +72,7 @@ export default async function handler(
             email,
             password,
             email_confirm: true, 
-            user_meta {
+            user_meta: { 
                 firstName: firstName,
                 lastName: lastName || "", 
                 role: "activity_owner"

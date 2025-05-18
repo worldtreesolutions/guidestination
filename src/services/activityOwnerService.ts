@@ -52,7 +52,7 @@ const activityOwnerService = {
         };
       }
       
-      // Prepare data for API call
+      // Prepare data for API call, ensuring all fields from registrationData are included
       const apiData = {
         email: registrationData.email,
         password: "temporary-password", // This will be set by the user later
@@ -80,7 +80,7 @@ const activityOwnerService = {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(apiData),
+        body: JSON.stringify(apiData), // All fields from apiData will be stringified
       });
 
       const result = await response.json();
