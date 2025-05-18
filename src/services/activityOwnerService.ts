@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -78,7 +77,7 @@ const activityOwnerService = {
       return {
         success: true,
         message: result.message || "Activity owner registered successfully",
-         result.data as ActivityOwner, // Corrected: Added the 'data' key
+        data:result.data as ActivityOwner, // Corrected: Added the 'data' key
         isNewUser: result.isNewUser !== undefined ? result.isNewUser : true,
       };
     } catch (error: any) {
@@ -151,8 +150,3 @@ const activityOwnerService = {
       console.error("Error in getActivityOwnerProfile:", error);
       return null;
     }
-  },
-};
-
-export default activityOwnerService;
-  
