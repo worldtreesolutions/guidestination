@@ -26,7 +26,7 @@ interface ActivityOwnerRegistrationData {
 interface RegistrationResult {
   success: boolean;
   message: string;
-  data?: ActivityOwner; 
+  data?: ActivityOwner;
   isNewUser: boolean;
 }
 
@@ -35,8 +35,6 @@ const activityOwnerService = {
     try {
       const apiData = {
         email: registrationData.email,
-        // Password is now set by the API route, so we don't pass it from client-side service
-        // password: "temporary-password", // Example, should be handled securely
         firstName: registrationData.owner_name.split(" ")[0],
         lastName: registrationData.owner_name.split(" ").slice(1).join(" "),
         phoneNumber: registrationData.phone,
@@ -77,7 +75,7 @@ const activityOwnerService = {
       };
     } catch (error: any) {
       console.error("Error registering activity owner (service):", error);
-      throw error; // Re-throw to be caught by the form
+      throw error; 
     }
   },
 
@@ -90,9 +88,7 @@ const activityOwnerService = {
         .single();
 
       if (error) {
-        // It's common for single() to return an error if no row is found.
-        // We might not want to log this as an error every time if it's an expected case.
-        if (error.code !== "PGRST116") { // PGRST116: "No rows found"
+        if (error.code !== "PGRST116") { 
           console.error("Error fetching activity owner by user ID:", error);
         }
         return null;
@@ -105,14 +101,14 @@ const activityOwnerService = {
   },
 
   async updateActivityOwner(
-    ownerId: string, // Assuming this is the provider_id (PK of activity_owners)
+    ownerId: string, 
     updates: Partial<ActivityOwner>
   ): Promise<ActivityOwner | null> {
     try {
       const { data, error } = await supabase
         .from("activity_owners")
         .update(updates)
-        .eq("provider_id", ownerId) // Ensure this matches your primary key column name
+        .eq("provider_id", ownerId) 
         .select()
         .single();
 
@@ -132,7 +128,7 @@ const activityOwnerService = {
       const { data, error } = await supabase
         .from("activity_owners")
         .select("*")
-        .eq("user_id", userId) // Assuming user_id is the foreign key to auth.users
+        .eq("user_id", userId) 
         .single();
 
       if (error) {
@@ -146,7 +142,7 @@ const activityOwnerService = {
       console.error("Unexpected error in getActivityOwnerProfile:", error);
       return null;
     }
-  }
-};
+  } // Closing brace for getActivityOwnerProfile method
+}; // Closing brace for activityOwnerService object
 
-export default activityOwnerService;
+export default activityOwnerService; // Export statement
