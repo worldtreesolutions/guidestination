@@ -26,6 +26,7 @@ export default function MobileMenu() {
     { href: "/activities", label: "Activities" },
     { href: "/planning", label: "My Planning" },
     { href: "/activity-owner", label: "List Your Activities" },
+    { href: "/partner", label: "Become a Partner" },
     { href: "/dashboard/login", label: "Provider Dashboard" },
   ]
 
@@ -68,15 +69,6 @@ export default function MobileMenu() {
               {link.label}
             </Link>
           ))}
-          <a 
-            href="https://3000-sandbox-63cb7384.h1038.daytona.work/admin/login" 
-            className="flex w-full items-center py-2 text-sm font-medium text-foreground/60 hover:text-primary"
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => setOpen(false)}
-          >
-            Admin Portal
-          </a>
           {user ? (
             <>
               <Link

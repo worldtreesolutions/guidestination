@@ -50,14 +50,11 @@ export function Navbar() {
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
-                <a 
-                  href="https://3000-sandbox-63cb7384.h1038.daytona.work/admin/login" 
-                  className={navLinkClassName}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Admin Portal
-                </a>
+                <Link href="/partner" legacyBehavior passHref>
+                  <NavigationMenuLink className={navLinkClassName}>
+                    Become a Partner
+                  </NavigationMenuLink>
+                </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
                 <Link href="/dashboard/login" legacyBehavior passHref>
