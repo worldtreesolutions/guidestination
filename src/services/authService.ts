@@ -24,6 +24,20 @@ export interface UserProfile {
   updated_at?: string;
 }
 
+interface DatabaseUserProfile {
+  id: number;
+  name: string;
+  email: string;
+  password_hash: string | null;
+  phone: string | null;
+  user_type: string | null;
+  created_at: string | null;
+  role_id: number | null;
+  verified: boolean;
+  avatar_url?: string;
+  updated_at?: string;
+}
+
 const authService = {
   async signUp(
     email: string,
@@ -110,19 +124,10 @@ const authService = {
 
     if (!data) return null;
 
+    const dbProfile = data as DatabaseUserProfile;
     return {
-      id: data.id,
-      user_id: data.user_id || userId, // Ensure user_id is always present
-      name: data.name,
-      email: data.email,
-      password_hash: data.password_hash,
-      phone: data.phone,
-      user_type: data.user_type,
-      created_at: data.created_at,
-      role_id: data.role_id,
-      verified: data.verified,
-      avatar_url: data.avatar_url,
-      updated_at: data.updated_at
+      ...dbProfile,
+      user_id: userId,
     };
   },
 
@@ -144,19 +149,10 @@ const authService = {
 
     if (!data) return null;
 
+    const dbProfile = data as DatabaseUserProfile;
     return {
-      id: data.id,
-      user_id: data.user_id || userId, // Ensure user_id is always present
-      name: data.name,
-      email: data.email,
-      password_hash: data.password_hash,
-      phone: data.phone,
-      user_type: data.user_type,
-      created_at: data.created_at,
-      role_id: data.role_id,
-      verified: data.verified,
-      avatar_url: data.avatar_url,
-      updated_at: data.updated_at
+      ...dbProfile,
+      user_id: userId,
     };
   },
 
