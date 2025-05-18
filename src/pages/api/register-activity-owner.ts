@@ -2,6 +2,7 @@
 import { NextApiRequest, NextApiResponse } from "next"
 import { supabaseAdmin } from "@/integrations/supabase/admin"
 import type { Database } from "@/integrations/supabase/types"
+import { User } from "@supabase/supabase-js"
 
 type ActivityOwnerInsert = Database["public"]["Tables"]["activity_owners"]["Insert"]
 type ActivityOwnerRow = Database["public"]["Tables"]["activity_owners"]["Row"]
@@ -52,7 +53,7 @@ export default async function handler(
     }
 
     try {
-        const {  existingOwnerData, error: ownerCheckError } = await supabaseAdmin
+        const { data: existingOwnerData, error: ownerCheckError } = await supabaseAdmin
             .from("activity_owners")
             .select("provider_id") 
             .eq("email", email)
@@ -67,11 +68,11 @@ export default async function handler(
             return res.status(400).json({ error: "An activity owner with this email already exists." })
         }
 
-        const {  authData, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
+        const {  authUserData, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
             email,
             password,
             email_confirm: true, 
-            user_meta: { 
+            user_meta { 
                 firstName: firstName,
                 lastName: lastName || "", 
                 role: "activity_owner"
@@ -83,12 +84,15 @@ export default async function handler(
             return res.status(500).json({ error: createUserError.message || "Failed to create authentication user." })
         }
 
-        if (!authData || !authData.user) { 
+        if (!authUserData || !authUserData.user) { 
+            console.error("Auth user creation did not return a user object.", authUserData)
             return res.status(500).json({ error: "Auth user creation did not return a user object." })
         }
+        
+        const authUser: User = authUserData.user;
 
         const ownerInsertData: ActivityOwnerInsert = {
-            user_id: authData.user.id, 
+            user_id: authUser.id, 
             owner_name: `${firstName} ${lastName || ""}`.trim(),
             email,
             phone: phoneNumber,
@@ -112,17 +116,17 @@ export default async function handler(
             .from("activity_owners")
             .insert(ownerInsertData)
             .select() 
-            .single<ActivityOwnerRow>() // Specify the expected return type
+            .single<ActivityOwnerRow>()
 
         if (createOwnerError) {
             console.error("Error creating owner record in DB:", createOwnerError)
-            await supabaseAdmin.auth.admin.deleteUser(authData.user.id)
+            await supabaseAdmin.auth.admin.deleteUser(authUser.id)
             return res.status(500).json({ error: "Failed to create activity owner profile in database." })
         }
 
         return res.status(200).json({ 
             message: "Activity owner registered successfully. Please check your email for verification.",
-            data: newOwnerData, 
+             newOwnerData, 
             isNewUser: true 
         })
 

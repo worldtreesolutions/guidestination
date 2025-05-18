@@ -1,5 +1,4 @@
 
-    
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -40,7 +39,7 @@ const activityOwnerService = {
         .select("provider_id") 
         .eq("email", registrationData.email);
 
-      if (dbCheckError && dbCheckError.code !== "PGRST116") { // PGRST116: No rows found
+      if (dbCheckError && dbCheckError.code !== "PGRST116") { // PGRST116: No rows found for non-unique query
         console.error(`Error checking existing owners in DB: ${dbCheckError.message}`);
         throw new Error(`Error checking existing owners in DB: ${dbCheckError.message}`);
       }
@@ -90,7 +89,7 @@ const activityOwnerService = {
       return {
         success: true,
         message: result.message || "Activity owner registered successfully",
-        data: result.data, 
+         result.data, 
         isNewUser: result.isNewUser !== undefined ? result.isNewUser : true,
       };
     } catch (error: any) {
