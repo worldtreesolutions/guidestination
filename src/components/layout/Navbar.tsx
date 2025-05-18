@@ -50,9 +50,9 @@ export function Navbar() {
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem className="flex-1 max-w-[200px]">
-                <Link href="/partner" legacyBehavior passHref>
+                <Link href="/admin" legacyBehavior passHref>
                   <NavigationMenuLink className={navLinkClassName}>
-                    <span className="text-sm lg:text-base">Become a Partner</span>
+                    <span className="text-sm lg:text-base">Admin Portal</span>
                   </NavigationMenuLink>
                 </Link>
               </NavigationMenuItem>
