@@ -8,7 +8,6 @@ import {
   Provider,
 } from "@supabase/supabase-js";
 
-// Define our own UserProfile interface since we don't have access to the profiles table
 export interface UserProfile {
   id: string;
   user_id: string;
@@ -42,20 +41,12 @@ const authService = {
   },
 
   async signInWithProvider(provider: Provider): Promise<AuthResponse> {
-    const { data, error } = await supabase.auth.signInWithOAuth({
+    return supabase.auth.signInWithOAuth({
       provider,
       options: {
         redirectTo: `${window.location.origin}/dashboard`,
       },
     });
-
-    return {
-      data: {
-        user: null,
-        session: null,
-      },
-      error: error,
-    };
   },
 
   async signOut(): Promise<{ error: AuthError | null }> {
@@ -80,47 +71,19 @@ const authService = {
   },
 
   async updatePasswordWithResetToken(password: string): Promise<AuthResponse> {
-    const { data, error } = await supabase.auth.updateUser({ password });
-    return {
-      data: {
-        user: data.user,
-        session: null
-      },
-      error
-    };
+    return supabase.auth.updateUser({ password });
   },
 
   async updateUserPassword(password: string): Promise<AuthResponse> {
-    const { data, error } = await supabase.auth.updateUser({ password });
-    return {
-      data: {
-        user: data.user,
-        session: null
-      },
-      error
-    };
+    return supabase.auth.updateUser({ password });
   },
 
   async updateUserEmail(email: string): Promise<AuthResponse> {
-    const { data, error } = await supabase.auth.updateUser({ email });
-    return {
-      data: {
-        user: data.user,
-        session: null
-      },
-      error
-    };
+    return supabase.auth.updateUser({ email });
   },
 
   async updateUserMetadata(metadata: Record<string, any>): Promise<AuthResponse> {
-    const { data, error } = await supabase.auth.updateUser({ data: metadata });
-    return {
-      data: {
-        user: data.user,
-        session: null
-      },
-      error
-    };
+    return supabase.auth.updateUser({ data: metadata });
   },
 
   async getUserProfile(userId: string): Promise<UserProfile | null> {
