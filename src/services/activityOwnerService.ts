@@ -34,7 +34,7 @@ const activityOwnerService = {
   async registerActivityOwner(registrationData: ActivityOwnerRegistrationData): Promise<RegistrationResult> {
     try {
       // First check if the user already exists with this email
-      const {  existingOwners, error: checkError } = await supabase
+      const { data: existingOwners, error: checkError } = await supabase
         .from("activity_owners")
         .select("*")
         .eq("email", registrationData.email);
