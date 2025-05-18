@@ -40,7 +40,8 @@ const activityOwnerService = {
         .select("*")
         .eq("email", registrationData.email);
 
-      if (checkError) {
+      if (checkError && checkError.code !== "PGRST116") { // PGRST116 means no rows found, which is fine
+        console.error(`Error checking existing owners: ${checkError.message}`);
         throw new Error(`Error checking existing owners: ${checkError.message}`);
       }
 
