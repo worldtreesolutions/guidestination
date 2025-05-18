@@ -31,16 +31,15 @@ interface RegistrationResult {
 }
 
 const activityOwnerService = {
-  async registerActivityOwner( ActivityOwnerRegistrationData): Promise<RegistrationResult> {
+  async registerActivityOwner(registrationData: ActivityOwnerRegistrationData): Promise<RegistrationResult> {
     try {
       // First check if the user already exists with this email
       const {  existingOwners, error: checkError } = await supabase
         .from("activity_owners")
         .select("*")
-        .eq("email", data.email);
+        .eq("email", registrationData.email);
 
       if (checkError) {
-        // Throw a new error object to avoid overwriting message property
         throw new Error(`Error checking existing owners: ${checkError.message}`);
       }
 
@@ -53,18 +52,18 @@ const activityOwnerService = {
 
       // Prepare data for API call
       const apiData = {
-        email: data.email,
+        email: registrationData.email,
         password: "temporary-password", // This will be set by the user later
-        firstName: data.owner_name.split(" ")[0],
-        lastName: data.owner_name.split(" ").slice(1).join(" "),
-        phoneNumber: data.phone,
-        businessName: data.business_name,
-        businessAddress: data.address,
-        businessType: data.business_type,
-        taxId: data.tax_id,
-        location_lat: data.location_lat,
-        location_lng: data.location_lng,
-        place_id: data.place_id
+        firstName: registrationData.owner_name.split(" ")[0],
+        lastName: registrationData.owner_name.split(" ").slice(1).join(" "),
+        phoneNumber: registrationData.phone,
+        businessName: registrationData.business_name,
+        businessAddress: registrationData.address,
+        businessType: registrationData.business_type,
+        taxId: registrationData.tax_id,
+        location_lat: registrationData.location_lat,
+        location_lng: registrationData.location_lng,
+        place_id: registrationData.place_id
       };
 
       // Call the API endpoint to register the activity owner
@@ -79,7 +78,6 @@ const activityOwnerService = {
       const result = await response.json();
 
       if (!response.ok) {
-         // Throw a new error object to avoid overwriting message property
         throw new Error(result.error || "Failed to register activity owner");
       }
 
@@ -91,7 +89,6 @@ const activityOwnerService = {
       };
     } catch (error: any) {
       console.error("Error registering activity owner:", error);
-      // Re-throw the original error or a new one with more context
       if (error.code === "ACTIVITY_OWNER_EXISTS") {
         throw error;
       }
@@ -120,14 +117,14 @@ const activityOwnerService = {
   },
 
   async updateActivityOwner(
-    ownerId: number, // Assuming ownerId is indeed a number based on schema
+    ownerId: number, 
     updates: Partial<ActivityOwner>
   ): Promise<ActivityOwner | null> {
     try {
       const { data, error } = await supabase
         .from("activity_owners")
         .update(updates)
-        .eq("id", ownerId) // Supabase client should handle number types for eq filters correctly
+        .eq("id", ownerId) 
         .select()
         .single();
 
