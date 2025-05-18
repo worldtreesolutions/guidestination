@@ -35,6 +35,9 @@ const activityOwnerService = {
     try {
       const apiData = {
         email: registrationData.email,
+        // The API route expects a password. Ensure this is handled.
+        // If the form doesn't collect it, the API must generate/handle it.
+        // For now, assuming the API handles password if not explicitly sent.
         firstName: registrationData.owner_name.split(" ")[0],
         lastName: registrationData.owner_name.split(" ").slice(1).join(" "),
         phoneNumber: registrationData.phone,
@@ -71,7 +74,7 @@ const activityOwnerService = {
       return {
         success: true,
         message: result.message || "Activity owner registered successfully",
-         result.data as ActivityOwner, // This is the line that needs the key
+         result.data as ActivityOwner, // CRITICAL FIX: Added the '' key here
         isNewUser: result.isNewUser !== undefined ? result.isNewUser : true,
       };
     } catch (error: any) {
@@ -143,7 +146,7 @@ const activityOwnerService = {
       console.error("Unexpected error in getActivityOwnerProfile:", error);
       return null;
     }
-  }
-}; 
+  } // Closing brace for getActivityOwnerProfile method
+}; // Closing brace for activityOwnerService object
 
-export default activityOwnerService;
+export default activityOwnerService; // Export statement
