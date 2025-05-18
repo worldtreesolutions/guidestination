@@ -53,22 +53,24 @@ export default async function handler(
     }
 
     try {
-        const {  existingOwnerData, error: ownerCheckError } = await supabaseAdmin
+        // Check if an activity_owner record already exists in the database for this email
+        const {  existingDbOwner, error: ownerCheckError } = await supabaseAdmin
             .from("activity_owners")
             .select("provider_id") 
             .eq("email", email)
-            .single()
+            .single();
 
-        if (ownerCheckError && ownerCheckError.code !== "PGRST116") { 
-            console.error("Error checking existing owner in DB:", ownerCheckError)
-            return res.status(500).json({ error: "Error checking existing owner details." })
+        if (ownerCheckError && ownerCheckError.code !== "PGRST116") { // PGRST116: "No rows found" - this is okay if no owner exists
+            console.error("Error checking existing owner in DB:", ownerCheckError);
+            return res.status(500).json({ error: "Error checking existing owner details." });
         }
 
-        if (existingOwnerData) {
-            return res.status(400).json({ error: "An activity owner with this email already exists." })
+        if (existingDbOwner) {
+            return res.status(400).json({ error: "An activity owner with this email already exists in our records." });
         }
 
-        const {  authUserData, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
+        // Attempt to create the authentication user
+        const {  authCreationResponse, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
             email,
             password,
             email_confirm: true, 
@@ -77,20 +79,27 @@ export default async function handler(
                 lastName: lastName || "", 
                 role: "activity_owner"
             }
-        })
+        });
 
         if (createUserError) {
-            console.error("Error creating auth user:", createUserError)
-            return res.status(500).json({ error: createUserError.message || "Failed to create authentication user." })
+            console.error("Error creating auth user:", createUserError);
+            // Check if the error is due to the user already being registered in the auth system
+            if (createUserError.message && 
+                (createUserError.message.toLowerCase().includes("user already registered") || 
+                 createUserError.message.toLowerCase().includes("email address has already been registered"))) {
+                return res.status(409).json({ error: "A user with this email address has already been registered. Please try logging in or use a different email." });
+            }
+            return res.status(500).json({ error: createUserError.message || "Failed to create authentication user." });
         }
 
-        if (!authUserData || !authUserData.user) { 
-            console.error("Auth user creation did not return a user object.", authUserData)
-            return res.status(500).json({ error: "Auth user creation did not return a user object." })
+        if (!authCreationResponse || !authCreationResponse.user) { 
+            console.error("Auth user creation did not return a user object.", authCreationResponse);
+            return res.status(500).json({ error: "Auth user creation did not return a user object." });
         }
         
-        const authUser: User = authUserData.user;
+        const authUser: User = authCreationResponse.user;
 
+        // Create the activity_owner profile in the database
         const ownerInsertData: ActivityOwnerInsert = {
             user_id: authUser.id, 
             owner_name: `${firstName} ${lastName || ""}`.trim(),
@@ -110,30 +119,31 @@ export default async function handler(
             location_lat: location_lat || null,
             location_lng: location_lng || null,
             place_id: place_id || null,
-        }
+        };
 
         const {  newOwnerData, error: createOwnerError } = await supabaseAdmin
             .from("activity_owners")
             .insert(ownerInsertData)
             .select() 
-            .single<ActivityOwnerRow>()
+            .single<ActivityOwnerRow>();
 
         if (createOwnerError) {
-            console.error("Error creating owner record in DB:", createOwnerError)
-            await supabaseAdmin.auth.admin.deleteUser(authUser.id)
-            return res.status(500).json({ error: "Failed to create activity owner profile in database." })
+            console.error("Error creating owner record in DB:", createOwnerError);
+            // If creating the DB record fails, roll back the auth user creation
+            await supabaseAdmin.auth.admin.deleteUser(authUser.id);
+            return res.status(500).json({ error: "Failed to create activity owner profile in database." });
         }
 
         return res.status(200).json({ 
             message: "Activity owner registered successfully. Please check your email for verification.",
-             newOwnerData, // Corrected to use 'data' as the key for the returned owner data
+             newOwnerData, 
             isNewUser: true 
-        })
+        });
 
     } catch (error: any) {
-        console.error("Server error during registration:", error)
+        console.error("Server error during registration:", error);
         const errorMessage = error && typeof error.message === "string" ? error.message : "Internal server error during registration.";
-        return res.status(500).json({ error: errorMessage })
+        return res.status(500).json({ error: errorMessage });
     }
 }
   
