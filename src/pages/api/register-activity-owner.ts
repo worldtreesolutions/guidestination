@@ -4,6 +4,7 @@ import { supabaseAdmin } from "@/integrations/supabase/admin"
 import type { Database } from "@/integrations/supabase/types"
 
 type ActivityOwnerInsert = Database["public"]["Tables"]["activity_owners"]["Insert"]
+type ActivityOwnerRow = Database["public"]["Tables"]["activity_owners"]["Row"]
 
 export default async function handler(
     req: NextApiRequest,
@@ -111,7 +112,7 @@ export default async function handler(
             .from("activity_owners")
             .insert(ownerInsertData)
             .select() 
-            .single()
+            .single<ActivityOwnerRow>() // Specify the expected return type
 
         if (createOwnerError) {
             console.error("Error creating owner record in DB:", createOwnerError)
