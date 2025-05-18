@@ -56,7 +56,7 @@ export default async function handler(
 
     try {
         // Check if an activity_owner record already exists in the database for this email
-        const {  existingDbOwner, error: ownerCheckError } = await supabaseAdmin
+        const { data: existingDbOwner, error: ownerCheckError } = await supabaseAdmin
             .from("activity_owners")
             .select("provider_id") 
             .eq("email", email)
@@ -73,18 +73,18 @@ export default async function handler(
         }
 
         // Attempt to create the authentication user
-        const {  authCreationResponse, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
+        const { data, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
             email,
             password,
             email_confirm: true, 
-            user_meta: { 
+            user_metadata: { 
                 firstName: firstName,
                 lastName: lastName || "", 
                 role: "activity_owner"
             }
         });
         
-        console.log("API: Auth Creation Attempt Response: Data:", JSON.stringify(authCreationResponse), "Error:", JSON.stringify(createUserError));
+        console.log("API: Auth Creation Attempt Response: Data:", JSON.stringify(data), "Error:", JSON.stringify(createUserError));
 
         if (createUserError) {
             console.error("API Error: Error creating auth user:", createUserError.message, "Full error:", JSON.stringify(createUserError));
@@ -97,10 +97,10 @@ export default async function handler(
             return res.status(500).json({ error: createUserError.message || "Failed to create authentication user." });
         }
 
-        const authUser = authCreationResponse?.user;
+        const authUser = data?.user;
 
         if (!authUser) { 
-            console.error("API Error: Auth user creation did not return a user object. Full authCreationResponse object:", JSON.stringify(authCreationResponse));
+            console.error("API Error: Auth user creation did not return a user object. Full data object:", JSON.stringify(data));
             return res.status(500).json({ error: "Auth user creation did not return a user object." });
         }
         
@@ -128,7 +128,7 @@ export default async function handler(
 
         console.log("API: Data being prepared for insert into activity_owners:", JSON.stringify(ownerInsertData, null, 2));
 
-        const {  newOwnerData, error: createOwnerError } = await supabaseAdmin
+        const { data: newOwnerData, error: createOwnerError } = await supabaseAdmin
             .from("activity_owners")
             .insert(ownerInsertData)
             .select() 

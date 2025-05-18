@@ -76,7 +76,7 @@ const activityOwnerService = {
       return {
         success: true,
         message: result.message || "Activity owner registered successfully",
-         result.newOwnerData as ActivityOwner, // Corrected: Added '' key
+        data: result.newOwnerData as ActivityOwner, // Corrected: Added '' key
         isNewUser: result.isNewUser !== undefined ? result.isNewUser : true,
       };
     } catch (error: any) {
