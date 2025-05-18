@@ -67,7 +67,7 @@ export default async function handler(
             return res.status(400).json({ error: "An activity owner with this email already exists." })
         }
 
-        const { data: authData, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
+        const {  authData, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
             email,
             password,
             email_confirm: true, 
@@ -108,7 +108,7 @@ export default async function handler(
             place_id: place_id || null,
         }
 
-        const { data: newOwnerData, error: createOwnerError } = await supabaseAdmin
+        const {  newOwnerData, error: createOwnerError } = await supabaseAdmin
             .from("activity_owners")
             .insert(ownerInsertData)
             .select() 
