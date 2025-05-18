@@ -126,7 +126,7 @@ export default async function handler(
 
         return res.status(200).json({ 
             message: "Activity owner registered successfully. Please check your email for verification.",
-             newOwnerData, 
+             newOwnerData, // Corrected to use 'data' as the key for the returned owner data
             isNewUser: true 
         })
 
