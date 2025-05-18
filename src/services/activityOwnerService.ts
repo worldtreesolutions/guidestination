@@ -63,7 +63,6 @@ const activityOwnerService = {
         businessAddress: registrationData.address,
         businessType: registrationData.business_type,
         taxId: registrationData.tax_id,
-        // Pass all other relevant fields from registrationData to the API
         description: registrationData.description,
         tourism_license_number: registrationData.tourism_license_number,
         tat_license_number: registrationData.tat_license_number,
@@ -94,15 +93,14 @@ const activityOwnerService = {
       return {
         success: true,
         message: result.message || "Activity owner registered successfully",
-         result.data, // Corrected: Added '' key
-        isNewUser: result.isNewUser !== undefined ? result.isNewUser : true, // Handle isNewUser if API provides it
+         result.data, 
+        isNewUser: result.isNewUser !== undefined ? result.isNewUser : true,
       };
     } catch (error: any) {
       console.error("Error registering activity owner:", error);
       if (error.code === "ACTIVITY_OWNER_EXISTS") {
         throw error; // Re-throw custom error
       }
-      // Ensure a meaningful message is thrown
       throw new Error(error.message || "An unexpected error occurred during registration.");
     }
   },
@@ -165,7 +163,7 @@ const activityOwnerService = {
       }
 
       return data;
-    } catch (error: any) { // Added type 'any' to error
+    } catch (error: any) { 
       console.error("Error in getActivityOwnerProfile:", error);
       return null;
     }
