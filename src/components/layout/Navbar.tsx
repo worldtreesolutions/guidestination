@@ -50,7 +50,7 @@ export function Navbar() {
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
-                <Link href="/admin" legacyBehavior passHref>
+                <Link href="/admin/login" legacyBehavior passHref>
                   <NavigationMenuLink className={navLinkClassName}>
                     Admin Portal
                   </NavigationMenuLink>
