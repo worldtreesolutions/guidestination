@@ -37,7 +37,7 @@ const activityOwnerService = {
       // First check if an activity_owner record with this email already exists in the database
       const {  existingDbOwners, error: dbCheckError } = await supabase
         .from("activity_owners")
-        .select("id")
+        .select("provider_id") // Changed "id" to "provider_id"
         .eq("email", registrationData.email);
 
       if (dbCheckError && dbCheckError.code !== "PGRST116") { // PGRST116: No rows found
@@ -93,7 +93,7 @@ const activityOwnerService = {
       return {
         success: true,
         message: result.message || "Activity owner registered successfully",
-        data: result.data, // Corrected: Added 'data' key
+         result.data, // Corrected: Changed to  result.data
         isNewUser: result.isNewUser !== undefined ? result.isNewUser : true,
       };
     } catch (error: any) {
@@ -101,7 +101,9 @@ const activityOwnerService = {
       if (error.code === "ACTIVITY_OWNER_EXISTS") {
         throw error; // Re-throw custom error
       }
-      throw new Error(error.message || "An unexpected error occurred during registration.");
+      // Ensure the error message is a string
+      const errorMessage = error && typeof error.message === "string" ? error.message : "An unexpected error occurred during registration.";
+      throw new Error(errorMessage);
     }
   },
 
@@ -126,14 +128,14 @@ const activityOwnerService = {
   },
 
   async updateActivityOwner(
-    ownerId: number, 
+    ownerId: string, // Changed type to string for UUID (provider_id)
     updates: Partial<ActivityOwner>
   ): Promise<ActivityOwner | null> {
     try {
       const { data, error } = await supabase
         .from("activity_owners")
         .update(updates)
-        .eq("id", ownerId as unknown as string) 
+        .eq("provider_id", ownerId) // Changed "id" to "provider_id"
         .select()
         .single();
 
