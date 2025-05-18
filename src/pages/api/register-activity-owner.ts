@@ -80,9 +80,12 @@ export default async function handler(
                 role: "activity_owner"
             }
         });
+        
+        console.log("Auth Creation Attempt: Data:", JSON.stringify(authCreationData), "Error:", JSON.stringify(createUserError));
+
 
         if (createUserError) {
-            console.error("Error creating auth user:", createUserError);
+            console.error("Error creating auth user:", createUserError.message, "Full error:", JSON.stringify(createUserError));
             // Check if the error is due to the user already being registered in the auth system
             if (createUserError.message && 
                 (createUserError.message.toLowerCase().includes("user already registered") || 
@@ -93,7 +96,7 @@ export default async function handler(
         }
 
         if (!authCreationData || !authCreationData.user) { 
-            console.error("Auth user creation did not return a user object.", authCreationData);
+            console.error("Auth user creation did not return a user object. authCreationData:", JSON.stringify(authCreationData), "createUserError:", JSON.stringify(createUserError));
             return res.status(500).json({ error: "Auth user creation did not return a user object." });
         }
         
