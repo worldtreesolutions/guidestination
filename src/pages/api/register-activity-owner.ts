@@ -54,7 +54,7 @@ export default async function handler(
 
     try {
         // Check if an activity_owner record already exists in the database for this email
-        const {  existingDbOwner, error: ownerCheckError } = await supabaseAdmin
+        const { data: existingDbOwner, error: ownerCheckError } = await supabaseAdmin
             .from("activity_owners")
             .select("provider_id") 
             .eq("email", email)
@@ -70,11 +70,11 @@ export default async function handler(
         }
 
         // Attempt to create the authentication user
-        const {  authCreationData, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
+        const { data: authCreationData, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
             email,
             password,
             email_confirm: true, 
-            user_meta: { 
+            user_metadata: { 
                 firstName: firstName,
                 lastName: lastName || "", 
                 role: "activity_owner"
@@ -124,7 +124,7 @@ export default async function handler(
             place_id: place_id || null,
         };
 
-        const {  newOwnerData, error: createOwnerError } = await supabaseAdmin
+        const { data: newOwnerData, error: createOwnerError } = await supabaseAdmin
             .from("activity_owners")
             .insert(ownerInsertData)
             .select() 
