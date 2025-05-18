@@ -23,7 +23,7 @@ export function Navbar() {
     router.push("/")
   }
 
-  const navLinkClassName = "inline-flex h-10 w-full items-center justify-center rounded-md bg-transparent px-4 py-2 text-sm font-medium transition-colors hover:bg-[#ededed] hover:text-foreground focus:bg-[#ededed] focus:text-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50"
+  const navLinkClassName = "inline-flex h-10 w-max items-center justify-center rounded-md bg-transparent px-4 py-2 text-sm font-medium transition-colors hover:bg-[#ededed] hover:text-foreground focus:bg-[#ededed] focus:text-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50"
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -42,24 +42,24 @@ export function Navbar() {
         <div className="hidden md:flex flex-1 justify-center">
           <NavigationMenu className="max-w-full w-full">
             <NavigationMenuList className="flex w-full justify-center space-x-4">
-              <NavigationMenuItem className="flex-1 max-w-[200px]">
+              <NavigationMenuItem>
                 <Link href="/activity-owner" legacyBehavior passHref>
                   <NavigationMenuLink className={navLinkClassName}>
-                    <span className="text-sm lg:text-base">List Your Activities</span>
+                    List Your Activities
                   </NavigationMenuLink>
                 </Link>
               </NavigationMenuItem>
-              <NavigationMenuItem className="flex-1 max-w-[200px]">
+              <NavigationMenuItem>
                 <Link href="/admin" legacyBehavior passHref>
                   <NavigationMenuLink className={navLinkClassName}>
-                    <span className="text-sm lg:text-base">Admin Portal</span>
+                    Admin Portal
                   </NavigationMenuLink>
                 </Link>
               </NavigationMenuItem>
-              <NavigationMenuItem className="flex-1 max-w-[200px]">
+              <NavigationMenuItem>
                 <Link href="/dashboard/login" legacyBehavior passHref>
                   <NavigationMenuLink className={navLinkClassName}>
-                    <span className="text-sm lg:text-base">Provider Dashboard</span>
+                    Provider Dashboard
                   </NavigationMenuLink>
                 </Link>
               </NavigationMenuItem>

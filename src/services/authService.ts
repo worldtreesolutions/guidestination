@@ -10,7 +10,7 @@ import {
 } from "@supabase/supabase-js";
 
 export interface UserProfile {
-  id: string;
+  id: number;
   user_id: string;
   name: string;
   email: string;
@@ -93,9 +93,9 @@ const authService = {
 
   async getUserProfile(userId: string): Promise<UserProfile | null> {
     const { data, error } = await supabase
-      .from("profiles")
+      .from("users")
       .select("*")
-      .eq("id", userId)
+      .eq("user_id", userId)
       .single();
 
     if (error) {
@@ -110,9 +110,9 @@ const authService = {
     updates: Partial<UserProfile>
   ): Promise<UserProfile | null> {
     const { data, error } = await supabase
-      .from("profiles")
+      .from("users")
       .update(updates)
-      .eq("id", userId)
+      .eq("user_id", userId)
       .select()
       .single();
 
