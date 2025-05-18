@@ -38,21 +38,43 @@ export default function LoginPage() {
     setError(null)
 
     try {
-      const { data, error: signInError } = await login(email, password)
+      const {  authData, error: signInError } = await login(email, password)
 
       if (signInError) {
         setError(signInError.message || "An unexpected error occurred during login.")
+        setIsLoading(false) // Reset loading state on error
         return
       }
 
-      if (data?.session) {
+      if (authData?.user) {
+        const role = authData.user.user_metadata?.role
+        console.log("User role from meta", role) // For debugging
+
+        if (role === "activity_owner") {
+          router.push("/activity-owner/dashboard")
+        } else if (role === "admin") { 
+          router.push("/admin") // Adjust if your admin dashboard path is different
+        } else {
+          router.push("/dashboard/overview") // Default dashboard
+        }
+      } else if (authData?.session) {
+        // Session exists, but user object (and thus metadata) might not be immediately available.
+        // The AuthContext's onAuthStateChange listener should handle full user profile loading.
+        // Redirect to a default page; role-based redirection might be handled by a layout component.
+        console.warn("Login successful with session, but user metadata not immediately available. Defaulting redirect to /dashboard/overview.")
         router.push("/dashboard/overview")
       } else {
-        setError("Login successful, but no session was created. Please try again.")
+        setError("Login successful, but no session or user data was returned. Please try again.")
       }
     } catch (err: any) {
-      console.error("Login error:", err)
-      setError(err.message || "An unexpected error occurred.")
+      console.error("Login page onSubmit error:", err)
+      let message = "An unexpected error occurred during login."
+      if (err instanceof Error) {
+        message = err.message
+      } else if (typeof err === "object" && err && "message" in err) {
+        message = (err as {message: string}).message
+      }
+      setError(message)
     } finally {
       setIsLoading(false)
     }
@@ -120,6 +142,18 @@ export default function LoginPage() {
             {isLoading ? "Signing In..." : "Sign In"}
           </Button>
         </form>
+        <p className="mt-4 text-center text-sm">
+          Don&apos;t have an account?{" "}
+          <Link href="/dashboard/register" legacyBehavior>
+            <a className="font-medium text-primary hover:underline">Sign up</a>
+          </Link>
+        </p>
+         <p className="mt-2 text-center text-sm">
+          Activity Owner?{" "}
+          <Link href="/activity-owner" legacyBehavior>
+            <a className="font-medium text-primary hover:underline">Register here</a>
+          </Link>
+        </p>
       </div>
     </div>
   )
