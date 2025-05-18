@@ -26,7 +26,7 @@ export default function MobileMenu() {
     { href: "/activities", label: "Activities" },
     { href: "/planning", label: "My Planning" },
     { href: "/activity-owner", label: "List Your Activities" },
-    { href: "/admin/login", label: "Admin Portal" },
+    { href: "/admin/dashboard", label: "Admin Portal" },
     { href: "/dashboard/login", label: "Provider Dashboard" },
   ]
 
