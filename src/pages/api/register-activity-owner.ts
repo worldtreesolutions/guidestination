@@ -23,12 +23,12 @@ export default async function handler(
         businessAddress,
         businessType,
         taxId,
-        description,
-        tourism_license_number,
+        description, // Ensure this is received
+        tourism_license_number, // Ensure this is received
         tat_license_number,
         guide_card_number,
-        insurance_policy,
-        insurance_amount,
+        insurance_policy, // Ensure this is received
+        insurance_amount, // Ensure this is received
         location_lat,
         location_lng,
         place_id,
@@ -43,7 +43,6 @@ export default async function handler(
 
     const missingFields = Object.keys(requiredFields).filter(key => {
       const value = requiredFields[key];
-      // Consider a field missing if it's null, undefined, or an empty string
       return value === null || value === undefined || value === "";
     });
 
