@@ -30,9 +30,7 @@ const PlacesAutocompleteComponent: React.FC<PlacesAutocompleteProps> = ({
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
-  const placeChangedListenerRef = useRef<google.maps.MapsEventListener | null>(
-    null
-  );
+  const placeChangedListener = useRef<google.maps.MapsEventListener | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
   const onPlaceSelectRef = useRef(onPlaceSelect);
@@ -40,6 +38,7 @@ const PlacesAutocompleteComponent: React.FC<PlacesAutocompleteProps> = ({
     onPlaceSelectRef.current = onPlaceSelect;
   }, [onPlaceSelect]);
 
+  // Effect 1: Load Google Maps script
   useEffect(() => {
     if (window.google && window.google.maps && window.google.maps.places) {
       setIsLoaded(true);
@@ -66,18 +65,13 @@ const PlacesAutocompleteComponent: React.FC<PlacesAutocompleteProps> = ({
     document.head.appendChild(script);
   }, []);
 
+  // Effect 2: Initialize Autocomplete and add listener
   useEffect(() => {
-    if (
-      !isLoaded ||
-      !inputRef.current ||
-      !window.google ||
-      !window.google.maps ||
-      !window.google.maps.places
-    ) {
+    if (!isLoaded || !inputRef.current || !window.google?.maps?.places) {
       return;
     }
 
-    if (!autocompleteRef.current) {
+    if (!autocompleteRef.current) { // Only initialize if no instance exists
       const instance = new google.maps.places.Autocomplete(inputRef.current, {
         types: ["establishment", "geocode"],
         fields: [
@@ -90,10 +84,11 @@ const PlacesAutocompleteComponent: React.FC<PlacesAutocompleteProps> = ({
       });
       autocompleteRef.current = instance;
 
-      if (placeChangedListenerRef.current) {
-        placeChangedListenerRef.current.remove();
+      // Remove any old listener before adding a new one (defensive)
+      if (placeChangedListener.current) {
+        placeChangedListener.current.remove();
       }
-      placeChangedListenerRef.current = instance.addListener(
+      placeChangedListener.current = instance.addListener(
         "place_changed",
         () => {
           const place = autocompleteRef.current?.getPlace();
@@ -114,24 +109,34 @@ const PlacesAutocompleteComponent: React.FC<PlacesAutocompleteProps> = ({
         }
       );
     }
+    // No cleanup in this effect that removes the listener or nulls the autocompleteRef
+    // We want the instance and listener to persist as long as isLoaded is true.
+  }, [isLoaded]); // Runs when isLoaded changes
+
+  // Effect 3: Cleanup on unmount
+  useEffect(() => {
+    const currentInputNode = inputRef.current; // Capture for cleanup
+    const currentAutocompleteInstance = autocompleteRef.current; // Capture
+    const currentListener = placeChangedListener.current; // Capture
 
     return () => {
-      if (placeChangedListenerRef.current) {
-        placeChangedListenerRef.current.remove();
-        placeChangedListenerRef.current = null;
+      if (currentListener) {
+        currentListener.remove();
       }
-      const currentInputNode = inputRef.current;
-      if (
-        autocompleteRef.current &&
-        currentInputNode &&
-        window.google &&
-        window.google.maps.event
-      ) {
+      if (currentInputNode && window.google?.maps?.event) {
         google.maps.event.clearInstanceListeners(currentInputNode);
       }
+      // While the Autocomplete class doesn't have a public 'dispose' method,
+      // clearing listeners and nullifying the ref is the standard way to clean up.
+      // If currentAutocompleteInstance is used, ensure it's the captured one.
+      if (currentAutocompleteInstance && window.google?.maps?.event) {
+         // Clear listeners from the autocomplete instance itself if any were directly attached
+         // For 'place_changed', we handled it via placeChangedListener.current
+      }
       autocompleteRef.current = null;
+      placeChangedListener.current = null;
     };
-  }, [isLoaded]);
+  }, []); // Empty dependency array: cleanup runs only on unmount
 
   return (
     <Input
