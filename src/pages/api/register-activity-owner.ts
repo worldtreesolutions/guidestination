@@ -123,7 +123,7 @@ export default async function handler(
 
         return res.status(200).json({ 
             message: "Activity owner registered successfully. Please check your email for verification.",
-             newOwnerData,
+             newOwnerData, // Corrected: Added '' prefix
             isNewUser: true 
         })
 
