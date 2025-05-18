@@ -71,6 +71,10 @@ const authService = {
     return { error };
   },
 
+  async updatePasswordWithResetToken(password: string): Promise<AuthResponse> {
+    return supabase.auth.updateUser({ password });
+  },
+
   async updateUserPassword(password: string): Promise<AuthResponse> {
     return supabase.auth.updateUser({ password });
   },

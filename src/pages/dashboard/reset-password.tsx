@@ -1,202 +1,125 @@
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/router"
-import Head from "next/head"
-import Link from "next/link"
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, AlertCircle, CheckCircle, ArrowLeft } from "lucide-react"
-import authService from "@/services/authService"
-import { supabase } from "@/integrations/supabase/client"
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import authService from "@/services/authService";
+import Link from "next/link";
+import { useRouter } from "next/router";
+
+const resetPasswordSchema = z.object({
+  password: z.string().min(6, { message: "Password must be at least 6 characters." }),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match.",
+  path: ["confirmPassword"],
+});
+
+type ResetPasswordValues = z.infer<typeof resetPasswordSchema>;
 
 export default function ResetPasswordPage() {
-  const router = useRouter()
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
-  const [isValidToken, setIsValidToken] = useState(false)
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
-  useEffect(() => {
-    // Check if the URL contains a valid reset token
-    const checkResetToken = async () => {
-      const { hash } = window.location;
-      if (hash && hash.includes('type=recovery')) {
-        setIsValidToken(true);
-      } else {
-        setError("Invalid or expired password reset link. Please request a new one.");
-      }
-    };
+  const form = useForm<ResetPasswordValues>({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: {
+      password: "",
+      confirmPassword: "",
+    },
+  });
 
-    checkResetToken();
-  }, []);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
-    
-    // Validate passwords
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
-    
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters long");
-      return;
-    }
-    
-    setIsLoading(true)
+  async function onSubmit({ password }: ResetPasswordValues) {
+    setIsLoading(true);
+    setError(null);
 
     try {
-      await authService.updatePasswordWithResetToken(password);
+      const { error } = await authService.updatePasswordWithResetToken(password);
+      if (error) throw error;
       setSuccess(true);
+      setTimeout(() => {
+        router.push("/dashboard/login");
+      }, 3000);
     } catch (err: any) {
       console.error("Password reset error:", err);
-      if (err.message) {
-        setError(err.message);
-      } else {
-        setError("An error occurred. Please try again or request a new reset link.");
-      }
+      setError(err.message || "Failed to reset password");
     } finally {
       setIsLoading(false);
     }
   }
 
   return (
-    <>
-      <Head>
-        <title>Set New Password - Dashboard</title>
-        <meta name="description" content="Set a new password for your account" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-      </Head>
-
-      <div className="min-h-screen w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 md:p-8">
-        <div className="w-full max-w-md mx-auto">
-          <div className="flex justify-center mb-6">
-            <Link href="/" className="flex items-center">
-              <Image 
-                src="/logo.png" 
-                alt="Guidestination Logo" 
-                width={180} 
-                height={40}
-                className="h-10 w-auto"
-                onError={(e) => {
-                  // Fallback if logo doesn't exist
-                  const target = e.target as HTMLImageElement;
-                  target.onerror = null;
-                  target.style.display = 'none';
-                }}
-              />
-              <span className="text-2xl font-bold ml-2">Guidestination</span>
-            </Link>
-          </div>
-
-          <Card className="w-full shadow-lg">
-            <CardHeader className="space-y-1 pb-6 text-center">
-              <CardTitle className="text-2xl font-bold">Set New Password</CardTitle>
-              <CardDescription>
-                {!success 
-                  ? "Create a new password for your account" 
-                  : "Your password has been updated successfully"}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {error && (
-                <Alert variant="destructive" className="mb-6">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-              
-              {success ? (
-                <div className="text-center py-6">
-                  <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
-                  <p className="text-lg font-medium mb-2">Password Updated!</p>
-                  <p className="text-muted-foreground mb-6">
-                    Your password has been reset successfully. You can now log in with your new password.
-                  </p>
-                  <Button 
-                    className="mt-2" 
-                    onClick={() => router.push("/dashboard/login")}
-                  >
-                    Go to Login
-                  </Button>
-                </div>
-              ) : (
-                isValidToken && (
-                  <form onSubmit={handleSubmit} className="space-y-5">
-                    <div className="space-y-2">
-                      <Label htmlFor="password">New Password</Label>
-                      <Input 
-                        id="password" 
-                        type="password" 
-                        placeholder="••••••••" 
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                        disabled={isLoading}
-                        className="w-full"
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        Password must be at least 8 characters long
-                      </p>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                      <Input 
-                        id="confirmPassword" 
-                        type="password" 
-                        placeholder="••••••••" 
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        required
-                        disabled={isLoading}
-                        className="w-full"
-                      />
-                    </div>
-                    <Button 
-                      type="submit" 
-                      className="w-full py-6 mt-6" 
-                      disabled={isLoading}
-                      size="lg"
-                    >
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                          Updating password...
-                        </>
-                      ) : (
-                        "Update Password"
-                      )}
-                    </Button>
-                  </form>
-                )
-              )}
-            </CardContent>
-            <CardFooter className="flex flex-col space-y-4 pt-4 pb-6 border-t">
-              <div className="text-center text-sm w-full">
-                <Link href="/dashboard/login" className="text-primary font-medium hover:underline">
-                  <ArrowLeft className="inline-block mr-1 h-4 w-4" />
-                  Back to login
-                </Link>
-              </div>
-            </CardFooter>
-          </Card>
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8">
+      <div className="w-full max-w-md space-y-8">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold tracking-tight">Reset Your Password</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Enter your new password below.
+          </p>
         </div>
+
+        {success ? (
+          <div className="space-y-4">
+            <Alert>
+              <AlertDescription>
+                Your password has been reset successfully. Redirecting to login...
+              </AlertDescription>
+            </Alert>
+            <div className="text-center">
+              <Link href="/dashboard/login">
+                <Button variant="link" className="mt-4">
+                  Back to Login
+                </Button>
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <form onSubmit={form.handleSubmit(onSubmit)} className="mt-8 space-y-6">
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="password">New Password</Label>
+              <Input
+                id="password"
+                type="password"
+                {...form.register("password")}
+                disabled={isLoading}
+              />
+              {form.formState.errors.password && (
+                <p className="text-sm text-red-500">
+                  {form.formState.errors.password.message}
+                </p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                {...form.register("confirmPassword")}
+                disabled={isLoading}
+              />
+              {form.formState.errors.confirmPassword && (
+                <p className="text-sm text-red-500">
+                  {form.formState.errors.confirmPassword.message}
+                </p>
+              )}
+            </div>
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? "Resetting..." : "Reset Password"}
+            </Button>
+          </form>
+        )}
       </div>
-    </>
-  )
+    </div>
+  );
 }
