@@ -36,6 +36,8 @@ export default async function handler(
         place_id,
     } = req.body
 
+    console.log("Received location data in API:", { location_lat, location_lng, place_id });
+
     const requiredFields: Record<string, any> = {
         email, password, firstName, phoneNumber, businessName, 
         businessAddress, businessType, taxId, description, 
@@ -54,7 +56,7 @@ export default async function handler(
 
     try {
         // Check if an activity_owner record already exists in the database for this email
-        const { data: existingDbOwner, error: ownerCheckError } = await supabaseAdmin
+        const {  existingDbOwner, error: ownerCheckError } = await supabaseAdmin
             .from("activity_owners")
             .select("provider_id") 
             .eq("email", email)
@@ -70,11 +72,11 @@ export default async function handler(
         }
 
         // Attempt to create the authentication user
-        const { data: authCreationData, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
+        const {  authCreationData, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
             email,
             password,
             email_confirm: true, 
-            user_metadata: { 
+            user_meta: { 
                 firstName: firstName,
                 lastName: lastName || "", 
                 role: "activity_owner"
@@ -124,7 +126,9 @@ export default async function handler(
             place_id: place_id || null,
         };
 
-        const { data: newOwnerData, error: createOwnerError } = await supabaseAdmin
+        console.log("Data being prepared for insert into activity_owners:", ownerInsertData);
+
+        const {  newOwnerData, error: createOwnerError } = await supabaseAdmin
             .from("activity_owners")
             .insert(ownerInsertData)
             .select() 
