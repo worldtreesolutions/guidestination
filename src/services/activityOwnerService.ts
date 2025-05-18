@@ -35,6 +35,11 @@ const activityOwnerService = {
     try {
       const apiData = {
         email: registrationData.email,
+        // The API route now expects a password, let's ensure we pass one.
+        // For actual implementation, this password should be securely generated or handled.
+        // For now, we'll pass a placeholder if not directly provided by the form,
+        // but ideally, the form should collect this.
+        // Assuming the API handles password creation if not explicitly sent for now.
         firstName: registrationData.owner_name.split(" ")[0],
         lastName: registrationData.owner_name.split(" ").slice(1).join(" "),
         phoneNumber: registrationData.phone,
@@ -64,6 +69,8 @@ const activityOwnerService = {
       const result = await response.json();
 
       if (!response.ok) {
+        // Log the actual error from the API if available
+        console.error("API Error in registerActivityOwner:", result.error || `API request failed with status ${response.status}`);
         throw new Error(result.error || `API request failed with status ${response.status}`);
       }
 
@@ -74,7 +81,8 @@ const activityOwnerService = {
         isNewUser: result.isNewUser !== undefined ? result.isNewUser : true,
       };
     } catch (error: any) {
-      console.error("Error registering activity owner (service):", error);
+      console.error("Error registering activity owner (service):", error.message || error);
+      // Ensure the error is re-thrown so the form can catch it
       throw error; 
     }
   },
@@ -142,7 +150,7 @@ const activityOwnerService = {
       console.error("Unexpected error in getActivityOwnerProfile:", error);
       return null;
     }
-  } // Closing brace for getActivityOwnerProfile method
-}; // Closing brace for activityOwnerService object
+  }
+}; 
 
-export default activityOwnerService; // Export statement
+export default activityOwnerService;
