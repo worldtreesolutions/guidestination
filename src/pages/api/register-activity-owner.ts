@@ -94,7 +94,7 @@ export default async function handler(
             return res.status(500).json({ error: createUserError.message || "Failed to create authentication user." })
         }
 
-        if (!authData.user) {
+        if (!authData || !authData.user) { // Added check for authData itself
             return res.status(500).json({ error: "Auth user creation did not return a user object." })
         }
 
@@ -137,7 +137,7 @@ export default async function handler(
 
         return res.status(200).json({ 
             message: "Activity owner registered successfully. Please check your email for verification.",
-             newOwnerData,
+             newOwnerData, // Corrected: Added '' key
             isNewUser: true // Since we create an auth user here
         })
 

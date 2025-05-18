@@ -94,7 +94,7 @@ const activityOwnerService = {
       return {
         success: true,
         message: result.message || "Activity owner registered successfully",
-         result.data,
+         result.data, // Corrected: Added '' key
         isNewUser: result.isNewUser !== undefined ? result.isNewUser : true, // Handle isNewUser if API provides it
       };
     } catch (error: any) {
@@ -165,7 +165,8 @@ const activityOwnerService = {
       }
 
       return data;
-    } catch (error).error("Error in getActivityOwnerProfile:", error);
+    } catch (error: any) { // Added type 'any' to error
+      console.error("Error in getActivityOwnerProfile:", error);
       return null;
     }
   },
