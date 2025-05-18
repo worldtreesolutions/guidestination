@@ -81,7 +81,7 @@ export default async function handler(
             }
         });
         
-        console.log("Auth Creation Attempt: Data:", JSON.stringify(authCreationData), "Error:", JSON.stringify(createUserError));
+        console.log("Auth Creation Attempt Response: Data:", JSON.stringify(authCreationData), "Error:", JSON.stringify(createUserError));
 
 
         if (createUserError) {
@@ -96,7 +96,7 @@ export default async function handler(
         }
 
         if (!authCreationData || !authCreationData.user) { 
-            console.error("Auth user creation did not return a user object. authCreationData:", JSON.stringify(authCreationData), "createUserError:", JSON.stringify(createUserError));
+            console.error("Auth user creation did not return a user object. Full authCreationData object:", JSON.stringify(authCreationData));
             return res.status(500).json({ error: "Auth user creation did not return a user object." });
         }
         
