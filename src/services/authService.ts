@@ -6,7 +6,6 @@ import {
   User,
   Session,
   Provider,
-  OAuthResponse,
 } from "@supabase/supabase-js";
 
 export interface UserProfile {
@@ -42,24 +41,12 @@ const authService = {
   },
 
   async signInWithProvider(provider: Provider): Promise<AuthResponse> {
-    const oauthResponse = await supabase.auth.signInWithOAuth({
+    return supabase.auth.signInWithOAuth({
       provider,
       options: {
         redirectTo: `${typeof window !== "undefined" ? window.location.origin : ""}/dashboard`,
       },
     });
-
-    if (oauthResponse.error) {
-      return {
-        data: { user: null, session: null },
-        error: oauthResponse.error
-      };
-    }
-    
-    return {
-      data: { user: null, session: null },
-      error: null
-    };
   },
 
   async signOut(): Promise<{ error: AuthError | null }> {
@@ -83,36 +70,24 @@ const authService = {
     return { error };
   },
 
-  async updatePasswordWithResetToken(password: string): Promise<AuthResponse> {
-    const { data, error } = await supabase.auth.updateUser({ password });
-    return {
-      data: { user: data.user, session: null },
-      error
-    };
+  async updatePasswordWithResetToken(password: string): Promise<{ error: AuthError | null }> {
+    const { error } = await supabase.auth.updateUser({ password });
+    return { error };
   },
 
-  async updateUserPassword(password: string): Promise<AuthResponse> {
-    const { data, error } = await supabase.auth.updateUser({ password });
-    return {
-      data: { user: data.user, session: null },
-      error
-    };
+  async updateUserPassword(password: string): Promise<{ error: AuthError | null }> {
+    const { error } = await supabase.auth.updateUser({ password });
+    return { error };
   },
 
-  async updateUserEmail(email: string): Promise<AuthResponse> {
-    const { data, error } = await supabase.auth.updateUser({ email });
-    return {
-      data: { user: data.user, session: null },
-      error
-    };
+  async updateUserEmail(email: string): Promise<{ error: AuthError | null }> {
+    const { error } = await supabase.auth.updateUser({ email });
+    return { error };
   },
 
-  async updateUserMetadata(metadata: Record<string, any>): Promise<AuthResponse> {
-    const { data, error } = await supabase.auth.updateUser({ data: metadata });
-    return {
-      data: { user: data.user, session: null },
-      error
-    };
+  async updateUserMetadata(metadata: Record<string, any>): Promise<{ error: AuthError | null }> {
+    const { error } = await supabase.auth.updateUser({ data: metadata });
+    return { error };
   },
 
   async getUserProfile(userId: string): Promise<UserProfile | null> {
