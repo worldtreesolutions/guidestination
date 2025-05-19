@@ -12,6 +12,7 @@ import {
   LogOut,
   Plus,
 } from "lucide-react"
+import Image from "next/image"
 
 export function DashboardSidebar() {
   const router = useRouter()
@@ -55,14 +56,17 @@ export function DashboardSidebar() {
   ]
 
   return (
-    <div className="w-64 min-h-screen bg-white border-r">
+    <div className="fixed left-0 top-0 w-64 h-screen bg-white border-r">
       <div className="flex flex-col h-full">
         <div className="p-4">
           <Link href="/dashboard/overview">
             <div className="flex items-center space-x-2">
-              <img
+              <Image
                 src="/logo-masdxep0.png"
                 alt="Logo"
+                width={120}
+                height={32}
+                priority
                 className="h-8 w-auto"
               />
             </div>
