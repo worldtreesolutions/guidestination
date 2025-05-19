@@ -10,13 +10,15 @@ interface PlanningContextType {
   isActivitySelected: (activityId: string) => boolean;
 }
 
-const PlanningContext = createContext<PlanningContextType>({
+const defaultContext: PlanningContextType = {
   selectedActivities: [],
   addActivity: () => {},
   removeActivity: () => {},
   clearActivities: () => {},
   isActivitySelected: () => false,
-})
+}
+
+const PlanningContext = createContext<PlanningContextType>(defaultContext)
 
 export function PlanningProvider({ children }: { children: React.ReactNode }) {
   const [selectedActivities, setSelectedActivities] = useState<Activity[]>([])
@@ -44,22 +46,18 @@ export function PlanningProvider({ children }: { children: React.ReactNode }) {
     return selectedActivities.some((activity) => activity.activity_id === activityId)
   }
 
-  return (
-    <PlanningContext.Provider
-      value={{
-        selectedActivities,
-        addActivity,
-        removeActivity,
-        clearActivities,
-        isActivitySelected,
-      }}
-    >
-      {children}
-    </PlanningContext.Provider>
-  )
+  const value = {
+    selectedActivities,
+    addActivity,
+    removeActivity,
+    clearActivities,
+    isActivitySelected,
+  }
+
+  return <PlanningContext.Provider value={value}>{children}</PlanningContext.Provider>
 }
 
-export const usePlanning = () => {
+export function usePlanning() {
   const context = useContext(PlanningContext)
   if (!context) {
     throw new Error("usePlanning must be used within a PlanningProvider")
