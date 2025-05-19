@@ -1,7 +1,7 @@
 
 import { createContext, useContext, useEffect, useState } from "react"
 import { supabase } from "@/integrations/supabase/client"
-import { Session, User, Subscription } from "@supabase/supabase-js"
+import { Session, User } from "@supabase/supabase-js"
 import authService from "@/services/authService"
 
 interface AuthContextType {
@@ -16,14 +16,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
 }
 
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  session: null,
-  loading: true,
-  login: async () => ({ data: null, error: null }),
-  signOut: async () => {},
-  isAuthenticated: false,
-})
+const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
@@ -31,24 +24,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    let subscription: Subscription | null = null
-
     const setupAuth = async () => {
       try {
-        // Get initial session
         const { data: { session: initialSession } } = await supabase.auth.getSession()
         setSession(initialSession)
         setUser(initialSession?.user ?? null)
         setLoading(false)
 
-        // Set up auth state change listener
-        const { data } = supabase.auth.onAuthStateChange((_event, newSession) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
           setSession(newSession)
           setUser(newSession?.user ?? null)
           setLoading(false)
         })
 
-        subscription = data.subscription
+        return () => {
+          subscription.unsubscribe()
+        }
       } catch (error) {
         console.error("Error setting up auth:", error)
         setLoading(false)
@@ -56,12 +47,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     setupAuth()
-
-    return () => {
-      if (subscription) {
-        subscription.unsubscribe()
-      }
-    }
   }, [])
 
   const login = async (email: string, password: string) => {
