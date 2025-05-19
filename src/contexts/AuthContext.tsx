@@ -33,32 +33,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const setupAuth = async () => {
-      try {
-        // Get initial session
-        const { data: { session: initialSession } } = await supabase.auth.getSession()
-        setSession(initialSession)
-        setUser(initialSession?.user ?? null)
-        setLoading(false)
-
-        // Set up auth state change listener
-        const { data } = supabase.auth.onAuthStateChange((_event, newSession) => {
-          setSession(newSession)
-          setUser(newSession?.user ?? null)
-          setLoading(false)
-        })
-
-        // Return cleanup function
-        return () => {
-          data.subscription.unsubscribe()
-        }
-      } catch (error) {
-        console.error("Error setting up auth:", error)
-        setLoading(false)
-      }
+    const fetchSession = async () => {
+      const { data: { session: initialSession } } = await supabase.auth.getSession()
+      setSession(initialSession)
+      setUser(initialSession?.user ?? null)
+      setLoading(false)
     }
 
-    setupAuth()
+    fetchSession()
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, newSession) => {
+        setSession(newSession)
+        setUser(newSession?.user ?? null)
+        setLoading(false)
+      }
+    )
+
+    return () => {
+      subscription.unsubscribe()
+    }
   }, [])
 
   const login = async (email: string, password: string) => {
