@@ -14,16 +14,27 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout"
 import { useRouter } from "next/router"
 import { useToast } from "@/hooks/use-toast"
 import { formatCurrency } from "@/lib/utils"
+import { supabase } from "@/integrations/supabase/client"
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   description: z.string().min(10, "Description must be at least 10 characters"),
   price: z.number().min(0, "Price must be a positive number"),
   category: z.string().min(1, "Category is required"),
+  duration: z.number().min(0, "Duration must be a positive number").optional(),
+  max_participants: z.number().min(1, "Maximum participants must be at least 1").optional(),
+  min_participants: z.number().min(1, "Minimum participants must be at least 1").optional(),
+  includes_hotel_pickup: z.boolean().optional(),
+  language: z.string().optional(),
+  meeting_point: z.string().optional(),
+  highlights: z.string().array().optional(),
+  included: z.string().array().optional(),
+  not_included: z.string().array().optional(),
 })
 
 export default function NewActivityPage() {
@@ -38,6 +49,15 @@ export default function NewActivityPage() {
       description: "",
       price: 0,
       category: "",
+      duration: undefined,
+      max_participants: undefined,
+      min_participants: undefined,
+      includes_hotel_pickup: false,
+      language: "",
+      meeting_point: "",
+      highlights: [],
+      included: [],
+      not_included: [],
     },
   })
 
@@ -63,7 +83,12 @@ export default function NewActivityPage() {
         final_price: finalPrice,
       }
 
-      // Your existing submission logic here
+      const { error } = await supabase
+        .from("activities")
+        .insert([dataToSubmit])
+
+      if (error) throw error
+
       toast({
         title: "Success",
         description: "Activity created successfully",
@@ -105,7 +130,11 @@ export default function NewActivityPage() {
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter description" {...field} />
+                    <Textarea 
+                      placeholder="Enter description"
+                      className="min-h-[100px]"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -146,14 +175,101 @@ export default function NewActivityPage() {
               </FormItem>
             </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="duration"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Duration (hours)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number" 
+                        step="0.5"
+                        {...field}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Category</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter category" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="min_participants"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Minimum Participants</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number"
+                        {...field}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="max_participants"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Maximum Participants</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number"
+                        {...field}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
             <FormField
               control={form.control}
-              name="category"
+              name="language"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Category</FormLabel>
+                  <FormLabel>Language</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter category" {...field} />
+                    <Input placeholder="Enter language(s)" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="meeting_point"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Meeting Point</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter meeting point" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
