@@ -21,6 +21,7 @@ import { useToast } from "@/hooks/use-toast"
 import { formatCurrency } from "@/lib/utils"
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/contexts/AuthContext"
+import { PlacesAutocomplete, PlaceData } from "@/components/ui/places-autocomplete"
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -33,6 +34,7 @@ const formSchema = z.object({
   includes_hotel_pickup: z.boolean().optional(),
   language: z.string().optional(),
   meeting_point: z.string().optional(),
+  address: z.string().optional(),
   highlights: z.string().array().optional(),
   included: z.string().array().optional(),
   not_included: z.string().array().optional(),
@@ -43,6 +45,7 @@ export default function NewActivityPage() {
   const { toast } = useToast()
   const { user } = useAuth()
   const [finalPrice, setFinalPrice] = useState<number>(0)
+  const [locationData, setLocationData] = useState<PlaceData | null>(null)
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -57,6 +60,7 @@ export default function NewActivityPage() {
       includes_hotel_pickup: false,
       language: "",
       meeting_point: "",
+      address: "",
       highlights: [],
       included: [],
       not_included: [],
@@ -76,6 +80,11 @@ export default function NewActivityPage() {
       setFinalPrice(0)
     }
   }, [form.watch("price")])
+
+  const handlePlaceSelect = (placeData: PlaceData) => {
+    setLocationData(placeData)
+    form.setValue('address', placeData.address)
+  }
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
@@ -103,11 +112,16 @@ export default function NewActivityPage() {
         includes_hotel_pickup: values.includes_hotel_pickup,
         language: values.language,
         meeting_point: values.meeting_point,
+        address: values.address,
         highlights: values.highlights,
         included: values.included,
         not_included: values.not_included,
-        provider_id: ownerData.provider_id, // Use the UUID from activity_owners
-        status: "draft"
+        provider_id: ownerData.provider_id,
+        status: "draft",
+        // Add location data if available
+        location_lat: locationData?.lat || null,
+        location_lng: locationData?.lng || null,
+        place_id: locationData?.placeId || null,
       }
 
       const { error: insertError } = await supabase
@@ -285,6 +299,30 @@ export default function NewActivityPage() {
                   <FormControl>
                     <Input placeholder="Enter language(s)" {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Activity Location</FormLabel>
+                  <FormControl>
+                    <PlacesAutocomplete
+                      value={field.value}
+                      onChange={field.onChange}
+                      onPlaceSelect={handlePlaceSelect}
+                      placeholder="Search for activity location"
+                    />
+                  </FormControl>
+                  {locationData && (
+                    <FormDescription>
+                      Location coordinates: {locationData.lat.toFixed(6)}, {locationData.lng.toFixed(6)}
+                    </FormDescription>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
