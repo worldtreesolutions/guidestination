@@ -16,7 +16,16 @@ interface AuthContextType {
   isAuthenticated: boolean;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
+const defaultContext: AuthContextType = {
+  user: null,
+  session: null,
+  loading: true,
+  login: async () => ({ data: null, error: null }),
+  signOut: async () => {},
+  isAuthenticated: false,
+}
+
+const AuthContext = createContext<AuthContextType>(defaultContext)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)

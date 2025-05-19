@@ -10,7 +10,15 @@ interface PlanningContextType {
   isActivitySelected: (activityId: string) => boolean;
 }
 
-const PlanningContext = createContext<PlanningContextType | undefined>(undefined)
+const defaultContext: PlanningContextType = {
+  selectedActivities: [],
+  addActivity: () => {},
+  removeActivity: () => {},
+  clearActivities: () => {},
+  isActivitySelected: () => false,
+}
+
+const PlanningContext = createContext<PlanningContextType>(defaultContext)
 
 export function PlanningProvider({ children }: { children: React.ReactNode }) {
   const [selectedActivities, setSelectedActivities] = useState<Activity[]>([])

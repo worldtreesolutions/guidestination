@@ -9,12 +9,12 @@ import "@/styles/globals.css"
 export default function App({ Component, pageProps }: AppProps) {
   return (
     <AuthProvider>
-      <LanguageProvider>
-        <PlanningProvider>
+      <PlanningProvider>
+        <LanguageProvider>
           <Component {...pageProps} />
           <Toaster />
-        </PlanningProvider>
-      </LanguageProvider>
+        </LanguageProvider>
+      </PlanningProvider>
     </AuthProvider>
   )
 }
