@@ -1,5 +1,5 @@
 
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback, useEffect, useRef } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -19,6 +19,7 @@ import { useToast } from "@/hooks/use-toast"
 import { PlacesAutocomplete, PlaceData } from "@/components/ui/places-autocomplete"
 import { MapPin } from "lucide-react"
 import Image from "next/image"
+import { supabase } from "@/integrations/supabase/client"
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50MB for video
 const ACCEPTED_VIDEO_TYPES = ["video/mp4", "video/webm"]
@@ -42,6 +43,7 @@ export default function NewActivityPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [finalPrice, setFinalPrice] = useState<string>("0.00")
   const { toast } = useToast()
+  const priceRef = useRef<string>("")
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -54,13 +56,15 @@ export default function NewActivityPage() {
   })
 
   // Calculate final price when price changes
-  const watchedPrice = form.watch("price")
   useEffect(() => {
-    const price = parseFloat(watchedPrice) || 0
-    const withMarkup = price * 1.20 // Add 20% markup
-    const withVAT = withMarkup * 1.07 // Add 7% VAT
-    setFinalPrice(withVAT.toFixed(2))
-  }, [watchedPrice])
+    const price = parseFloat(form.watch("price")) || 0
+    if (price.toString() !== priceRef.current) {
+      priceRef.current = price.toString()
+      const withMarkup = price * 1.20 // Add 20% markup
+      const withVAT = withMarkup * 1.07 // Add 7% VAT
+      setFinalPrice(withVAT.toFixed(2))
+    }
+  }, [form.watch("price")])
 
   const handlePlaceSelect = useCallback((placeData: PlaceData) => {
     setLocationData(placeData)
@@ -161,6 +165,15 @@ export default function NewActivityPage() {
     }
   }
 
+  const uploadFile = async (file: File, path: string) => {
+    const { data, error } = await supabase.storage
+      .from("activities")
+      .upload(path, file)
+
+    if (error) throw error
+    return data.path
+  }
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true)
     try {
@@ -174,20 +187,57 @@ export default function NewActivityPage() {
         return
       }
 
-      // Here you would:
-      // 1. Upload video and images to storage
-      // 2. Get their URLs
-      // 3. Create activity record with:
-      //    - Base price: values.price
-      //    - Final price: finalPrice
-      //    - Location: locationData (lat, lng, placeId)
-      //    - Media URLs from uploads
-      
+      // Upload video if selected
+      let videoUrl = null
+      let videoDuration = null
+      let videoSize = null
+      if (selectedVideo) {
+        const videoPath = await uploadFile(
+          selectedVideo,
+          `videos/${Date.now()}-${selectedVideo.name}`
+        )
+        videoUrl = videoPath
+        videoDuration = MAX_VIDEO_DURATION
+        videoSize = selectedVideo.size
+      }
+
+      // Upload images
+      const imageUrls = await Promise.all(
+        selectedImages.map((image) =>
+          uploadFile(image, `images/${Date.now()}-${image.name}`)
+        )
+      )
+
+      // Create activity record
+      const { data, error } = await supabase.from("activities").insert({
+        name: values.name,
+        description: values.description,
+        price: parseFloat(values.price),
+        final_price: parseFloat(finalPrice),
+        address: values.address,
+        location_lat: locationData.lat,
+        location_lng: locationData.lng,
+        place_id: locationData.placeId,
+        video_url: videoUrl,
+        video_duration: videoDuration,
+        video_size: videoSize,
+        photos: imageUrls,
+      }).select()
+
+      if (error) throw error
+
       toast({
         title: "Success",
         description: "Activity created successfully",
       })
+
+      // Reset form
+      form.reset()
+      setLocationData(null)
+      setSelectedVideo(null)
+      setSelectedImages([])
     } catch (error) {
+      console.error("Error creating activity:", error)
       toast({
         title: "Error",
         description: "Failed to create activity",
