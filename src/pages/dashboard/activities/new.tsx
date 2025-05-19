@@ -1,5 +1,5 @@
 
-import { useState, useCallback, useEffect, useRef } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -43,7 +43,6 @@ export default function NewActivityPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [finalPrice, setFinalPrice] = useState<string>("0.00")
   const { toast } = useToast()
-  const priceRef = useRef<string>("")
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -56,15 +55,13 @@ export default function NewActivityPage() {
   })
 
   // Calculate final price when price changes
+  const price = form.watch("price")
   useEffect(() => {
-    const price = parseFloat(form.watch("price")) || 0
-    if (price.toString() !== priceRef.current) {
-      priceRef.current = price.toString()
-      const withMarkup = price * 1.20 // Add 20% markup
-      const withVAT = withMarkup * 1.07 // Add 7% VAT
-      setFinalPrice(withVAT.toFixed(2))
-    }
-  }, [form.watch("price")])
+    const basePrice = parseFloat(price) || 0
+    const withMarkup = basePrice * 1.20 // Add 20% markup
+    const withVAT = withMarkup * 1.07 // Add 7% VAT
+    setFinalPrice(withVAT.toFixed(2))
+  }, [price])
 
   const handlePlaceSelect = useCallback((placeData: PlaceData) => {
     setLocationData(placeData)
