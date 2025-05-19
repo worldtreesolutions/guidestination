@@ -42,7 +42,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     fetchSession()
 
-    const { subscription } = supabase.auth.onAuthStateChange(
+    // Fix: Correctly destructure the subscription from onAuthStateChange
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, newSession) => {
         setSession(newSession)
         setUser(newSession?.user ?? null)
