@@ -21,7 +21,7 @@ export function ActivityCard({
   onStatusChange,
   showActions = true
 }: ActivityCardProps) {
-  const getStatusColor = (status: ActivityStatus | string | null) => {
+  const getStatusColor = (status: ActivityStatus | string | null): string => {
     switch (status) {
       case "published":
         return "bg-green-100 text-green-800"
@@ -64,6 +64,7 @@ export function ActivityCard({
           className="object-cover"
         />
         <Badge 
+          variant="default"
           className={`absolute top-2 right-2 ${getStatusColor(activity.status)}`}
         >
           {activity.status || "draft"}

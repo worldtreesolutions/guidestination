@@ -5,7 +5,13 @@ import { Activity, ActivityStatus } from "@/types/activity"
 import { ActivityCard } from "@/components/dashboard/activities/ActivityCard"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Select } from "@/components/ui/select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { supabase } from "@/integrations/supabase/client"
 import { Plus, Search } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
@@ -122,24 +128,27 @@ export default function ActivitiesPage() {
       </div>
 
       <div className="flex gap-4 mb-6">
-        <div className="flex-1">
+        <div className="flex-1 relative max-w-sm">
           <Input
             placeholder="Search activities..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="max-w-sm"
-            icon={<Search className="h-4 w-4" />}
           />
+          <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
         </div>
         <Select
           value={statusFilter}
-          onValueChange={(value) => setStatusFilter(value as ActivityStatus | "all")}
-          className="w-[200px]"
+          onValueChange={(value: string) => setStatusFilter(value as ActivityStatus | "all")}
         >
-          <option value="all">All Status</option>
-          <option value="draft">Draft</option>
-          <option value="published">Published</option>
-          <option value="archived">Archived</option>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="Filter by status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="draft">Draft</SelectItem>
+            <SelectItem value="published">Published</SelectItem>
+            <SelectItem value="archived">Archived</SelectItem>
+          </SelectContent>
         </Select>
       </div>
 
