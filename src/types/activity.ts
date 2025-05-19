@@ -7,6 +7,19 @@ export type Activity = Database["public"]["Tables"]["activities"]["Row"] & {
   video_duration?: number | null;
   video_size?: number | null;
   video_thumbnail_url?: string | null;
+  title?: string; // For backward compatibility
+  id?: string; // For backward compatibility
+  image_url?: string; // For backward compatibility
+  pickup_location?: string; // For backward compatibility
+  dropoff_location?: string; // For backward compatibility
+  meeting_point?: string; // For backward compatibility
+  languages?: string[]; // For backward compatibility
+  highlights?: string[]; // For backward compatibility
+  included?: string[]; // For backward compatibility
+  not_included?: string[]; // For backward compatibility
+  is_active?: boolean; // For backward compatibility
+  b_price?: number; // For backward compatibility
+  discounts?: any[]; // For backward compatibility
 }
 
 export type ActivityStatus = "draft" | "published" | "archived"
