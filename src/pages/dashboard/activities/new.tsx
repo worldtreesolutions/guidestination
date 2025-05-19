@@ -46,6 +46,37 @@ export default function NewActivityPage() {
   const { user } = useAuth()
   const [finalPrice, setFinalPrice] = useState<number>(0)
   const [locationData, setLocationData] = useState<PlaceData | null>(null)
+  const [providerId, setProviderId] = useState<string | null>(null)
+
+  useEffect(() => {
+    // Fetch provider_id when component mounts
+    const fetchProviderId = async () => {
+      if (!user?.id) return
+
+      const { data, error } = await supabase
+        .from("activity_owners")
+        .select("provider_id")
+        .eq("user_id", user.id)
+        .single()
+
+      if (error) {
+        console.error("Error fetching provider_id:", error)
+        toast({
+          title: "Error",
+          description: "Failed to fetch provider details",
+          variant: "destructive",
+        })
+        return
+      }
+
+      if (data?.provider_id) {
+        console.log("Fetched provider_id:", data.provider_id)
+        setProviderId(data.provider_id)
+      }
+    }
+
+    fetchProviderId()
+  }, [user?.id, toast])
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -89,25 +120,9 @@ export default function NewActivityPage() {
         throw new Error("User not authenticated")
       }
 
-      // First, get the activity owner's provider_id
-      const { data: ownerData, error: ownerError } = await supabase
-        .from("activity_owners")
-        .select("provider_id")
-        .eq("user_id", user.id)
-        .single()
-
-      if (ownerError) {
-        console.error("Error fetching owner data:", ownerError)
-        throw new Error("Failed to get activity owner details")
-      }
-
-      if (!ownerData?.provider_id) {
-        console.error("No provider_id found for user:", user.id)
+      if (!providerId) {
         throw new Error("Provider ID not found")
       }
-
-      // Log the provider_id to verify it's a UUID
-      console.log("Found provider_id (UUID):", ownerData.provider_id)
 
       const activityData = {
         name: values.name,
@@ -125,15 +140,14 @@ export default function NewActivityPage() {
         highlights: values.highlights,
         included: values.included,
         not_included: values.not_included,
-        provider_id: ownerData.provider_id, // This is now guaranteed to be a UUID string
+        provider_id: providerId, // Using the fetched UUID provider_id
         status: "draft",
         location_lat: locationData?.lat || null,
         location_lng: locationData?.lng || null,
         place_id: locationData?.placeId || null,
       }
 
-      // Log the activity data before insertion
-      console.log("Inserting activity with data:", activityData)
+      console.log("Creating activity with data:", activityData)
 
       const { data: insertedActivity, error: insertError } = await supabase
         .from("activities")
@@ -163,12 +177,14 @@ export default function NewActivityPage() {
     }
   }
 
+  // Rest of the component remains the same...
   return (
     <DashboardLayout>
       <div className="max-w-2xl mx-auto py-10">
         <h1 className="text-2xl font-bold mb-6">Create New Activity</h1>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {/* Form fields remain the same */}
             <FormField
               control={form.control}
               name="name"
