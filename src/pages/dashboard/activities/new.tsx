@@ -22,6 +22,7 @@ import { formatCurrency } from "@/lib/utils"
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/contexts/AuthContext"
 import { PlacesAutocomplete, PlaceData } from "@/components/ui/places-autocomplete"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -47,11 +48,12 @@ export default function NewActivityPage() {
   const [finalPrice, setFinalPrice] = useState<number>(0)
   const [locationData, setLocationData] = useState<PlaceData | null>(null)
   const [providerId, setProviderId] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchProviderId = async () => {
       if (!user?.id) {
-        console.log("No user ID available")
+        setError("User not authenticated")
         return
       }
 
@@ -65,38 +67,27 @@ export default function NewActivityPage() {
 
         if (error) {
           console.error("Error fetching provider_id:", error)
-          toast({
-            title: "Error",
-            description: "Failed to fetch provider details",
-            variant: "destructive",
-          })
+          setError("Failed to fetch provider details")
           return
         }
 
         if (!data?.provider_id) {
           console.error("No provider_id found for user:", user.id)
-          toast({
-            title: "Error",
-            description: "Provider ID not found",
-            variant: "destructive",
-          })
+          setError("Provider ID not found")
           return
         }
 
         console.log("Successfully fetched provider_id (UUID):", data.provider_id)
         setProviderId(data.provider_id)
+        setError(null)
       } catch (error) {
         console.error("Unexpected error fetching provider_id:", error)
-        toast({
-          title: "Error",
-          description: "An unexpected error occurred",
-          variant: "destructive",
-        })
+        setError("An unexpected error occurred")
       }
     }
 
     fetchProviderId()
-  }, [user?.id, toast])
+  }, [user?.id])
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -141,13 +132,7 @@ export default function NewActivityPage() {
       }
 
       if (!providerId) {
-        console.error("No provider_id available for user:", user.id)
-        toast({
-          title: "Error",
-          description: "Provider ID not found. Please try again.",
-          variant: "destructive",
-        })
-        return
+        throw new Error("Provider ID not found. Please ensure you have provider access.")
       }
 
       console.log("Creating activity with provider_id (UUID):", providerId)
@@ -168,7 +153,7 @@ export default function NewActivityPage() {
         highlights: values.highlights,
         included: values.included,
         not_included: values.not_included,
-        provider_id: providerId, // Using the UUID provider_id
+        provider_id: providerId,
         status: "draft",
         location_lat: locationData?.lat || null,
         location_lng: locationData?.lng || null,
@@ -195,11 +180,11 @@ export default function NewActivityPage() {
         description: "Activity created successfully",
       })
       router.push("/dashboard/activities")
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating activity:", error)
       toast({
         title: "Error",
-        description: "Failed to create activity. Please try again.",
+        description: error.message || "Failed to create activity. Please try again.",
         variant: "destructive",
       })
     }
@@ -209,6 +194,13 @@ export default function NewActivityPage() {
     <DashboardLayout>
       <div className="max-w-2xl mx-auto py-10">
         <h1 className="text-2xl font-bold mb-6">Create New Activity</h1>
+
+        {error && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {/* Form fields remain the same */}
@@ -403,7 +395,9 @@ export default function NewActivityPage() {
               )}
             />
 
-            <Button type="submit">Create Activity</Button>
+            <Button type="submit" disabled={!providerId}>
+              {!providerId ? "Loading Provider Details..." : "Create Activity"}
+            </Button>
           </form>
         </Form>
       </div>
