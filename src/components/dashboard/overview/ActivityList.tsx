@@ -1,5 +1,5 @@
 
-import { Activity } from "@/types/activity"
+import { Activity, ActivityStatus } from "@/types/activity"
 import { formatCurrency } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -11,6 +11,17 @@ interface ActivityListProps {
 }
 
 export function ActivityList({ activities }: ActivityListProps) {
+  const getStatusVariant = (status: ActivityStatus | string | null) => {
+    switch (status) {
+      case "published":
+        return "default"
+      case "draft":
+        return "secondary"
+      default:
+        return "outline"
+    }
+  }
+
   return (
     <div className="space-y-4">
       {activities.map((activity) => (
@@ -27,13 +38,7 @@ export function ActivityList({ activities }: ActivityListProps) {
                 </p>
               </div>
               <Badge
-                variant={
-                  activity.status === "published"
-                    ? "success"
-                    : activity.status === "draft"
-                    ? "warning"
-                    : "secondary"
-                }
+                variant={getStatusVariant(activity.status)}
               >
                 {activity.status || "draft"}
               </Badge>

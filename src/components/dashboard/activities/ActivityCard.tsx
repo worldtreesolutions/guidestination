@@ -21,10 +21,17 @@ export function ActivityCard({
   onStatusChange,
   showActions = true
 }: ActivityCardProps) {
-  const statusColor = {
-    draft: "bg-yellow-100 text-yellow-800",
-    published: "bg-green-100 text-green-800",
-    archived: "bg-gray-100 text-gray-800"
+  const getStatusColor = (status: ActivityStatus | string | null) => {
+    switch (status) {
+      case "published":
+        return "bg-green-100 text-green-800"
+      case "draft":
+        return "bg-yellow-100 text-yellow-800"
+      case "archived":
+        return "bg-gray-100 text-gray-800"
+      default:
+        return "bg-yellow-100 text-yellow-800" // Default to draft styling
+    }
   }
 
   const handleDelete = () => {
@@ -39,21 +46,25 @@ export function ActivityCard({
     }
   }
 
-  const imageUrl = activity.photos && Array.isArray(activity.photos) && activity.photos.length > 0
-    ? activity.photos[0]
-    : "/placeholder-activity.jpg"
+  const getImageUrl = (): string => {
+    if (activity.photos && Array.isArray(activity.photos) && activity.photos.length > 0) {
+      const firstPhoto = activity.photos[0]
+      return typeof firstPhoto === "string" ? firstPhoto : "/placeholder-activity.jpg"
+    }
+    return "/placeholder-activity.jpg"
+  }
 
   return (
     <Card className="overflow-hidden">
       <div className="relative aspect-video">
         <Image
-          src={imageUrl}
+          src={getImageUrl()}
           alt={activity.name}
           fill
           className="object-cover"
         />
         <Badge 
-          className={`absolute top-2 right-2 ${statusColor[activity.status as ActivityStatus || "draft"]}`}
+          className={`absolute top-2 right-2 ${getStatusColor(activity.status)}`}
         >
           {activity.status || "draft"}
         </Badge>
