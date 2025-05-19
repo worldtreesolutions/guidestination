@@ -2,7 +2,6 @@
 import { Database } from "@/integrations/supabase/types"
 
 export type Activity = Database["public"]["Tables"]["activities"]["Row"] & {
-  name: string;
   final_price?: number;
   video_url?: string | null;
   video_duration?: number | null;
@@ -30,4 +29,12 @@ export interface ActivityFilters {
   minPrice?: number;
   maxPrice?: number;
   location?: string;
+}
+
+export interface ActivityMedia {
+  url: string;
+  type: "image" | "video";
+  thumbnail_url?: string;
+  duration?: number;
+  size?: number;
 }

@@ -93,6 +93,11 @@ export function ActivityCard({
         {activity.duration && (
           <p className="text-sm mt-2">Duration: {activity.duration} hours</p>
         )}
+        {activity.video_url && (
+          <p className="text-sm mt-2">
+            Video: {activity.video_duration}s
+          </p>
+        )}
       </CardContent>
 
       {showActions && (
