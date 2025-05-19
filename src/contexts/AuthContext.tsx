@@ -1,91 +1,98 @@
 
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { Session, User, AuthError, AuthResponse } from "@supabase/supabase-js";
-import authService from "@/services/authService";
+import { createContext, useContext, useEffect, useState } from "react"
+import { supabase } from "@/integrations/supabase/client"
+import { Session, User } from "@supabase/supabase-js"
+import authService from "@/services/authService"
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  login: (email: string, password: string) => Promise<{
+    data: { user: User; session: Session } | null;
+    error: Error | null;
+  }>;
+  signOut: () => Promise<void>;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<AuthResponse>;
-  register: (email: string, password: string, additionalData?: Record<string, any>) => Promise<AuthResponse>;
-  signOut: () => Promise<{ error: AuthError | null }>;
-  resetPasswordForEmail: (email: string) => Promise<{ error: AuthError | null }>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  session: null,
+  loading: true,
+  login: async () => ({ data: null, error: null }),
+  signOut: async () => {},
+  isAuthenticated: false,
+})
 
-export default function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null)
+  const [session, setSession] = useState<Session | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        setSession(session);
-        setUser(session?.user ?? null);
-      } catch (e: any) {
-        console.error("Exception in fetchSession:", e.message);
-      } finally {
-        setLoading(false);
+      const { data: { session: initialSession } } = await supabase.auth.getSession()
+      setSession(initialSession)
+      setUser(initialSession?.user ?? null)
+      setLoading(false)
+    }
+
+    fetchSession()
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, newSession) => {
+        setSession(newSession)
+        setUser(newSession?.user ?? null)
+        setLoading(false)
       }
-    };
-
-    fetchSession();
-
-    const { data } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      setSession(newSession);
-      setUser(newSession?.user ?? null);
-      setLoading(false);
-    });
+    )
 
     return () => {
-      data?.subscription.unsubscribe();
-    };
-  }, []);
+      subscription.unsubscribe()
+    }
+  }, [])
 
-  const login = async (email: string, password: string): Promise<AuthResponse> => {
-    return authService.login(email, password);
-  };
-  
-  const register = async (email: string, password: string, additionalData?: Record<string, any>): Promise<AuthResponse> => {
-    return authService.signUp(email, password, additionalData);
-  };
+  const login = async (email: string, password: string) => {
+    try {
+      const { data, error } = await authService.signInWithEmail(email, password)
+      if (error) throw error
+      return { data, error: null }
+    } catch (error) {
+      console.error("Login error:", error)
+      return {
+        data: null,
+        error: error as Error,
+      }
+    }
+  }
 
-  const signOut = async (): Promise<{ error: AuthError | null }> => {
-    return authService.signOut();
-  };
+  const signOut = async () => {
+    try {
+      await supabase.auth.signOut()
+      setUser(null)
+      setSession(null)
+    } catch (error) {
+      console.error("Sign out error:", error)
+    }
+  }
 
-  const resetPasswordForEmail = async (email: string): Promise<{ error: AuthError | null }> => {
-    return authService.resetPasswordForEmail(email);
-  };
-
-  const contextValue: AuthContextType = {
+  const value = {
     user,
     session,
     loading,
-    isAuthenticated: !!user,
     login,
-    register,
     signOut,
-    resetPasswordForEmail,
-  };
+    isAuthenticated: !!user,
+  }
 
-  return (
-    <AuthContext.Provider value={contextValue}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
-export const useAuth = (): AuthContextType => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
+export const useAuth = () => {
+  const context = useContext(AuthContext)
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider")
   }
-  return context;
-};
+  return context
+}

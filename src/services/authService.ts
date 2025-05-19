@@ -1,179 +1,56 @@
 
-import { supabase } from "@/integrations/supabase/client";
-import {
-  AuthResponse,
-  AuthError,
-  User,
-  Session,
-  Provider,
-  OAuthResponse
-} from "@supabase/supabase-js";
+import { supabase } from "@/integrations/supabase/client"
+import { User, Session } from "@supabase/supabase-js"
 
-export interface UserProfile {
-  id: number;
-  user_id: string;
-  name: string;
-  email: string;
-  password_hash: string | null;
-  phone: string | null;
-  user_type: string | null;
-  created_at: string | null;
-  role_id: number | null;
-  verified: boolean;
-  avatar_url?: string;
-  updated_at?: string;
-}
-
-interface DatabaseUserProfile {
-  id: number;
-  name: string;
-  email: string;
-  password_hash: string | null;
-  phone: string | null;
-  user_type: string | null;
-  created_at: string | null;
-  role_id: number | null;
-  verified: boolean;
-  avatar_url?: string;
-  updated_at?: string;
+interface SignInResponse {
+  data: {
+    user: User;
+    session: Session;
+  } | null;
+  error: Error | null;
 }
 
 const authService = {
-  async signUp(
-    email: string,
-    password: string,
-    additionalData?: Record<string, any>
-  ): Promise<AuthResponse> {
-    return supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: additionalData,
-      },
-    });
+  async signInWithEmail(email: string, password: string): Promise<SignInResponse> {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+      if (error) throw error
+
+      return {
+        data: data as { user: User; session: Session },
+        error: null,
+      }
+    } catch (error) {
+      console.error("Auth service signInWithEmail error:", error)
+      return {
+        data: null,
+        error: error as Error,
+      }
+    }
   },
 
-  async login(email: string, password: string): Promise<AuthResponse> {
-    return supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+  async signOut() {
+    const { error } = await supabase.auth.signOut()
+    if (error) throw error
   },
 
-  async signInWithProvider(provider: Provider): Promise<OAuthResponse> {
-    return supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: `${typeof window !== "undefined" ? window.location.origin : ""}/dashboard`,
-      },
-    });
-  },
-
-  async signOut(): Promise<{ error: AuthError | null }> {
-    return supabase.auth.signOut();
-  },
-
-  async getUser(): Promise<User | null> {
-    const { data: { user } } = await supabase.auth.getUser();
-    return user;
-  },
-
-  async getSession(): Promise<Session | null> {
-    const { data: { session } } = await supabase.auth.getSession();
-    return session;
-  },
-
-  async resetPasswordForEmail(email: string): Promise<{ error: AuthError | null }> {
+  async resetPassword(email: string) {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${typeof window !== "undefined" ? window.location.origin : ""}/dashboard/reset-password`,
-    });
-    return { error };
+      redirectTo: `${window.location.origin}/dashboard/reset-password`,
+    })
+    if (error) throw error
   },
 
-  async updatePasswordWithResetToken(password: string): Promise<{ error: AuthError | null }> {
-    const { error } = await supabase.auth.updateUser({ password });
-    return { error };
+  async updatePassword(password: string) {
+    const { error } = await supabase.auth.updateUser({
+      password,
+    })
+    if (error) throw error
   },
+}
 
-  async updateUserPassword(password: string): Promise<{ error: AuthError | null }> {
-    const { error } = await supabase.auth.updateUser({ password });
-    return { error };
-  },
-
-  async updateUserEmail(email: string): Promise<{ error: AuthError | null }> {
-    const { error } = await supabase.auth.updateUser({ email });
-    return { error };
-  },
-
-  async updateUserMetadata(metadata: Record<string, any>): Promise<{ error: AuthError | null }> {
-    const { error } = await supabase.auth.updateUser({ data: metadata });
-    return { error };
-  },
-
-  async getUserProfile(userId: string): Promise<UserProfile | null> {
-    const { data, error } = await supabase
-      .from("users")
-      .select("*")
-      .eq("user_id", userId)
-      .single();
-
-    if (error) {
-      console.error("Error fetching user profile:", error);
-      return null;
-    }
-
-    if (!data) return null;
-
-    const dbProfile = data as DatabaseUserProfile;
-    return {
-      ...dbProfile,
-      user_id: userId,
-    };
-  },
-
-  async updateUserProfile(
-    userId: string,
-    updates: Partial<UserProfile>
-  ): Promise<UserProfile | null> {
-    const { data, error } = await supabase
-      .from("users")
-      .update(updates)
-      .eq("user_id", userId)
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Error updating user profile:", error);
-      return null;
-    }
-
-    if (!data) return null;
-
-    const dbProfile = data as DatabaseUserProfile;
-    return {
-      ...dbProfile,
-      user_id: userId,
-    };
-  },
-
-  onAuthStateChange(
-    callback: (event: string, session: Session | null) => void
-  ) {
-    return supabase.auth.onAuthStateChange(callback);
-  },
-
-  async deleteUserAccount(userId: string): Promise<{ error: AuthError | null }> {
-    console.warn(
-      "Direct client-side user deletion is not recommended or might be restricted by RLS."
-    );
-    return {
-      error: {
-        name: "NotImplementedError",
-        message: "User deletion from client-side is not fully implemented.",
-        status: 501,
-      } as AuthError,
-    };
-  },
-};
-
-export default authService;
+export default authService
