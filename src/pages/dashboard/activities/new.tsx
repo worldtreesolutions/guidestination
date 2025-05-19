@@ -213,9 +213,9 @@ export default function NewActivityPage() {
       console.log('Provider ID from metadata:', providerId, 'Type:', typeof providerId);
       
       // Force provider_id to be a number, use a fallback value of 1 if not found
-      const numericProviderId = providerId ? Number(providerId) : 1;
+      //const numericProviderId = providerId ? Number(providerId) : 1;
       
-      console.log('Numeric provider_id:', numericProviderId, 'Type:', typeof numericProviderId);
+     // console.log('Numeric provider_id:', numericProviderId, 'Type:', typeof numericProviderId);
 
       // Prepare data directly matching ActivityInsert structure
       const activityData: ActivityInsert = {
@@ -239,7 +239,7 @@ export default function NewActivityPage() {
         status: data.status ? Number(data.status) : null,
         discounts: data.discounts ? Number(data.discounts) : 0,
         // Explicitly set provider_id as a number
-        provider_id: numericProviderId,
+        provider_id: providerId,
       };
 
       console.log('Activity data being sent:', JSON.stringify(activityData));
