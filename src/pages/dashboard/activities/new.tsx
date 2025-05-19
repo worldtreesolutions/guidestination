@@ -54,12 +54,13 @@ export default function NewActivityPage() {
   })
 
   // Calculate final price when price changes
+  const watchedPrice = form.watch("price")
   useEffect(() => {
-    const price = parseFloat(form.watch("price")) || 0
+    const price = parseFloat(watchedPrice) || 0
     const withMarkup = price * 1.20 // Add 20% markup
     const withVAT = withMarkup * 1.07 // Add 7% VAT
     setFinalPrice(withVAT.toFixed(2))
-  }, [form.watch("price")])
+  }, [watchedPrice])
 
   const handlePlaceSelect = useCallback((placeData: PlaceData) => {
     setLocationData(placeData)
@@ -68,7 +69,7 @@ export default function NewActivityPage() {
 
   const checkImageDimensions = (file: File): Promise<boolean> => {
     return new Promise((resolve) => {
-      const img = new Image()
+      const img = document.createElement("img")
       img.onload = () => {
         URL.revokeObjectURL(img.src)
         resolve(img.width >= MIN_IMAGE_WIDTH && img.height >= MIN_IMAGE_HEIGHT)
@@ -103,8 +104,9 @@ export default function NewActivityPage() {
     const video = document.createElement("video")
     video.preload = "metadata"
 
+    const videoSrc = URL.createObjectURL(file)
     video.onloadedmetadata = () => {
-      window.URL.revokeObjectURL(video.src)
+      URL.revokeObjectURL(videoSrc)
       if (video.duration > MAX_VIDEO_DURATION) {
         toast({
           title: "Video too long",
@@ -120,7 +122,7 @@ export default function NewActivityPage() {
       })
     }
 
-    video.src = URL.createObjectURL(file)
+    video.src = videoSrc
   }
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -240,13 +242,6 @@ export default function NewActivityPage() {
                       type="number" 
                       step="0.01" 
                       {...field} 
-                      onChange={(e) => {
-                        field.onChange(e)
-                        const price = parseFloat(e.target.value) || 0
-                        const withMarkup = price * 1.20
-                        const withVAT = withMarkup * 1.07
-                        setFinalPrice(withVAT.toFixed(2))
-                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -342,6 +337,7 @@ export default function NewActivityPage() {
                       alt={`Preview ${index + 1}`}
                       fill
                       className="rounded-lg object-cover"
+                      unoptimized
                     />
                   </div>
                 ))}
