@@ -27,7 +27,7 @@ export interface Database {
           owner_name: string
           phone: string | null
           place_id: string | null
-          provider_id: string
+          provider_id: UUID
           status: string | null
           tat_license_number: string | null
           tax_id: string | null
@@ -50,7 +50,7 @@ export interface Database {
           owner_name: string
           phone?: string | null
           place_id?: string | null
-          provider_id?: string
+          provider_id?: UUID
           status?: string | null
           tat_license_number?: string | null
           tax_id?: string | null
@@ -73,7 +73,7 @@ export interface Database {
           owner_name?: string
           phone?: string | null
           place_id?: string | null
-          provider_id?: string
+          provider_id?: UUID
           status?: string | null
           tat_license_number?: string | null
           tax_id?: string | null
@@ -109,7 +109,7 @@ export interface Database {
           photos: Json | null
           place_id: string | null
           price: number
-          provider_id: string | null
+          provider_id: UUID
           rating: number | null
           status: string | null
           tags: string[] | null
@@ -133,7 +133,7 @@ export interface Database {
           photos?: Json | null
           place_id?: string | null
           price: number
-          provider_id?: string | null
+          provider_id?: UUID
           rating?: number | null
           status?: string | null
           tags?: string[] | null
@@ -157,7 +157,7 @@ export interface Database {
           photos?: Json | null
           place_id?: string | null
           price?: number
-          provider_id?: string | null
+          provider_id?: UUID
           rating?: number | null
           status?: string | null
           tags?: string[] | null
