@@ -49,29 +49,49 @@ export default function NewActivityPage() {
   const [providerId, setProviderId] = useState<string | null>(null)
 
   useEffect(() => {
-    // Fetch provider_id when component mounts
     const fetchProviderId = async () => {
-      if (!user?.id) return
-
-      const { data, error } = await supabase
-        .from("activity_owners")
-        .select("provider_id")
-        .eq("user_id", user.id)
-        .single()
-
-      if (error) {
-        console.error("Error fetching provider_id:", error)
-        toast({
-          title: "Error",
-          description: "Failed to fetch provider details",
-          variant: "destructive",
-        })
+      if (!user?.id) {
+        console.log("No user ID available")
         return
       }
 
-      if (data?.provider_id) {
-        console.log("Fetched provider_id:", data.provider_id)
+      try {
+        console.log("Fetching provider_id for user:", user.id)
+        const { data, error } = await supabase
+          .from("activity_owners")
+          .select("provider_id")
+          .eq("user_id", user.id)
+          .single()
+
+        if (error) {
+          console.error("Error fetching provider_id:", error)
+          toast({
+            title: "Error",
+            description: "Failed to fetch provider details",
+            variant: "destructive",
+          })
+          return
+        }
+
+        if (!data?.provider_id) {
+          console.error("No provider_id found for user:", user.id)
+          toast({
+            title: "Error",
+            description: "Provider ID not found",
+            variant: "destructive",
+          })
+          return
+        }
+
+        console.log("Successfully fetched provider_id (UUID):", data.provider_id)
         setProviderId(data.provider_id)
+      } catch (error) {
+        console.error("Unexpected error fetching provider_id:", error)
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred",
+          variant: "destructive",
+        })
       }
     }
 
@@ -121,8 +141,16 @@ export default function NewActivityPage() {
       }
 
       if (!providerId) {
-        throw new Error("Provider ID not found")
+        console.error("No provider_id available for user:", user.id)
+        toast({
+          title: "Error",
+          description: "Provider ID not found. Please try again.",
+          variant: "destructive",
+        })
+        return
       }
+
+      console.log("Creating activity with provider_id (UUID):", providerId)
 
       const activityData = {
         name: values.name,
@@ -140,14 +168,14 @@ export default function NewActivityPage() {
         highlights: values.highlights,
         included: values.included,
         not_included: values.not_included,
-        provider_id: providerId, // Using the fetched UUID provider_id
+        provider_id: providerId, // Using the UUID provider_id
         status: "draft",
         location_lat: locationData?.lat || null,
         location_lng: locationData?.lng || null,
         place_id: locationData?.placeId || null,
       }
 
-      console.log("Creating activity with data:", activityData)
+      console.log("Inserting activity with data:", activityData)
 
       const { data: insertedActivity, error: insertError } = await supabase
         .from("activities")
@@ -177,7 +205,6 @@ export default function NewActivityPage() {
     }
   }
 
-  // Rest of the component remains the same...
   return (
     <DashboardLayout>
       <div className="max-w-2xl mx-auto py-10">
