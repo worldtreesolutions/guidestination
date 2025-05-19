@@ -21,6 +21,7 @@ import { MapPin } from "lucide-react"
 import Image from "next/image"
 import { supabase } from "@/integrations/supabase/client"
 import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout"
+import { uploadFile, validateVideo, validateImage, MAX_VIDEO_DURATION, MIN_IMAGE_WIDTH, MIN_IMAGE_HEIGHT } from "@/lib/upload"
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -34,6 +35,12 @@ const formSchema = z.object({
   included: z.string().min(2, "Please specify what's included"),
   notIncluded: z.string().min(2, "Please specify what's not included"),
   highlights: z.string().min(2, "Please specify highlights"),
+  duration: z.string().min(1, "Please specify duration"),
+  maxParticipants: z.string().min(1, "Please specify maximum participants"),
+  minParticipants: z.string().min(1, "Please specify minimum participants"),
+  category: z.string().min(1, "Please select a category"),
+  type: z.string().min(1, "Please select activity type"),
+  includesHotelPickup: z.boolean().default(false),
 })
 
 export default function NewActivityPage() {
@@ -56,6 +63,12 @@ export default function NewActivityPage() {
       included: "",
       notIncluded: "",
       highlights: "",
+      duration: "",
+      maxParticipants: "",
+      minParticipants: "",
+      category: "",
+      type: "",
+      includesHotelPickup: false,
     },
   })
 
@@ -71,6 +84,43 @@ export default function NewActivityPage() {
     setLocationData(placeData)
     form.setValue("address", placeData.address, { shouldValidate: true })
   }, [form])
+
+  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const isValid = await validateVideo(file)
+    if (!isValid) {
+      toast({
+        title: "Invalid video",
+        description: `Video must be max ${MAX_VIDEO_DURATION} seconds and under 50MB`,
+        variant: "destructive",
+      })
+      return
+    }
+
+    setSelectedVideo(file)
+  }
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+    const validImages = []
+
+    for (const file of files) {
+      const isValid = await validateImage(file)
+      if (isValid) {
+        validImages.push(file)
+      } else {
+        toast({
+          title: "Invalid image",
+          description: `Images must be at least ${MIN_IMAGE_WIDTH}x${MIN_IMAGE_HEIGHT} pixels`,
+          variant: "destructive",
+        })
+      }
+    }
+
+    setSelectedImages(validImages)
+  }
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true)
@@ -90,11 +140,7 @@ export default function NewActivityPage() {
       let videoDuration = null
       let videoSize = null
       if (selectedVideo) {
-        const videoPath = await uploadFile(
-          selectedVideo,
-          `videos/${Date.now()}-${selectedVideo.name}`
-        )
-        videoUrl = videoPath
+        videoUrl = await uploadFile(selectedVideo, `videos/${Date.now()}-${selectedVideo.name}`)
         videoDuration = MAX_VIDEO_DURATION
         videoSize = selectedVideo.size
       }
@@ -125,6 +171,13 @@ export default function NewActivityPage() {
         video_duration: videoDuration,
         video_size: videoSize,
         photos: imageUrls,
+        duration: parseInt(values.duration),
+        max_participants: parseInt(values.maxParticipants),
+        min_participants: parseInt(values.minParticipants),
+        category: values.category,
+        type: values.type,
+        includes_hotel_pickup: values.includesHotelPickup,
+        status: "draft",
       }).select()
 
       if (error) throw error
@@ -155,46 +208,148 @@ export default function NewActivityPage() {
       <div className="container mx-auto py-10">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Activity Name</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Basic Information */}
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold">Basic Information</h2>
+              
               <FormField
                 control={form.control}
-                name="price"
+                name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Base Price (THB)</FormLabel>
+                    <FormLabel>Activity Name</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
-                        step="0.01" 
-                        {...field} 
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Textarea {...field} className="min-h-[120px]" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="category"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Category</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="e.g., Adventure, Culture" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Activity Type</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="e.g., Tour, Workshop" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+
+            {/* Pricing */}
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold">Pricing</h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="price"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Base Price (THB)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          step="0.01" 
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormItem>
+                  <FormLabel>Final Price (with 20% markup + 7% VAT)</FormLabel>
+                  <Input
+                    type="text"
+                    value={`${finalPrice} THB`}
+                    disabled
+                    className="bg-muted"
+                  />
+                  <FormDescription>
+                    Automatically calculated based on base price
+                  </FormDescription>
+                </FormItem>
+              </div>
+            </div>
+
+            {/* Location */}
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold">Location</h2>
+              
+              <FormField
+                control={form.control}
+                name="address"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center">
+                      Location <MapPin className="ml-1 h-4 w-4 text-muted-foreground" />
+                    </FormLabel>
+                    <FormControl>
+                      <PlacesAutocomplete
+                        value={field.value}
+                        onChange={field.onChange}
+                        onPlaceSelect={handlePlaceSelect}
+                        placeholder="Search for activity location"
+                        disabled={isSubmitting}
+                      />
+                    </FormControl>
+                    {locationData && (
+                      <FormDescription>
+                        Location coordinates: {locationData.lat.toFixed(6)}, {locationData.lng.toFixed(6)}
+                      </FormDescription>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="meetingPoint"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Meeting Point</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Specify the meeting point details"
+                        {...field}
                       />
                     </FormControl>
                     <FormMessage />
@@ -202,133 +357,152 @@ export default function NewActivityPage() {
                 )}
               />
 
-              <FormItem>
-                <FormLabel>Final Price (with 20% markup + 7% VAT)</FormLabel>
-                <Input
-                  type="text"
-                  value={`${finalPrice} THB`}
-                  disabled
-                  className="bg-muted"
-                />
-                <FormDescription>
-                  Automatically calculated based on base price
-                </FormDescription>
-              </FormItem>
+              <FormField
+                control={form.control}
+                name="includesHotelPickup"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormControl>
+                      <input
+                        type="checkbox"
+                        checked={field.value}
+                        onChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>
+                        Includes Hotel Pickup
+                      </FormLabel>
+                      <FormDescription>
+                        Check if you provide hotel pickup service
+                      </FormDescription>
+                    </div>
+                  </FormItem>
+                )}
+              />
             </div>
 
-            <FormField
-              control={form.control}
-              name="address"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex items-center">
-                    Location <MapPin className="ml-1 h-4 w-4 text-muted-foreground" />
-                  </FormLabel>
-                  <FormControl>
-                    <PlacesAutocomplete
-                      value={field.value}
-                      onChange={field.onChange}
-                      onPlaceSelect={handlePlaceSelect}
-                      placeholder="Search for activity location"
-                      disabled={isSubmitting}
-                    />
-                  </FormControl>
-                  {locationData && (
-                    <FormDescription>
-                      Location coordinates: {locationData.lat.toFixed(6)}, {locationData.lng.toFixed(6)}
-                    </FormDescription>
-                  )}
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="meetingPoint"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Meeting Point</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Specify the meeting point details"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="languages"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Languages</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="English, Thai, etc. (comma separated)"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="included"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>What's Included</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="List items included (one per line)"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="notIncluded"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>What's Not Included</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="List items not included (one per line)"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="highlights"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Highlights</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="List activity highlights (one per line)"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
+            {/* Activity Details */}
             <div className="space-y-4">
+              <h2 className="text-xl font-semibold">Activity Details</h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <FormField
+                  control={form.control}
+                  name="duration"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Duration (hours)</FormLabel>
+                      <FormControl>
+                        <Input type="number" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="minParticipants"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Minimum Participants</FormLabel>
+                      <FormControl>
+                        <Input type="number" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="maxParticipants"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Maximum Participants</FormLabel>
+                      <FormControl>
+                        <Input type="number" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="languages"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Languages</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="English, Thai, etc. (comma separated)"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="highlights"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Highlights</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="List activity highlights (one per line)"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="included"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>What's Included</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="List items included (one per line)"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="notIncluded"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>What's Not Included</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="List items not included (one per line)"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Media */}
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold">Media</h2>
+              
               <div>
                 <FormLabel>Video (15 seconds max)</FormLabel>
                 <Input
