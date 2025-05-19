@@ -99,6 +99,10 @@ export default function NewActivityPage() {
         throw new Error("Failed to get activity owner details")
       }
 
+      if (!ownerData?.provider_id) {
+        throw new Error("Provider ID not found")
+      }
+
       // Prepare the activity data with the correct provider_id
       const activityData = {
         name: values.name,
@@ -116,7 +120,7 @@ export default function NewActivityPage() {
         highlights: values.highlights,
         included: values.included,
         not_included: values.not_included,
-        provider_id: ownerData.provider_id,
+        provider_id: ownerData.provider_id, // This is now guaranteed to be a UUID
         status: "draft",
         // Add location data if available
         location_lat: locationData?.lat || null,
@@ -312,7 +316,7 @@ export default function NewActivityPage() {
                   <FormLabel>Activity Location</FormLabel>
                   <FormControl>
                     <PlacesAutocomplete
-                      value={field.value}
+                      value={field.value || ""}
                       onChange={field.onChange}
                       onPlaceSelect={handlePlaceSelect}
                       placeholder="Search for activity location"
