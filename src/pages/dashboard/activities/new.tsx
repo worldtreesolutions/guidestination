@@ -18,10 +18,13 @@ import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
 import { PlacesAutocomplete, PlaceData } from "@/components/ui/places-autocomplete"
 import { MapPin } from "lucide-react"
+import Image from "next/image"
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50MB for video
 const ACCEPTED_VIDEO_TYPES = ["video/mp4", "video/webm"]
 const MAX_VIDEO_DURATION = 15 // 15 seconds
+const MIN_IMAGE_WIDTH = 1920
+const MIN_IMAGE_HEIGHT = 1080
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -30,7 +33,6 @@ const formSchema = z.object({
     message: "Price must be a positive number",
   }),
   address: z.string().min(5, "Please enter a valid address"),
-  // Add other fields as needed
 })
 
 export default function NewActivityPage() {
@@ -63,6 +65,17 @@ export default function NewActivityPage() {
     setLocationData(placeData)
     form.setValue("address", placeData.address, { shouldValidate: true })
   }, [form])
+
+  const checkImageDimensions = (file: File): Promise<boolean> => {
+    return new Promise((resolve) => {
+      const img = new Image()
+      img.onload = () => {
+        URL.revokeObjectURL(img.src)
+        resolve(img.width >= MIN_IMAGE_WIDTH && img.height >= MIN_IMAGE_HEIGHT)
+      }
+      img.src = URL.createObjectURL(file)
+    })
+  }
 
   const handleVideoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -101,36 +114,72 @@ export default function NewActivityPage() {
         return
       }
       setSelectedVideo(file)
+      toast({
+        title: "Video selected",
+        description: "Video successfully validated and selected",
+      })
     }
 
     video.src = URL.createObjectURL(file)
   }
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || [])
-    const validFiles = files.filter(file => file.type.startsWith("image/"))
+    const validFiles: File[] = []
     
-    if (validFiles.length !== files.length) {
-      toast({
-        title: "Invalid file type",
-        description: "Please upload only image files",
-        variant: "destructive",
-      })
+    for (const file of files) {
+      if (!file.type.startsWith("image/")) {
+        toast({
+          title: "Invalid file type",
+          description: "Please upload only image files",
+          variant: "destructive",
+        })
+        continue
+      }
+
+      const meetsMinDimensions = await checkImageDimensions(file)
+      if (!meetsMinDimensions) {
+        toast({
+          title: "Image too small",
+          description: `Images must be at least ${MIN_IMAGE_WIDTH}x${MIN_IMAGE_HEIGHT} pixels`,
+          variant: "destructive",
+        })
+        continue
+      }
+
+      validFiles.push(file)
     }
 
-    setSelectedImages(prev => [...prev, ...validFiles])
+    if (validFiles.length > 0) {
+      setSelectedImages(prev => [...prev, ...validFiles])
+      toast({
+        title: "Images selected",
+        description: `${validFiles.length} high-quality image(s) successfully validated and selected`,
+      })
+    }
   }
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true)
     try {
-      // Here you would typically:
+      if (!locationData) {
+        toast({
+          title: "Location required",
+          description: "Please select a valid location from the suggestions",
+          variant: "destructive",
+        })
+        setIsSubmitting(false)
+        return
+      }
+
+      // Here you would:
       // 1. Upload video and images to storage
       // 2. Get their URLs
-      // 3. Create activity record with all data including:
-      //    - Final price
-      //    - Location data (lat, lng, place_id)
-      //    - Media URLs
+      // 3. Create activity record with:
+      //    - Base price: values.price
+      //    - Final price: finalPrice
+      //    - Location: locationData (lat, lng, placeId)
+      //    - Media URLs from uploads
       
       toast({
         title: "Success",
@@ -187,7 +236,18 @@ export default function NewActivityPage() {
                 <FormItem>
                   <FormLabel>Base Price (THB)</FormLabel>
                   <FormControl>
-                    <Input type="number" step="0.01" {...field} />
+                    <Input 
+                      type="number" 
+                      step="0.01" 
+                      {...field} 
+                      onChange={(e) => {
+                        field.onChange(e)
+                        const price = parseFloat(e.target.value) || 0
+                        const withMarkup = price * 1.20
+                        const withVAT = withMarkup * 1.07
+                        setFinalPrice(withVAT.toFixed(2))
+                      }}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -249,6 +309,16 @@ export default function NewActivityPage() {
               </FormDescription>
             </div>
 
+            {selectedVideo && (
+              <div className="mt-2">
+                <video
+                  src={URL.createObjectURL(selectedVideo)}
+                  controls
+                  className="max-w-full h-auto rounded-lg"
+                />
+              </div>
+            )}
+
             <div>
               <FormLabel>Images</FormLabel>
               <Input
@@ -259,7 +329,7 @@ export default function NewActivityPage() {
                 className="mt-1"
               />
               <FormDescription>
-                Upload high-quality images (recommended: at least 1920x1080)
+                Upload high-quality images (minimum {MIN_IMAGE_WIDTH}x{MIN_IMAGE_HEIGHT} pixels)
               </FormDescription>
             </div>
 
@@ -267,10 +337,11 @@ export default function NewActivityPage() {
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
                 {selectedImages.map((image, index) => (
                   <div key={index} className="relative aspect-video">
-                    <img
+                    <Image
                       src={URL.createObjectURL(image)}
                       alt={`Preview ${index + 1}`}
-                      className="rounded-lg object-cover w-full h-full"
+                      fill
+                      className="rounded-lg object-cover"
                     />
                   </div>
                 ))}
