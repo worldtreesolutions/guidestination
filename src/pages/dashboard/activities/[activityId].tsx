@@ -343,10 +343,9 @@ export default function EditActivityPage() {
               schedule_start_time: startTime,
               schedule_end_time: endTime,
               schedule_capacity: firstSchedule?.capacity ?? 10,
-              //schedule_availability_start_date: firstSchedule?.availability_start_date ?? new Date().toISOString().split('T')[0],
-              //schedule_availability_end_date: firstSchedule?.availability_end_date ?? new Date(new Date().setMonth(new Date().getMonth() + 3)).toISOString().split('T')[0],
-              schedule_availability_start_date = new Date(firstSchedule?.availability_start_date).toTimeString().slice(0, 5),
-              schedule_availability_end_date = new Date(firstSchedule?.availability_end_date).toTimeString().slice(0, 5),
+              schedule_availability_start_date: firstSchedule?.availability_start_date ?? new Date().toISOString().split('T')[0],
+              schedule_availability_end_date: firstSchedule?.availability_end_date ?? new Date(new Date().setMonth(new Date().getMonth() + 3)).toISOString().split('T')[0],
+              
             })
           } else {
             toast({ title: 'Error', description: 'Activity not found.', variant: 'destructive' })
