@@ -49,6 +49,12 @@ export default function LoginPage() {
       if (data?.user) {
         const role = data.user.user_metadata?.role
         console.log("User role from meta", role) // For debugging
+        console.log("Provider ID:", data.provider_id) // Log provider_id if available
+
+        // Store provider_id in localStorage for use in activity creation
+        if (data.provider_id) {
+          localStorage.setItem('provider_id', data.provider_id)
+        }
 
         if (role === "activity_owner") {
           router.push("/activity-owner/dashboard")
@@ -88,10 +94,10 @@ export default function LoginPage() {
             <Image
               src="/logo-masdxep0.png"
               alt="Guidestination"
-              width={180}
-              height={32}
+              width={280}
+              height={52}
               priority
-              className="h-8 w-auto"
+              className="h-14 w-auto"
             />
           </Link>
           <h2 className="text-3xl font-bold tracking-tight">Sign in to your account</h2>

@@ -13,7 +13,8 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user, loading } = useAuth()
   const router = useRouter()
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  // Initialize sidebarOpen to true so it's visible by default on desktop
+  const [sidebarOpen, setSidebarOpen] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
   
   // Close sidebar when route changes on mobile
@@ -29,11 +30,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       const mobile = window.innerWidth < 1024
       setIsMobile(mobile)
       
-      if (!mobile) {
-        setSidebarOpen(true)
-      } else if (!sidebarOpen) {
-        setSidebarOpen(false)
-      }
+      // Always show sidebar on desktop, hide on mobile by default
+      setSidebarOpen(!mobile)
     }
     
     // Set initial state based on screen size
@@ -43,7 +41,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     
     window.addEventListener("resize", handleResize)
     return () => window.removeEventListener("resize", handleResize)
-  }, [sidebarOpen])
+  }, [])
 
   if (loading) {
     return (
