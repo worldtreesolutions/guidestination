@@ -85,6 +85,9 @@ const activityCrudService = {
       is_active: activity.is_active !== undefined ? activity.is_active : true,
     };
 
+    // Remove any fields that don't exist in the database schema
+    delete (activityData as any).price;
+
     console.log('Final activity data being inserted:', JSON.stringify(activityData));
     console.log('Final provider_id:', activityData.provider_id, 'Type:', typeof activityData.provider_id);
 
@@ -215,6 +218,7 @@ const activityCrudService = {
     delete (updateData as any).schedule_availability_start_date;
     delete (updateData as any).schedule_availability_end_date;
     delete (updateData as any).schedule_id;
+    delete (updateData as any).price; // Remove price field if it exists
 
     console.log('Updating activity with data:', JSON.stringify(updateData));
 
@@ -372,6 +376,7 @@ const activityCrudService = {
     delete (updateData as any).id;
     delete (updateData as any).created_at;
     delete (updateData as any).created_by;
+    delete (updateData as any).price; // Remove price field if it exists
 
     const { error } = await supabase
       .from('activities')
