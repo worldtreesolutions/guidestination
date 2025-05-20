@@ -25,7 +25,7 @@ interface PlanningContextType {
   removeActivity: (activityId: string) => void;
   clearActivities: () => void;
   isActivitySelected: (activityId: string) => boolean;
-  updateActivity: (activity: ScheduledActivity) => void;
+  updateActivity: (activityId: string, updatedActivity: ScheduledActivity) => void;
   scheduleActivity: (activityId: string, day: string, hour: number) => void;
 }
 
@@ -76,13 +76,14 @@ export function PlanningProvider({ children }: { children: React.ReactNode }) {
     return selectedActivities.some((activity) => activity.activity_id === activityId)
   }
 
-  const updateActivity = (activity: ScheduledActivity) => {
+  // Updated to match the expected signature
+  const updateActivity = (activityId: string, updatedActivity: ScheduledActivity) => {
     setScheduledActivities((prev) => {
-      const index = prev.findIndex((a) => a.id === activity.id)
-      if (index === -1) return [...prev, activity]
+      const index = prev.findIndex((a) => a.id === activityId)
+      if (index === -1) return [...prev, updatedActivity]
       
       const updated = [...prev]
-      updated[index] = activity
+      updated[index] = updatedActivity
       return updated
     })
   }
@@ -124,7 +125,7 @@ export function PlanningProvider({ children }: { children: React.ReactNode }) {
         day,
         hour,
         duration: 2, // Default duration
-        price: selectedActivity.price || 0,
+        price: selectedActivity.b_price || selectedActivity.final_price || 0, // Use b_price or final_price
         participants: 1, // Default participants
       }
       

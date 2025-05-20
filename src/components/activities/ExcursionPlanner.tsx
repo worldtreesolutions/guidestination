@@ -142,6 +142,11 @@ export const ExcursionPlanner = () => {
     }, 100)
   }, [removeActivity])
 
+  // Wrapper for updateActivity to match the expected signature
+  const handleActivitySelect = useCallback((activityId: string, updatedActivity: ScheduledActivity) => {
+    updateActivity(activityId, updatedActivity)
+  }, [updateActivity])
+
   // Calculate total activities
   const totalActivities = selectedActivities.length + scheduledActivities.length
 
@@ -208,7 +213,7 @@ export const ExcursionPlanner = () => {
                   <MobileWeeklyActivitySchedule
                     scheduledActivities={scheduledActivities}
                     draggedActivity={draggedActivity}
-                    onActivitySelect={updateActivity}
+                    onActivitySelect={handleActivitySelect}
                     onActivityRemove={handleActivityRemove}
                   />
                 </CardContent>
@@ -274,7 +279,7 @@ export const ExcursionPlanner = () => {
                   <WeeklyActivitySchedule
                     scheduledActivities={scheduledActivities}
                     draggedActivity={draggedActivity}
-                    onActivitySelect={updateActivity}
+                    onActivitySelect={handleActivitySelect}
                     onActivityRemove={handleActivityRemove}
                   />
                 </CardContent>
