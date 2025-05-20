@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/router";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout";
 
 type BookingRow = Database["public"]["Tables"]["bookings"]["Row"];
 
@@ -78,33 +79,65 @@ export default function DashboardOverviewPage() {
   }, [user, authLoading, router]);
 
   if (authLoading || isDataLoading) {
-    return <div>Loading...</div>;
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-full">
+          <div className="animate-pulse text-center">
+            <p>Loading dashboard data...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">Dashboard Overview</h1>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-lg font-semibold mb-4">Total Earnings</h2>
-          <p className="text-3xl font-bold">${totalEarnings.toFixed(2)}</p>
-        </div>
+    <DashboardLayout>
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-2xl font-bold mb-6">Dashboard Overview</h1>
         
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-lg font-semibold mb-4">Recent Bookings</h2>
-          <div className="space-y-4">
-            {recentBookings.map((booking) => (
-              <div key={booking.id} className="border-b pb-2">
-                <p className="font-medium">{booking.activity_name}</p>
-                <p className="text-sm text-gray-600">{booking.customer_name}</p>
-                <p className="text-sm text-gray-600">{new Date(booking.date).toLocaleDateString()}</p>
-                <p className="text-sm text-gray-600">Status: {booking.status}</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h2 className="text-lg font-semibold mb-4">Total Earnings</h2>
+            <p className="text-3xl font-bold">${totalEarnings.toFixed(2)}</p>
+          </div>
+          
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h2 className="text-lg font-semibold mb-4">Recent Bookings</h2>
+            {recentBookings.length > 0 ? (
+              <div className="space-y-4">
+                {recentBookings.map((booking) => (
+                  <div key={booking.id} className="border-b pb-2">
+                    <p className="font-medium">{booking.activity_name}</p>
+                    <p className="text-sm text-gray-600">{booking.customer_name}</p>
+                    <p className="text-sm text-gray-600">{new Date(booking.date).toLocaleDateString()}</p>
+                    <p className="text-sm text-gray-600">Status: {booking.status}</p>
+                  </div>
+                ))}
               </div>
-            ))}
+            ) : (
+              <p className="text-gray-500 text-center">No recent bookings found</p>
+            )}
+          </div>
+          
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
+            <div className="space-y-2">
+              <button 
+                onClick={() => router.push('/dashboard/activities/new')}
+                className="w-full py-2 px-4 bg-[#22C55E] text-white rounded-md hover:bg-[#22C55E]/90 transition-colors"
+              >
+                Create New Activity
+              </button>
+              <button 
+                onClick={() => router.push('/dashboard/bookings')}
+                className="w-full py-2 px-4 bg-gray-100 text-gray-800 rounded-md hover:bg-gray-200 transition-colors"
+              >
+                View All Bookings
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }
