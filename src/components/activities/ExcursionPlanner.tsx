@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { WeeklyActivitySchedule } from "@/components/activities/WeeklyActivitySchedule"
 import { MobileWeeklyActivitySchedule } from "@/components/activities/MobileWeeklyActivitySchedule"
@@ -10,6 +11,7 @@ import Image from "next/image"
 import { Calendar, Clock, MapPin, DollarSign, Menu } from "lucide-react"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Activity } from "@/types/activity"
 
 export interface ScheduledActivity {
   id: string
@@ -44,10 +46,36 @@ export const ExcursionPlanner = () => {
     // Don't start drag if we're in the process of removing an activity
     if (isRemoving) return
     
-    const activity = [...selectedActivities, ...scheduledActivities].find(
+    // Find the activity in scheduledActivities first
+    const scheduledActivity = scheduledActivities.find(
       a => a.id === event.active.id
     )
-    if (activity) {
+    
+    if (scheduledActivity) {
+      setDraggedActivity(scheduledActivity)
+      return
+    }
+    
+    // If not found in scheduledActivities, look in selectedActivities
+    const selectedActivity = selectedActivities.find(
+      a => a.activity_id === event.active.id
+    )
+    
+    if (selectedActivity) {
+      // Convert Activity to ScheduledActivity format
+      // Ensure all values are of the correct type
+      const activityId = selectedActivity.activity_id ? String(selectedActivity.activity_id) : ""
+      
+      const activity: ScheduledActivity = {
+        id: activityId,
+        title: selectedActivity.title,
+        imageUrl: selectedActivity.image_url || "",
+        day: "",
+        hour: 0,
+        duration: 2, // Default duration
+        price: selectedActivity.price || 0,
+        participants: 1 // Default participants
+      }
       setDraggedActivity(activity)
     }
   }
