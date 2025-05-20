@@ -160,6 +160,12 @@ export default function EditActivityPage() {
   const duration = form.watch('duration')
   const startTime = form.watch('schedule_start_time')
 
+const toTimestamp = (timeString: string) => {
+  const today = new Date();
+  const [hours, minutes] = timeString.split(':');
+  today.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+  return today.toISOString(); // Format as 'YYYY-MM-DDTHH:mm:ss.sssZ'
+};
   // Update end time when start time or duration changes
   useEffect(() => {
     if (startTime) {
@@ -320,8 +326,8 @@ export default function EditActivityPage() {
       // Update or create schedule separately
       const scheduleData = {
         activity_id: numericActivityId,
-        start_time: data.schedule_start_time || '09:00',
-        end_time: data.schedule_end_time || '11:00',
+        start_time: toTimestamp(data.schedule_start_time ?? '09:00'),
+        end_time: toTimestamp(data.schedule_end_time ?? '11:00'),
         capacity: data.schedule_capacity || 10,
         availability_start_date: data.schedule_availability_start_date,
         availability_end_date: data.schedule_availability_end_date,
