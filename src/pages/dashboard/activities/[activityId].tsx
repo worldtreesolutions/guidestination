@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react"
 import { useRouter } from "next/router"
 import Head from "next/head"
@@ -779,3 +780,282 @@ export default function EditActivityPage() {
                   <CardTitle>Additional Details</CardTitle>
                   <CardDescription>
                     Update more information about your activity
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className='space-y-6'>
+                  <FormField
+                    control={form.control}
+                    name='languages'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Languages</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder='e.g. English, Thai, Chinese' 
+                            {...field} 
+                            value={field.value || ''}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Comma-separated list of languages offered
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name='highlights'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Highlights</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder='Key highlights of your activity...' 
+                            className='min-h-[100px]'
+                            {...field}
+                            value={field.value || ''}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Main selling points of your activity
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                    <FormField
+                      control={form.control}
+                      name='included'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>What's Included</FormLabel>
+                          <FormControl>
+                            <Textarea 
+                              placeholder='e.g. Transportation, Guide, Lunch...' 
+                              className='min-h-[100px]'
+                              {...field}
+                              value={field.value || ''}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name='not_included'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>What's Not Included</FormLabel>
+                          <FormControl>
+                            <Textarea 
+                              placeholder='e.g. Personal expenses, Optional activities...' 
+                              className='min-h-[100px]'
+                              {...field}
+                              value={field.value || ''}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Location Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Location Details</CardTitle>
+                  <CardDescription>
+                    Update where your activity takes place
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className='space-y-6'>
+                  <FormField
+                    control={form.control}
+                    name='meeting_point'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Meeting Point</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder='e.g. Hotel lobby, Tourist center...' 
+                            {...field} 
+                            value={field.value || ''}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Where participants should meet for the activity
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name='has_pickup'
+                    render={({ field }) => (
+                      <FormItem className='flex flex-row items-center justify-between rounded-lg border p-4'>
+                        <div className='space-y-0.5'>
+                          <FormLabel className='text-base'>
+                            Offer Pickup Service
+                          </FormLabel>
+                          <FormDescription>
+                            Do you offer pickup from participant's location?
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  {hasPickup && (
+                    <FormField
+                      control={form.control}
+                      name='pickup_location'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Pickup Details</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder='e.g. Hotels in Old City area, Airport...' 
+                              {...field} 
+                              value={field.value || ''}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Specify where you can pick up participants
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+
+                  <FormField
+                    control={form.control}
+                    name='dropoff_location'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Drop-off Location</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder='e.g. Same as pickup, City center...' 
+                            {...field} 
+                            value={field.value || ''}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Where participants will be dropped off after the activity
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
+
+              {/* Images Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Activity Images</CardTitle>
+                  <CardDescription>
+                    Upload images to showcase your activity
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <FormField
+                    control={form.control}
+                    name='image_urls'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Images</FormLabel>
+                        <FormControl>
+                          <ImageUploader
+                            value={field.value || []}
+                            onChange={field.onChange}
+                            maxFiles={5}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Upload up to 5 high-quality images (JPEG, PNG, WebP)
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
+
+              {/* Status Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Activity Status</CardTitle>
+                  <CardDescription>
+                    Control the visibility of your activity
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <FormField
+                    control={form.control}
+                    name='is_active'
+                    render={({ field }) => (
+                      <FormItem className='flex flex-row items-center justify-between rounded-lg border p-4'>
+                        <div className='space-y-0.5'>
+                          <FormLabel className='text-base'>
+                            Active Status
+                          </FormLabel>
+                          <FormDescription>
+                            When active, your activity will be visible to customers
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value || false}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
+
+              <div className='flex justify-end gap-4'>
+                <Button
+                  type='button'
+                  variant='outline'
+                  onClick={() => router.push('/dashboard/activities')}
+                >
+                  Cancel
+                </Button>
+                <Button type='submit' disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                      Saving...
+                    </>
+                  ) : (
+                    'Save Changes'
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </div>
+      </DashboardLayout>
+    </>
+  )
+}
