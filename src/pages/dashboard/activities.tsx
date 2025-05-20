@@ -53,14 +53,15 @@ export default function ActivitiesPage() {
       // Finally, query the database directly if user is available
       if (user) {
         try {
+          // Fix: Use 'provider_id' instead of 'id' in the select query
           const { data: ownerData, error: ownerError } = await supabase
             .from('activity_owners')
-            .select('id')
+            .select('provider_id')
             .eq('user_id', user.id)
             .single();
             
           if (!ownerError && ownerData) {
-            const fetchedProviderId = ownerData.id;
+            const fetchedProviderId = ownerData.provider_id;
             console.log('Found provider_id from database query:', fetchedProviderId);
             setProviderId(fetchedProviderId);
             
