@@ -66,14 +66,25 @@ export const ExcursionPlanner = () => {
       // Ensure all values are of the correct type
       const activityId = selectedActivity.activity_id ? String(selectedActivity.activity_id) : ""
       
+      // Convert image_url to string safely
+      let imageUrl = ""
+      if (selectedActivity.image_url) {
+        imageUrl = typeof selectedActivity.image_url === 'string' 
+          ? selectedActivity.image_url 
+          : String(selectedActivity.image_url)
+      }
+      
+      // Use b_price or final_price instead of price (which doesn't exist on Activity type)
+      const price = selectedActivity.final_price || selectedActivity.b_price || 0
+      
       const activity: ScheduledActivity = {
         id: activityId,
         title: selectedActivity.title,
-        imageUrl: selectedActivity.image_url || "",
+        imageUrl: imageUrl,
         day: "",
         hour: 0,
         duration: 2, // Default duration
-        price: selectedActivity.price || 0,
+        price: price,
         participants: 1 // Default participants
       }
       setDraggedActivity(activity)
