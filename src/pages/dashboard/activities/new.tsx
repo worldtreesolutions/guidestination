@@ -223,19 +223,19 @@ export default function NewActivityPage() {
         title: data.title,
         description: data.description,
         category_id: data.category_id ? Number(data.category_id) : null,
-        duration: data.duration,
-        price: Number(data.price),
+        duration: Number(data.duration),
         max_participants: Number(data.max_participants),
         pickup_location: data.has_pickup ? data.pickup_location || '' : '', // Use empty string if no pickup
         dropoff_location: data.dropoff_location,
-        meeting_point: data.meeting_point,
+        meeting_point: data.meeting_point ?? null,
         languages: data.languages,
         highlights: data.highlights,
-        included: data.included,
-        not_included: data.not_included,
+        included: data.included ?? null,
+        not_included: data.not_included ?? null,
         image_url: data.image_urls && data.image_urls.length > 0 ? data.image_urls[0] : null, // Take first URL or null
         is_active: data.is_active,
-        b_price: data.b_price ? Number(data.b_price) : null,
+        b_price: data.b_price ? Number(data.price) : undefined,
+        final_price: finalPrice,
         status: data.status ? Number(data.status) : null,
         discounts: data.discounts ? Number(data.discounts) : 0,
         // Explicitly set provider_id as a number
@@ -249,11 +249,11 @@ export default function NewActivityPage() {
       const createdActivity = await activityCrudService.createActivity(activityData, user);
 
       // Create schedule for the activity if activity was created successfully
-      if (createdActivity && createdActivity.id) {
+      if (createdActivity && createdActivity.activity_id) {
         try {
           // Create schedule entry in activity_schedules table
           const { error } = await supabase.from('activity_schedules').insert({
-            activity_id: createdActivity.id,
+            activity_id: createdActivity.activity_id,
             start_time: data.schedule_start_time || '09:00',
             end_time: data.schedule_end_time || '11:00',
             capacity: data.schedule_capacity || 10,
