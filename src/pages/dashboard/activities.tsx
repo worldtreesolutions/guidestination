@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Loader2, AlertCircle } from "lucide-react";
-import ActivityCard from "@/components/dashboard/activities/ActivityCard";
+import { ActivityCard } from "@/components/dashboard/activities/ActivityCard";
 import { supabase } from "@/integrations/supabase/client";
 
 type ActivityStatus = number;
@@ -131,7 +131,7 @@ export default function ActivitiesPage() {
     
     const originalActivities = [...activities];
     setActivities(prev =>
-      prev.map(act => (act.id === activityId ? { ...act, status: newStatusValue } : act))
+      prev.map(act => (act.activity_id === activityId ? { ...act, status: newStatusValue } : act))
     );
 
     try {
@@ -163,7 +163,7 @@ export default function ActivitiesPage() {
     }
 
     const originalActivities = [...activities];
-    setActivities(prev => prev.filter(act => act.id !== activityId)); // Optimistic UI update
+    setActivities(prev => prev.filter(act => act.activity_id !== activityId)); // Optimistic UI update
 
     try {
       await activityCrudService.hardDeleteActivity(activityId);
@@ -221,7 +221,7 @@ export default function ActivitiesPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
         {filteredActivities.map(activity => (
           <ActivityCard
-            key={activity.id}
+            key={activity.activity_id}
             activity={activity}
             onStatusChange={handleStatusChange}
             onDelete={handleDeleteActivity}

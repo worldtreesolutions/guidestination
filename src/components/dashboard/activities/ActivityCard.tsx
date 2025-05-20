@@ -10,8 +10,8 @@ import { Edit, Trash, Eye } from "lucide-react"
 
 interface ActivityCardProps {
   activity: Activity;
-  onDelete?: (id: string) => void;
-  onStatusChange?: (id: string, status: ActivityStatus) => void;
+  onDelete?: (id: number) => void;
+  onStatusChange?: (id: number, status: ActivityStatus) => void;
   showActions?: boolean;
 }
 
@@ -47,8 +47,8 @@ export function ActivityCard({
   }
 
   const getImageUrl = (): string => {
-    if (activity.photos && Array.isArray(activity.photos) && activity.photos.length > 0) {
-      const firstPhoto = activity.photos[0]
+    if (activity.image_url && Array.isArray(activity.image_url) && activity.image_url.length > 0) {
+      const firstPhoto = activity.image_url[0]
       return typeof firstPhoto === "string" ? firstPhoto : "/placeholder-activity.jpg"
     }
     return "/placeholder-activity.jpg"
@@ -65,7 +65,7 @@ export function ActivityCard({
         />
         <Badge 
           variant="default"
-          className={`absolute top-2 right-2 ${getStatusColor(activity.status)}`}
+          className={`absolute top-2 right-2 ${getStatusColor(activity.status !== null ? String(activity.status) : null)}`}
         >
           {activity.status || "draft"}
         </Badge>
@@ -75,10 +75,10 @@ export function ActivityCard({
         <div className="flex justify-between items-start">
           <div>
             <h3 className="text-lg font-semibold">{activity.name}</h3>
-            <p className="text-sm text-muted-foreground">{activity.category}</p>
+            <p className="text-sm text-muted-foreground">{activity.category_id}</p>
           </div>
           <div className="text-right">
-            <p className="font-semibold">{formatCurrency(activity.price)}</p>
+            <p className="font-semibold">{formatCurrency(activity.final_price)}</p>
             {activity.final_price && (
               <p className="text-sm text-muted-foreground">
                 Final: {formatCurrency(activity.final_price)}

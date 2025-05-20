@@ -46,7 +46,7 @@ const activityCrudService = {
     if (!providerId) {
       const storedProviderId = typeof window !== 'undefined' ? localStorage.getItem('provider_id') : null;
       if (storedProviderId) {
-        providerId = storedProviderId;
+        providerId = storedProviderId as `${string}-${string}-${string}-${string}-${string}`;
         console.log('Using provider_id from localStorage:', providerId);
       }
     }
@@ -120,7 +120,7 @@ const activityCrudService = {
     // Apply filters
     if (filters) {
       if (filters.provider_id !== undefined) {
-        query = query.eq('provider_id', filters.provider_id);
+        query = query.eq('provider_id', filters.provider_id as `${string}-${string}-${string}-${string}-${string}`);
       }
       if (filters.category_id !== undefined) {
         query = query.eq('category_id', filters.category_id);
@@ -193,8 +193,10 @@ const activityCrudService = {
     // Prepare update data
     const updateData = {
       ...activityUpdates,
-      // Map the duration string to the proper interval format if it exists
-      duration: activityUpdates.duration ? (durationMap[activityUpdates.duration] || activityUpdates.duration) : undefined,
+      // Only assign duration if it is a number or null, not a string
+      duration: typeof activityUpdates.duration === "number" || activityUpdates.duration === null
+        ? activityUpdates.duration
+        : undefined,
       updated_by: null, // Don't use user.id directly for integer columns
       updated_at: new Date().toISOString()
     };

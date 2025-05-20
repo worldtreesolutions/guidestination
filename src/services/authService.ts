@@ -32,7 +32,7 @@ const authService = {
           .single();
 
         if (!ownerError && ownerData) {
-          provider_id = ownerData.id;
+          provider_id = ownerData.provider_id; // Assuming provider_id is the correct field to fetch
           console.log("Found provider_id:", provider_id);
         }
       }
