@@ -27,12 +27,12 @@ const authService = {
         // Check if user is an activity owner
         const { data: ownerData, error: ownerError } = await supabase
           .from('activity_owners')
-          .select('id')
+          .select('provider_id') // Changed from 'id' to 'provider_id'
           .eq('user_id', data.user.id)
           .single();
 
         if (!ownerError && ownerData) {
-          provider_id = ownerData.provider_id; // Assuming provider_id is the correct field to fetch
+          provider_id = ownerData.provider_id; // Changed from ownerData.id to ownerData.provider_id
           console.log("Found provider_id:", provider_id);
         }
       }
