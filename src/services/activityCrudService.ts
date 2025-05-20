@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Database } from "@/integrations/supabase/types";
@@ -9,7 +10,7 @@ export type ActivityUpdate = Database['public']['Tables']['activities']['Update'
 
 // Define a type for activity filters
 export interface ActivityFilters {
-  provider_id?: number;
+  provider_id?: string; // Changed to string for UUID
   category_id?: number;
   is_active?: boolean;
   search?: string;
@@ -38,14 +39,40 @@ const activityCrudService = {
     console.log('Creating activity with data:', JSON.stringify(activity));
     console.log('Provider ID from activity data:', activity.provider_id, 'Type:', typeof activity.provider_id);
 
-    // Ensure provider_id is set and is a number
+    // Try to get provider_id from multiple sources
     let providerId = activity.provider_id;
-    if (!providerId && user.app_metadata?.provider_id) {
-      providerId = (user.app_metadata.provider_id);
-      console.log('Setting provider_id from user metadata:', providerId);
+    
+    // If not provided in activity data, try to get from localStorage
+    if (!providerId) {
+      const storedProviderId = typeof window !== 'undefined' ? localStorage.getItem('provider_id') : null;
+      if (storedProviderId) {
+        providerId = storedProviderId;
+        console.log('Using provider_id from localStorage:', providerId);
+      }
     }
     
-    
+    // If still not found, query the database directly
+    if (!providerId && user) {
+      try {
+        const { data: ownerData, error: ownerError } = await supabase
+          .from('activity_owners')
+          .select('provider_id')
+          .eq('user_id', user.id)
+          .single();
+          
+        if (!ownerError && ownerData) {
+          providerId = ownerData.provider_id;
+          console.log('Found provider_id from database query:', providerId);
+          
+          // Save to localStorage for future use
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('provider_id', providerId);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching provider_id from database:', err);
+      }
+    }
 
     // Prepare data, casting user ID for integer columns
     const activityData = {
@@ -277,7 +304,7 @@ const activityCrudService = {
    * Get activities by provider ID
    */
   async getActivitiesByProviderId(
-    providerId: number,
+    providerId: string, // Changed to string for UUID
     pagination?: Pagination
   ): Promise<{ activities: Activity[]; count: number }> {
     return this.getActivities({ provider_id: providerId }, pagination);

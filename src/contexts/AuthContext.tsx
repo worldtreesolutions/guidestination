@@ -45,12 +45,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (initialSession?.user) {
         const { data: ownerData } = await supabase
           .from('activity_owners')
-          .select('id')
+          .select('provider_id')  // Changed from 'id' to 'provider_id'
           .eq('user_id', initialSession.user.id)
           .single();
           
         if (ownerData) {
-          setProviderId(ownerData.id);
+          setProviderId(ownerData.provider_id);  // Changed from ownerData.id to ownerData.provider_id
         }
       }
       
@@ -68,12 +68,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (newSession?.user) {
           const { data: ownerData } = await supabase
             .from('activity_owners')
-            .select('id')
+            .select('provider_id')  // Changed from 'id' to 'provider_id'
             .eq('user_id', newSession.user.id)
             .single();
             
           if (ownerData) {
-            setProviderId(ownerData.id);
+            setProviderId(ownerData.provider_id);  // Changed from ownerData.id to ownerData.provider_id
           } else {
             setProviderId(undefined);
           }
