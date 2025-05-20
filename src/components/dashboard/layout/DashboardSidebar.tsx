@@ -22,9 +22,10 @@ interface SidebarNavItemProps {
   icon: React.ReactNode
   title: string
   badge?: number
+  isMobile?: boolean
 }
 
-const SidebarNavItem = ({ href, icon, title, badge }: SidebarNavItemProps) => {
+const SidebarNavItem = ({ href, icon, title, badge, isMobile }: SidebarNavItemProps) => {
   const router = useRouter()
   // Match base path for nested routes (e.g., /dashboard/activities/* should highlight Activities)
   const isActive = router.pathname.startsWith(href)
@@ -39,10 +40,12 @@ const SidebarNavItem = ({ href, icon, title, badge }: SidebarNavItemProps) => {
           : "text-muted-foreground hover:bg-muted hover:text-foreground"
       )}
     >
-      {icon}
-      <span>{title}</span>
+      <div className="flex items-center justify-center w-5">
+        {icon}
+      </div>
+      <span className="flex-1">{title}</span>
       {badge !== undefined && badge > 0 && (
-        <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-[#22C55E] text-[10px] font-medium text-white">
+        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#22C55E] text-[10px] font-medium text-white">
           {badge > 99 ? "99+" : badge}
         </span>
       )}
@@ -103,7 +106,12 @@ export function DashboardSidebar() {
   ]
 
   return (
-    <div className="flex flex-col h-full border-r bg-background">
+    <div className="flex flex-col h-full border-r bg-background shadow-md">
+      <div className="p-4 border-b">
+        <div className="flex items-center justify-center lg:justify-start">
+          <h2 className="text-xl font-bold">Dashboard</h2>
+        </div>
+      </div>
       <div className="flex-1 overflow-auto py-4 px-3">
         <nav className="flex flex-col gap-1">
           {navItems.map((item) => (
