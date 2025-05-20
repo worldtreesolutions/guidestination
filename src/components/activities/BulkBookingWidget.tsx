@@ -6,10 +6,30 @@ import { useRouter } from "next/router"
 import { ShoppingCart, Trash2, CreditCard, Calendar } from "lucide-react"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { motion } from "framer-motion"
+import { Activity } from "@/types/activity"
 
 interface BulkBookingWidgetProps {
-  activities: ScheduledActivity[]
+  activities: (Activity | ScheduledActivity)[]
   onClearSelection: () => void
+}
+
+// Function to convert Activity to ScheduledActivity format
+const convertToScheduledActivity = (activity: Activity): ScheduledActivity => {
+  return {
+    id: activity.activity_id?.toString() || "",
+    title: activity.title,
+    imageUrl: typeof activity.image_url === 'string' ? activity.image_url : "",
+    day: "",
+    hour: 0,
+    duration: 2, // Default duration
+    price: activity.final_price || activity.b_price || 0,
+    participants: 1 // Default participants
+  }
+}
+
+// Function to check if an activity is a ScheduledActivity
+const isScheduledActivity = (activity: any): activity is ScheduledActivity => {
+  return 'imageUrl' in activity && 'day' in activity && 'hour' in activity;
 }
 
 export const BulkBookingWidget = ({
@@ -18,7 +38,16 @@ export const BulkBookingWidget = ({
 }: BulkBookingWidgetProps) => {
   const router = useRouter()
   const isMobile = useIsMobile()
-  const totalPrice = activities.reduce((sum, activity) => sum + activity.price, 0)
+  
+  // Convert activities to ScheduledActivity format if needed
+  const formattedActivities: ScheduledActivity[] = activities.map(activity => {
+    if (isScheduledActivity(activity)) {
+      return activity as ScheduledActivity;
+    }
+    return convertToScheduledActivity(activity as Activity);
+  });
+  
+  const totalPrice = formattedActivities.reduce((sum, activity) => sum + activity.price, 0)
 
   const formatPrice = (price: number) => {
     return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
@@ -28,7 +57,7 @@ export const BulkBookingWidget = ({
     router.push("/checkout")
   }
 
-  const totalActivities = activities.length
+  const totalActivities = formattedActivities.length
   const hasActivities = totalActivities > 0
 
   return (
