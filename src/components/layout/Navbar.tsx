@@ -32,10 +32,10 @@ export function Navbar() {
           <Image
             src="/logo-masdxep0.png"
             alt="Guidestination"
-            width={180}
-            height={32}
+            width={220}
+            height={40}
             priority
-            className="h-8 w-auto"
+            className="h-10 w-auto"
           />
         </Link>
         
