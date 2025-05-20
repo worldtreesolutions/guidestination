@@ -136,7 +136,7 @@ export default function ActivityCard({
               View
             </Button>
           </Link>
-          <Link href={`/dashboard/activities/${activity.id}/edit`}>
+          <Link href={`/dashboard/activities/[activityId]/edit`} as={`/dashboard/activities/${activity.id}/edit`}>
             <Button variant="outline" size="sm">
               <Edit className="h-4 w-4 mr-1" />
               Edit
