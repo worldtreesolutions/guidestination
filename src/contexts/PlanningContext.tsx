@@ -1,134 +1,65 @@
-import { createContext, useContext, useState, ReactNode } from "react"
-import { ScheduledActivity } from "@/components/activities/ExcursionPlanner"
+
+import { createContext, useContext, useState } from "react"
+import { Activity } from "@/types/activity"
 
 interface PlanningContextType {
-  selectedActivities: ScheduledActivity[]
-  scheduledActivities: ScheduledActivity[]
-  addActivity: (activity: Partial<ScheduledActivity>) => void
-  removeActivity: (activityId: string) => void
-  updateActivity: (activityId: string, updatedActivity: ScheduledActivity) => void
-  scheduleActivity: (activityId: string, day: string, hour: number) => void
-  clearActivities: () => void
+  selectedActivities: Activity[];
+  addActivity: (activity: Activity) => void;
+  removeActivity: (activityId: string) => void;
+  clearActivities: () => void;
+  isActivitySelected: (activityId: string) => boolean;
 }
 
-const PlanningContext = createContext<PlanningContextType | undefined>(undefined)
+const defaultContext: PlanningContextType = {
+  selectedActivities: [],
+  addActivity: () => {},
+  removeActivity: () => {},
+  clearActivities: () => {},
+  isActivitySelected: () => false,
+}
 
-export function PlanningProvider({ children }: { children: ReactNode }) {
-  const [selectedActivities, setSelectedActivities] = useState<ScheduledActivity[]>([])
-  const [scheduledActivities, setScheduledActivities] = useState<ScheduledActivity[]>([])
+const PlanningContext = createContext<PlanningContextType>(defaultContext)
 
-  const addActivity = (activity: Partial<ScheduledActivity>) => {
-    const newActivity: ScheduledActivity = {
-      id: Math.random().toString(36).substr(2, 9),
-      title: activity.title || '',
-      imageUrl: activity.imageUrl || '',
-      day: '',
-      hour: 0,
-      duration: activity.duration || 2,
-      price: activity.price || 0,
-      participants: activity.participants || 1
-    }
-    setSelectedActivities(prev => [...prev, newActivity])
-  }
+export function PlanningProvider({ children }: { children: React.ReactNode }) {
+  const [selectedActivities, setSelectedActivities] = useState<Activity[]>([])
 
-  const scheduleActivity = (activityId: string, day: string, hour: number) => {
-    const activity = selectedActivities.find(a => a.id === activityId) ||
-                    scheduledActivities.find(a => a.id === activityId)
-    if (!activity) return
-
-    // If moving to selected list (empty day)
-    if (!day) {
-      setScheduledActivities(prev => prev.filter(a => a.id !== activityId))
-      setSelectedActivities(prev => {
-        if (!prev.find(a => a.id === activityId)) {
-          return [...prev, { ...activity, day: '', hour: 0 }]
-        }
+  const addActivity = (activity: Activity) => {
+    setSelectedActivities((prev) => {
+      if (prev.some((a) => a.activity_id === activity.activity_id)) {
         return prev
-      })
-      return
-    }
-
-    // Check if the new slot is available
-    const endHour = hour + activity.duration
-    const hasConflict = scheduledActivities.some(existingActivity => {
-      if (existingActivity.id === activityId || existingActivity.day !== day) return false
-      
-      // Check for any overlap with existing activities
-      const existingEnd = existingActivity.hour + existingActivity.duration
-      const overlap = !(hour >= existingEnd || endHour <= existingActivity.hour)
-      
-      // Check if activities are consecutive (no gap needed)
-      const isConsecutive = hour === existingEnd || endHour === existingActivity.hour
-      
-      return overlap && !isConsecutive
+      }
+      return [...prev, activity]
     })
-
-    if (hasConflict) {
-      // If there's a conflict, move back to selected activities
-      setScheduledActivities(prev => prev.filter(a => a.id !== activityId))
-      setSelectedActivities(prev => {
-        if (!prev.find(a => a.id === activityId)) {
-          return [...prev, { ...activity, day: '', hour: 0 }]
-        }
-        return prev
-      })
-      return
-    }
-
-    // Schedule the activity
-    const updatedActivity = { ...activity, day, hour }
-    setSelectedActivities(prev => prev.filter(a => a.id !== activityId))
-    setScheduledActivities(prev => {
-      const withoutCurrent = prev.filter(a => a.id !== activityId)
-      return [...withoutCurrent, updatedActivity]
-    })
-  }
-
-  const updateActivity = (activityId: string, updatedActivity: ScheduledActivity) => {
-    const isScheduled = scheduledActivities.find(a => a.id === activityId)
-    if (isScheduled) {
-      setScheduledActivities(prev => 
-        prev.map(activity => 
-          activity.id === activityId ? updatedActivity : activity
-        )
-      )
-    } else {
-      setSelectedActivities(prev => 
-        prev.map(activity => 
-          activity.id === activityId ? updatedActivity : activity
-        )
-      )
-    }
   }
 
   const removeActivity = (activityId: string) => {
-    setScheduledActivities(prev => prev.filter(a => a.id !== activityId))
-    setSelectedActivities(prev => prev.filter(a => a.id !== activityId))
+    setSelectedActivities((prev) =>
+      prev.filter((activity) => activity.activity_id !== activityId)
+    )
   }
 
   const clearActivities = () => {
     setSelectedActivities([])
-    setScheduledActivities([])
   }
 
-  return (
-    <PlanningContext.Provider value={{
-      selectedActivities,
-      scheduledActivities,
-      addActivity,
-      removeActivity,
-      updateActivity,
-      scheduleActivity,
-      clearActivities
-    }}>
-      {children}
-    </PlanningContext.Provider>
-  )
+  const isActivitySelected = (activityId: string) => {
+    return selectedActivities.some((activity) => activity.activity_id === activityId)
+  }
+
+  const value = {
+    selectedActivities,
+    addActivity,
+    removeActivity,
+    clearActivities,
+    isActivitySelected,
+  }
+
+  return <PlanningContext.Provider value={value}>{children}</PlanningContext.Provider>
 }
 
-export const usePlanning = () => {
+export function usePlanning() {
   const context = useContext(PlanningContext)
-  if (context === undefined) {
+  if (!context) {
     throw new Error("usePlanning must be used within a PlanningProvider")
   }
   return context

@@ -68,7 +68,6 @@ const activityOwnerService = {
       const result = await response.json();
       console.log("Service: Received from API:", result);
 
-
       if (!response.ok) {
         console.error("Service Error: API Error in registerActivityOwner:", result.error || `API request failed with status ${response.status}`);
         throw new Error(result.error || `API request failed with status ${response.status}`);
@@ -149,7 +148,7 @@ const activityOwnerService = {
       console.error("Unexpected error in getActivityOwnerProfile:", error);
       return null;
     }
-  } 
+  }
 }; 
 
 export default activityOwnerService;

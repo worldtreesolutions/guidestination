@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
@@ -40,6 +41,15 @@ import {
   Plus,
   X
 } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 
 export default function SettingsPage() {
   const { user, isAuthenticated } = useAuth()
@@ -48,6 +58,17 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('profile')
   const [showPaymentForm, setShowPaymentForm] = useState(false)
   const [paymentMethods, setPaymentMethods] = useState<any[]>([])
+  const [changeRequestOpen, setChangeRequestOpen] = useState(false)
+  const [changeRequestMessage, setChangeRequestMessage] = useState('')
+
+  // Business details - mock data
+  const businessDetails = {
+    businessName: "Chiang Mai Adventures",
+    businessType: "Tour Operator",
+    businessAddress: "123 Main Street, Chiang Mai, Thailand, 50000",
+    website: "https://www.chiangmaiadventures.com",
+    taxId: "TH1234567890"
+  }
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -107,6 +128,23 @@ export default function SettingsPage() {
 
   const handleRemovePaymentMethod = (id: string) => {
     setPaymentMethods(paymentMethods.filter(method => method.id !== id))
+  }
+
+  const handleSubmitChangeRequest = () => {
+    if (!changeRequestMessage.trim()) {
+      alert('Please provide details for your change request')
+      return
+    }
+
+    setIsLoading(true)
+    // Simulate API call
+    setTimeout(() => {
+      setIsLoading(false)
+      setChangeRequestMessage('')
+      setChangeRequestOpen(false)
+      // Show success message
+      alert('Change request submitted successfully! Our admin team will review your request.')
+    }, 1000)
   }
 
   return (
@@ -237,47 +275,89 @@ export default function SettingsPage() {
                 <CardHeader>
                   <CardTitle>Business Information</CardTitle>
                   <CardDescription>
-                    Update your business details and preferences.
+                    Your business details as registered in our system. To make changes, please submit a change request.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className='space-y-6'>
                   <div className='space-y-2'>
                     <Label htmlFor='businessName'>Business Name</Label>
-                    <Input id='businessName' defaultValue='Chiang Mai Adventures' />
+                    <Input 
+                      id='businessName' 
+                      value={businessDetails.businessName} 
+                      readOnly 
+                      className='bg-muted cursor-not-allowed'
+                    />
                   </div>
                   <div className='space-y-2'>
                     <Label htmlFor='businessType'>Business Type</Label>
-                    <Select defaultValue='tourOperator'>
-                      <SelectTrigger>
-                        <SelectValue placeholder='Select business type' />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value='tourOperator'>Tour Operator</SelectItem>
-                        <SelectItem value='activityProvider'>Activity Provider</SelectItem>
-                        <SelectItem value='guide'>Independent Guide</SelectItem>
-                        <SelectItem value='other'>Other</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Input 
+                      id='businessType' 
+                      value={businessDetails.businessType} 
+                      readOnly 
+                      className='bg-muted cursor-not-allowed'
+                    />
                   </div>
                   <div className='space-y-2'>
                     <Label htmlFor='businessAddress'>Business Address</Label>
                     <Textarea
                       id='businessAddress'
-                      defaultValue='123 Main Street, Chiang Mai, Thailand, 50000'
+                      value={businessDetails.businessAddress}
+                      readOnly
+                      className='bg-muted cursor-not-allowed'
                     />
                   </div>
                   <div className='space-y-2'>
                     <Label htmlFor='website'>Website</Label>
-                    <Input id='website' type='url' defaultValue='https://www.chiangmaiadventures.com' />
+                    <Input 
+                      id='website' 
+                      type='url' 
+                      value={businessDetails.website} 
+                      readOnly 
+                      className='bg-muted cursor-not-allowed'
+                    />
                   </div>
                   <div className='space-y-2'>
                     <Label htmlFor='taxId'>Tax ID / Business Registration Number</Label>
-                    <Input id='taxId' defaultValue='TH1234567890' />
+                    <Input 
+                      id='taxId' 
+                      value={businessDetails.taxId} 
+                      readOnly 
+                      className='bg-muted cursor-not-allowed'
+                    />
                   </div>
                 </CardContent>
                 <CardFooter className='flex justify-end gap-2'>
-                  <Button variant='outline'>Cancel</Button>
-                  <Button>Save Changes</Button>
+                  <Dialog open={changeRequestOpen} onOpenChange={setChangeRequestOpen}>
+                    <DialogTrigger asChild>
+                      <Button>Request Changes</Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Request Business Information Changes</DialogTitle>
+                        <DialogDescription>
+                          Please provide details about the changes you need to make to your business information. Our admin team will review your request.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="changeDetails">Change Details</Label>
+                          <Textarea
+                            id="changeDetails"
+                            placeholder="Please describe the changes you need to make to your business information..."
+                            value={changeRequestMessage}
+                            onChange={(e) => setChangeRequestMessage(e.target.value)}
+                            className="h-32"
+                          />
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setChangeRequestOpen(false)}>Cancel</Button>
+                        <Button onClick={handleSubmitChangeRequest} disabled={isLoading}>
+                          {isLoading ? 'Submitting...' : 'Submit Request'}
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 </CardFooter>
               </Card>
             </TabsContent>
