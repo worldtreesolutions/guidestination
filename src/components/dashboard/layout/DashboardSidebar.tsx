@@ -1,113 +1,111 @@
-
-import { useRouter } from "next/router"
 import Link from "next/link"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { useAuth } from "@/contexts/AuthContext"
+import { useRouter } from "next/router"
 import {
+  BarChart3,
+  Calendar,
+  Home,
   LayoutDashboard,
-  CalendarDays,
-  Users,
+  ListChecks,
   Settings,
-  LogOut,
-  Plus,
+  Users,
+  LogOut // Added LogOut icon
 } from "lucide-react"
-import Image from "next/image"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button" // Added Button import
+import { useAuth } from "@/contexts/AuthContext" // Added AuthContext import
+import { useLanguage } from "@/contexts/LanguageContext"; // Added LanguageContext import
+
+interface SidebarNavItemProps {
+  href: string
+  icon: React.ReactNode
+  title: string
+}
+
+const SidebarNavItem = ({ href, icon, title }: SidebarNavItemProps) => {
+  const router = useRouter()
+  // Match base path for nested routes (e.g., /dashboard/activities/* should highlight Activities)
+  const isActive = router.pathname.startsWith(href)
+
+  return (
+    <Link
+      href={href}
+      className={cn(
+        "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+        isActive
+          ? "bg-[#22C55E]/10 text-[#22C55E]"
+          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+      )}
+    >
+      {icon}
+      <span>{title}</span>
+    </Link>
+  )
+}
 
 export function DashboardSidebar() {
-  const router = useRouter()
-  const { signOut } = useAuth()
+  const { signOut } = useAuth() // Changed logout to signOut
+  const router = useRouter() // Get router for logout redirect
+  const { t } = useLanguage();
 
-  const isActive = (path: string) => {
-    return router.pathname === path || router.pathname.startsWith(`${path}/`)
-  }
+  const handleLogout = async () => {
+    await signOut(); // Changed logout to signOut
+    router.push("/dashboard/login"); // Redirect to login after logout
+  };
 
-  const handleSignOut = async () => {
-    await signOut()
-    router.push("/dashboard/login")
-  }
-
-  const menuItems = [
+  const navItems = [
     {
-      href: "/dashboard/overview",
-      label: "Overview",
-      icon: LayoutDashboard,
+      title: "Overview", // Renamed from Dashboard to Overview
+      href: "/dashboard/overview", // Updated href
+      icon: <LayoutDashboard className="h-5 w-5" />
     },
     {
-      href: "/dashboard/activities",
-      label: "Activities",
-      icon: CalendarDays,
+      title: "Activities",
+      href: "/dashboard/activities", // Updated href
+      icon: <ListChecks className="h-5 w-5" />
     },
     {
-      href: "/dashboard/activities/new",
-      label: "Create Activity",
-      icon: Plus,
+      title: "Bookings",
+      href: "/dashboard/bookings", // Updated href
+      icon: <Calendar className="h-5 w-5" />
     },
     {
-      href: "/dashboard/customers",
-      label: "Customers",
-      icon: Users,
+      title: "Revenue",
+      href: "/dashboard/revenue", // Updated href
+      icon: <BarChart3 className="h-5 w-5" />
     },
     {
-      href: "/dashboard/settings",
-      label: "Settings",
-      icon: Settings,
+      title: "Customers",
+      href: "/dashboard/customers", // Updated href
+      icon: <Users className="h-5 w-5" />
     },
+    {
+      title: "Settings",
+      href: "/dashboard/settings", // Updated href
+      icon: <Settings className="h-5 w-5" />
+    }
   ]
 
   return (
-    <div className="fixed left-0 top-0 w-64 h-screen bg-white border-r">
-      <div className="flex flex-col h-full">
-        <div className="p-4">
-          <Link href="/dashboard/overview">
-            <div className="flex items-center space-x-2">
-              <Image
-                src="/logo-masdxep0.png"
-                alt="Logo"
-                width={120}
-                height={32}
-                priority
-                className="h-8 w-auto"
-              />
-            </div>
-          </Link>
-        </div>
-
-        <nav className="flex-1 p-4">
-          <ul className="space-y-2">
-            {menuItems.map((item) => {
-              const Icon = item.icon
-              return (
-                <li key={item.href}>
-                  <Link href={item.href} legacyBehavior>
-                    <a
-                      className={cn(
-                        "flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                        isActive(item.href)
-                          ? "bg-gray-100 text-gray-900"
-                          : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                      )}
-                    >
-                      <Icon className="h-5 w-5" />
-                      <span>{item.label}</span>
-                    </a>
-                  </Link>
-                </li>
-              )
-            })}
-          </ul>
+    <div className="flex flex-col h-full border-r bg-background">
+      {/* Removed the top Guidestination link/logo section */}
+      <div className="flex-1 overflow-auto py-4 px-3">
+        <nav className="flex flex-col gap-1">
+          {navItems.map((item) => (
+            <SidebarNavItem
+              key={item.href}
+              href={item.href}
+              icon={item.icon}
+              title={item.title}
+            />
+          ))}
         </nav>
-
-        <div className="p-4 border-t">
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            onClick={handleSignOut}
-          >
-            <LogOut className="h-5 w-5 mr-2" />
-            Sign out
-          </Button>
-        </div>
+      </div>
+      {/* Add Logout Button at the bottom */}
+      <div className="mt-auto p-4 border-t">
+         <Button variant="ghost" className="w-full justify-start" onClick={handleLogout}>
+           <LogOut className="mr-2 h-4 w-4" />
+           Logout
+         </Button>
       </div>
     </div>
   )
