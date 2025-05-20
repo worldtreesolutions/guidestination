@@ -81,13 +81,14 @@ export default function ActivityCard({
   const displayName = activity.name || activity.title || "Unnamed Activity";
 
   return (
-    <Card className="overflow-hidden">
-      <div className="relative aspect-video">
+    <Card className="overflow-hidden h-full flex flex-col">
+      <div className="relative aspect-video w-full">
         <Image
           src={getImageUrl()}
           alt={displayName}
           fill
           className="object-cover"
+          sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
         />
         <Badge 
           variant="default"
@@ -99,16 +100,16 @@ export default function ActivityCard({
         </Badge>
       </div>
 
-      <CardHeader>
-        <div className="flex justify-between items-start">
-          <div>
-            <h3 className="text-lg font-semibold">{displayName}</h3>
-            <p className="text-sm text-muted-foreground">{activity.category}</p>
+      <CardHeader className="p-3 sm:p-4 md:p-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-2">
+          <div className="w-full sm:w-auto">
+            <h3 className="text-base sm:text-lg font-semibold line-clamp-1">{displayName}</h3>
+            <p className="text-xs sm:text-sm text-muted-foreground">{activity.category}</p>
           </div>
-          <div className="text-right">
-            <p className="font-semibold">{formatCurrency(activity.price)}</p>
+          <div className="text-left sm:text-right w-full sm:w-auto mt-1 sm:mt-0">
+            <p className="font-semibold text-sm sm:text-base">{formatCurrency(activity.price)}</p>
             {activity.final_price && (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Final: {formatCurrency(activity.final_price)}
               </p>
             )}
@@ -116,40 +117,45 @@ export default function ActivityCard({
         </div>
       </CardHeader>
 
-      <CardContent>
-        <p className="text-sm line-clamp-2">{activity.description}</p>
-        {activity.duration && (
-          <p className="text-sm mt-2">Duration: {activity.duration} hours</p>
-        )}
-        {activity.video_url && (
-          <p className="text-sm mt-2">
-            Video: {activity.video_duration}s
-          </p>
-        )}
+      <CardContent className="p-3 sm:p-4 md:p-6 pt-0 flex-grow">
+        <p className="text-xs sm:text-sm line-clamp-2">{activity.description}</p>
+        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+          {activity.duration && (
+            <p className="text-xs sm:text-sm">Duration: {activity.duration} hours</p>
+          )}
+          {activity.video_url && (
+            <p className="text-xs sm:text-sm">
+              Video: {activity.video_duration}s
+            </p>
+          )}
+        </div>
       </CardContent>
 
       {showActions && (
-        <CardFooter className="flex justify-between gap-2">
-          <Link href={`/dashboard/activities/${activity.id}`}>
-            <Button variant="outline" size="sm">
-              <Eye className="h-4 w-4 mr-1" />
-              View
+        <CardFooter className="p-3 sm:p-4 md:p-6 flex flex-col sm:flex-row gap-2 mt-auto">
+          <div className="grid grid-cols-3 gap-2 w-full">
+            <Link href={`/dashboard/activities/${activity.id}`} className="col-span-1">
+              <Button variant="outline" size="sm" className="w-full h-9">
+                <Eye className="h-4 w-4 sm:mr-1" />
+                <span className="hidden sm:inline">View</span>
+              </Button>
+            </Link>
+            <Link href={`/dashboard/activities/${activity.id}`} className="col-span-1">
+              <Button variant="outline" size="sm" className="w-full h-9">
+                <Edit className="h-4 w-4 sm:mr-1" />
+                <span className="hidden sm:inline">Edit</span>
+              </Button>
+            </Link>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={handleDelete}
+              className="col-span-1 w-full h-9"
+            >
+              <Trash className="h-4 w-4 sm:mr-1" />
+              <span className="hidden sm:inline">Delete</span>
             </Button>
-          </Link>
-          <Link href={`/dashboard/activities/${activity.id}`}>
-            <Button variant="outline" size="sm">
-              <Edit className="h-4 w-4 mr-1" />
-              Edit
-            </Button>
-          </Link>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={handleDelete}
-          >
-            <Trash className="h-4 w-4 mr-1" />
-            Delete
-          </Button>
+          </div>
         </CardFooter>
       )}
     </Card>
