@@ -33,9 +33,10 @@ export function ActivityCard({
     e.preventDefault()
     addActivity({
       title,
-      imageUrl: image,
-      price,
-      duration: 2
+      image_url: image,
+      b_price: price,
+      // Only pass properties that exist on the Activity type
+      // Don't include duration as a string since it expects a number
     })
   }
 
