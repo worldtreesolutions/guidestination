@@ -34,9 +34,7 @@ export function ActivityCard({
     addActivity({
       title,
       image_url: image,
-      b_price: price,
-      // Only pass properties that exist on the Activity type
-      // Don't include duration as a string since it expects a number
+      b_price: price
     })
   }
 
