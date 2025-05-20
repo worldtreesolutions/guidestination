@@ -32,9 +32,9 @@ export function ActivityList({ activities }: ActivityListProps) {
           <div className="flex-1">
             <div className="flex items-center gap-4">
               <div>
-                <h3 className="font-medium">{activity.name}</h3>
+                <h3 className="font-medium">{activity.name || activity.title}</h3>
                 <p className="text-sm text-muted-foreground">
-                  {activity.category || "Uncategorized"}
+                  {activity.category_id ? `Category ID: ${activity.category_id}` : "Uncategorized"}
                 </p>
               </div>
               <Badge
@@ -45,7 +45,7 @@ export function ActivityList({ activities }: ActivityListProps) {
             </div>
             <div className="mt-2 text-sm">
               <span className="font-medium">
-                {formatCurrency(activity.price)}
+                {formatCurrency(activity.b_price || 0)}
               </span>
               {activity.final_price && (
                 <span className="text-muted-foreground ml-2">
