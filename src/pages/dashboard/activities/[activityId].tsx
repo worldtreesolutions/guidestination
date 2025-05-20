@@ -91,6 +91,42 @@ interface ActivitySchedule {
   status: string | null;
 }
 
+// Function to convert ISO timestamp to HH:MM format
+const extractTimeFromTimestamp = (timestamp: string | null): string => {
+  if (!timestamp) return '09:00'; // Default time if no timestamp provided
+  
+  try {
+    // Try to parse the timestamp
+    const date = new Date(timestamp);
+    
+    // Check if the date is valid
+    if (isNaN(date.getTime())) {
+      // If the timestamp is already in HH:MM format, return it
+      if (/^\d{1,2}:\d{2}$/.test(timestamp)) {
+        return timestamp;
+      }
+      return '09:00'; // Default time if parsing fails
+    }
+    
+    // Format hours and minutes with leading zeros
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    
+    return `${hours}:${minutes}`;
+  } catch (error) {
+    console.error('Error parsing timestamp:', error);
+    return '09:00'; // Default time if an error occurs
+  }
+};
+
+// Function to convert HH:MM format to ISO timestamp
+const toTimestamp = (timeString: string) => {
+  const today = new Date();
+  const [hours, minutes] = timeString.split(':');
+  today.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+  return today.toISOString(); // Format as 'YYYY-MM-DDTHH:mm:ss.sssZ'
+};
+
 export default function EditActivityPage() {
   const { user, isAuthenticated } = useAuth()
   const router = useRouter()
@@ -160,12 +196,6 @@ export default function EditActivityPage() {
   const duration = form.watch('duration')
   const startTime = form.watch('schedule_start_time')
 
-const toTimestamp = (timeString: string) => {
-  const today = new Date();
-  const [hours, minutes] = timeString.split(':');
-  today.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-  return today.toISOString(); // Format as 'YYYY-MM-DDTHH:mm:ss.sssZ'
-};
   // Update end time when start time or duration changes
   useEffect(() => {
     if (startTime) {
@@ -236,6 +266,10 @@ const toTimestamp = (timeString: string) => {
             // Get the first schedule if available
             const firstSchedule = activitySchedules.length > 0 ? activitySchedules[0] : null;
             
+            // Extract time from timestamps for schedule times
+            const startTime = firstSchedule ? extractTimeFromTimestamp(firstSchedule.start_time) : '09:00';
+            const endTime = firstSchedule ? extractTimeFromTimestamp(firstSchedule.end_time) : '11:00';
+            
             form.reset({
               title: fetchedActivity.title,
               description: fetchedActivity.description ?? '',
@@ -256,10 +290,10 @@ const toTimestamp = (timeString: string) => {
               b_price: fetchedActivity.b_price ?? null,
               status: fetchedActivity.status ?? null,
               discounts: fetchedActivity.discounts ?? 0,
-              // Schedule fields
+              // Schedule fields with properly extracted time
               schedule_id: firstSchedule?.id ?? null,
-              schedule_start_time: firstSchedule?.start_time ?? '09:00',
-              schedule_end_time: firstSchedule?.end_time ?? '11:00',
+              schedule_start_time: startTime,
+              schedule_end_time: endTime,
               schedule_capacity: firstSchedule?.capacity ?? 10,
               schedule_availability_start_date: firstSchedule?.availability_start_date ?? new Date().toISOString().split('T')[0],
               schedule_availability_end_date: firstSchedule?.availability_end_date ?? new Date(new Date().setMonth(new Date().getMonth() + 3)).toISOString().split('T')[0],
