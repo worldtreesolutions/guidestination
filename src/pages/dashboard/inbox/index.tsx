@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Avatar } from "@/components/ui/avatar"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { MessageSquare, Send, User } from "lucide-react"
+import { MessageSquare, Send, User, ArrowLeft } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { supabase } from "@/integrations/supabase/client"
 
@@ -39,6 +39,35 @@ export default function InboxPage() {
   const [newMessage, setNewMessage] = useState("")
   const [activeConversation, setActiveConversation] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [showConversationList, setShowConversationList] = useState(true)
+  const [windowWidth, setWindowWidth] = useState(0)
+
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth)
+      // On larger screens, always show both panels
+      if (window.innerWidth >= 768) {
+        setShowConversationList(true)
+      }
+    }
+    
+    // Set initial values
+    if (typeof window !== 'undefined') {
+      setWindowWidth(window.innerWidth)
+      handleResize()
+    }
+    
+    window.addEventListener("resize", handleResize)
+    return () => window.removeEventListener("resize", handleResize)
+  }, [])
+
+  // When selecting a conversation on mobile, hide the conversation list
+  useEffect(() => {
+    if (activeConversation && windowWidth < 768) {
+      setShowConversationList(false)
+    }
+  }, [activeConversation, windowWidth])
 
   // Fetch conversations
   useEffect(() => {
@@ -278,6 +307,17 @@ export default function InboxPage() {
     }
   }
 
+  const handleSelectConversation = (conversationId: string) => {
+    setActiveConversation(conversationId)
+    if (windowWidth < 768) {
+      setShowConversationList(false)
+    }
+  }
+
+  const handleBackToList = () => {
+    setShowConversationList(true)
+  }
+
   if (!user) {
     return (
       <DashboardLayout>
@@ -290,147 +330,173 @@ export default function InboxPage() {
 
   return (
     <DashboardLayout>
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col h-[calc(100vh-8rem)]">
         <div className="flex-1 flex flex-col md:flex-row h-full">
-          <Card className="md:w-80 flex-shrink-0 border-r md:rounded-r-none h-full">
-            <CardHeader>
-              <CardTitle>Inbox</CardTitle>
-              <CardDescription>Chat with activity providers</CardDescription>
-            </CardHeader>
-            <CardContent className="p-0">
-              <ScrollArea className="h-[calc(100vh-13rem)]">
-                {conversations.map((conversation) => (
-                  <div 
-                    key={conversation.id}
-                    className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-muted transition-colors ${activeConversation === conversation.id ? 'bg-muted' : ''}`}
-                    onClick={() => setActiveConversation(conversation.id)}
-                  >
-                    <Avatar className="h-10 w-10">
-                      {conversation.user_avatar ? (
-                        <div className="relative w-full h-full">
-                          <Image 
-                            src={conversation.user_avatar} 
-                            alt={conversation.user_name}
-                            fill
-                            className="object-cover"
-                          />
+          {/* Conversation List - Conditionally shown on mobile */}
+          {(showConversationList || windowWidth >= 768) && (
+            <Card className="md:w-80 flex-shrink-0 border-r md:rounded-r-none h-full">
+              <CardHeader>
+                <CardTitle>Inbox</CardTitle>
+                <CardDescription>Chat with activity providers</CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                <ScrollArea className="h-[calc(100vh-16rem)]">
+                  {conversations.map((conversation) => (
+                    <div 
+                      key={conversation.id}
+                      className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-muted transition-colors ${activeConversation === conversation.id ? 'bg-muted' : ''}`}
+                      onClick={() => handleSelectConversation(conversation.id)}
+                    >
+                      <Avatar className="h-10 w-10 flex-shrink-0">
+                        {conversation.user_avatar ? (
+                          <div className="relative w-full h-full">
+                            <Image 
+                              src={conversation.user_avatar} 
+                              alt={conversation.user_name}
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <User className="h-6 w-6" />
+                        )}
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-center">
+                          <p className="font-medium truncate">{conversation.user_name}</p>
+                          {conversation.last_message_time && (
+                            <span className="text-xs text-muted-foreground">
+                              {formatDate(conversation.last_message_time)}
+                            </span>
+                          )}
                         </div>
-                      ) : (
-                        <User className="h-6 w-6" />
-                      )}
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-center">
-                        <p className="font-medium truncate">{conversation.user_name}</p>
-                        {conversation.last_message_time && (
-                          <span className="text-xs text-muted-foreground">
-                            {formatDate(conversation.last_message_time)}
-                          </span>
+                        {conversation.last_message && (
+                          <p className="text-sm text-muted-foreground truncate">
+                            {conversation.last_message}
+                          </p>
                         )}
                       </div>
-                      {conversation.last_message && (
-                        <p className="text-sm text-muted-foreground truncate">
-                          {conversation.last_message}
-                        </p>
+                      {conversation.unread_count > 0 && (
+                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#22C55E] text-[10px] font-medium text-white flex-shrink-0">
+                          {conversation.unread_count > 99 ? "99+" : conversation.unread_count}
+                        </span>
                       )}
                     </div>
-                    {conversation.unread_count > 0 && (
-                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#22C55E] text-[10px] font-medium text-white">
-                        {conversation.unread_count}
-                      </span>
-                    )}
-                  </div>
-                ))}
-                {conversations.length === 0 && !loading && (
-                  <div className="p-4 text-center text-muted-foreground">
-                    <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p>No conversations yet</p>
-                  </div>
-                )}
-              </ScrollArea>
-            </CardContent>
-          </Card>
-
-          <Card className="flex-1 flex flex-col h-full md:rounded-l-none">
-            {activeConversation ? (
-              <>
-                <CardHeader className="border-b py-3">
-                  <div className="flex items-center">
-                    <Avatar className="h-8 w-8 mr-2">
-                      {conversations.find(c => c.id === activeConversation)?.user_avatar ? (
-                        <div className="relative w-full h-full">
-                          <Image 
-                            src={conversations.find(c => c.id === activeConversation)?.user_avatar || ''} 
-                            alt={conversations.find(c => c.id === activeConversation)?.user_name || ''}
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
-                      ) : (
-                        <User className="h-5 w-5" />
-                      )}
-                    </Avatar>
-                    <CardTitle className="text-lg">
-                      {conversations.find(c => c.id === activeConversation)?.user_name}
-                    </CardTitle>
-                  </div>
-                </CardHeader>
-                <ScrollArea className="flex-1 p-4">
-                  <div className="space-y-4">
-                    {messages.map((message) => (
-                      <div 
-                        key={message.id} 
-                        className={`flex ${message.sender_id === user.id ? 'justify-end' : 'justify-start'}`}
-                      >
-                        <div 
-                          className={`max-w-[80%] rounded-lg p-3 ${
-                            message.sender_id === user.id 
-                              ? 'bg-[#22C55E] text-white' 
-                              : 'bg-muted'
-                          }`}
-                        >
-                          <p>{message.content}</p>
-                          <p className="text-xs mt-1 opacity-70">
-                            {formatDate(message.created_at)}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                    {messages.length === 0 && (
-                      <div className="h-full flex items-center justify-center text-muted-foreground">
-                        <p>No messages yet. Start the conversation!</p>
-                      </div>
-                    )}
-                  </div>
+                  ))}
+                  {conversations.length === 0 && !loading && (
+                    <div className="p-4 text-center text-muted-foreground">
+                      <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p>No conversations yet</p>
+                    </div>
+                  )}
                 </ScrollArea>
-                <div className="p-4 border-t">
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="Type your message..."
-                      value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault()
-                          handleSendMessage()
-                        }
-                      }}
-                    />
-                    <Button onClick={handleSendMessage}>
-                      <Send className="h-4 w-4" />
-                    </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Message Area - Conditionally shown on mobile */}
+          {(!showConversationList || windowWidth >= 768) && (
+            <Card className="flex-1 flex flex-col h-full md:rounded-l-none">
+              {activeConversation ? (
+                <>
+                  <CardHeader className="border-b py-3">
+                    <div className="flex items-center">
+                      {windowWidth < 768 && (
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="mr-2" 
+                          onClick={handleBackToList}
+                        >
+                          <ArrowLeft className="h-5 w-5" />
+                        </Button>
+                      )}
+                      <Avatar className="h-8 w-8 mr-2">
+                        {conversations.find(c => c.id === activeConversation)?.user_avatar ? (
+                          <div className="relative w-full h-full">
+                            <Image 
+                              src={conversations.find(c => c.id === activeConversation)?.user_avatar || ''} 
+                              alt={conversations.find(c => c.id === activeConversation)?.user_name || ''}
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <User className="h-5 w-5" />
+                        )}
+                      </Avatar>
+                      <CardTitle className="text-lg">
+                        {conversations.find(c => c.id === activeConversation)?.user_name}
+                      </CardTitle>
+                    </div>
+                  </CardHeader>
+                  <ScrollArea className="flex-1 p-4">
+                    <div className="space-y-4">
+                      {messages.map((message) => (
+                        <div 
+                          key={message.id} 
+                          className={`flex ${message.sender_id === user.id ? 'justify-end' : 'justify-start'}`}
+                        >
+                          <div 
+                            className={`max-w-[80%] rounded-lg p-3 ${
+                              message.sender_id === user.id 
+                                ? 'bg-[#22C55E] text-white' 
+                                : 'bg-muted'
+                            }`}
+                          >
+                            <p className="break-words">{message.content}</p>
+                            <p className="text-xs mt-1 opacity-70">
+                              {formatDate(message.created_at)}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                      {messages.length === 0 && (
+                        <div className="h-full flex items-center justify-center text-muted-foreground">
+                          <p>No messages yet. Start the conversation!</p>
+                        </div>
+                      )}
+                    </div>
+                  </ScrollArea>
+                  <div className="p-4 border-t">
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Type your message..."
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault()
+                            handleSendMessage()
+                          }
+                        }}
+                      />
+                      <Button onClick={handleSendMessage} className="flex-shrink-0">
+                        <Send className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="flex items-center justify-center h-full text-muted-foreground">
+                  <div className="text-center">
+                    <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>Select a conversation to start chatting</p>
+                    {windowWidth < 768 && (
+                      <Button 
+                        variant="outline" 
+                        className="mt-4" 
+                        onClick={handleBackToList}
+                      >
+                        <ArrowLeft className="h-4 w-4 mr-2" />
+                        Back to conversations
+                      </Button>
+                    )}
                   </div>
                 </div>
-              </>
-            ) : (
-              <div className="flex items-center justify-center h-full text-muted-foreground">
-                <div className="text-center">
-                  <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>Select a conversation to start chatting</p>
-                </div>
-              </div>
-            )}
-          </Card>
+              )}
+            </Card>
+          )}
         </div>
       </div>
     </DashboardLayout>
