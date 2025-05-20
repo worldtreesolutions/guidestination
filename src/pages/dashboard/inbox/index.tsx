@@ -377,7 +377,7 @@ export default function InboxPage() {
                         )}
                       </div>
                       {conversation.unread_count > 0 && (
-                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#22C55E] text-[10px] font-medium text-white flex-shrink-0">
+                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#ededed] text-[10px] font-medium text-foreground flex-shrink-0">
                           {conversation.unread_count > 99 ? "99+" : conversation.unread_count}
                         </span>
                       )}
@@ -440,7 +440,7 @@ export default function InboxPage() {
                           <div 
                             className={`max-w-[80%] rounded-lg p-3 ${
                               message.sender_id === user.id 
-                                ? 'bg-[#22C55E] text-white' 
+                                ? 'bg-[#ededed] text-foreground' 
                                 : 'bg-muted'
                             }`}
                           >

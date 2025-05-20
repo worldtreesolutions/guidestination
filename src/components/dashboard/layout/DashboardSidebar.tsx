@@ -36,9 +36,9 @@ const SidebarNavItem = ({ href, icon, title, badge, isCompact }: SidebarNavItemP
       href={href}
       className={cn(
         "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
-        "hover:bg-muted active:bg-muted/80 focus:outline-none focus:ring-2 focus:ring-[#22C55E]/20",
+        "hover:bg-muted active:bg-muted/80 focus:outline-none focus:ring-2 focus:ring-foreground/20",
         isActive
-          ? "bg-[#22C55E]/10 text-[#22C55E]"
+          ? "bg-[#ededed] text-foreground"
           : "text-muted-foreground hover:text-foreground"
       )}
     >
@@ -47,7 +47,7 @@ const SidebarNavItem = ({ href, icon, title, badge, isCompact }: SidebarNavItemP
       </div>
       {!isCompact && <span className="flex-1">{title}</span>}
       {badge !== undefined && badge > 0 && (
-        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#22C55E] text-[10px] font-medium text-white">
+        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#ededed] text-[10px] font-medium text-foreground">
           {badge > 99 ? "99+" : badge}
         </span>
       )}
