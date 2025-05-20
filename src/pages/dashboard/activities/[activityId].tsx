@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react"
 import { useRouter } from "next/router"
 import Head from "next/head"
@@ -91,30 +90,65 @@ interface ActivitySchedule {
   status: string | null;
 }
 
-// Function to convert ISO timestamp to HH:MM format
+// Enhanced function to convert various timestamp formats to HH:MM format
 const extractTimeFromTimestamp = (timestamp: string | null): string => {
-  if (!timestamp) return '09:00'; // Default time if no timestamp provided
+  if (!timestamp) {
+    console.log('No timestamp provided, using default:', '09:00');
+    return '09:00'; // Default time if no timestamp provided
+  }
   
   try {
-    // Try to parse the timestamp
-    const date = new Date(timestamp);
+    console.log('Processing timestamp:', timestamp);
     
-    // Check if the date is valid
-    if (isNaN(date.getTime())) {
-      // If the timestamp is already in HH:MM format, return it
-      if (/^\d{1,2}:\d{2}$/.test(timestamp)) {
-        return timestamp;
-      }
-      return '09:00'; // Default time if parsing fails
+    // If the timestamp is already in HH:MM format, return it
+    if (/^\d{1,2}:\d{2}$/.test(timestamp)) {
+      console.log('Already in HH:MM format:', timestamp);
+      return timestamp;
     }
     
-    // Format hours and minutes with leading zeros
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
+    // Handle PostgreSQL time format (HH:MM:SS)
+    if (/^\d{1,2}:\d{2}:\d{2}$/.test(timestamp)) {
+      const timeParts = timestamp.split(':');
+      const timeString = `${timeParts[0].padStart(2, '0')}:${timeParts[1]}`;
+      console.log('Extracted from PostgreSQL time format:', timeString);
+      return timeString;
+    }
     
-    return `${hours}:${minutes}`;
+    // Handle PostgreSQL timestamp format (YYYY-MM-DD HH:MM:SS)
+    if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/.test(timestamp)) {
+      const timePart = timestamp.split(' ')[1];
+      const timeParts = timePart.split(':');
+      const timeString = `${timeParts[0].padStart(2, '0')}:${timeParts[1]}`;
+      console.log('Extracted from PostgreSQL timestamp format:', timeString);
+      return timeString;
+    }
+    
+    // Handle ISO format (YYYY-MM-DDTHH:MM:SS.sssZ)
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(timestamp)) {
+      const date = new Date(timestamp);
+      if (!isNaN(date.getTime())) {
+        const hours = date.getHours().toString().padStart(2, '0');
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        const timeString = `${hours}:${minutes}`;
+        console.log('Extracted from ISO format:', timeString);
+        return timeString;
+      }
+    }
+    
+    // Try to parse as a generic date
+    const date = new Date(timestamp);
+    if (!isNaN(date.getTime())) {
+      const hours = date.getHours().toString().padStart(2, '0');
+      const minutes = date.getMinutes().toString().padStart(2, '0');
+      const timeString = `${hours}:${minutes}`;
+      console.log('Extracted from generic date format:', timeString);
+      return timeString;
+    }
+    
+    console.warn('Could not parse timestamp format:', timestamp);
+    return '09:00'; // Default time if parsing fails
   } catch (error) {
-    console.error('Error parsing timestamp:', error);
+    console.error('Error parsing timestamp:', error, 'Original timestamp:', timestamp);
     return '09:00'; // Default time if an error occurs
   }
 };
@@ -137,6 +171,7 @@ export default function EditActivityPage() {
   const [activity, setActivity] = useState<CrudActivity | null>(null)
   const [schedules, setSchedules] = useState<ActivitySchedule[]>([])
   const [categories, setCategories] = useState<Category[]>([])
+  const [debugInfo, setDebugInfo] = useState<string>('');
 
   // Fetch categories when component mounts
   useEffect(() => {
@@ -254,6 +289,16 @@ export default function EditActivityPage() {
           const activitySchedules = scheduleData || [];
           setSchedules(activitySchedules as ActivitySchedule[]);
           
+          // Debug info for schedule data
+          if (activitySchedules.length > 0) {
+            const firstSchedule = activitySchedules[0];
+            console.log('Raw schedule data:', firstSchedule);
+            setDebugInfo(`Raw start: ${firstSchedule.start_time}, Raw end: ${firstSchedule.end_time}`);
+          } else {
+            console.log('No schedules found for this activity');
+            setDebugInfo('No schedules found for this activity');
+          }
+          
           if (fetchedActivity) {
             setActivity(fetchedActivity)
             
@@ -269,6 +314,9 @@ export default function EditActivityPage() {
             // Extract time from timestamps for schedule times
             const startTime = firstSchedule ? extractTimeFromTimestamp(firstSchedule.start_time) : '09:00';
             const endTime = firstSchedule ? extractTimeFromTimestamp(firstSchedule.end_time) : '11:00';
+            
+            console.log('Processed times:', { startTime, endTime });
+            setDebugInfo(prev => `${prev}\nProcessed start: ${startTime}, Processed end: ${endTime}`);
             
             form.reset({
               title: fetchedActivity.title,
@@ -295,8 +343,10 @@ export default function EditActivityPage() {
               schedule_start_time: startTime,
               schedule_end_time: endTime,
               schedule_capacity: firstSchedule?.capacity ?? 10,
-              schedule_availability_start_date: firstSchedule?.availability_start_date ?? new Date().toISOString().split('T')[0],
-              schedule_availability_end_date: firstSchedule?.availability_end_date ?? new Date(new Date().setMonth(new Date().getMonth() + 3)).toISOString().split('T')[0],
+              //schedule_availability_start_date: firstSchedule?.availability_start_date ?? new Date().toISOString().split('T')[0],
+              //schedule_availability_end_date: firstSchedule?.availability_end_date ?? new Date(new Date().setMonth(new Date().getMonth() + 3)).toISOString().split('T')[0],
+              schedule_availability_start_date = new Date(firstSchedule?.availability_start_date).toTimeString().slice(0, 5);
+              schedule_availability_end_date = new Date(firstSchedule?.availability_end_date).toTimeString().slice(0, 5);
             })
           } else {
             toast({ title: 'Error', description: 'Activity not found.', variant: 'destructive' })
@@ -357,11 +407,18 @@ export default function EditActivityPage() {
       // Update activity
       await activityCrudService.updateActivity(numericActivityId, activityData, user);
 
+      // Convert time strings to timestamps for database
+      const startTimeTimestamp = toTimestamp(data.schedule_start_time ?? '09:00');
+      const endTimeTimestamp = toTimestamp(data.schedule_end_time ?? '11:00');
+      
+      console.log('Saving start time:', data.schedule_start_time, '→', startTimeTimestamp);
+      console.log('Saving end time:', data.schedule_end_time, '→', endTimeTimestamp);
+
       // Update or create schedule separately
       const scheduleData = {
         activity_id: numericActivityId,
-        start_time: toTimestamp(data.schedule_start_time ?? '09:00'),
-        end_time: toTimestamp(data.schedule_end_time ?? '11:00'),
+        start_time: startTimeTimestamp,
+        end_time: endTimeTimestamp,
         capacity: data.schedule_capacity || 10,
         availability_start_date: data.schedule_availability_start_date,
         availability_end_date: data.schedule_availability_end_date,
@@ -460,6 +517,14 @@ export default function EditActivityPage() {
               <p className='text-muted-foreground'>
                 Update the details for '{activity?.title}'
               </p>
+              {debugInfo && (
+                <div className="text-xs text-muted-foreground mt-1 p-2 bg-gray-100 rounded">
+                  <p className="font-semibold">Debug Info:</p>
+                  {debugInfo.split('\n').map((line, i) => (
+                    <p key={i}>{line}</p>
+                  ))}
+                </div>
+              )}
             </div>
             <Button variant='outline' asChild>
               <Link href='/dashboard/activities'>
@@ -715,283 +780,3 @@ export default function EditActivityPage() {
                   <CardTitle>Additional Details</CardTitle>
                   <CardDescription>
                     Update more information about your activity
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className='space-y-6'>
-                  {/* Pickup Toggle */}
-                  <FormField
-                    control={form.control}
-                    name='has_pickup'
-                    render={({ field }) => (
-                      <FormItem className='flex flex-row items-center justify-between rounded-lg border p-4'>
-                        <div className='space-y-0.5'>
-                          <FormLabel className='text-base'>Pickup Available</FormLabel>
-                          <FormDescription>
-                            Toggle if pickup service is available for this activity
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* Conditional Pickup Location Field */}
-                  {hasPickup && (
-                    <FormField
-                      control={form.control}
-                      name='pickup_location'
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Pickup Location</FormLabel>
-                          <FormControl>
-                            <Input 
-                              placeholder='e.g., Your hotel lobby' 
-                              {...field} 
-                              value={field.value || ''}
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            Where will participants be picked up from?
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
-
-                  <FormField
-                    control={form.control}
-                    name='dropoff_location'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Dropoff Location</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder='e.g. Your hotel lobby'
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name='meeting_point'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Meeting Point</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder='e.g. Your hotel lobby or Tha Phae Gate'
-                            {...field}
-                            value={field.value ?? ''} // Handle null/undefined
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name='languages'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Languages</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder='e.g., English, Thai'
-                            {...field}
-                            value={field.value ?? ''} // Handle null/undefined
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </CardContent>
-              </Card>
-
-              {/* Activity Details Card */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Activity Details</CardTitle>
-                  <CardDescription>
-                    Update highlights and what's included/not included
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className='space-y-6'>
-                  <FormField
-                    control={form.control}
-                    name='highlights'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Highlights</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder='e.g., Scenic views, local culture'
-                            {...field}
-                            value={field.value ?? ''} // Handle null/undefined
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Enter each highlight on a new line
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name='included'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>What's Included</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder='e.g., Guide, meals'
-                            {...field}
-                            value={field.value ?? ''} // Handle null/undefined
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Enter each included item on a new line
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name='not_included'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>What's Not Included</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder='e.g., Tips, personal expenses'
-                            {...field}
-                            value={field.value ?? ''} // Handle null/undefined
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Enter each non-included item on a new line
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </CardContent>
-              </Card>
-
-              {/* Images Card */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Images</CardTitle>
-                  <CardDescription>
-                    Update images for your activity
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <FormField
-                    control={form.control}
-                    name='image_urls'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Activity Images</FormLabel>
-                        <FormControl>
-                          <ImageUploader 
-                            value={field.value} 
-                            onChange={field.onChange}
-                            maxImages={8}
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Upload images showcasing your activity. The first image will be the main cover.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </CardContent>
-              </Card>
-
-              {/* Status Card */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Activity Status</CardTitle>
-                  <CardDescription>
-                    Set the visibility of your activity.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <FormField
-                    control={form.control}
-                    name='status'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Status</FormLabel>
-                        <Select 
-                          onValueChange={(value) => field.onChange(Number(value))} 
-                          value={field.value?.toString() || '1'}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder='Select status' />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value='1'>Draft (Hidden)</SelectItem>
-                            <SelectItem value='2'>Published (Visible)</SelectItem>
-                            <SelectItem value='0'>Archived</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormDescription>
-                          'Draft' keeps it hidden, 'Published' makes it live.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </CardContent>
-              </Card>
-
-              {/* Action Buttons */}
-              <div className='flex justify-end gap-4'>
-                <Button
-                  type='button'
-                  variant='outline'
-                  onClick={() => router.push('/dashboard/activities')}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type='submit'
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                      Saving...
-                    </>
-                  ) : (
-                    'Save Changes'
-                  )}
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </div>
-      </DashboardLayout>
-    </>
-  )
-}
