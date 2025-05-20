@@ -1,5 +1,6 @@
 
 import Link from "next/link"
+import Image from "next/image"
 import { useRouter } from "next/router"
 import {
   BarChart3,
@@ -140,7 +141,15 @@ export function DashboardSidebar() {
           {isCompact ? (
             <LayoutDashboard className="h-6 w-6" />
           ) : (
-            <h2 className="text-xl font-bold">Dashboard</h2>
+            <div className="relative h-8 w-full max-w-[180px]">
+              <Image 
+                src="/logo-masdxep0.png" 
+                alt="Logo" 
+                fill
+                className="object-contain"
+                priority
+              />
+            </div>
           )}
         </div>
       </div>

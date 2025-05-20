@@ -124,7 +124,7 @@ export default function DashboardOverviewPage() {
             <div className="space-y-2">
               <button 
                 onClick={() => router.push('/dashboard/activities/new')}
-                className="w-full py-2 px-4 bg-[#22C55E] text-white rounded-md hover:bg-[#22C55E]/90 transition-colors"
+                className="w-full py-2 px-4 bg-[#ededed] text-foreground rounded-md hover:bg-[#e0e0e0] transition-colors"
               >
                 Create New Activity
               </button>
