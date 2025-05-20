@@ -81,18 +81,19 @@ export default function ActivityCard({
   const displayName = activity.name || activity.title || "Unnamed Activity";
 
   return (
-    <Card className="overflow-hidden h-full flex flex-col">
-      <div className="relative aspect-video w-full">
+    <Card className="overflow-hidden h-full flex flex-col shadow-sm hover:shadow transition-shadow duration-200">
+      <div className="relative w-full aspect-[16/9] xs:aspect-video">
         <Image
           src={getImageUrl()}
           alt={displayName}
           fill
           className="object-cover"
-          sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          sizes="(max-width: 480px) 100vw, (max-width: 640px) 90vw, (max-width: 768px) 45vw, (max-width: 1024px) 30vw, 25vw"
+          priority
         />
         <Badge 
           variant="default"
-          className={`absolute top-2 right-2 ${getStatusColor(activity.status || null)}`}
+          className={`absolute top-2 right-2 text-xs sm:text-sm ${getStatusColor(activity.status || null)}`}
         >
           {activity.status === 2 ? "published" : 
            activity.status === 1 ? "draft" : 
@@ -100,14 +101,14 @@ export default function ActivityCard({
         </Badge>
       </div>
 
-      <CardHeader className="p-3 sm:p-4 md:p-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start gap-2">
+      <CardHeader className="p-2 xs:p-3 sm:p-4 md:p-5">
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-1 sm:gap-2">
           <div className="w-full sm:w-auto">
-            <h3 className="text-base sm:text-lg font-semibold line-clamp-1">{displayName}</h3>
-            <p className="text-xs sm:text-sm text-muted-foreground">{activity.category}</p>
+            <h3 className="text-sm xs:text-base sm:text-lg font-semibold line-clamp-1">{displayName}</h3>
+            <p className="text-xs sm:text-sm text-muted-foreground line-clamp-1">{activity.category}</p>
           </div>
           <div className="text-left sm:text-right w-full sm:w-auto mt-1 sm:mt-0">
-            <p className="font-semibold text-sm sm:text-base">{formatCurrency(activity.price)}</p>
+            <p className="font-semibold text-xs xs:text-sm sm:text-base">{formatCurrency(activity.price)}</p>
             {activity.final_price && (
               <p className="text-xs sm:text-sm text-muted-foreground">
                 Final: {formatCurrency(activity.final_price)}
@@ -117,43 +118,45 @@ export default function ActivityCard({
         </div>
       </CardHeader>
 
-      <CardContent className="p-3 sm:p-4 md:p-6 pt-0 flex-grow">
-        <p className="text-xs sm:text-sm line-clamp-2">{activity.description}</p>
-        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+      <CardContent className="p-2 xs:p-3 sm:p-4 md:p-5 pt-0 flex-grow">
+        <p className="text-xs sm:text-sm line-clamp-2 text-muted-foreground">{activity.description}</p>
+        <div className="mt-2 flex flex-wrap gap-x-3 sm:gap-x-4 gap-y-1">
           {activity.duration && (
-            <p className="text-xs sm:text-sm">Duration: {activity.duration} hours</p>
+            <p className="text-xs sm:text-sm">
+              <span className="font-medium">Duration:</span> {activity.duration} hours
+            </p>
           )}
           {activity.video_url && (
             <p className="text-xs sm:text-sm">
-              Video: {activity.video_duration}s
+              <span className="font-medium">Video:</span> {activity.video_duration}s
             </p>
           )}
         </div>
       </CardContent>
 
       {showActions && (
-        <CardFooter className="p-3 sm:p-4 md:p-6 flex flex-col sm:flex-row gap-2 mt-auto">
-          <div className="grid grid-cols-3 gap-2 w-full">
+        <CardFooter className="p-2 xs:p-3 sm:p-4 md:p-5 pt-0 mt-auto">
+          <div className="grid grid-cols-3 gap-1 xs:gap-2 w-full">
             <Link href={`/dashboard/activities/${activity.id}`} className="col-span-1">
-              <Button variant="outline" size="sm" className="w-full h-9">
-                <Eye className="h-4 w-4 sm:mr-1" />
-                <span className="hidden sm:inline">View</span>
+              <Button variant="outline" size="sm" className="w-full h-8 xs:h-9 text-xs sm:text-sm">
+                <Eye className="h-3 w-3 xs:h-4 xs:w-4 sm:mr-1" />
+                <span className="hidden xs:inline-block sm:inline-block ml-1 sm:ml-0">View</span>
               </Button>
             </Link>
             <Link href={`/dashboard/activities/${activity.id}`} className="col-span-1">
-              <Button variant="outline" size="sm" className="w-full h-9">
-                <Edit className="h-4 w-4 sm:mr-1" />
-                <span className="hidden sm:inline">Edit</span>
+              <Button variant="outline" size="sm" className="w-full h-8 xs:h-9 text-xs sm:text-sm">
+                <Edit className="h-3 w-3 xs:h-4 xs:w-4 sm:mr-1" />
+                <span className="hidden xs:inline-block sm:inline-block ml-1 sm:ml-0">Edit</span>
               </Button>
             </Link>
             <Button 
               variant="outline" 
               size="sm"
               onClick={handleDelete}
-              className="col-span-1 w-full h-9"
+              className="col-span-1 w-full h-8 xs:h-9 text-xs sm:text-sm"
             >
-              <Trash className="h-4 w-4 sm:mr-1" />
-              <span className="hidden sm:inline">Delete</span>
+              <Trash className="h-3 w-3 xs:h-4 xs:w-4 sm:mr-1" />
+              <span className="hidden xs:inline-block sm:inline-block ml-1 sm:ml-0">Delete</span>
             </Button>
           </div>
         </CardFooter>
