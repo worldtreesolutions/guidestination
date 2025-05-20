@@ -1,13 +1,12 @@
 
 import { useState, useEffect } from "react"
+import Image from "next/image"
 import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Avatar } from "@/components/ui/avatar"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Separator } from "@/components/ui/separator"
 import { MessageSquare, Send, User } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { supabase } from "@/integrations/supabase/client"
@@ -308,7 +307,14 @@ export default function InboxPage() {
                   >
                     <Avatar className="h-10 w-10">
                       {conversation.user_avatar ? (
-                        <img src={conversation.user_avatar} alt={conversation.user_name} />
+                        <div className="relative w-full h-full">
+                          <Image 
+                            src={conversation.user_avatar} 
+                            alt={conversation.user_name}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
                       ) : (
                         <User className="h-6 w-6" />
                       )}
@@ -352,10 +358,14 @@ export default function InboxPage() {
                   <div className="flex items-center">
                     <Avatar className="h-8 w-8 mr-2">
                       {conversations.find(c => c.id === activeConversation)?.user_avatar ? (
-                        <img 
-                          src={conversations.find(c => c.id === activeConversation)?.user_avatar} 
-                          alt={conversations.find(c => c.id === activeConversation)?.user_name} 
-                        />
+                        <div className="relative w-full h-full">
+                          <Image 
+                            src={conversations.find(c => c.id === activeConversation)?.user_avatar || ''} 
+                            alt={conversations.find(c => c.id === activeConversation)?.user_name || ''}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
                       ) : (
                         <User className="h-5 w-5" />
                       )}
