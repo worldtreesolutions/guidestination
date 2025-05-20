@@ -11,11 +11,19 @@ interface ActivityListProps {
 }
 
 export function ActivityList({ activities }: ActivityListProps) {
-  const getStatusVariant = (status: ActivityStatus | string | null) => {
-    switch (status) {
+  // Updated to accept any type for status to handle both string and number
+  const getStatusVariant = (status: any): "default" | "secondary" | "outline" => {
+    // Convert numeric status to string representation if needed
+    let statusStr = typeof status === 'number' 
+      ? status === 2 ? "published" : status === 1 ? "draft" : "archived"
+      : String(status);
+      
+    switch (statusStr) {
       case "published":
+      case "2":
         return "default"
       case "draft":
+      case "1":
         return "secondary"
       default:
         return "outline"
@@ -40,7 +48,9 @@ export function ActivityList({ activities }: ActivityListProps) {
               <Badge
                 variant={getStatusVariant(activity.status)}
               >
-                {activity.status || "draft"}
+                {typeof activity.status === 'number'
+                  ? activity.status === 2 ? "published" : activity.status === 1 ? "draft" : "archived"
+                  : activity.status || "draft"}
               </Badge>
             </div>
             <div className="mt-2 text-sm">
