@@ -88,10 +88,10 @@ export default function LoginPage() {
             <Image
               src="/logo-masdxep0.png"
               alt="Guidestination"
-              width={180}
-              height={32}
+              width={280}
+              height={52}
               priority
-              className="h-8 w-auto"
+              className="h-14 w-auto"
             />
           </Link>
           <h2 className="text-3xl font-bold tracking-tight">Sign in to your account</h2>
