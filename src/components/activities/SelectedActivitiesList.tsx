@@ -6,6 +6,7 @@ import { ScheduledActivity } from "./ExcursionPlanner"
 import { useDroppable, useDraggable } from "@dnd-kit/core"
 import { CSS } from "@dnd-kit/utilities"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { Activity } from "@/types/activity"
 
 interface ActivityItemProps {
   activity: ScheduledActivity
@@ -88,8 +89,27 @@ const ActivityItem = ({ activity, onRemove }: ActivityItemProps) => {
 }
 
 interface SelectedActivitiesListProps {
-  activities: ScheduledActivity[]
+  activities: Activity[] | ScheduledActivity[]
   onActivityRemove: (activityId: string) => void
+}
+
+// Function to convert Activity to ScheduledActivity format
+const convertToScheduledActivity = (activity: Activity): ScheduledActivity => {
+  return {
+    id: activity.activity_id?.toString() || "",
+    title: activity.title,
+    imageUrl: typeof activity.image_url === 'string' ? activity.image_url : "",
+    day: "",
+    hour: 0,
+    duration: 2, // Default duration
+    price: activity.final_price || activity.b_price || 0,
+    participants: 1 // Default participants
+  }
+}
+
+// Function to check if an activity is a ScheduledActivity
+const isScheduledActivity = (activity: any): activity is ScheduledActivity => {
+  return 'imageUrl' in activity && 'day' in activity && 'hour' in activity;
 }
 
 export const SelectedActivitiesList = ({
@@ -102,12 +122,20 @@ export const SelectedActivitiesList = ({
   
   const isMobile = useIsMobile()
 
+  // Convert activities to ScheduledActivity format if needed
+  const formattedActivities: ScheduledActivity[] = activities.map(activity => {
+    if (isScheduledActivity(activity)) {
+      return activity as ScheduledActivity;
+    }
+    return convertToScheduledActivity(activity as Activity);
+  });
+
   return (
     <div className="w-full">
       <div ref={setNodeRef} className="w-full">
-        {activities.length > 0 ? (
+        {formattedActivities.length > 0 ? (
           <div className={`flex flex-wrap ${isMobile ? 'justify-center' : 'justify-start'} gap-3 sm:gap-4`}>
-            {activities.map(activity => (
+            {formattedActivities.map(activity => (
               <ActivityItem
                 key={activity.id}
                 activity={activity}
