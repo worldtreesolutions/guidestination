@@ -49,6 +49,12 @@ export default function LoginPage() {
       if (data?.user) {
         const role = data.user.user_metadata?.role
         console.log("User role from meta", role) // For debugging
+        console.log("Provider ID:", data.provider_id) // Log provider_id if available
+
+        // Store provider_id in localStorage for use in activity creation
+        if (data.provider_id) {
+          localStorage.setItem('provider_id', data.provider_id)
+        }
 
         if (role === "activity_owner") {
           router.push("/activity-owner/dashboard")

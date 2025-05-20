@@ -6,6 +6,7 @@ interface SignInResponse {
   data: {
     user: User;
     session: Session;
+    provider_id?: string;
   } | null;
   error: Error | null;
 }
@@ -20,8 +21,28 @@ const authService = {
 
       if (error) throw error
 
+      // If login successful, check if user is an activity owner and fetch provider_id
+      let provider_id = undefined;
+      if (data.user) {
+        // Check if user is an activity owner
+        const { data: ownerData, error: ownerError } = await supabase
+          .from('activity_owners')
+          .select('id')
+          .eq('user_id', data.user.id)
+          .single();
+
+        if (!ownerError && ownerData) {
+          provider_id = ownerData.id;
+          console.log("Found provider_id:", provider_id);
+        }
+      }
+
       return {
-        data: data as { user: User; session: Session },
+        data: { 
+          user: data.user, 
+          session: data.session,
+          provider_id 
+        },
         error: null,
       }
     } catch (error) {
