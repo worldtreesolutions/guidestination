@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react"
 import { useRouter } from "next/router"
 import Head from "next/head"
@@ -51,7 +52,7 @@ const formSchema = z.object({
   description: z.string().min(20, 'Description must be at least 20 characters').optional().nullable(),
   category_id: z.coerce.number().optional().nullable(),
   duration: z.string().min(1, 'Please select a duration'),
-  price: z.coerce.number().min(1, 'Price must be greater than 0'),
+  final_price: z.coerce.number().min(1, 'Price must be greater than 0'),
   max_participants: z.coerce.number().min(1, 'Maximum participants must be at least 1').optional().nullable(),
   has_pickup: z.boolean().default(false), // Add pickup toggle
   pickup_location: z.string().optional().nullable(), // Make pickup location optional
@@ -127,7 +128,7 @@ export default function EditActivityPage() {
       description: '',
       category_id: null,
       duration: '2_hours',
-      price: 0,
+      final_price: 0,
       max_participants: 10,
       has_pickup: false, // Default to false
       pickup_location: '',
@@ -234,7 +235,7 @@ export default function EditActivityPage() {
               description: fetchedActivity.description ?? '',
               category_id: fetchedActivity.category_id ?? null,
               duration: fetchedActivity.duration ?? '2_hours',
-              price: fetchedActivity.price ?? 0,
+              final_price: fetchedActivity.final_price ?? 0,
               max_participants: fetchedActivity.max_participants ?? 10,
               has_pickup: hasPickup, // Set based on pickup_location
               pickup_location: fetchedActivity.pickup_location ?? '',
@@ -297,7 +298,7 @@ export default function EditActivityPage() {
         description: data.description,
         category_id: data.category_id ? Number(data.category_id) : null,
         duration: data.duration,
-        price: Number(data.price),
+        final_price: Number(data.final_price),
         max_participants: data.max_participants ? Number(data.max_participants) : null,
         pickup_location: data.has_pickup ? data.pickup_location || '' : '',
         dropoff_location: data.dropoff_location,
@@ -535,7 +536,7 @@ export default function EditActivityPage() {
                   <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
                     <FormField
                       control={form.control}
-                      name='price'
+                      name='final_price'
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Price per Person (THB)</FormLabel>
