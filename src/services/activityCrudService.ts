@@ -41,22 +41,17 @@ const activityCrudService = {
     // Ensure provider_id is set and is a number
     let providerId = activity.provider_id;
     if (!providerId && user.app_metadata?.provider_id) {
-      providerId = Number(user.app_metadata.provider_id);
+      providerId = (user.app_metadata.provider_id);
       console.log('Setting provider_id from user metadata:', providerId);
     }
     
-    // Fallback to a default value if still not set
-    if (!providerId) {
-      providerId = 1; // Default provider ID
-      console.log('Using default provider_id:', providerId);
-    }
+    
 
     // Prepare data, casting user ID for integer columns
     const activityData = {
       ...activity,
-      // Map the duration string to the proper interval format
-      duration: durationMap[activity.duration] || activity.duration,
-      // Explicitly set provider_id to ensure it's included and is a number
+      // Only assign duration if it is already the correct type; otherwise, leave as is
+      // Remove mapping to string, as the DB expects Interval<Date> or null/undefined
       provider_id: providerId,
       created_by: null, // Don't use user.id directly for integer columns
       updated_by: null, // Don't use user.id directly for integer columns

@@ -45,6 +45,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format, isValid } from "date-fns"
 import { ImageUploader } from "@/components/dashboard/activities/ImageUploader"
 import categoryService, { Category } from '@/services/categoryService'
+import { formatCurrency } from "@/lib/utils"
 
 // Define the form schema using Zod (ensure it aligns with ActivityInsert)
 const formSchema = z.object({
@@ -86,6 +87,7 @@ export default function NewActivityPage() {
   const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [categories, setCategories] = useState<Category[]>([])
+  const [finalPrice, setFinalPrice] = useState<number>(0)
 
   // Fetch categories when component mounts
   useEffect(() => {
@@ -180,6 +182,21 @@ export default function NewActivityPage() {
     }
   }, [isAuthenticated, router])
 
+ // Calculate final price whenever price changes
+  useEffect(() => {
+    const price = form.watch("price")
+    if (price) {
+      // Add 20% markup
+      const withMarkup = price * 1.2
+      // Add 7% VAT
+      const withVAT = withMarkup * 1.07
+      setFinalPrice(withVAT)
+    } else {
+      setFinalPrice(0)
+    }
+  }, [form.watch("price")])
+
+
   // Handle form submission using activityCrudService
   const onSubmit = async (data: FormValues) => {
     if (!user) {
@@ -196,9 +213,9 @@ export default function NewActivityPage() {
       console.log('Provider ID from metadata:', providerId, 'Type:', typeof providerId);
       
       // Force provider_id to be a number, use a fallback value of 1 if not found
-      const numericProviderId = providerId ? Number(providerId) : 1;
+      //const numericProviderId = providerId ? Number(providerId) : 1;
       
-      console.log('Numeric provider_id:', numericProviderId, 'Type:', typeof numericProviderId);
+     // console.log('Numeric provider_id:', numericProviderId, 'Type:', typeof numericProviderId);
 
       // Prepare data directly matching ActivityInsert structure
       const activityData: ActivityInsert = {
@@ -206,23 +223,23 @@ export default function NewActivityPage() {
         title: data.title,
         description: data.description,
         category_id: data.category_id ? Number(data.category_id) : null,
-        duration: data.duration,
-        price: Number(data.price),
+        duration: Number(data.duration),
         max_participants: Number(data.max_participants),
         pickup_location: data.has_pickup ? data.pickup_location || '' : '', // Use empty string if no pickup
         dropoff_location: data.dropoff_location,
-        meeting_point: data.meeting_point,
+        meeting_point: data.meeting_point ?? null,
         languages: data.languages,
         highlights: data.highlights,
-        included: data.included,
-        not_included: data.not_included,
+        included: data.included ?? null,
+        not_included: data.not_included ?? null,
         image_url: data.image_urls && data.image_urls.length > 0 ? data.image_urls[0] : null, // Take first URL or null
         is_active: data.is_active,
-        b_price: data.b_price ? Number(data.b_price) : null,
+        b_price: data.b_price ? Number(data.price) : undefined,
+        final_price: finalPrice,
         status: data.status ? Number(data.status) : null,
         discounts: data.discounts ? Number(data.discounts) : 0,
         // Explicitly set provider_id as a number
-        provider_id: numericProviderId,
+        provider_id: providerId,
       };
 
       console.log('Activity data being sent:', JSON.stringify(activityData));
@@ -232,11 +249,11 @@ export default function NewActivityPage() {
       const createdActivity = await activityCrudService.createActivity(activityData, user);
 
       // Create schedule for the activity if activity was created successfully
-      if (createdActivity && createdActivity.id) {
+      if (createdActivity && createdActivity.activity_id) {
         try {
           // Create schedule entry in activity_schedules table
           const { error } = await supabase.from('activity_schedules').insert({
-            activity_id: createdActivity.id,
+            activity_id: createdActivity.activity_id,
             start_time: data.schedule_start_time || '09:00',
             end_time: data.schedule_end_time || '11:00',
             capacity: data.schedule_capacity || 10,
@@ -424,6 +441,18 @@ export default function NewActivityPage() {
                         </FormItem>
                       )}
                     />
+                    <FormItem>
+                <FormLabel>Final Price (with 20% markup + 7% VAT)</FormLabel>
+                <Input
+                  type="text"
+                  value={formatCurrency(finalPrice)}
+                  disabled
+                  className="bg-muted"
+                />
+                <FormDescription>
+                  Automatically calculated based on price per person
+                </FormDescription>
+              </FormItem>
 
                     <FormField
                       control={form.control}

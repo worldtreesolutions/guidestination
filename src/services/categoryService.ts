@@ -29,7 +29,7 @@ const categoryService = {
     const { data, error } = await supabase
       .from('categories')
       .select('*')
-      .eq('id', id)
+      .eq('id', id.toString())
       .single();
 
     if (error) {

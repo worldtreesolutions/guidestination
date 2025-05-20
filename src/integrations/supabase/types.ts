@@ -1,3 +1,5 @@
+import { UUID } from "crypto"
+import { Interval } from "date-fns"
 
 export type Json =
   | string
@@ -27,7 +29,7 @@ export interface Database {
           owner_name: string
           phone: string | null
           place_id: string | null
-          provider_id: string
+          provider_id: UUID
           status: string | null
           tat_license_number: string | null
           tax_id: string | null
@@ -50,7 +52,7 @@ export interface Database {
           owner_name: string
           phone?: string | null
           place_id?: string | null
-          provider_id?: string
+          provider_id?: UUID
           status?: string | null
           tat_license_number?: string | null
           tax_id?: string | null
@@ -73,7 +75,7 @@ export interface Database {
           owner_name?: string
           phone?: string | null
           place_id?: string | null
-          provider_id?: string
+          provider_id?: UUID
           status?: string | null
           tat_license_number?: string | null
           tax_id?: string | null
@@ -92,9 +94,10 @@ export interface Database {
       }
       activities: {
         Row: {
-          activity_id: string
+          title: string
+          activity_id: number
           address: string | null
-          category: string | null
+          category_id: number | null
           created_at: string
           description: string | null
           duration: number | null
@@ -103,22 +106,33 @@ export interface Database {
           location_geom: unknown | null
           location_lat: number | null
           location_lng: number | null
+          pickup_location: string | null
+          dropoff_location: string | null
+          meeting_point: string | null
+          languages: string | null
+          highlights: string | null
+          included: string | null
+          not_included: string | null
           max_participants: number | null
           min_participants: number | null
           name: string
-          photos: Json | null
+          image_url: Json | null
           place_id: string | null
-          price: number
-          provider_id: string | null
+          b_price: number
+          final_price: number
+          discounts:number | null
+          provider_id: UUID | null
           rating: number | null
-          status: string | null
+          status: number | null
+          is_active: boolean | null
           tags: string[] | null
           type: string | null
         }
         Insert: {
-          activity_id?: string
+          title?: string
+          activity_id?: number
           address?: string | null
-          category?: string | null
+          category_id?: number | null
           created_at?: string
           description?: string | null
           duration?: number | null
@@ -127,22 +141,33 @@ export interface Database {
           location_geom?: unknown | null
           location_lat?: number | null
           location_lng?: number | null
+          pickup_location?: string | null
+          dropoff_location?: string | null
+          meeting_point?: string | null
+          languages?: string | null
+          highlights?: string | null
+          included?: string | null
+          not_included?: string | null
           max_participants?: number | null
           min_participants?: number | null
-          name: string
-          photos?: Json | null
+          name?: string
+          image_url?: Json | null
           place_id?: string | null
-          price: number
-          provider_id?: string | null
+          b_price?: number
+          final_price?: number
+          discounts?:number | null
+          provider_id?: UUID | null
           rating?: number | null
-          status?: string | null
+          status?: number | null
+          is_active?: boolean | null
           tags?: string[] | null
           type?: string | null
         }
         Update: {
-          activity_id?: string
+          title?: string
+          activity_id?: number
           address?: string | null
-          category?: string | null
+          category_id?: number | null
           created_at?: string
           description?: string | null
           duration?: number | null
@@ -151,15 +176,25 @@ export interface Database {
           location_geom?: unknown | null
           location_lat?: number | null
           location_lng?: number | null
+          pickup_location?: string | null
+          dropoff_location?: string | null
+          meeting_point?: string | null
+          languages?: string | null
+          highlights?: string | null
+          included?: string | null
+          not_included?: string | null
           max_participants?: number | null
           min_participants?: number | null
           name?: string
-          photos?: Json | null
+          image_url?: Json | null
           place_id?: string | null
-          price?: number
-          provider_id?: string | null
+          b_price?: number
+          final_price?: number
+          discounts?:number | null
+          provider_id?: UUID | null
           rating?: number | null
-          status?: string | null
+          status?: number | null
+          is_active?: boolean | null
           tags?: string[] | null
           type?: string | null
         }
@@ -248,19 +283,19 @@ export interface Database {
       }
       categories: {
         Row: {
-          category_id: string
+          id: string
           created_at: string
           description: string | null
           name: string
         }
         Insert: {
-          category_id?: string
+          id?: string
           created_at?: string
           description?: string | null
           name: string
         }
         Update: {
-          category_id?: string
+          cateidgory_id?: string
           created_at?: string
           description?: string | null
           name?: string
@@ -432,6 +467,58 @@ export interface Database {
           },
         ]
       }
+      activity_schedules: {
+        Row: {
+          activity_id: number
+          created_at: string | '09:00'
+          start_time: string | '09:00'
+          end_time: string | '09:00'
+          capacity: number
+          created_by: string | null 
+          updated_by: string | null
+          availability_start_date: string | '09:00'
+          availability_end_date: string | '09:00'
+          is_active: boolean
+          status: 'active'
+          
+        }
+        Insert: {
+          activity_id?: number
+          created_at?: string | '09:00'
+          start_time?: string | '09:00'
+          end_time?: string | '09:00'
+          capacity?: number
+          created_by?: string | null 
+          updated_by?: string | null
+          availability_start_date?: string | '09:00'
+          availability_end_date?: string | '09:00'
+          is_active?: boolean
+          status?: 'active'
+        }
+        Update: {
+          activity_id?: number
+          created_at?: string | '09:00'
+          start_time?: string | '09:00'
+          end_time?: string | '09:00'
+          capacity?: number
+          created_by?: string | null 
+          updated_by?: string | null
+          availability_start_date?: string | '09:00'
+          availability_end_date?: string | '09:00'
+          is_active?: boolean
+          status?: 'active'
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_schedules_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: true
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      
     }
     Views: {
       [_ in never]: never

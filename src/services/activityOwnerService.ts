@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { UUID } from "crypto";
 
 type ActivityOwner = Database["public"]["Tables"]["activity_owners"]["Row"];
 
@@ -107,7 +108,7 @@ const activityOwnerService = {
   },
 
   async updateActivityOwner(
-    ownerId: string, 
+    ownerId: UUID, 
     updates: Partial<ActivityOwner>
   ): Promise<ActivityOwner | null> {
     try {
