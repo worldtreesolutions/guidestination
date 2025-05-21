@@ -94,7 +94,18 @@ export function PlanningProvider({ children }: { children: React.ReactNode }) {
       provider_id: null,
       status: 2, // Published
       type: null,
-      // Only include properties that exist in the Activity type
+      // Add missing properties from the error message
+      language: null,
+      location_geom: null,
+      location_lat: null,
+      location_lng: null,
+      location_city: null,
+      location_state: null,
+      location_country: null,
+      location_address: null,
+      location_postal_code: null,
+      discounts: null,
+      // Additional properties from Activity type
       languages: null,
       highlights: null,
       included: null,
@@ -172,7 +183,18 @@ export function PlanningProvider({ children }: { children: React.ReactNode }) {
           provider_id: null,
           status: 2, // Published
           type: null,
-          // Only include properties that exist in the Activity type
+          // Add missing properties from the error message
+          language: null,
+          location_geom: null,
+          location_lat: null,
+          location_lng: null,
+          location_city: null,
+          location_state: null,
+          location_country: null,
+          location_address: null,
+          location_postal_code: null,
+          discounts: null,
+          // Additional properties from Activity type
           languages: null,
           highlights: null,
           included: null,
