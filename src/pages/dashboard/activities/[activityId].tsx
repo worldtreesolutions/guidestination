@@ -240,11 +240,16 @@ export default function EditActivityPage() {
             // Get the first schedule if available
             const firstSchedule = activitySchedules.length > 0 ? activitySchedules[0] : null;
             
+            // Ensure duration is a string
+            const durationString = typeof fetchedActivity.duration === 'string' 
+              ? fetchedActivity.duration 
+              : '2_hours'; // Default if it's not a string
+            
             form.reset({
               title: fetchedActivity.title,
               description: fetchedActivity.description ?? '',
               category_id: fetchedActivity.category_id ?? null,
-              duration: fetchedActivity.duration ?? '2_hours',
+              duration: durationString,
               final_price: fetchedActivity.final_price ?? 0,
               max_participants: fetchedActivity.max_participants ?? 10,
               has_pickup: hasPickup, // Set based on pickup_location
