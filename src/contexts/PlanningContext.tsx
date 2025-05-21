@@ -94,11 +94,12 @@ export function PlanningProvider({ children }: { children: React.ReactNode }) {
       provider_id: null,
       status: 2, // Published
       type: null,
-      updated_at: new Date().toISOString(),
+      // Only include properties that exist in the Activity type
       languages: null,
       highlights: null,
       included: null,
-      not_included: null
+      not_included: null,
+      final_price: null
     }
 
     setSelectedActivities((prev) => {
@@ -171,11 +172,12 @@ export function PlanningProvider({ children }: { children: React.ReactNode }) {
           provider_id: null,
           status: 2, // Published
           type: null,
-          updated_at: new Date().toISOString(),
+          // Only include properties that exist in the Activity type
           languages: null,
           highlights: null,
           included: null,
           not_included: null,
+          final_price: null
         } as Activity
         
         // Add to selected activities if not already there
