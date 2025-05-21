@@ -7,11 +7,13 @@ export type Activity = Database["public"]["Tables"]["activities"]["Row"] & {
   video_duration?: number | null;
   video_size?: number | null;
   video_thumbnail_url?: string | null;
-  meeting_point: string | null;
-  languages: string[] | null;
-  highlights: string[] | null;
-  included: string[] | null;
-  not_included: string[] | null;
+  meeting_point?: string | null;
+  languages?: string[] | null;
+  highlights?: string[] | null;
+  included?: string[] | null;
+  not_included?: string[] | null;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 export type ActivityStatus = "draft" | "published" | "archived"
