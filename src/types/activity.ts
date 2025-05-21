@@ -21,15 +21,18 @@ export type Activity = Database["public"]["Tables"]["activities"]["Row"] & {
 export type ActivityStatus = "draft" | "published" | "archived"
 
 export interface ActivitySchedule {
-  id: string;
-  activity_id: string;
+  id?: number;
+  activity_id: number | null;
   start_time: string;
   end_time: string;
   capacity: number;
-  availability_start_date: string;
-  availability_end_date: string;
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  created_by?: string | null;
+  updated_by?: string | null;
+  availability_start_date: string | null;
+  availability_end_date: string | null;
+  is_active: boolean | null;
+  status: string | null;
 }
 
 export interface ActivityFilters {
