@@ -99,7 +99,7 @@ export function PlanningProvider({ children }: { children: React.ReactNode }) {
       highlights: null,
       included: null,
       not_included: null,
-      final_price: null
+      final_price: 0 // Use 0 instead of null for number type
     }
 
     setSelectedActivities((prev) => {
@@ -177,7 +177,7 @@ export function PlanningProvider({ children }: { children: React.ReactNode }) {
           highlights: null,
           included: null,
           not_included: null,
-          final_price: null
+          final_price: 0 // Use 0 instead of null for number type
         } as Activity
         
         // Add to selected activities if not already there
