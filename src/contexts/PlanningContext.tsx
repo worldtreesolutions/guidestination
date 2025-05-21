@@ -18,10 +18,19 @@ export interface ScheduledActivity {
   }
 }
 
+// Define a type for partial activity data that can be used to create an Activity
+export type PartialActivity = {
+  title: string;
+  image_url: string;
+  b_price: number;
+  activity_id?: string | number;
+  [key: string]: any;
+}
+
 interface PlanningContextType {
   selectedActivities: Activity[];
   scheduledActivities: ScheduledActivity[];
-  addActivity: (activity: Activity) => void;
+  addActivity: (activityData: PartialActivity) => void;
   removeActivity: (activityId: string) => void;
   clearActivities: () => void;
   isActivitySelected: (activityId: string) => boolean;
@@ -46,7 +55,43 @@ export function PlanningProvider({ children }: { children: React.ReactNode }) {
   const [selectedActivities, setSelectedActivities] = useState<Activity[]>([])
   const [scheduledActivities, setScheduledActivities] = useState<ScheduledActivity[]>([])
 
-  const addActivity = (activity: Activity) => {
+  // Modified to accept partial activity data
+  const addActivity = (activityData: PartialActivity) => {
+    // Create a minimal Activity object from the partial data
+    const activity: Activity = {
+      activity_id: typeof activityData.activity_id === 'string' 
+        ? parseInt(activityData.activity_id, 10) 
+        : (activityData.activity_id as number) || Math.floor(Math.random() * 10000),
+      title: activityData.title,
+      image_url: activityData.image_url,
+      b_price: activityData.b_price,
+      // Add required fields with default values
+      address: null,
+      category_id: null,
+      created_at: new Date().toISOString(),
+      description: null,
+      duration: null,
+      includes_hotel_pickup: null,
+      is_active: true,
+      latitude: null,
+      longitude: null,
+      max_participants: null,
+      meeting_point: null,
+      name: activityData.title,
+      pickup_location: null,
+      dropoff_location: null,
+      provider_id: null,
+      status: 2, // Published
+      type: null,
+      updated_at: new Date().toISOString(),
+      languages: null,
+      highlights: null,
+      included: null,
+      not_included: null,
+      // Add any other fields from the partial data
+      ...activityData
+    }
+
     setSelectedActivities((prev) => {
       if (prev.some((a) => a.activity_id === activity.activity_id)) {
         return prev
@@ -58,7 +103,7 @@ export function PlanningProvider({ children }: { children: React.ReactNode }) {
   const removeActivity = (activityId: string) => {
     // Remove from selected activities
     setSelectedActivities((prev) =>
-      prev.filter((activity) => activity.activity_id !== activityId)
+      prev.filter((activity) => activity.activity_id.toString() !== activityId)
     )
     
     // Also remove from scheduled activities
@@ -73,7 +118,7 @@ export function PlanningProvider({ children }: { children: React.ReactNode }) {
   }
 
   const isActivitySelected = (activityId: string) => {
-    return selectedActivities.some((activity) => activity.activity_id === activityId)
+    return selectedActivities.some((activity) => activity.activity_id.toString() === activityId)
   }
 
   // Updated to match the expected signature
@@ -94,15 +139,38 @@ export function PlanningProvider({ children }: { children: React.ReactNode }) {
       const activity = scheduledActivities.find((a) => a.id === activityId)
       if (activity) {
         // Find the original activity in selectedActivities or create a new one
-        const originalActivity = selectedActivities.find((a) => a.activity_id === activityId) || {
-          activity_id: activityId,
+        const originalActivity = selectedActivities.find((a) => a.activity_id.toString() === activityId) || {
+          activity_id: parseInt(activityId, 10) || Math.floor(Math.random() * 10000),
           title: activity.title,
           image_url: activity.imageUrl,
-          price: activity.price,
+          b_price: activity.price,
+          // Add required fields with default values
+          address: null,
+          category_id: null,
+          created_at: new Date().toISOString(),
+          description: null,
+          duration: null,
+          includes_hotel_pickup: null,
+          is_active: true,
+          latitude: null,
+          longitude: null,
+          max_participants: null,
+          meeting_point: null,
+          name: activity.title,
+          pickup_location: null,
+          dropoff_location: null,
+          provider_id: null,
+          status: 2, // Published
+          type: null,
+          updated_at: new Date().toISOString(),
+          languages: null,
+          highlights: null,
+          included: null,
+          not_included: null,
         } as Activity
         
         // Add to selected activities if not already there
-        if (!selectedActivities.some((a) => a.activity_id === activityId)) {
+        if (!selectedActivities.some((a) => a.activity_id.toString() === activityId)) {
           setSelectedActivities((prev) => [...prev, originalActivity])
         }
         
@@ -113,13 +181,13 @@ export function PlanningProvider({ children }: { children: React.ReactNode }) {
     }
     
     // Find the activity in either selected or scheduled
-    const selectedActivity = selectedActivities.find((a) => a.activity_id === activityId)
+    const selectedActivity = selectedActivities.find((a) => a.activity_id.toString() === activityId)
     const scheduledActivity = scheduledActivities.find((a) => a.id === activityId)
     
     if (selectedActivity) {
       // Create a new scheduled activity from the selected one
       const newScheduledActivity: ScheduledActivity = {
-        id: selectedActivity.activity_id || activityId,
+        id: selectedActivity.activity_id.toString() || activityId,
         title: selectedActivity.title,
         imageUrl: selectedActivity.image_url || '',
         day,
@@ -133,7 +201,7 @@ export function PlanningProvider({ children }: { children: React.ReactNode }) {
       setScheduledActivities((prev) => [...prev, newScheduledActivity])
       
       // Remove from selected activities
-      setSelectedActivities((prev) => prev.filter((a) => a.activity_id !== activityId))
+      setSelectedActivities((prev) => prev.filter((a) => a.activity_id.toString() !== activityId))
     } else if (scheduledActivity) {
       // Update the existing scheduled activity
       setScheduledActivities((prev) => 
