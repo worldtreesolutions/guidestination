@@ -232,7 +232,13 @@ export default function EditActivityPage() {
             setActivity(fetchedActivity)
             
             // Convert single image_url to array for image_urls
-            const imageUrls = fetchedActivity.image_url ? [fetchedActivity.image_url] : [];
+            // Ensure we're only using string values for image URLs
+            const imageUrl = fetchedActivity.image_url;
+            const imageUrls: string[] = [];
+            
+            if (typeof imageUrl === 'string' && imageUrl) {
+              imageUrls.push(imageUrl);
+            }
             
             // Determine if pickup is available based on pickup_location
             const hasPickup = !!fetchedActivity.pickup_location && fetchedActivity.pickup_location.trim() !== '';
@@ -260,7 +266,7 @@ export default function EditActivityPage() {
               highlights: fetchedActivity.highlights ?? '',
               included: fetchedActivity.included ?? '',
               not_included: fetchedActivity.not_included ?? '',
-              image_urls: imageUrls,
+              image_urls: imageUrls, // Use our sanitized array of strings
               is_active: fetchedActivity.is_active ?? true,
               b_price: fetchedActivity.b_price ?? null,
               status: fetchedActivity.status ?? null,
