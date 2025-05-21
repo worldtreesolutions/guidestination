@@ -98,9 +98,7 @@ export function PlanningProvider({ children }: { children: React.ReactNode }) {
       languages: null,
       highlights: null,
       included: null,
-      not_included: null,
-      // Add any other fields from the partial data
-      ...activityData
+      not_included: null
     }
 
     setSelectedActivities((prev) => {
