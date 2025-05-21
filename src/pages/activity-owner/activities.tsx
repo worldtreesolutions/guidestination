@@ -19,7 +19,7 @@ export default function ActivitiesPage() {
       try {
         const { data: ownerResult, error: ownerError } = await supabase
           .from("activity_owners")
-          .select("id")
+          .select("provider_id")
           .eq("user_id", user.id)
           .single()
 
@@ -32,7 +32,7 @@ export default function ActivitiesPage() {
           const { data: activitiesData, error: activitiesError } = await supabase
             .from("activities")
             .select("*")
-            .eq("owner_id", ownerResult.id)
+            .eq("provider_id", ownerResult.provider_id)
 
           if (activitiesError) {
             console.error("Error fetching activities:", activitiesError)
@@ -58,12 +58,16 @@ export default function ActivitiesPage() {
   return (
     <div>
       <h1>My Activities</h1>
-      {activities.map((activity) => (
-        <div key={activity.id}>
-          <h2>{activity.title}</h2>
-          <p>{activity.description}</p>
-        </div>
-      ))}
+      {activities.length === 0 ? (
+        <p>No activities found. Start by creating a new activity.</p>
+      ) : (
+        activities.map((activity) => (
+          <div key={activity.activity_id}>
+            <h2>{activity.title}</h2>
+            <p>{activity.description}</p>
+          </div>
+        ))
+      )}
     </div>
   )
 }

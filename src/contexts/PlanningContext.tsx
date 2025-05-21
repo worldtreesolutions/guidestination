@@ -84,8 +84,6 @@ export function PlanningProvider({ children }: { children: React.ReactNode }) {
       duration: null,
       includes_hotel_pickup: null,
       is_active: true,
-      latitude: null,
-      longitude: null,
       max_participants: null,
       meeting_point: null,
       name: activityData.title,
@@ -94,23 +92,24 @@ export function PlanningProvider({ children }: { children: React.ReactNode }) {
       provider_id: null,
       status: 2, // Published
       type: null,
-      // Add missing properties from the error message
+      // Add missing properties from the Activity type
       language: null,
       location_geom: null,
       location_lat: null,
       location_lng: null,
-      location_city: null,
-      location_state: null,
-      location_country: null,
-      location_address: null,
-      location_postal_code: null,
       discounts: null,
+      tags: null,
+      rating: null,
+      place_id: null,
+      min_participants: null,
       // Additional properties from Activity type
       languages: null,
       highlights: null,
       included: null,
       not_included: null,
-      final_price: 0 // Use 0 instead of null for number type
+      final_price: 0, // Use 0 instead of null for number type
+      latitude: null,
+      longitude: null
     }
 
     setSelectedActivities((prev) => {
@@ -173,8 +172,6 @@ export function PlanningProvider({ children }: { children: React.ReactNode }) {
           duration: null,
           includes_hotel_pickup: null,
           is_active: true,
-          latitude: null,
-          longitude: null,
           max_participants: null,
           meeting_point: null,
           name: activity.title,
@@ -183,23 +180,24 @@ export function PlanningProvider({ children }: { children: React.ReactNode }) {
           provider_id: null,
           status: 2, // Published
           type: null,
-          // Add missing properties from the error message
+          // Add missing properties from the Activity type
           language: null,
           location_geom: null,
           location_lat: null,
           location_lng: null,
-          location_city: null,
-          location_state: null,
-          location_country: null,
-          location_address: null,
-          location_postal_code: null,
           discounts: null,
+          tags: null,
+          rating: null,
+          place_id: null,
+          min_participants: null,
           // Additional properties from Activity type
           languages: null,
           highlights: null,
           included: null,
           not_included: null,
-          final_price: 0 // Use 0 instead of null for number type
+          final_price: 0, // Use 0 instead of null for number type
+          latitude: null,
+          longitude: null
         } as Activity
         
         // Add to selected activities if not already there
@@ -222,7 +220,7 @@ export function PlanningProvider({ children }: { children: React.ReactNode }) {
       const newScheduledActivity: ScheduledActivity = {
         id: selectedActivity.activity_id.toString() || activityId,
         title: selectedActivity.title,
-        imageUrl: selectedActivity.image_url || '',
+        imageUrl: typeof selectedActivity.image_url === 'string' ? selectedActivity.image_url : '',
         day,
         hour,
         duration: 2, // Default duration
