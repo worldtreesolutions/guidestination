@@ -78,13 +78,16 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>
 
-// Define a type for the schedule
+// Updated interface to match the actual database schema
 interface ActivitySchedule {
-  id: number;
-  activity_id: number | null;
+  id?: number; // Make id optional since it might not be present in all responses
+  activity_id: number;
+  created_at?: string;
   start_time: string;
   end_time: string;
   capacity: number;
+  created_by?: string | null;
+  updated_by?: string | null;
   availability_start_date: string | null;
   availability_end_date: string | null;
   is_active: boolean | null;
@@ -252,7 +255,7 @@ export default function EditActivityPage() {
               highlights: fetchedActivity.highlights ?? '',
               included: fetchedActivity.included ?? '',
               not_included: fetchedActivity.not_included ?? '',
-              image_url: imageUrls,
+              image_urls: imageUrls,
               is_active: fetchedActivity.is_active ?? true,
               b_price: fetchedActivity.b_price ?? null,
               status: fetchedActivity.status ?? null,
