@@ -6,32 +6,13 @@ import { formatCurrency } from "@/lib/utils"
 import Image from "next/image"
 import Link from "next/link"
 import { Edit, Trash, Eye } from "lucide-react"
+import { Activity as DatabaseActivity } from "@/types/activity"
 
-// Define the Activity type based on what's available in the component
-interface Activity {
-  id: number;
-  activity_id: string | number;
-  name: string;
-  title?: string;
-  description?: string;
-  category?: string;
-  price: number;
-  final_price?: number;
-  status?: string | number;
-  duration?: string | number;
-  video_url?: string;
-  video_duration?: number;
-  photos?: string[] | any[];
-  image_url?: string;
-}
-
-// Define the ActivityStatus type
-type ActivityStatus = string | number;
-
+// Define the Activity type that the component expects
 interface ActivityCardProps {
-  activity: Activity;
+  activity: DatabaseActivity;
   onDelete?: (id: number) => void;
-  onStatusChange?: (id: number, status: ActivityStatus) => void;
+  onStatusChange?: (id: number, status: number | string) => void;
   showActions?: boolean;
 }
 
@@ -41,7 +22,7 @@ export default function ActivityCard({
   onStatusChange,
   showActions = true
 }: ActivityCardProps) {
-  const getStatusColor = (status: ActivityStatus | null): string => {
+  const getStatusColor = (status: number | string | null): string => {
     if (status === 2 || status === "published") {
       return "bg-green-100 text-green-800";
     } else if (status === 1 || status === "draft") {
@@ -53,25 +34,22 @@ export default function ActivityCard({
   }
 
   const handleDelete = () => {
-    if (onDelete && activity.id) {
-      onDelete(activity.id);
+    if (onDelete && activity.activity_id) {
+      onDelete(activity.activity_id);
     }
   }
 
-  const handleStatusChange = (newStatus: ActivityStatus) => {
-    if (onStatusChange && activity.id) {
-      onStatusChange(activity.id, newStatus);
+  const handleStatusChange = (newStatus: number | string) => {
+    if (onStatusChange && activity.activity_id) {
+      onStatusChange(activity.activity_id, newStatus);
     }
   }
 
   const getImageUrl = (): string => {
     if (activity.image_url) {
-      return activity.image_url;
-    }
-    
-    if (activity.photos && Array.isArray(activity.photos) && activity.photos.length > 0) {
-      const firstPhoto = activity.photos[0];
-      return typeof firstPhoto === "string" ? firstPhoto : "/placeholder-activity.jpg";
+      return typeof activity.image_url === 'string' 
+        ? activity.image_url 
+        : "/placeholder-activity.jpg";
     }
     
     return "/placeholder-activity.jpg";
@@ -105,10 +83,12 @@ export default function ActivityCard({
         <div className="flex flex-col sm:flex-row justify-between items-start gap-1 sm:gap-2">
           <div className="w-full sm:w-auto">
             <h3 className="text-sm xs:text-base sm:text-lg font-semibold line-clamp-1">{displayName}</h3>
-            <p className="text-xs sm:text-sm text-muted-foreground line-clamp-1">{activity.category}</p>
+            <p className="text-xs sm:text-sm text-muted-foreground line-clamp-1">
+              {activity.category_id ? `Category ID: ${activity.category_id}` : "Uncategorized"}
+            </p>
           </div>
           <div className="text-left sm:text-right w-full sm:w-auto mt-1 sm:mt-0">
-            <p className="font-semibold text-xs xs:text-sm sm:text-base">{formatCurrency(activity.price)}</p>
+            <p className="font-semibold text-xs xs:text-sm sm:text-base">{formatCurrency(activity.b_price || 0)}</p>
             {activity.final_price && (
               <p className="text-xs sm:text-sm text-muted-foreground">
                 Final: {formatCurrency(activity.final_price)}
@@ -137,13 +117,13 @@ export default function ActivityCard({
       {showActions && (
         <CardFooter className="p-2 xs:p-3 sm:p-4 md:p-5 pt-0 mt-auto">
           <div className="grid grid-cols-3 gap-1 xs:gap-2 w-full">
-            <Link href={`/dashboard/activities/${activity.id}`} className="col-span-1">
+            <Link href={`/dashboard/activities/${activity.activity_id}`} className="col-span-1">
               <Button variant="outline" size="sm" className="w-full h-8 xs:h-9 text-xs sm:text-sm">
                 <Eye className="h-3 w-3 xs:h-4 xs:w-4 sm:mr-1" />
                 <span className="hidden xs:inline-block sm:inline-block ml-1 sm:ml-0">View</span>
               </Button>
             </Link>
-            <Link href={`/dashboard/activities/${activity.id}`} className="col-span-1">
+            <Link href={`/dashboard/activities/${activity.activity_id}`} className="col-span-1">
               <Button variant="outline" size="sm" className="w-full h-8 xs:h-9 text-xs sm:text-sm">
                 <Edit className="h-3 w-3 xs:h-4 xs:w-4 sm:mr-1" />
                 <span className="hidden xs:inline-block sm:inline-block ml-1 sm:ml-0">Edit</span>
