@@ -57,11 +57,22 @@ export function PlanningProvider({ children }: { children: React.ReactNode }) {
 
   // Modified to accept partial activity data
   const addActivity = (activityData: PartialActivity) => {
+    // Generate a random ID if none is provided
+    const randomId = Math.floor(Math.random() * 10000);
+    
+    // Convert string ID to number or use provided number ID or random ID
+    let numericId: number;
+    if (typeof activityData.activity_id === 'string') {
+      numericId = parseInt(activityData.activity_id, 10) || randomId;
+    } else if (typeof activityData.activity_id === 'number') {
+      numericId = activityData.activity_id;
+    } else {
+      numericId = randomId;
+    }
+    
     // Create a minimal Activity object from the partial data
     const activity: Activity = {
-      activity_id: typeof activityData.activity_id === 'string' 
-        ? parseInt(activityData.activity_id, 10) 
-        : (activityData.activity_id as number) || Math.floor(Math.random() * 10000),
+      activity_id: numericId,
       title: activityData.title,
       image_url: activityData.image_url,
       b_price: activityData.b_price,
