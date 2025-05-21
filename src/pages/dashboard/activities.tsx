@@ -123,36 +123,48 @@ export default function ActivitiesPage() {
     fetchActivities();
   }, [user, isAuthenticated, toast, providerId]);
 
-  const handleStatusChange = async (activityId: number, newStatusValue: ActivityStatus) => {
+  // Fixed to match the expected signature in ActivityCard
+  const handleStatusChange = (activityId: number, newStatusValue: number | string) => {
     if (!user) {
       toast({ title: "Error", description: "User not found.", variant: "destructive" });
       return;
     }
     
+    // Convert string status to number if needed
+    const numericStatus = typeof newStatusValue === 'string' 
+      ? (newStatusValue === 'published' ? 2 : newStatusValue === 'draft' ? 1 : 0)
+      : newStatusValue;
+    
     const originalActivities = [...activities];
     setActivities(prev =>
-      prev.map(act => (act.activity_id === activityId ? { ...act, status: newStatusValue } : act))
+      prev.map(act => (act.activity_id === activityId ? { ...act, status: numericStatus } : act))
     );
 
-    try {
-      const updateData: ActivityUpdate = { status: newStatusValue };
-      await activityCrudService.updateActivity(activityId, updateData, user);
-      toast({
-        title: "Status Updated",
-        description: `Activity status changed.`,
-      });
-    } catch (err: any) {
-      console.error("Error updating status:", err);
-      setActivities(originalActivities); // Revert UI
-      toast({
-        title: "Error",
-        description: `Failed to update activity status: ${err.message}`,
-        variant: "destructive",
-      });
-    }
+    // Async function to update the status
+    const updateStatus = async () => {
+      try {
+        const updateData: ActivityUpdate = { status: numericStatus };
+        await activityCrudService.updateActivity(activityId, updateData, user);
+        toast({
+          title: "Status Updated",
+          description: `Activity status changed.`,
+        });
+      } catch (err: any) {
+        console.error("Error updating status:", err);
+        setActivities(originalActivities); // Revert UI
+        toast({
+          title: "Error",
+          description: `Failed to update activity status: ${err.message}`,
+          variant: "destructive",
+        });
+      }
+    };
+    
+    // Call the async function
+    updateStatus();
   };
 
-  const handleDeleteActivity = async (activityId: number) => {
+  const handleDeleteActivity = (activityId: number) => {
     if (!user) {
       toast({ title: "Error", description: "User not found.", variant: "destructive" });
       return;
@@ -165,21 +177,27 @@ export default function ActivitiesPage() {
     const originalActivities = [...activities];
     setActivities(prev => prev.filter(act => act.activity_id !== activityId)); // Optimistic UI update
 
-    try {
-      await activityCrudService.hardDeleteActivity(activityId);
-      toast({
-        title: "Activity Deleted",
-        description: "The activity has been permanently deleted.",
-      });
-    } catch (err: any) {
-      console.error("Error deleting activity:", err);
-      setActivities(originalActivities); // Revert UI
-      toast({
-        title: "Error",
-        description: `Failed to delete activity: ${err.message}`,
-        variant: "destructive",
-      });
-    }
+    // Async function to delete the activity
+    const deleteActivity = async () => {
+      try {
+        await activityCrudService.hardDeleteActivity(activityId);
+        toast({
+          title: "Activity Deleted",
+          description: "The activity has been permanently deleted.",
+        });
+      } catch (err: any) {
+        console.error("Error deleting activity:", err);
+        setActivities(originalActivities); // Revert UI
+        toast({
+          title: "Error",
+          description: `Failed to delete activity: ${err.message}`,
+          variant: "destructive",
+        });
+      }
+    };
+    
+    // Call the async function
+    deleteActivity();
   };
 
   const currentStatusFilter = statusMap[activeTabKey];
