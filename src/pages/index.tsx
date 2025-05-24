@@ -1,3 +1,4 @@
+
 import Head from "next/head"
 import Image from "next/image"
 import Link from "next/link"
@@ -106,6 +107,10 @@ export default function Home() {
         <meta name="description" content={t("meta.description")} />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
         <link rel="icon" type="image/png" href="/wts-logo-maq82ya8.png" />
+        {/* Add Google Fonts directly to fix the CSS loading error */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </Head>
 
       <div className="min-h-screen flex flex-col w-full">
@@ -130,6 +135,7 @@ export default function Home() {
                 src="https://images.unsplash.com/photo-1563492065599-3520f775eeed"
                 alt={t("hero.image.alt")}
                 fill
+                sizes="100vw" // Add sizes prop to fix the warning
                 className="object-cover brightness-75"
                 priority
               />
