@@ -50,6 +50,7 @@ export function ActivityCard({
             src={image}
             alt={title}
             fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             className="object-cover transition-transform group-hover:scale-105"
           />
           <div className="absolute top-2 right-2 sm:top-4 sm:right-4 flex flex-col sm:flex-row gap-2">
