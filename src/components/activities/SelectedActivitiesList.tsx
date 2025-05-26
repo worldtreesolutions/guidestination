@@ -7,15 +7,20 @@ import { useDroppable, useDraggable } from "@dnd-kit/core"
 import { CSS } from "@dnd-kit/utilities"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { Activity } from "@/types/activity"
+import { useLanguage } from "@/contexts/LanguageContext"
 
 interface ActivityItemProps {
   activity: ScheduledActivity
+  originalActivity?: Activity
   onRemove: (id: string) => void
 }
 
-const ActivityItem = ({ activity, onRemove }: ActivityItemProps) => {
+const ActivityItem = ({ activity, originalActivity, onRemove }: ActivityItemProps) => {
+  // Use the original activity's activity_id for drag operations if available
+  const dragId = originalActivity ? originalActivity.activity_id?.toString() || activity.id : activity.id
+  
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-    id: activity.id,
+    id: dragId,
     data: activity
   })
   
@@ -28,7 +33,9 @@ const ActivityItem = ({ activity, onRemove }: ActivityItemProps) => {
   const handleRemove = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    onRemove(activity.id)
+    // Use the original activity ID for removal if available
+    const removeId = originalActivity ? originalActivity.activity_id?.toString() || activity.id : activity.id
+    onRemove(removeId)
   }
 
   if (isDragging) {
@@ -77,7 +84,7 @@ const ActivityItem = ({ activity, onRemove }: ActivityItemProps) => {
         className="absolute top-2 right-2 z-[200] rounded-full bg-red-500 hover:bg-red-600 p-1.5 cursor-pointer shadow-md transition-transform duration-150 hover:scale-110"
         onClick={handleRemove}
         type="button"
-        aria-label="Supprimer l'activité"
+        aria-label="Remove activity"
         onMouseDown={(e) => e.stopPropagation()}
         onTouchStart={(e) => e.stopPropagation()}
         onPointerDown={(e) => e.stopPropagation()}
@@ -120,14 +127,19 @@ export const SelectedActivitiesList = ({
     id: "selected-list"
   })
   
+  const { t } = useLanguage()
   const isMobile = useIsMobile()
 
-  // Convert activities to ScheduledActivity format if needed
-  const formattedActivities: ScheduledActivity[] = activities.map(activity => {
+  // Convert activities to ScheduledActivity format if needed, keeping reference to original
+  const formattedActivities: { scheduled: ScheduledActivity; original?: Activity }[] = activities.map(activity => {
     if (isScheduledActivity(activity)) {
-      return activity as ScheduledActivity;
+      return { scheduled: activity as ScheduledActivity };
     }
-    return convertToScheduledActivity(activity as Activity);
+    const originalActivity = activity as Activity;
+    return { 
+      scheduled: convertToScheduledActivity(originalActivity),
+      original: originalActivity
+    };
   });
 
   return (
@@ -135,10 +147,11 @@ export const SelectedActivitiesList = ({
       <div ref={setNodeRef} className="w-full">
         {formattedActivities.length > 0 ? (
           <div className={`flex flex-wrap ${isMobile ? 'justify-center' : 'justify-start'} gap-3 sm:gap-4`}>
-            {formattedActivities.map(activity => (
+            {formattedActivities.map((item, index) => (
               <ActivityItem
-                key={activity.id}
-                activity={activity}
+                key={item.original?.activity_id?.toString() || item.scheduled.id || index}
+                activity={item.scheduled}
+                originalActivity={item.original}
                 onRemove={onActivityRemove}
               />
             ))}
@@ -146,10 +159,10 @@ export const SelectedActivitiesList = ({
         ) : (
           <div className="bg-gray-50 rounded-lg border border-dashed border-gray-300 p-6 text-center">
             <p className="text-muted-foreground text-sm">
-              Aucune activité sélectionnée
+              {t("planner.noActivitiesSelected") || "No activities selected"}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              Parcourez les activités et ajoutez-les à votre planning
+              {t("planner.browseActivities") || "Browse activities and add them to your planner"}
             </p>
           </div>
         )}
