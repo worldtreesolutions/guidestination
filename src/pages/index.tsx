@@ -56,7 +56,7 @@ export default function Home() {
     {
       titleKey: "activities.foodTour.title",
       title: t("activities.foodTour.title"),
-      image: "https://images.unsplash.com/photo-1516211881327-e5120a941edc",
+      image: "/42de8397-8cce-8211-e115-56406ae074b9-mb4vvptt.jpg",
       price: 1000,
       location: t("activities.location.chiangMai"),
       rating: 5,
