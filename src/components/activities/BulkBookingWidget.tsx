@@ -65,11 +65,11 @@ export const BulkBookingWidget = ({
       <CardHeader className="pb-2 bg-primary/5 rounded-t-lg">
         <div className="flex items-center">
           <CreditCard className="h-5 w-5 mr-2 text-primary" />
-          <CardTitle className={isMobile ? "text-lg" : "text-xl"}>Réserver mes activités</CardTitle>
+          <CardTitle className={isMobile ? "text-lg" : "text-xl"}>Book My Activities</CardTitle>
         </div>
         {isMobile && (
           <CardDescription className="text-xs">
-            Réservez toutes vos activités en un clic
+            Book all your activities with one click
           </CardDescription>
         )}
       </CardHeader>
@@ -79,7 +79,7 @@ export const BulkBookingWidget = ({
             <div className="flex items-center">
               <ShoppingCart className="h-4 w-4 mr-2 text-primary" />
               <span className={`${isMobile ? "text-sm" : "text-base"} text-muted-foreground`}>
-                Total ({totalActivities} activité{totalActivities !== 1 ? "s" : ""})
+                Total ({totalActivities} activit{totalActivities !== 1 ? "ies" : "y"})
               </span>
             </div>
             <motion.span 
@@ -97,11 +97,11 @@ export const BulkBookingWidget = ({
             size={isMobile ? "default" : "lg"}
             disabled={!hasActivities}
             onClick={handleBooking}
-            aria-label={`Réserver ${totalActivities} activités pour un total de ${totalPrice} bahts`}
+            aria-label={`Book ${totalActivities} activities for a total of ${totalPrice} baht`}
           >
             <span className="flex items-center justify-center">
               <Calendar className="h-4 w-4 mr-2 group-hover:animate-pulse" />
-              Réserver {totalActivities} activité{totalActivities !== 1 ? "s" : ""}
+              Book {totalActivities} Activit{totalActivities !== 1 ? "ies" : "y"}
             </span>
           </Button>
           
@@ -111,16 +111,16 @@ export const BulkBookingWidget = ({
               className="w-full"
               size={isMobile ? "default" : "default"}
               onClick={onClearSelection}
-              aria-label="Effacer toutes les activités sélectionnées"
+              aria-label="Clear all selected activities"
             >
               <Trash2 className="h-4 w-4 mr-2 text-red-500" />
-              <span>Effacer la sélection</span>
+              <span>Clear Selection</span>
             </Button>
           )}
           
           {!hasActivities && (
             <div className="text-center p-2 text-muted-foreground text-sm">
-              <p>Ajoutez des activités à votre planning pour les réserver</p>
+              <p>Add activities to your planner to book them</p>
             </div>
           )}
         </div>
