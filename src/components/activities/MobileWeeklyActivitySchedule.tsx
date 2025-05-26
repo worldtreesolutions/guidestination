@@ -193,7 +193,7 @@ export const MobileWeeklyActivitySchedule = ({
     })
     
     return result
-  }, [scheduledActivities])
+  }, [scheduledActivities, dayKeys])
 
   // Track which cells should be skipped because they're covered by a rowspan
   const skipCells = useMemo(() => {
@@ -222,7 +222,7 @@ export const MobileWeeklyActivitySchedule = ({
     })
     
     return result
-  }, [scheduledActivities])
+  }, [scheduledActivities, dayKeys, hours])
 
   const isSlotAvailable = (day: string, hour: number) => {
     if (hour > 17) return false
