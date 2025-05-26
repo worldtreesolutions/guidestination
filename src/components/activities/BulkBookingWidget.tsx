@@ -5,6 +5,7 @@ import { ScheduledActivity } from "./ExcursionPlanner"
 import { useRouter } from "next/router"
 import { ShoppingCart, Trash2, CreditCard, Calendar } from "lucide-react"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { useLanguage } from "@/contexts/LanguageContext"
 import { motion } from "framer-motion"
 import { Activity } from "@/types/activity"
 
@@ -38,6 +39,7 @@ export const BulkBookingWidget = ({
 }: BulkBookingWidgetProps) => {
   const router = useRouter()
   const isMobile = useIsMobile()
+  const { t } = useLanguage()
   
   // Convert activities to ScheduledActivity format if needed
   const formattedActivities: ScheduledActivity[] = activities.map(activity => {
@@ -65,11 +67,11 @@ export const BulkBookingWidget = ({
       <CardHeader className="pb-2 bg-primary/5 rounded-t-lg">
         <div className="flex items-center">
           <CreditCard className="h-5 w-5 mr-2 text-primary" />
-          <CardTitle className={isMobile ? "text-lg" : "text-xl"}>Book My Activities</CardTitle>
+          <CardTitle className={isMobile ? "text-lg" : "text-xl"}>{t("booking.title")}</CardTitle>
         </div>
         {isMobile && (
           <CardDescription className="text-xs">
-            Book all your activities with one click
+            {t("booking.description")}
           </CardDescription>
         )}
       </CardHeader>
@@ -79,7 +81,7 @@ export const BulkBookingWidget = ({
             <div className="flex items-center">
               <ShoppingCart className="h-4 w-4 mr-2 text-primary" />
               <span className={`${isMobile ? "text-sm" : "text-base"} text-muted-foreground`}>
-                Total ({totalActivities} activit{totalActivities !== 1 ? "ies" : "y"})
+                {t("booking.total")} ({totalActivities} {totalActivities !== 1 ? t("planner.activitiesSelected") : t("planner.activitySelected")})
               </span>
             </div>
             <motion.span 
@@ -97,11 +99,11 @@ export const BulkBookingWidget = ({
             size={isMobile ? "default" : "lg"}
             disabled={!hasActivities}
             onClick={handleBooking}
-            aria-label={`Book ${totalActivities} activities for a total of ${totalPrice} baht`}
+            aria-label={`${t("booking.bookActivities")} ${totalActivities} ${totalActivities !== 1 ? t("planner.activitiesSelected") : t("planner.activitySelected")} ${t("booking.total")} ${totalPrice} baht`}
           >
             <span className="flex items-center justify-center">
               <Calendar className="h-4 w-4 mr-2 group-hover:animate-pulse" />
-              Book {totalActivities} Activit{totalActivities !== 1 ? "ies" : "y"}
+              {totalActivities !== 1 ? t("booking.bookActivities") : t("booking.bookActivity")}
             </span>
           </Button>
           
@@ -111,16 +113,16 @@ export const BulkBookingWidget = ({
               className="w-full"
               size={isMobile ? "default" : "default"}
               onClick={onClearSelection}
-              aria-label="Clear all selected activities"
+              aria-label={t("booking.clearSelection")}
             >
               <Trash2 className="h-4 w-4 mr-2 text-red-500" />
-              <span>Clear Selection</span>
+              <span>{t("booking.clearSelection")}</span>
             </Button>
           )}
           
           {!hasActivities && (
             <div className="text-center p-2 text-muted-foreground text-sm">
-              <p>Add activities to your planner to book them</p>
+              <p>{t("booking.addActivities")}</p>
             </div>
           )}
         </div>
