@@ -20,7 +20,7 @@ export default function Home() {
     {
       titleKey: "activities.doiSuthep.title",
       title: t("activities.doiSuthep.title"),
-      image: "https://images.unsplash.com/photo-1563492065599-3520f775eeed",
+      image: "/wat-doi-suthep-mb4vp7pn.jpg",
       price: 1500,
       location: t("activities.location.chiangMai"),
       rating: 5,
@@ -29,7 +29,7 @@ export default function Home() {
     {
       titleKey: "activities.cookingClass.title",
       title: t("activities.cookingClass.title"),
-      image: "https://images.unsplash.com/photo-1544025162-d76694265947",
+      image: "/thai-noodle-2996247-1280-mb4vsxdj.jpg",
       price: 1200,
       location: t("activities.location.chiangMai"),
       rating: 5,
