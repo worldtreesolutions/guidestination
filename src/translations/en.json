@@ -61,5 +61,18 @@
   "booking.bookActivities": "Book Activities",
   "booking.bookActivity": "Book Activity",
   "booking.clearSelection": "Clear Selection",
-  "booking.addActivities": "Add activities to your planner to book them"
+  "booking.addActivities": "Add activities to your planner to book them",
+  "calendar.monday": "Monday",
+  "calendar.tuesday": "Tuesday",
+  "calendar.wednesday": "Wednesday",
+  "calendar.thursday": "Thursday",
+  "calendar.friday": "Friday",
+  "calendar.saturday": "Saturday",
+  "calendar.sunday": "Sunday",
+  "calendar.time": "Time",
+  "calendar.day": "Day",
+  "calendar.unavailable": "Unavailable",
+  "calendar.dropHere": "Drop here",
+  "calendar.previousDay": "Previous day",
+  "calendar.nextDay": "Next day"
 }

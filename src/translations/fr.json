@@ -61,5 +61,18 @@
   "booking.bookActivities": "Réserver les Activités",
   "booking.bookActivity": "Réserver l'Activité",
   "booking.clearSelection": "Effacer la Sélection",
-  "booking.addActivities": "Ajoutez des activités à votre planificateur pour les réserver"
+  "booking.addActivities": "Ajoutez des activités à votre planificateur pour les réserver",
+  "calendar.monday": "Lundi",
+  "calendar.tuesday": "Mardi",
+  "calendar.wednesday": "Mercredi",
+  "calendar.thursday": "Jeudi",
+  "calendar.friday": "Vendredi",
+  "calendar.saturday": "Samedi",
+  "calendar.sunday": "Dimanche",
+  "calendar.time": "Heure",
+  "calendar.day": "Jour",
+  "calendar.unavailable": "Indisponible",
+  "calendar.dropHere": "Déposer ici",
+  "calendar.previousDay": "Jour précédent",
+  "calendar.nextDay": "Jour suivant"
 }
