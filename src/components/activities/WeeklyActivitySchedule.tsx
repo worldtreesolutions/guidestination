@@ -5,6 +5,7 @@ import Image from "next/image"
 import { X, Clock, Calendar, MapPin } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ScheduledActivity } from "./ExcursionPlanner"
+import { useLanguage } from "@/contexts/LanguageContext"
 import { useMemo, useCallback, useState } from "react"
 
 interface WeeklyActivityScheduleProps {
@@ -13,10 +14,6 @@ interface WeeklyActivityScheduleProps {
   onActivitySelect: (activityId: string, updatedActivity: ScheduledActivity) => void
   onActivityRemove: (activityId: string) => void
 }
-
-const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-const dayKeys = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
-const hours = Array.from({ length: 9 }, (_, i) => i + 9)
 
 const HOUR_HEIGHT = 100
 
@@ -126,6 +123,7 @@ const DroppableCell = ({
   showUnavailable: boolean
   children: React.ReactNode
 }) => {
+  const { t } = useLanguage()
   const { setNodeRef } = useDroppable({
     id: `${day}-${hour}`,
     data: { day, hour },
@@ -139,7 +137,7 @@ const DroppableCell = ({
         style={{ height: `${HOUR_HEIGHT}px` }}
       >
         <div className="h-full bg-gray-100 rounded-lg flex items-center justify-center text-sm text-gray-500 border border-dashed border-gray-300">
-          <span className="bg-gray-200 px-2 py-1 rounded-full text-xs">Unavailable</span>
+          <span className="bg-gray-200 px-2 py-1 rounded-full text-xs">{t("calendar.unavailable")}</span>
         </div>
       </td>
     )
@@ -162,6 +160,20 @@ export const WeeklyActivitySchedule = ({
   onActivitySelect,
   onActivityRemove
 }: WeeklyActivityScheduleProps) => {
+  const { t } = useLanguage()
+  
+  const days = [
+    t("calendar.monday"),
+    t("calendar.tuesday"), 
+    t("calendar.wednesday"),
+    t("calendar.thursday"),
+    t("calendar.friday"),
+    t("calendar.saturday"),
+    t("calendar.sunday")
+  ]
+  const dayKeys = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+  const hours = Array.from({ length: 9 }, (_, i) => i + 9)
+
   const formatHour = (hour: number) => {
     return `${hour.toString().padStart(2, "0")}:00`
   }
@@ -279,14 +291,14 @@ export const WeeklyActivitySchedule = ({
             <th className="p-3 border-b border-r border-gray-200 w-20 text-gray-800">
               <div className="flex items-center justify-center">
                 <Calendar className="h-4 w-4 mr-1" />
-                <span className="font-bold">Time</span>
+                <span className="font-bold">{t("calendar.time")}</span>
               </div>
             </th>
             {days.map((day, index) => (
               <th key={day} className="p-3 border-b border-r border-gray-200 text-center font-medium w-[14.28%] text-gray-800">
                 <div className="flex flex-col items-center">
                   <span className="text-base font-bold">{day}</span>
-                  <span className="text-xs text-gray-600">Day {index + 1}</span>
+                  <span className="text-xs text-gray-600">{t("calendar.day")} {index + 1}</span>
                 </div>
               </th>
             ))}
@@ -339,7 +351,7 @@ export const WeeklyActivitySchedule = ({
                     <div className="h-full border-2 border-dashed border-gray-200 rounded-lg flex items-center justify-center">
                       {isAvailable && !draggedActivity && (
                         <div className="text-xs text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                          Drop here
+                          {t("calendar.dropHere")}
                         </div>
                       )}
                     </div>
