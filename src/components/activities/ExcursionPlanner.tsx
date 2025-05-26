@@ -59,8 +59,10 @@ export const ExcursionPlanner = () => {
     }
     
     // If not found in scheduledActivities, look in selectedActivities
+    // Convert the drag ID back to number for comparison with activity_id
+    const dragIdAsNumber = parseInt(event.active.id.toString())
     const selectedActivity = selectedActivities.find(
-      a => a.activity_id === event.active.id
+      a => a.activity_id === dragIdAsNumber || a.activity_id?.toString() === event.active.id.toString()
     )
     
     if (selectedActivity) {
