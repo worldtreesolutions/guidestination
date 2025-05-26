@@ -7,6 +7,7 @@ import { X, Clock, Calendar, MapPin, ChevronLeft, ChevronRight } from "lucide-re
 import { Button } from "@/components/ui/button"
 import { ScheduledActivity } from "./ExcursionPlanner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useLanguage } from "@/contexts/LanguageContext"
 
 interface MobileWeeklyActivityScheduleProps {
   scheduledActivities: ScheduledActivity[]
@@ -14,10 +15,6 @@ interface MobileWeeklyActivityScheduleProps {
   onActivitySelect: (activityId: string, updatedActivity: ScheduledActivity) => void
   onActivityRemove: (activityId: string) => void
 }
-
-const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-const dayKeys = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
-const hours = Array.from({ length: 9 }, (_, i) => i + 9)
 
 const HOUR_HEIGHT = 80
 
@@ -120,6 +117,7 @@ const DroppableCell = ({
   showUnavailable: boolean
   children: React.ReactNode
 }) => {
+  const { t } = useLanguage()
   const { setNodeRef } = useDroppable({
     id: `${day}-${hour}`,
     data: { day, hour },
@@ -133,7 +131,7 @@ const DroppableCell = ({
         style={{ height: `${HOUR_HEIGHT}px` }}
       >
         <div className="h-full bg-gray-100 rounded-lg flex items-center justify-center text-sm text-gray-500">
-          <span className="bg-gray-200 px-2 py-1 rounded-full text-xs">Unavailable</span>
+          <span className="bg-gray-200 px-2 py-1 rounded-full text-xs">{t("calendar.unavailable")}</span>
         </div>
       </div>
     )
@@ -156,7 +154,20 @@ export const MobileWeeklyActivitySchedule = ({
   onActivitySelect,
   onActivityRemove
 }: MobileWeeklyActivityScheduleProps) => {
-  const [activeDay, setActiveDay] = useState(dayKeys[0])
+  const { t } = useLanguage()
+  const [activeDay, setActiveDay] = useState("monday")
+  
+  const days = [
+    t("calendar.monday"),
+    t("calendar.tuesday"), 
+    t("calendar.wednesday"),
+    t("calendar.thursday"),
+    t("calendar.friday"),
+    t("calendar.saturday"),
+    t("calendar.sunday")
+  ]
+  const dayKeys = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+  const hours = Array.from({ length: 9 }, (_, i) => i + 9)
   
   const formatHour = (hour: number) => {
     return `${hour.toString().padStart(2, "0")}:00`
@@ -288,14 +299,14 @@ export const MobileWeeklyActivitySchedule = ({
           size='icon' 
           onClick={goToPreviousDay}
           className='h-8 w-8'
-          aria-label='Previous day'
+          aria-label={t("calendar.previousDay")}
         >
           <ChevronLeft className='h-5 w-5' />
         </Button>
         
         <div className='text-center'>
           <h3 className='font-bold text-primary'>{days[activeDayIndex]}</h3>
-          <p className='text-xs text-muted-foreground'>Day {activeDayIndex + 1}</p>
+          <p className='text-xs text-muted-foreground'>{t("calendar.day")} {activeDayIndex + 1}</p>
         </div>
         
         <Button 
@@ -303,7 +314,7 @@ export const MobileWeeklyActivitySchedule = ({
           size='icon' 
           onClick={goToNextDay}
           className='h-8 w-8'
-          aria-label='Next day'
+          aria-label={t("calendar.nextDay")}
         >
           <ChevronRight className='h-5 w-5' />
         </Button>
@@ -352,7 +363,7 @@ export const MobileWeeklyActivitySchedule = ({
                   <div className='h-full border-2 border-dashed border-gray-200 rounded-lg flex items-center justify-center'>
                     {isAvailable && !draggedActivity && (
                       <div className='text-xs text-gray-400'>
-                        Drop here
+                        {t("calendar.dropHere")}
                       </div>
                     )}
                   </div>
