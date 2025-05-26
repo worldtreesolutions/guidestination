@@ -40,5 +40,8 @@
   "meta.description": "Find and book unforgettable activities in Chiang Mai, recommended by trusted local partners",
   "hero.image.alt": "Beautiful temple in Chiang Mai",
   "planning.view": "View planning",
-  "planning.short": "Planning"
+  "planning.short": "Planning",
+  "planning.pageTitle": "Excursion Planning",
+  "planning.metaDescription": "Plan your perfect Chiang Mai excursion with our intelligent planning tool",
+  "planning.title": "Excursion Planner"
 }
