@@ -65,7 +65,7 @@ export default function Home() {
     {
       titleKey: "activities.biking.title",
       title: t("activities.biking.title"),
-      image: "https://images.unsplash.com/photo-1544198365-f5d60b6d8190",
+      image: "/trekking-mb4w3w4s.webp",
       price: 2200,
       location: t("activities.location.chiangMai"),
       rating: 4,
