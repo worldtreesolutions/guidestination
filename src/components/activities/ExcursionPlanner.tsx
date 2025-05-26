@@ -158,9 +158,9 @@ export const ExcursionPlanner = () => {
         onDragEnd={handleDragEnd}
       >
         <div className='mb-4 sm:mb-6'>
-          <h1 className='text-2xl sm:text-3xl font-bold text-primary'>Mon Planning Excursion</h1>
+          <h1 className='text-2xl sm:text-3xl font-bold text-primary'>My Trip Planner</h1>
           <p className='text-muted-foreground mt-2 text-sm sm:text-base'>
-            Organisez votre séjour en glissant-déposant les activités sur le calendrier
+            Organize your trip by dragging and dropping activities onto the calendar
           </p>
         </div>
 
@@ -179,7 +179,7 @@ export const ExcursionPlanner = () => {
               >
                 <div className='flex items-center justify-center'>
                   <Calendar className='h-4 w-4 mr-2' />
-                  Calendrier
+                  Calendar
                 </div>
               </button>
               <button
@@ -192,7 +192,7 @@ export const ExcursionPlanner = () => {
               >
                 <div className='flex items-center justify-center'>
                   <MapPin className='h-4 w-4 mr-2' />
-                  Activités ({totalActivities})
+                  Activities ({totalActivities})
                 </div>
               </button>
             </div>
@@ -203,10 +203,10 @@ export const ExcursionPlanner = () => {
                 <CardHeader className='pb-2 bg-primary/5 rounded-t-lg'>
                   <div className='flex items-center'>
                     <Calendar className='h-5 w-5 mr-2 text-primary' />
-                    <CardTitle className='text-lg font-bold'>Calendrier des Activités</CardTitle>
+                    <CardTitle className='text-lg font-bold'>Activity Calendar</CardTitle>
                   </div>
                   <CardDescription className='text-xs'>
-                    Glissez-déposez vos activités pour planifier votre semaine
+                    Drag and drop your activities to plan your week
                   </CardDescription>
                 </CardHeader>
                 <CardContent className='pt-4 pb-6'>
@@ -227,10 +227,10 @@ export const ExcursionPlanner = () => {
                   <CardHeader className='pb-2 bg-primary/5 rounded-t-lg'>
                     <div className='flex items-center'>
                       <MapPin className='h-5 w-5 mr-2 text-primary' />
-                      <CardTitle className='text-lg font-bold'>Activités Sélectionnées</CardTitle>
+                      <CardTitle className='text-lg font-bold'>Selected Activities</CardTitle>
                     </div>
                     <CardDescription className='text-xs'>
-                      {totalActivities} activité{totalActivities !== 1 ? 's' : ''} sélectionnée{totalActivities !== 1 ? 's' : ''}
+                      {totalActivities} activit{totalActivities !== 1 ? 'ies' : 'y'} selected
                     </CardDescription>
                   </CardHeader>
                   <CardContent className='pt-4 pb-6'>
@@ -245,10 +245,10 @@ export const ExcursionPlanner = () => {
                   <CardHeader className='pb-2 bg-primary/5 rounded-t-lg'>
                     <div className='flex items-center'>
                       <DollarSign className='h-5 w-5 mr-2 text-primary' />
-                      <CardTitle className='text-lg font-bold'>Réservation</CardTitle>
+                      <CardTitle className='text-lg font-bold'>Booking</CardTitle>
                     </div>
                     <CardDescription className='text-xs'>
-                      Réservez toutes vos activités en un clic
+                      Book all your activities with one click
                     </CardDescription>
                   </CardHeader>
                   <CardContent className='pt-4 pb-6'>
@@ -269,10 +269,10 @@ export const ExcursionPlanner = () => {
                 <CardHeader className="pb-2 bg-primary/5 rounded-t-lg">
                   <div className="flex items-center">
                     <Calendar className="h-5 w-5 mr-2 text-primary" />
-                    <CardTitle className="text-xl font-bold">Calendrier des Activités</CardTitle>
+                    <CardTitle className="text-xl font-bold">Activity Calendar</CardTitle>
                   </div>
                   <CardDescription>
-                    Glissez-déposez vos activités pour planifier votre semaine
+                    Drag and drop your activities to plan your week
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="pt-4">
@@ -291,10 +291,10 @@ export const ExcursionPlanner = () => {
                 <CardHeader className="pb-2 bg-primary/5 rounded-t-lg">
                   <div className="flex items-center">
                     <MapPin className="h-5 w-5 mr-2 text-primary" />
-                    <CardTitle className="text-xl font-bold">Activités Sélectionnées</CardTitle>
+                    <CardTitle className="text-xl font-bold">Selected Activities</CardTitle>
                   </div>
                   <CardDescription>
-                    {totalActivities} activité{totalActivities !== 1 ? 's' : ''} sélectionnée{totalActivities !== 1 ? 's' : ''}
+                    {totalActivities} activit{totalActivities !== 1 ? 'ies' : 'y'} selected
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="pt-4">
@@ -309,10 +309,10 @@ export const ExcursionPlanner = () => {
                 <CardHeader className="pb-2 bg-primary/5 rounded-t-lg">
                   <div className="flex items-center">
                     <DollarSign className="h-5 w-5 mr-2 text-primary" />
-                    <CardTitle className="text-xl font-bold">Réservation</CardTitle>
+                    <CardTitle className="text-xl font-bold">Booking</CardTitle>
                   </div>
                   <CardDescription>
-                    Réservez toutes vos activités en un clic
+                    Book all your activities with one click
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="pt-4">
