@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useMemo } from "react"
 import { useDroppable, useDraggable } from "@dnd-kit/core"
 import { CSS } from "@dnd-kit/utilities"
@@ -14,7 +15,7 @@ interface MobileWeeklyActivityScheduleProps {
   onActivityRemove: (activityId: string) => void
 }
 
-const days = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
+const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 const dayKeys = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 const hours = Array.from({ length: 9 }, (_, i) => i + 9)
 
@@ -132,7 +133,7 @@ const DroppableCell = ({
         style={{ height: `${HOUR_HEIGHT}px` }}
       >
         <div className="h-full bg-gray-100 rounded-lg flex items-center justify-center text-sm text-gray-500">
-          <span className="bg-gray-200 px-2 py-1 rounded-full text-xs">Indisponible</span>
+          <span className="bg-gray-200 px-2 py-1 rounded-full text-xs">Unavailable</span>
         </div>
       </div>
     )
@@ -287,14 +288,14 @@ export const MobileWeeklyActivitySchedule = ({
           size='icon' 
           onClick={goToPreviousDay}
           className='h-8 w-8'
-          aria-label='Jour précédent'
+          aria-label='Previous day'
         >
           <ChevronLeft className='h-5 w-5' />
         </Button>
         
         <div className='text-center'>
           <h3 className='font-bold text-primary'>{days[activeDayIndex]}</h3>
-          <p className='text-xs text-muted-foreground'>Jour {activeDayIndex + 1}</p>
+          <p className='text-xs text-muted-foreground'>Day {activeDayIndex + 1}</p>
         </div>
         
         <Button 
@@ -302,7 +303,7 @@ export const MobileWeeklyActivitySchedule = ({
           size='icon' 
           onClick={goToNextDay}
           className='h-8 w-8'
-          aria-label='Jour suivant'
+          aria-label='Next day'
         >
           <ChevronRight className='h-5 w-5' />
         </Button>
@@ -351,7 +352,7 @@ export const MobileWeeklyActivitySchedule = ({
                   <div className='h-full border-2 border-dashed border-gray-200 rounded-lg flex items-center justify-center'>
                     {isAvailable && !draggedActivity && (
                       <div className='text-xs text-gray-400'>
-                        Déposer ici
+                        Drop here
                       </div>
                     )}
                   </div>

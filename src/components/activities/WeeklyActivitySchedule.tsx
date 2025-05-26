@@ -14,7 +14,7 @@ interface WeeklyActivityScheduleProps {
   onActivityRemove: (activityId: string) => void
 }
 
-const days = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
+const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 const dayKeys = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 const hours = Array.from({ length: 9 }, (_, i) => i + 9)
 
@@ -139,7 +139,7 @@ const DroppableCell = ({
         style={{ height: `${HOUR_HEIGHT}px` }}
       >
         <div className="h-full bg-gray-100 rounded-lg flex items-center justify-center text-sm text-gray-500 border border-dashed border-gray-300">
-          <span className="bg-gray-200 px-2 py-1 rounded-full text-xs">Indisponible</span>
+          <span className="bg-gray-200 px-2 py-1 rounded-full text-xs">Unavailable</span>
         </div>
       </td>
     )
@@ -279,14 +279,14 @@ export const WeeklyActivitySchedule = ({
             <th className="p-3 border-b border-r border-gray-200 w-20 text-gray-800">
               <div className="flex items-center justify-center">
                 <Calendar className="h-4 w-4 mr-1" />
-                <span className="font-bold">Heure</span>
+                <span className="font-bold">Time</span>
               </div>
             </th>
             {days.map((day, index) => (
               <th key={day} className="p-3 border-b border-r border-gray-200 text-center font-medium w-[14.28%] text-gray-800">
                 <div className="flex flex-col items-center">
                   <span className="text-base font-bold">{day}</span>
-                  <span className="text-xs text-gray-600">Jour {index + 1}</span>
+                  <span className="text-xs text-gray-600">Day {index + 1}</span>
                 </div>
               </th>
             ))}
@@ -339,7 +339,7 @@ export const WeeklyActivitySchedule = ({
                     <div className="h-full border-2 border-dashed border-gray-200 rounded-lg flex items-center justify-center">
                       {isAvailable && !draggedActivity && (
                         <div className="text-xs text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                          Déposer ici
+                          Drop here
                         </div>
                       )}
                     </div>
