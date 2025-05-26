@@ -29,27 +29,29 @@ import activityOwnerService from '@/services/activityOwnerService'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { InfoIcon, MapPin } from 'lucide-react'
 import { PlacesAutocomplete, PlaceData } from "@/components/ui/places-autocomplete"
+import { useLanguage } from "@/contexts/LanguageContext"
 
-const formSchema = z.object({
-  businessName: z.string().min(2, 'Business name must be at least 2 characters'),
-  ownerName: z.string().min(2, 'Owner name must be at least 2 characters'),
-  email: z.string().email('Invalid email address'),
-  phone: z.string().min(10, 'Phone number must be at least 10 digits'),
-  businessType: z.string().min(1, 'Business type is required'),
-  taxId: z.string().min(13, 'Tax ID must be 13 digits'),
-  address: z.string().min(10, 'Please enter a complete address'),
-  description: z.string().min(50, 'Please provide a detailed description'),
-  tourismLicenseNumber: z.string().min(1, 'Tourism Business License number is required'),
+const createFormSchema = (t: (key: string) => string) => z.object({
+  businessName: z.string().min(2, t('form.validation.businessName')),
+  ownerName: z.string().min(2, t('form.validation.ownerName')),
+  email: z.string().email(t('form.validation.email')),
+  phone: z.string().min(10, t('form.validation.phone')),
+  businessType: z.string().min(1, t('form.validation.businessType')),
+  taxId: z.string().min(13, t('form.validation.taxId')),
+  address: z.string().min(10, t('form.validation.address')),
+  description: z.string().min(50, t('form.validation.description')),
+  tourismLicenseNumber: z.string().min(1, t('form.validation.tourismLicense')),
   tatLicenseNumber: z.string().optional(),
   guideCardNumber: z.string().optional(),
-  insurancePolicy: z.string().min(1, 'Insurance policy number is required'),
-  insuranceAmount: z.string().min(1, 'Insurance coverage amount is required'),
+  insurancePolicy: z.string().min(1, t('form.validation.insurancePolicy')),
+  insuranceAmount: z.string().min(1, t('form.validation.insuranceAmount')),
   termsAccepted: z.boolean().refine((val) => val === true, {
-    message: 'You must accept the terms and conditions',
+    message: t('form.validation.terms'),
   }),
 })
 
 export const ActivityOwnerRegistrationForm = () => {
+  const { t } = useLanguage()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [registrationStatus, setRegistrationStatus] = useState<{
     type: 'success' | 'error' | 'info' | null;
@@ -58,6 +60,8 @@ export const ActivityOwnerRegistrationForm = () => {
   }>({ type: null, message: null })
   const [locationData, setLocationData] = useState<PlaceData | null>(null)
   const { toast } = useToast()
+  
+  const formSchema = createFormSchema(t)
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -84,7 +88,6 @@ export const ActivityOwnerRegistrationForm = () => {
     form.setValue('address', placeData.address, { shouldValidate: true, shouldDirty: true })
   }, [form])
 
-  // Main form submission handler
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
     setRegistrationStatus({ type: null, message: null });
@@ -104,23 +107,18 @@ export const ActivityOwnerRegistrationForm = () => {
         guide_card_number: values.guideCardNumber || null,
         insurance_policy: values.insurancePolicy,
         insurance_amount: values.insuranceAmount,
-        // Add location data if available
         location_lat: locationData?.lat || null,
         location_lng: locationData?.lng || null,
         place_id: locationData?.placeId || null,
       };
       
       try {
-        // Use the service which now returns isNewUser flag
         const result = await activityOwnerService.registerActivityOwner(registrationData);
-        
-        // Use the flags returned from the service
         const isNewUser = result.isNewUser;
         
-        // Set registration status message
         let statusMessage = isNewUser 
-          ? 'Your account has been created successfully. Please check your email for verification.'
-          : 'Your activity provider account has been registered successfully. You already have an account with us.';
+          ? t('form.success.newUser')
+          : t('form.success.existingUser');
         
         setRegistrationStatus({
           type: 'success',
@@ -129,56 +127,53 @@ export const ActivityOwnerRegistrationForm = () => {
         });
         
         toast({
-          title: 'Registration Successful',
+          title: t('form.success.title'),
           description: statusMessage,
         });
         
-        form.reset(); // Reset form on success
-        setLocationData(null); // Reset location data
+        form.reset();
+        setLocationData(null);
       } catch (serviceError: any) {
-        // Check for our custom error code for existing activity owner
         if (serviceError.code === 'ACTIVITY_OWNER_EXISTS') {
           setRegistrationStatus({
             type: 'error',
-            message: serviceError.message || 'An account with this email already exists. Please use a different email address to register.'
+            message: serviceError.message || t('form.error.accountExists')
           });
           
           toast({
-            title: 'Registration Failed',
-            description: serviceError.message || 'An account with this email already exists. Please use a different email address.',
+            title: t('form.error.title'),
+            description: serviceError.message || t('form.error.accountExists'),
             variant: 'destructive',
           });
         }
-        // Check for duplicate email error (using Supabase specific error code if available)
         else if (serviceError.code === '23505' || 
             (serviceError.message && serviceError.message.includes('duplicate key value violates unique constraint'))) {
           
           setRegistrationStatus({
             type: 'error',
-            message: 'An account with this email already exists. Please use a different email address to register.'
+            message: t('form.error.accountExists')
           });
           
           toast({
-            title: 'Registration Failed',
-            description: 'An account with this email already exists. Please use a different email address.',
+            title: t('form.error.title'),
+            description: t('form.error.accountExists'),
             variant: 'destructive',
           });
         } else {
-          // Handle other errors
           setRegistrationStatus({
             type: 'error',
-            message: serviceError.message || 'An unexpected error occurred during registration.'
+            message: serviceError.message || t('form.error.unexpected')
           });
           
           toast({
-            title: 'Registration Failed',
-            description: serviceError.message || 'An unexpected error occurred',
+            title: t('form.error.title'),
+            description: serviceError.message || t('form.error.unexpected'),
             variant: 'destructive',
           });
         }
       }
     } catch (error) {
-      let errorMessage = 'An unexpected error occurred during registration.';
+      let errorMessage = t('form.error.unexpected');
       if (error instanceof Error) {
         errorMessage = error.message;
       } else if (typeof error === 'object' && error !== null && 'message' in error) {
@@ -191,7 +186,7 @@ export const ActivityOwnerRegistrationForm = () => {
       });
       
       toast({
-        title: 'Registration Failed',
+        title: t('form.error.title'),
         description: errorMessage,
         variant: 'destructive',
       });
@@ -208,10 +203,10 @@ export const ActivityOwnerRegistrationForm = () => {
             <InfoIcon className={`h-4 w-4 ${registrationStatus.type === 'success' ? 'text-green-700' : (registrationStatus.type === 'info' ? 'text-blue-700' : '')}`} />
             <AlertTitle className={registrationStatus.type === 'success' ? 'text-green-800' : (registrationStatus.type === 'info' ? 'text-blue-800' : '')}>
               {registrationStatus.type === 'success' 
-                ? 'Registration Successful' 
+                ? t('form.success.title')
                 : registrationStatus.type === 'info' 
-                  ? 'Account Information' 
-                  : 'Registration Error'}
+                  ? t('form.info.title')
+                  : t('form.error.title')}
             </AlertTitle>
             <AlertDescription className={registrationStatus.type === 'success' ? 'text-green-700' : (registrationStatus.type === 'info' ? 'text-blue-700' : '')}>
               {registrationStatus.message}
@@ -221,24 +216,24 @@ export const ActivityOwnerRegistrationForm = () => {
         
         <div className='space-y-4'>
           <div className='bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6'>
-            <h4 className='font-medium text-yellow-800 mb-2'>Thai Legal Requirements</h4>
+            <h4 className='font-medium text-yellow-800 mb-2'>{t('form.legal.title')}</h4>
             <ul className='text-sm text-yellow-700 space-y-1'>
-              <li>• Tourism Business License from Ministry of Tourism</li>
-              <li>• TAT License for specific activities</li>
-              <li>• Minimum 1,000,000 THB liability insurance</li>
-              <li>• Guide Card for tour guides (if applicable)</li>
+              <li>• {t('form.legal.requirement1')}</li>
+              <li>• {t('form.legal.requirement2')}</li>
+              <li>• {t('form.legal.requirement3')}</li>
+              <li>• {t('form.legal.requirement4')}</li>
             </ul>
           </div>
 
-          <h3 className='text-lg font-medium'>Business Information</h3>
+          <h3 className='text-lg font-medium'>{t('form.section.business')}</h3>
           <FormField
             control={form.control}
             name='businessName'
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Business Name</FormLabel>
+                <FormLabel>{t('form.field.businessName')}</FormLabel>
                 <FormControl>
-                  <Input placeholder='Your business name' {...field} />
+                  <Input placeholder={t('form.placeholder.businessName')} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -250,17 +245,17 @@ export const ActivityOwnerRegistrationForm = () => {
             name='businessType'
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Business Type</FormLabel>
+                <FormLabel>{t('form.field.businessType')}</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder='Select business type' />
+                      <SelectValue placeholder={t('form.placeholder.businessType')} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value='tour_operator'>Tour Operator</SelectItem>
-                    <SelectItem value='activity_provider'>Activity Provider</SelectItem>
-                    <SelectItem value='experience_host'>Experience Host</SelectItem>
+                    <SelectItem value='tour_operator'>{t('form.businessType.tourOperator')}</SelectItem>
+                    <SelectItem value='activity_provider'>{t('form.businessType.activityProvider')}</SelectItem>
+                    <SelectItem value='experience_host'>{t('form.businessType.experienceHost')}</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -273,9 +268,9 @@ export const ActivityOwnerRegistrationForm = () => {
             name='taxId'
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Tax ID (13 digits)</FormLabel>
+                <FormLabel>{t('form.field.taxId')}</FormLabel>
                 <FormControl>
-                  <Input placeholder='Your 13-digit Tax ID' {...field} />
+                  <Input placeholder={t('form.placeholder.taxId')} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -288,12 +283,12 @@ export const ActivityOwnerRegistrationForm = () => {
               name='tourismLicenseNumber'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Tourism Business License Number</FormLabel>
+                  <FormLabel>{t('form.field.tourismLicense')}</FormLabel>
                   <FormControl>
-                    <Input placeholder='License number from Ministry of Tourism' {...field} />
+                    <Input placeholder={t('form.placeholder.tourismLicense')} {...field} />
                   </FormControl>
                   <FormDescription>
-                    Required for all tourism businesses in Thailand
+                    {t('form.description.tourismLicense')}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -305,12 +300,12 @@ export const ActivityOwnerRegistrationForm = () => {
               name='tatLicenseNumber'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>TAT License Number (Optional)</FormLabel>
+                  <FormLabel>{t('form.field.tatLicense')}</FormLabel>
                   <FormControl>
-                    <Input placeholder='Tourism Authority of Thailand License' {...field} />
+                    <Input placeholder={t('form.placeholder.tatLicense')} {...field} />
                   </FormControl>
                   <FormDescription>
-                    Required for specific tourism activities
+                    {t('form.description.tatLicense')}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -323,10 +318,10 @@ export const ActivityOwnerRegistrationForm = () => {
             name='description'
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Business Description</FormLabel>
+                <FormLabel>{t('form.field.description')}</FormLabel>
                 <FormControl>
                   <Textarea 
-                    placeholder='Describe your business and the activities you offer (min. 50 characters)'
+                    placeholder={t('form.placeholder.description')}
                     className='min-h-[120px]'
                     {...field}
                   />
@@ -340,16 +335,16 @@ export const ActivityOwnerRegistrationForm = () => {
         <Separator />
 
         <div className='space-y-4'>
-          <h3 className='text-lg font-medium'>Contact Information</h3>
+          <h3 className='text-lg font-medium'>{t('form.section.contact')}</h3>
           <div className='grid md:grid-cols-2 gap-4'>
             <FormField
               control={form.control}
               name='ownerName'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Owner Name</FormLabel>
+                  <FormLabel>{t('form.field.ownerName')}</FormLabel>
                   <FormControl>
-                    <Input placeholder='Full name' {...field} />
+                    <Input placeholder={t('form.placeholder.ownerName')} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -361,9 +356,9 @@ export const ActivityOwnerRegistrationForm = () => {
               name='email'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>{t('form.field.email')}</FormLabel>
                   <FormControl>
-                    <Input placeholder='your@email.com' type='email' {...field} />
+                    <Input placeholder={t('form.placeholder.email')} type='email' {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -376,9 +371,9 @@ export const ActivityOwnerRegistrationForm = () => {
             name='phone'
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Phone Number</FormLabel>
+                <FormLabel>{t('form.field.phone')}</FormLabel>
                 <FormControl>
-                  <Input placeholder='+66XXXXXXXXX' {...field} />
+                  <Input placeholder={t('form.placeholder.phone')} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -391,20 +386,20 @@ export const ActivityOwnerRegistrationForm = () => {
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="flex items-center">
-                  Business Address <MapPin className="ml-1 h-4 w-4 text-muted-foreground" />
+                  {t('form.field.address')} <MapPin className="ml-1 h-4 w-4 text-muted-foreground" />
                 </FormLabel>
                 <FormControl>
                   <PlacesAutocomplete 
                     value={field.value}
                     onChange={field.onChange}
                     onPlaceSelect={handlePlaceSelect}
-                    placeholder="Search for your business address"
+                    placeholder={t('form.placeholder.address')}
                     disabled={isSubmitting}
                   />
                 </FormControl>
                 {locationData && (
                   <FormDescription>
-                    Location coordinates: {locationData.lat.toFixed(6)}, {locationData.lng.toFixed(6)}
+                    {t('form.description.coordinates')}: {locationData.lat.toFixed(6)}, {locationData.lng.toFixed(6)}
                   </FormDescription>
                 )}
                 <FormMessage />
@@ -416,19 +411,19 @@ export const ActivityOwnerRegistrationForm = () => {
         <Separator />
 
         <div className='space-y-4'>
-          <h3 className='text-lg font-medium'>Legal & Insurance</h3>
+          <h3 className='text-lg font-medium'>{t('form.section.legal')}</h3>
           <div className='grid md:grid-cols-2 gap-4'>
             <FormField
               control={form.control}
               name='insurancePolicy'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Insurance Policy Number</FormLabel>
+                  <FormLabel>{t('form.field.insurancePolicy')}</FormLabel>
                   <FormControl>
-                    <Input placeholder='Tourism liability insurance number' {...field} />
+                    <Input placeholder={t('form.placeholder.insurancePolicy')} {...field} />
                   </FormControl>
                   <FormDescription>
-                    Must be valid tourism liability insurance
+                    {t('form.description.insurancePolicy')}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -440,12 +435,12 @@ export const ActivityOwnerRegistrationForm = () => {
               name='insuranceAmount'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Insurance Coverage Amount (THB)</FormLabel>
+                  <FormLabel>{t('form.field.insuranceAmount')}</FormLabel>
                   <FormControl>
-                    <Input type='number' placeholder='Minimum 1,000,000 THB' {...field} />
+                    <Input type='number' placeholder={t('form.placeholder.insuranceAmount')} {...field} />
                   </FormControl>
                   <FormDescription>
-                    Minimum required coverage: 1,000,000 THB
+                    {t('form.description.insuranceAmount')}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -458,12 +453,12 @@ export const ActivityOwnerRegistrationForm = () => {
             name='guideCardNumber'
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Professional Guide Card Number (Optional)</FormLabel>
+                <FormLabel>{t('form.field.guideCard')}</FormLabel>
                 <FormControl>
-                  <Input placeholder='Guide card number if applicable' {...field} />
+                  <Input placeholder={t('form.placeholder.guideCard')} {...field} />
                 </FormControl>
                 <FormDescription>
-                  Required for tour guides according to Thai Tourism Business and Guide Act
+                  {t('form.description.guideCard')}
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -471,10 +466,9 @@ export const ActivityOwnerRegistrationForm = () => {
           />
 
           <div className='bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4'>
-            <h4 className='font-medium text-blue-800 mb-2'>Legal Compliance</h4>
+            <h4 className='font-medium text-blue-800 mb-2'>{t('form.compliance.title')}</h4>
             <p className='text-sm text-blue-700'>
-              All activities must comply with the Tourism Business and Guide Act B.E. 2551 (2008) and related regulations.
-              Failure to provide valid licenses or maintain required insurance may result in legal penalties.
+              {t('form.compliance.description')}
             </p>
           </div>
 
@@ -492,11 +486,10 @@ export const ActivityOwnerRegistrationForm = () => {
                 </FormControl>
                 <div className='space-y-1 leading-none'>
                   <FormLabel htmlFor='terms'>
-                    I accept the terms and conditions
+                    {t('form.field.terms')}
                   </FormLabel>
                   <FormDescription>
-                    By accepting, you agree to comply with all applicable Thai tourism laws and regulations,
-                    maintain valid licenses and insurance, and adhere to our platform's terms of service.
+                    {t('form.description.terms')}
                   </FormDescription>
                    <FormMessage />
                 </div>
@@ -507,7 +500,7 @@ export const ActivityOwnerRegistrationForm = () => {
 
         <div className='flex flex-col gap-4 pt-4'>
           <Button type='submit' className='w-full' disabled={isSubmitting}>
-            {isSubmitting ? 'Submitting...' : 'Submit Registration'}
+            {isSubmitting ? t('form.button.submitting') : t('form.button.submit')}
           </Button>
         </div>
       </form>
