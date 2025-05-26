@@ -5,6 +5,7 @@ import { MobileWeeklyActivitySchedule } from "@/components/activities/MobileWeek
 import { SelectedActivitiesList } from "@/components/activities/SelectedActivitiesList"
 import { BulkBookingWidget } from "@/components/activities/BulkBookingWidget"
 import { usePlanning } from "@/contexts/PlanningContext"
+import { useLanguage } from "@/contexts/LanguageContext"
 import { DndContext, DragEndEvent, DragOverlay, useSensor, useSensors, PointerSensor, DragStartEvent } from "@dnd-kit/core"
 import { useState, useCallback } from "react"
 import Image from "next/image"
@@ -29,6 +30,7 @@ export interface ScheduledActivity {
 
 export const ExcursionPlanner = () => {
   const { selectedActivities, scheduledActivities, updateActivity, removeActivity, clearActivities, scheduleActivity } = usePlanning()
+  const { t } = useLanguage()
   const [draggedActivity, setDraggedActivity] = useState<ScheduledActivity | null>(null)
   const [isRemoving, setIsRemoving] = useState(false)
   const isMobile = useIsMobile()
@@ -158,9 +160,9 @@ export const ExcursionPlanner = () => {
         onDragEnd={handleDragEnd}
       >
         <div className='mb-4 sm:mb-6'>
-          <h1 className='text-2xl sm:text-3xl font-bold text-primary'>My Trip Planner</h1>
+          <h1 className='text-2xl sm:text-3xl font-bold text-primary'>{t("planner.title")}</h1>
           <p className='text-muted-foreground mt-2 text-sm sm:text-base'>
-            Organize your trip by dragging and dropping activities onto the calendar
+            {t("planner.description")}
           </p>
         </div>
 
@@ -179,7 +181,7 @@ export const ExcursionPlanner = () => {
               >
                 <div className='flex items-center justify-center'>
                   <Calendar className='h-4 w-4 mr-2' />
-                  Calendar
+                  {t("planner.calendar")}
                 </div>
               </button>
               <button
@@ -192,7 +194,7 @@ export const ExcursionPlanner = () => {
               >
                 <div className='flex items-center justify-center'>
                   <MapPin className='h-4 w-4 mr-2' />
-                  Activities ({totalActivities})
+                  {t("planner.activities")} ({totalActivities})
                 </div>
               </button>
             </div>
@@ -203,10 +205,10 @@ export const ExcursionPlanner = () => {
                 <CardHeader className='pb-2 bg-primary/5 rounded-t-lg'>
                   <div className='flex items-center'>
                     <Calendar className='h-5 w-5 mr-2 text-primary' />
-                    <CardTitle className='text-lg font-bold'>Activity Calendar</CardTitle>
+                    <CardTitle className='text-lg font-bold'>{t("planner.activityCalendar")}</CardTitle>
                   </div>
                   <CardDescription className='text-xs'>
-                    Drag and drop your activities to plan your week
+                    {t("planner.calendarDescription")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className='pt-4 pb-6'>
@@ -227,10 +229,10 @@ export const ExcursionPlanner = () => {
                   <CardHeader className='pb-2 bg-primary/5 rounded-t-lg'>
                     <div className='flex items-center'>
                       <MapPin className='h-5 w-5 mr-2 text-primary' />
-                      <CardTitle className='text-lg font-bold'>Selected Activities</CardTitle>
+                      <CardTitle className='text-lg font-bold'>{t("planner.selectedActivities")}</CardTitle>
                     </div>
                     <CardDescription className='text-xs'>
-                      {totalActivities} activit{totalActivities !== 1 ? 'ies' : 'y'} selected
+                      {totalActivities} {totalActivities !== 1 ? t("planner.activitiesSelected") : t("planner.activitySelected")}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className='pt-4 pb-6'>
@@ -245,10 +247,10 @@ export const ExcursionPlanner = () => {
                   <CardHeader className='pb-2 bg-primary/5 rounded-t-lg'>
                     <div className='flex items-center'>
                       <DollarSign className='h-5 w-5 mr-2 text-primary' />
-                      <CardTitle className='text-lg font-bold'>Booking</CardTitle>
+                      <CardTitle className='text-lg font-bold'>{t("planner.booking")}</CardTitle>
                     </div>
                     <CardDescription className='text-xs'>
-                      Book all your activities with one click
+                      {t("planner.bookingDescription")}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className='pt-4 pb-6'>
@@ -269,10 +271,10 @@ export const ExcursionPlanner = () => {
                 <CardHeader className="pb-2 bg-primary/5 rounded-t-lg">
                   <div className="flex items-center">
                     <Calendar className="h-5 w-5 mr-2 text-primary" />
-                    <CardTitle className="text-xl font-bold">Activity Calendar</CardTitle>
+                    <CardTitle className="text-xl font-bold">{t("planner.activityCalendar")}</CardTitle>
                   </div>
                   <CardDescription>
-                    Drag and drop your activities to plan your week
+                    {t("planner.calendarDescription")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="pt-4">
@@ -291,10 +293,10 @@ export const ExcursionPlanner = () => {
                 <CardHeader className="pb-2 bg-primary/5 rounded-t-lg">
                   <div className="flex items-center">
                     <MapPin className="h-5 w-5 mr-2 text-primary" />
-                    <CardTitle className="text-xl font-bold">Selected Activities</CardTitle>
+                    <CardTitle className="text-xl font-bold">{t("planner.selectedActivities")}</CardTitle>
                   </div>
                   <CardDescription>
-                    {totalActivities} activit{totalActivities !== 1 ? 'ies' : 'y'} selected
+                    {totalActivities} {totalActivities !== 1 ? t("planner.activitiesSelected") : t("planner.activitySelected")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="pt-4">
@@ -309,10 +311,10 @@ export const ExcursionPlanner = () => {
                 <CardHeader className="pb-2 bg-primary/5 rounded-t-lg">
                   <div className="flex items-center">
                     <DollarSign className="h-5 w-5 mr-2 text-primary" />
-                    <CardTitle className="text-xl font-bold">Booking</CardTitle>
+                    <CardTitle className="text-xl font-bold">{t("planner.booking")}</CardTitle>
                   </div>
                   <CardDescription>
-                    Book all your activities with one click
+                    {t("planner.bookingDescription")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="pt-4">
