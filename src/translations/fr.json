@@ -74,5 +74,19 @@
   "calendar.unavailable": "Indisponible",
   "calendar.dropHere": "Déposer ici",
   "calendar.previousDay": "Jour précédent",
-  "calendar.nextDay": "Jour suivant"
+  "calendar.nextDay": "Jour suivant",
+  "activityOwner.meta.title": "Listez Vos Activités - Guidestination",
+  "activityOwner.meta.description": "Rejoignez Guidestination en tant que fournisseur d'activités à Chiang Mai",
+  "activityOwner.hero.title": "Listez Vos Activités sur Guidestination",
+  "activityOwner.hero.subtitle": "Rejoignez la plateforme leader pour les expériences locales à Chiang Mai et connectez-vous avec des voyageurs du monde entier",
+  "activityOwner.benefits.legalProtection.title": "Protection Juridique",
+  "activityOwner.benefits.legalProtection.description": "Toutes les activités sont couvertes par notre police d'assurance complète",
+  "activityOwner.benefits.businessGrowth.title": "Croissance des Affaires",
+  "activityOwner.benefits.businessGrowth.description": "Accès à un large réseau d'hôtels et de partenaires touristiques",
+  "activityOwner.benefits.qualityStandards.title": "Standards de Qualité",
+  "activityOwner.benefits.qualityStandards.description": "Maintenez des standards de service élevés avec notre programme de certification",
+  "activityOwner.benefits.flexibleSchedule.title": "Horaire Flexible",
+  "activityOwner.benefits.flexibleSchedule.description": "Définissez votre propre disponibilité et gérez les réservations facilement",
+  "activityOwner.registration.title": "S'inscrire en tant que Fournisseur d'Activités",
+  "activityOwner.registration.description": "Remplissez le formulaire ci-dessous pour commencer à lister vos activités"
 }

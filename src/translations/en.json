@@ -74,5 +74,19 @@
   "calendar.unavailable": "Unavailable",
   "calendar.dropHere": "Drop here",
   "calendar.previousDay": "Previous day",
-  "calendar.nextDay": "Next day"
+  "calendar.nextDay": "Next day",
+  "activityOwner.meta.title": "List Your Activities - Guidestination",
+  "activityOwner.meta.description": "Join Guidestination as an activity provider in Chiang Mai",
+  "activityOwner.hero.title": "List Your Activities on Guidestination",
+  "activityOwner.hero.subtitle": "Join the leading platform for local experiences in Chiang Mai and connect with travelers worldwide",
+  "activityOwner.benefits.legalProtection.title": "Legal Protection",
+  "activityOwner.benefits.legalProtection.description": "All activities are covered by our comprehensive insurance policy",
+  "activityOwner.benefits.businessGrowth.title": "Business Growth",
+  "activityOwner.benefits.businessGrowth.description": "Access to a wide network of hotels and tourism partners",
+  "activityOwner.benefits.qualityStandards.title": "Quality Standards",
+  "activityOwner.benefits.qualityStandards.description": "Maintain high service standards with our certification program",
+  "activityOwner.benefits.flexibleSchedule.title": "Flexible Schedule",
+  "activityOwner.benefits.flexibleSchedule.description": "Set your own availability and manage bookings easily",
+  "activityOwner.registration.title": "Register as an Activity Provider",
+  "activityOwner.registration.description": "Fill out the form below to start listing your activities"
 }
