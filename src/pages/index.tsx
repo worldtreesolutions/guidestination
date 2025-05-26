@@ -29,7 +29,7 @@ export default function Home() {
     {
       titleKey: "activities.cookingClass.title",
       title: t("activities.cookingClass.title"),
-      image: "/thai-noodle-2996247-1280-mb4vsxdj.jpg",
+      image: "/cooking-class-mb4w0l3a.jpg",
       price: 1200,
       location: t("activities.location.chiangMai"),
       rating: 5,
