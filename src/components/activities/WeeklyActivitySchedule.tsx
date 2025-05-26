@@ -162,7 +162,7 @@ export const WeeklyActivitySchedule = ({
 }: WeeklyActivityScheduleProps) => {
   const { t } = useLanguage()
   
-  const days = [
+  const days = useMemo(() => [
     t("calendar.monday"),
     t("calendar.tuesday"), 
     t("calendar.wednesday"),
@@ -170,9 +170,15 @@ export const WeeklyActivitySchedule = ({
     t("calendar.friday"),
     t("calendar.saturday"),
     t("calendar.sunday")
-  ]
-  const dayKeys = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
-  const hours = Array.from({ length: 9 }, (_, i) => i + 9)
+  ], [t])
+  
+  // Memoize dayKeys to prevent it from changing on every render
+  const dayKeys = useMemo(() => [
+    "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"
+  ], [])
+  
+  // Memoize hours to prevent it from changing on every render
+  const hours = useMemo(() => Array.from({ length: 9 }, (_, i) => i + 9), [])
 
   const formatHour = (hour: number) => {
     return `${hour.toString().padStart(2, "0")}:00`
