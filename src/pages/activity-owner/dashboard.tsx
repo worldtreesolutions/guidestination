@@ -1,10 +1,10 @@
+
 import { useEffect, useState } from "react"
 import { useRouter } from "next/router"
 import Head from "next/head"
 import { useAuth } from "@/contexts/AuthContext"
-// Remove ProviderLayout import
-// import { ProviderLayout } from "@/components/activity-owner/layout/ProviderLayout"
-import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout" // Add DashboardLayout import
+import { useLanguage } from "@/contexts/LanguageContext"
+import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout"
 import { DashboardHeader } from "@/components/activity-owner/dashboard/DashboardHeader"
 import { EarningsChart } from "@/components/activity-owner/dashboard/EarningsChart"
 import { RecentBookings } from "@/components/activity-owner/dashboard/RecentBookings"
@@ -16,6 +16,7 @@ import { useIsMobile } from "@/hooks/use-mobile"
 
 export default function DashboardPage() {
   const { user, isAuthenticated } = useAuth()
+  const { t } = useLanguage()
   const router = useRouter()
   const { toast } = useToast()
   const isMobile = useIsMobile()
@@ -55,8 +56,8 @@ export default function DashboardPage() {
       } catch (error) {
         console.error("Error fetching dashboard data:", error)
         toast({
-          title: "Error",
-          description: "Failed to load dashboard data. Please try again.",
+          title: t("form.error.title") || "Error",
+          description: t("form.error.unexpected") || "Failed to load dashboard data. Please try again.",
           variant: "destructive"
         })
       } finally {
@@ -65,7 +66,7 @@ export default function DashboardPage() {
     }
 
     fetchData()
-  }, [user, isAuthenticated, router, toast])
+  }, [user, isAuthenticated, router, toast, t])
 
   const handleDeleteActivity = async () => {
     if (!activityToDelete) return
@@ -74,13 +75,13 @@ export default function DashboardPage() {
       await activityService.deleteActivity(activityToDelete)
       setActivities(activities.filter(activity => activity.id !== activityToDelete))
       toast({
-        title: "Activity deleted",
+        title: t("form.success.title") || "Activity deleted",
         description: "The activity has been successfully deleted."
       })
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to delete activity. Please try again.",
+        title: t("form.error.title") || "Error",
+        description: t("form.error.unexpected") || "Failed to delete activity. Please try again.",
         variant: "destructive"
       })
     } finally {
@@ -90,10 +91,9 @@ export default function DashboardPage() {
 
   if (loading || !user) {
     return (
-      // Use DashboardLayout instead of ProviderLayout
       <DashboardLayout>
         <div className="flex items-center justify-center h-full">
-          <p>Loading dashboard...</p>
+          <p>{t("loading") || "Loading dashboard..."}</p>
         </div>
       </DashboardLayout>
     )
@@ -102,11 +102,10 @@ export default function DashboardPage() {
   return (
     <>
       <Head>
-        <title>Activity Provider Dashboard - Guidestination</title>
-        <meta name="description" content="Manage your activities and bookings" />
+        <title>{t("activityOwner.meta.title") || "Activity Provider Dashboard - Guidestination"}</title>
+        <meta name="description" content={t("activityOwner.meta.description") || "Manage your activities and bookings"} />
       </Head>
 
-      {/* Use DashboardLayout instead of ProviderLayout */}
       <DashboardLayout>
         <div className="space-y-8">
           <DashboardHeader
@@ -134,14 +133,14 @@ export default function DashboardPage() {
         <AlertDialog open={!!activityToDelete} onOpenChange={(open) => !open && setActivityToDelete(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogTitle>{t("confirm.delete.title") || "Are you sure?"}</AlertDialogTitle>
               <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete the activity and remove it from our servers.
+                {t("confirm.delete.description") || "This action cannot be undone. This will permanently delete the activity and remove it from our servers."}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDeleteActivity}>Delete</AlertDialogAction>
+              <AlertDialogCancel>{t("button.cancel") || "Cancel"}</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteActivity}>{t("button.delete") || "Delete"}</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
