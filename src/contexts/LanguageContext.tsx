@@ -9,6 +9,7 @@ interface LanguageContextType {
   language: Language;
   setLanguage: (language: Language) => void;
   t: (key: string) => string;
+  isLoading: boolean;
 }
 
 // Create the context with default values
@@ -16,6 +17,7 @@ const LanguageContext = createContext<LanguageContextType>({
   language: "en",
   setLanguage: () => {},
   t: (key: string) => key,
+  isLoading: true,
 });
 
 // Define props for the provider
@@ -27,10 +29,26 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
   // Initialize language from localStorage or default to English
   const [language, setLanguageState] = useState<Language>("en");
   const [translations, setTranslations] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Load language from localStorage on initial render
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedLanguage = localStorage.getItem("preferredLanguage") as Language;
+      if (savedLanguage && ["en", "th", "zh", "es", "fr"].includes(savedLanguage)) {
+        setLanguageState(savedLanguage);
+      }
+      setIsInitialized(true);
+    }
+  }, []);
 
   // Load translations when language changes
   useEffect(() => {
+    if (!isInitialized) return;
+
     const loadTranslations = async () => {
+      setIsLoading(true);
       try {
         // Dynamic import of translations
         let translationData;
@@ -58,36 +76,40 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
         console.error(`Failed to load translations for ${language}:`, error);
         // Fallback to English if translation file is missing
         if (language !== "en") {
-          const fallbackModule = await import("@/translations/en.json");
-          setTranslations(fallbackModule.default);
+          try {
+            const fallbackModule = await import("@/translations/en.json");
+            setTranslations(fallbackModule.default);
+          } catch (fallbackError) {
+            console.error("Failed to load fallback translations:", fallbackError);
+            setTranslations({});
+          }
         }
+      } finally {
+        setIsLoading(false);
       }
     };
 
     loadTranslations();
-  }, [language]);
+  }, [language, isInitialized]);
 
   // Set language and save to localStorage
   const setLanguage = (newLanguage: Language) => {
     setLanguageState(newLanguage);
-    localStorage.setItem("preferredLanguage", newLanguage);
-  };
-
-  // Load language from localStorage on initial render
-  useEffect(() => {
-    const savedLanguage = localStorage.getItem("preferredLanguage") as Language;
-    if (savedLanguage) {
-      setLanguageState(savedLanguage);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem("preferredLanguage", newLanguage);
     }
-  }, []);
+  };
 
   // Translation function
   const t = (key: string): string => {
+    if (isLoading || !translations) {
+      return key;
+    }
     return translations[key] || key;
   };
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={{ language, setLanguage, t, isLoading }}>
       {children}
     </LanguageContext.Provider>
   );
