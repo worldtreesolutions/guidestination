@@ -4,6 +4,7 @@ import { useRouter } from "next/router"
 import Head from "next/head"
 import { useAuth } from "@/contexts/AuthContext"
 import { useLanguage } from "@/contexts/LanguageContext"
+import { LanguageSelector } from "@/components/layout/LanguageSelector"
 import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout"
 import { DashboardHeader } from "@/components/activity-owner/dashboard/DashboardHeader"
 import { EarningsChart } from "@/components/activity-owner/dashboard/EarningsChart"
@@ -108,6 +109,11 @@ export default function DashboardPage() {
 
       <DashboardLayout>
         <div className="space-y-8">
+          {/* Language Selector */}
+          <div className="flex justify-end mb-4">
+            <LanguageSelector />
+          </div>
+
           <DashboardHeader
             user={user}
             stats={{
