@@ -46,6 +46,8 @@ import { format, isValid } from "date-fns"
 import { ImageUploader } from "@/components/dashboard/activities/ImageUploader"
 import categoryService, { Category } from '@/services/categoryService'
 import { formatCurrency } from "@/lib/utils"
+import { useLanguage } from "@/contexts/LanguageContext";
+import { LanguageSelector } from "@/components/layout/LanguageSelector";
 
 // Define the form schema using Zod (ensure it aligns with ActivityInsert)
 const formSchema = z.object({
@@ -83,6 +85,7 @@ type FormValues = z.infer<typeof formSchema>
 // Define the React component using a default export
 export default function NewActivityPage() {
   const { user, isAuthenticated } = useAuth()
+  const { t } = useLanguage()
   const router = useRouter()
   const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -301,23 +304,28 @@ export default function NewActivityPage() {
   return (
     <>
       <Head>
-        <title>Create New Activity - Provider Dashboard</title>
-        <meta name='description' content='Add a new activity to your listings' />
+        <title>{t("dashboard.activities.createNew") || "Create New Activity - Provider Dashboard"}</title>
+        <meta name='description' content={t("dashboard.activities.createDescription") || "Add a new activity to your listings"} />
       </Head>
 
       <DashboardLayout>
         <div className='space-y-6'>
+          {/* Language Selector */}
+          <div className="flex justify-end mb-4">
+            <LanguageSelector />
+          </div>
+
           <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4'>
             <div>
-              <h1 className='text-2xl font-bold tracking-tight'>Create New Activity</h1>
+              <h1 className='text-2xl font-bold tracking-tight'>{t("dashboard.activities.createTitle") || "Create New Activity"}</h1>
               <p className='text-muted-foreground'>
-                Fill in the details to list a new activity.
+                {t("dashboard.activities.createSubtitle") || "Fill in the details to list a new activity."}
               </p>
             </div>
             <Button variant='outline' asChild>
               <Link href='/dashboard/activities'>
                 <ArrowLeft className='mr-2 h-4 w-4' />
-                Back to Activities
+                {t("dashboard.activities.backToActivities") || "Back to Activities"}
               </Link>
             </Button>
           </div>

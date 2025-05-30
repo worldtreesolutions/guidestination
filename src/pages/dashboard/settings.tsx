@@ -50,9 +50,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { useLanguage } from "@/contexts/LanguageContext";
+import { LanguageSelector } from "@/components/layout/LanguageSelector";
 
 export default function SettingsPage() {
   const { user, isAuthenticated } = useAuth()
+  const { t } = useLanguage()
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [activeTab, setActiveTab] = useState('profile')
@@ -150,16 +153,21 @@ export default function SettingsPage() {
   return (
     <>
       <Head>
-        <title>Settings - Dashboard</title>
-        <meta name='description' content='Manage your account settings' />
+        <title>{t("dashboard.settings.title") || "Settings - Dashboard"}</title>
+        <meta name='description' content={t("dashboard.settings.description") || "Manage your account settings"} />
       </Head>
 
       <DashboardLayout>
         <div className='space-y-6'>
+          {/* Language Selector */}
+          <div className="flex justify-end mb-4">
+            <LanguageSelector />
+          </div>
+
           <div>
-            <h1 className='text-2xl font-bold tracking-tight'>Settings</h1>
+            <h1 className='text-2xl font-bold tracking-tight'>{t("dashboard.settings.manage") || "Settings"}</h1>
             <p className='text-muted-foreground'>
-              Manage your account settings and preferences.
+              {t("dashboard.settings.subtitle") || "Manage your account settings and preferences."}
             </p>
           </div>
 

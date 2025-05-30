@@ -43,6 +43,8 @@ import {
 } from "@/components/ui/popover"
 import { format } from "date-fns"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
+import { useLanguage } from "@/contexts/LanguageContext";
+import { LanguageSelector } from "@/components/layout/LanguageSelector";
 
 // Mock data for bookings
 const mockBookings = [
@@ -113,6 +115,7 @@ const mockBookings = [
 
 export default function BookingsPage() {
   const { user, isAuthenticated } = useAuth()
+  const { t } = useLanguage()
   const router = useRouter()
   const [bookings, setBookings] = useState(mockBookings)
   const [searchQuery, setSearchQuery] = useState('')
@@ -182,17 +185,22 @@ export default function BookingsPage() {
   return (
     <>
       <Head>
-        <title>Bookings - Dashboard</title>
-        <meta name='description' content='Manage your activity bookings' />
+        <title>{t("dashboard.bookings.title") || "Bookings - Dashboard"}</title>
+        <meta name='description' content={t("dashboard.bookings.description") || "Manage your activity bookings"} />
       </Head>
 
       <DashboardLayout>
         <div className='space-y-6'>
+          {/* Language Selector */}
+          <div className="flex justify-end mb-4">
+            <LanguageSelector />
+          </div>
+
           <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4'>
             <div>
-              <h1 className='text-2xl font-bold tracking-tight'>Bookings</h1>
+              <h1 className='text-2xl font-bold tracking-tight'>{t("dashboard.bookings.manage") || "Bookings"}</h1>
               <p className='text-muted-foreground'>
-                View and manage all your activity bookings.
+                {t("dashboard.bookings.subtitle") || "View and manage all your activity bookings."}
               </p>
             </div>
           </div>
@@ -200,9 +208,9 @@ export default function BookingsPage() {
           <Tabs defaultValue='all' className='w-full'>
             <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4'>
               <TabsList className='mb-2 sm:mb-0'>
-                <TabsTrigger value='all'>All Bookings</TabsTrigger>
-                <TabsTrigger value='upcoming'>Upcoming</TabsTrigger>
-                <TabsTrigger value='past'>Past</TabsTrigger>
+                <TabsTrigger value='all'>{t("dashboard.bookings.all") || "All Bookings"}</TabsTrigger>
+                <TabsTrigger value='upcoming'>{t("dashboard.bookings.upcoming") || "Upcoming"}</TabsTrigger>
+                <TabsTrigger value='past'>{t("dashboard.bookings.past") || "Past"}</TabsTrigger>
               </TabsList>
               
               <div className='flex flex-col sm:flex-row gap-2 w-full sm:w-auto'>

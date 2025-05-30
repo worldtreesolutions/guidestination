@@ -11,6 +11,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Loader2, AlertCircle } from "lucide-react";
 import ActivityCard from "@/components/dashboard/activities/ActivityCard";
 import { supabase } from "@/integrations/supabase/client";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { LanguageSelector } from "@/components/layout/LanguageSelector";
 
 type ActivityStatus = number;
 
@@ -25,6 +27,7 @@ const defaultTab = "active";
 
 export default function ActivitiesPage() {
   const { user, isAuthenticated, provider_id: contextProviderId } = useAuth();
+  const { t } = useLanguage();
   const { toast } = useToast();
   const [activities, setActivities] = useState<CrudActivity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -252,31 +255,36 @@ export default function ActivitiesPage() {
   return (
     <>
       <Head>
-        <title>Manage Activities - Provider Dashboard</title>
-        <meta name="description" content="View, edit, and manage your activities" />
+        <title>{t("dashboard.activities.title") || "Manage Activities - Provider Dashboard"}</title>
+        <meta name="description" content={t("dashboard.activities.description") || "View, edit, and manage your activities"} />
       </Head>
 
       <DashboardLayout>
         <div className="space-y-6">
+          {/* Language Selector */}
+          <div className="flex justify-end mb-4">
+            <LanguageSelector />
+          </div>
+
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">Manage Activities</h1>
+              <h1 className="text-2xl font-bold tracking-tight">{t("dashboard.activities.manage") || "Manage Activities"}</h1>
               <p className="text-muted-foreground">
-                View, edit, and manage your listed activities.
+                {t("dashboard.activities.subtitle") || "View, edit, and manage your listed activities."}
               </p>
             </div>
             <Button asChild>
               <Link href="/dashboard/activities/new">
-                <Plus className="mr-2 h-4 w-4" /> Add New Activity
+                <Plus className="mr-2 h-4 w-4" /> {t("dashboard.activities.addNew") || "Add New Activity"}
               </Link>
             </Button>
           </div>
 
           <Tabs value={activeTabKey} onValueChange={(value) => setActiveTabKey(value)}>
             <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="active">Active</TabsTrigger>
-              <TabsTrigger value="draft">Draft</TabsTrigger>
-              <TabsTrigger value="archived">Archived</TabsTrigger>
+              <TabsTrigger value="active">{t("dashboard.activities.active") || "Active"}</TabsTrigger>
+              <TabsTrigger value="draft">{t("dashboard.activities.draft") || "Draft"}</TabsTrigger>
+              <TabsTrigger value="archived">{t("dashboard.activities.archived") || "Archived"}</TabsTrigger>
             </TabsList>
             <TabsContent value="active" className="mt-6">
               {renderContent()}
