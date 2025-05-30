@@ -216,6 +216,8 @@
   "dashboard.bookings.noResults": "没有符合您筛选条件的预订。",
   "dashboard.bookings.upcomingMessage": "即将到来的预订视图将在此处实现。",
   "dashboard.bookings.pastMessage": "过去的预订视图将在此处实现。",
+  "dashboard.bookings.participant": "参与者",
+  "dashboard.bookings.participants": "参与者",
   "form.validation.businessName": "企业名称必须至少2个字符",
   "form.validation.ownerName": "所有者姓名必须至少2个字符",
   "form.validation.email": "请输入有效的电子邮件地址",

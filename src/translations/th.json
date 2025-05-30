@@ -201,5 +201,7 @@
   "dashboard.bookings.actions.cancelBooking": "ยกเลิกการจอง",
   "dashboard.bookings.noResults": "ไม่พบการจองที่ตรงกับตัวกรองของคุณ",
   "dashboard.bookings.upcomingMessage": "มุมมองการจองที่จะมาถึงจะถูกใช้งานที่นี่",
-  "dashboard.bookings.pastMessage": "มุมมองการจองที่ผ่านมาจะถูกใช้งานที่นี่"
+  "dashboard.bookings.pastMessage": "มุมมองการจองที่ผ่านมาจะถูกใช้งานที่นี่",
+  "dashboard.bookings.participant": "ผู้เข้าร่วม",
+  "dashboard.bookings.participants": "ผู้เข้าร่วม"
 }

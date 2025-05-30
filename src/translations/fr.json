@@ -216,6 +216,8 @@
   "dashboard.bookings.noResults": "Aucune réservation ne correspond à vos filtres.",
   "dashboard.bookings.upcomingMessage": "La vue des réservations à venir sera implémentée ici.",
   "dashboard.bookings.pastMessage": "La vue des réservations passées sera implémentée ici.",
+  "dashboard.bookings.participant": "participant",
+  "dashboard.bookings.participants": "participants",
   "form.validation.businessName": "Le nom de l'entreprise doit contenir au moins 2 caractères",
   "form.validation.ownerName": "Le nom du propriétaire doit contenir au moins 2 caractères",
   "form.validation.email": "Veuillez entrer une adresse email valide",

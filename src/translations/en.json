@@ -216,6 +216,8 @@
   "dashboard.bookings.noResults": "No bookings found matching your filters.",
   "dashboard.bookings.upcomingMessage": "Upcoming bookings view will be implemented here.",
   "dashboard.bookings.pastMessage": "Past bookings view will be implemented here.",
+  "dashboard.bookings.participant": "participant",
+  "dashboard.bookings.participants": "participants",
   "form.validation.businessName": "Business name must be at least 2 characters",
   "form.validation.ownerName": "Owner name must be at least 2 characters",
   "form.validation.email": "Please enter a valid email address",
