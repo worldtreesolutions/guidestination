@@ -28,14 +28,22 @@ export function LanguageSelector() {
     { value: "th", label: t("language.thai"), fallbackLabel: "ไทย" },
   ];
 
-  const handleLanguageChange = (newLanguage: Language) => {
+  const handleLanguageChange = async (newLanguage: Language) => {
+    if (newLanguage === language) return;
+    
     console.log(`Language selector: changing from ${language} to ${newLanguage}`);
     
     if (typeof window !== 'undefined') {
       try {
-        // Save the language preference to localStorage
+        // Save the language preference to localStorage first
         localStorage.setItem("preferredLanguage", newLanguage);
         console.log(`Saved language preference to localStorage: ${newLanguage}`);
+        
+        // Update the language context state
+        setLanguage(newLanguage);
+        
+        // Add a small delay to ensure the language is saved and context is updated
+        await new Promise(resolve => setTimeout(resolve, 100));
         
         // Force a hard page reload to ensure all components update with the new language
         console.log("Forcing page reload to apply language change");
