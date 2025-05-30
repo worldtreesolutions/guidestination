@@ -157,5 +157,13 @@
   "dashboard.activities.statusHelpText": "'草稿'保持隐藏，'已发布'使其上线。",
   "dashboard.activities.cancel": "取消",
   "dashboard.activities.creating": "创建中...",
-  "dashboard.activities.createActivity": "创建活动"
+  "dashboard.activities.createActivity": "创建活动",
+  "dashboard.sidebar.overview": "概览",
+  "dashboard.sidebar.activities": "活动",
+  "dashboard.sidebar.bookings": "预订",
+  "dashboard.sidebar.customers": "客户",
+  "dashboard.sidebar.revenue": "收入",
+  "dashboard.sidebar.inbox": "收件箱",
+  "dashboard.sidebar.settings": "设置",
+  "dashboard.sidebar.signOut": "退出登录"
 }
