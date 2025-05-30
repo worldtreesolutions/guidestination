@@ -31,6 +31,8 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Download, TrendingUp, TrendingDown, DollarSign, Users, Calendar, Activity } from "lucide-react"
 import { format, subDays, subMonths } from "date-fns"
+import { useLanguage } from "@/contexts/LanguageContext";
+import { LanguageSelector } from "@/components/layout/LanguageSelector";
 
 // Mock data for revenue statistics
 const mockRevenueStats = {
@@ -66,6 +68,7 @@ const mockRevenueStats = {
 
 export default function RevenuePage() {
   const { user, isAuthenticated } = useAuth()
+  const { t } = useLanguage()
   const router = useRouter()
   const [timeRange, setTimeRange] = useState("30days")
   const [revenueStats, setRevenueStats] = useState(mockRevenueStats)
@@ -93,35 +96,40 @@ export default function RevenuePage() {
   return (
     <>
       <Head>
-        <title>Revenue - Dashboard</title>
-        <meta name="description" content="Track your revenue and financial performance" />
+        <title>{t("dashboard.revenue.title") || "Revenue - Dashboard"}</title>
+        <meta name="description" content={t("dashboard.revenue.description") || "Track your revenue and financial performance"} />
       </Head>
 
       <DashboardLayout>
         <div className="space-y-6">
+          {/* Language Selector */}
+          <div className="flex justify-end mb-4">
+            <LanguageSelector />
+          </div>
+
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">Revenue</h1>
+              <h1 className="text-2xl font-bold tracking-tight">{t("dashboard.revenue.manage") || "Revenue"}</h1>
               <p className="text-muted-foreground">
-                Track your financial performance and revenue metrics.
+                {t("dashboard.revenue.subtitle") || "Track your financial performance and revenue metrics."}
               </p>
             </div>
             <div className="flex gap-2 w-full sm:w-auto">
               <Select value={timeRange} onValueChange={setTimeRange}>
                 <SelectTrigger className="w-full sm:w-[180px]">
-                  <SelectValue placeholder="Select period" />
+                  <SelectValue placeholder={t("dashboard.revenue.selectPeriod") || "Select period"} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="7days">Last 7 days</SelectItem>
-                  <SelectItem value="30days">Last 30 days</SelectItem>
-                  <SelectItem value="90days">Last 90 days</SelectItem>
-                  <SelectItem value="year">This year</SelectItem>
-                  <SelectItem value="all">All time</SelectItem>
+                  <SelectItem value="7days">{t("dashboard.revenue.last7Days") || "Last 7 days"}</SelectItem>
+                  <SelectItem value="30days">{t("dashboard.revenue.last30Days") || "Last 30 days"}</SelectItem>
+                  <SelectItem value="90days">{t("dashboard.revenue.last90Days") || "Last 90 days"}</SelectItem>
+                  <SelectItem value="year">{t("dashboard.revenue.thisYear") || "This year"}</SelectItem>
+                  <SelectItem value="all">{t("dashboard.revenue.allTime") || "All time"}</SelectItem>
                 </SelectContent>
               </Select>
               <Button variant="outline" onClick={handleExportReport}>
                 <Download className="mr-2 h-4 w-4" />
-                Export
+                {t("dashboard.revenue.export") || "Export"}
               </Button>
             </div>
           </div>
@@ -130,7 +138,7 @@ export default function RevenuePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+                <CardTitle className="text-sm font-medium">{t("dashboard.revenue.totalRevenue") || "Total Revenue"}</CardTitle>
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>

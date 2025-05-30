@@ -10,6 +10,8 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { MessageSquare, Send, User, ArrowLeft } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { supabase } from "@/integrations/supabase/client"
+import { useLanguage } from "@/contexts/LanguageContext";
+import { LanguageSelector } from "@/components/layout/LanguageSelector";
 
 interface Message {
   id: string
@@ -34,6 +36,7 @@ interface Conversation {
 
 export default function InboxPage() {
   const { user } = useAuth()
+  const { t } = useLanguage()
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState("")
@@ -330,14 +333,19 @@ export default function InboxPage() {
 
   return (
     <DashboardLayout>
+      {/* Language Selector */}
+      <div className="flex justify-end mb-4">
+        <LanguageSelector />
+      </div>
+
       <div className="flex flex-col h-[calc(100vh-8rem)]">
         <div className="flex-1 flex flex-col md:flex-row h-full">
           {/* Conversation List - Conditionally shown on mobile */}
           {(showConversationList || windowWidth >= 768) && (
             <Card className="md:w-80 flex-shrink-0 border-r md:rounded-r-none h-full">
               <CardHeader>
-                <CardTitle>Inbox</CardTitle>
-                <CardDescription>Chat with activity providers</CardDescription>
+                <CardTitle>{t("dashboard.inbox.title") || "Inbox"}</CardTitle>
+                <CardDescription>{t("dashboard.inbox.description") || "Chat with activity providers"}</CardDescription>
               </CardHeader>
               <CardContent className="p-0">
                 <ScrollArea className="h-[calc(100vh-16rem)]">
@@ -386,7 +394,7 @@ export default function InboxPage() {
                   {conversations.length === 0 && !loading && (
                     <div className="p-4 text-center text-muted-foreground">
                       <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                      <p>No conversations yet</p>
+                      <p>{t("dashboard.inbox.noConversations") || "No conversations yet"}</p>
                     </div>
                   )}
                 </ScrollArea>
@@ -453,7 +461,7 @@ export default function InboxPage() {
                       ))}
                       {messages.length === 0 && (
                         <div className="h-full flex items-center justify-center text-muted-foreground">
-                          <p>No messages yet. Start the conversation!</p>
+                          <p>{t("dashboard.inbox.noMessages") || "No messages yet. Start the conversation!"}</p>
                         </div>
                       )}
                     </div>
@@ -461,7 +469,7 @@ export default function InboxPage() {
                   <div className="p-4 border-t">
                     <div className="flex gap-2">
                       <Input
-                        placeholder="Type your message..."
+                        placeholder={t("dashboard.inbox.typePlaceholder") || "Type your message..."}
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
                         onKeyDown={(e) => {
@@ -481,7 +489,7 @@ export default function InboxPage() {
                 <div className="flex items-center justify-center h-full text-muted-foreground">
                   <div className="text-center">
                     <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>Select a conversation to start chatting</p>
+                    <p>{t("dashboard.inbox.selectConversation") || "Select a conversation to start chatting"}</p>
                     {windowWidth < 768 && (
                       <Button 
                         variant="outline" 
@@ -489,7 +497,7 @@ export default function InboxPage() {
                         onClick={handleBackToList}
                       >
                         <ArrowLeft className="h-4 w-4 mr-2" />
-                        Back to conversations
+                        {t("dashboard.inbox.backToConversations") || "Back to conversations"}
                       </Button>
                     )}
                   </div>

@@ -33,6 +33,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Search, Download, MoreHorizontal, Mail, Phone, MapPin, Calendar, DollarSign } from "lucide-react"
 import { format, subDays } from "date-fns"
+import { useLanguage } from "@/contexts/LanguageContext";
+import { LanguageSelector } from "@/components/layout/LanguageSelector";
 
 // Mock data for customers
 const mockCustomers = [
@@ -117,6 +119,7 @@ const mockCustomers = [
 
 export default function CustomersPage() {
   const { user, isAuthenticated } = useAuth()
+  const { t } = useLanguage()
   const router = useRouter()
   const [customers, setCustomers] = useState(mockCustomers)
   const [searchQuery, setSearchQuery] = useState("")
@@ -152,17 +155,22 @@ export default function CustomersPage() {
   return (
     <>
       <Head>
-        <title>Customers - Dashboard</title>
-        <meta name="description" content="Manage your customer relationships" />
+        <title>{t("dashboard.customers.title") || "Customers - Dashboard"}</title>
+        <meta name="description" content={t("dashboard.customers.description") || "Manage your customer relationships"} />
       </Head>
 
       <DashboardLayout>
         <div className="space-y-6">
+          {/* Language Selector */}
+          <div className="flex justify-end mb-4">
+            <LanguageSelector />
+          </div>
+
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">Customers</h1>
+              <h1 className="text-2xl font-bold tracking-tight">{t("dashboard.customers.manage") || "Customers"}</h1>
               <p className="text-muted-foreground">
-                View and manage your customer relationships.
+                {t("dashboard.customers.subtitle") || "View and manage your customer relationships."}
               </p>
             </div>
             <div className="flex gap-2 w-full sm:w-auto">
@@ -170,7 +178,7 @@ export default function CustomersPage() {
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
-                  placeholder="Search customers..."
+                  placeholder={t("dashboard.customers.searchPlaceholder") || "Search customers..."}
                   className="pl-8 w-full sm:w-[250px]"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -179,7 +187,7 @@ export default function CustomersPage() {
               <Button variant="outline" onClick={handleExportCSV}>
                 <Download className="h-4 w-4" />
               </Button>
-              <Button>Add Customer</Button>
+              <Button>{t("dashboard.customers.addCustomer") || "Add Customer"}</Button>
             </div>
           </div>
 
@@ -187,9 +195,9 @@ export default function CustomersPage() {
             {/* Customer List */}
             <Card className={`lg:col-span-${selectedCustomer ? "2" : "3"}`}>
               <CardHeader>
-                <CardTitle>Customer List</CardTitle>
+                <CardTitle>{t("dashboard.customers.customerList") || "Customer List"}</CardTitle>
                 <CardDescription>
-                  {filteredCustomers.length} total customers
+                  {filteredCustomers.length} {t("dashboard.customers.totalCustomers") || "total customers"}
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-0">
