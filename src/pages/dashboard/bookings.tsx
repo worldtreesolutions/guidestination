@@ -218,7 +218,7 @@ export default function BookingsPage() {
                   <Search className='absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground' />
                   <Input
                     type='search'
-                    placeholder='Search bookings...'
+                    placeholder={t("dashboard.bookings.search.placeholder") || "Search bookings..."}
                     className='pl-8 w-full sm:w-[250px]'
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -228,13 +228,13 @@ export default function BookingsPage() {
                 <div className='flex gap-2'>
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
                     <SelectTrigger className='w-full sm:w-[130px]'>
-                      <SelectValue placeholder='Status' />
+                      <SelectValue placeholder={t("dashboard.bookings.status.label") || "Status"} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value='all'>All Statuses</SelectItem>
-                      <SelectItem value='confirmed'>Confirmed</SelectItem>
-                      <SelectItem value='pending'>Pending</SelectItem>
-                      <SelectItem value='cancelled'>Cancelled</SelectItem>
+                      <SelectItem value='all'>{t("dashboard.bookings.status.all") || "All Statuses"}</SelectItem>
+                      <SelectItem value='confirmed'>{t("dashboard.bookings.status.confirmed") || "Confirmed"}</SelectItem>
+                      <SelectItem value='pending'>{t("dashboard.bookings.status.pending") || "Pending"}</SelectItem>
+                      <SelectItem value='cancelled'>{t("dashboard.bookings.status.cancelled") || "Cancelled"}</SelectItem>
                     </SelectContent>
                   </Select>
                   
@@ -251,7 +251,7 @@ export default function BookingsPage() {
                             format(dateRange.from, 'LLL dd')
                           )
                         ) : (
-                          'Date Range'
+                          t("dashboard.bookings.dateRange") || "Date Range"
                         )}
                       </Button>
                     </PopoverTrigger>
@@ -281,14 +281,14 @@ export default function BookingsPage() {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Booking ID</TableHead>
-                          <TableHead>Activity</TableHead>
-                          <TableHead>Customer</TableHead>
-                          <TableHead>Date</TableHead>
-                          <TableHead>Participants</TableHead>
-                          <TableHead>Total</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead className='text-right'>Actions</TableHead>
+                          <TableHead>{t("dashboard.bookings.table.bookingId") || "Booking ID"}</TableHead>
+                          <TableHead>{t("dashboard.bookings.table.activity") || "Activity"}</TableHead>
+                          <TableHead>{t("dashboard.bookings.table.customer") || "Customer"}</TableHead>
+                          <TableHead>{t("dashboard.bookings.table.date") || "Date"}</TableHead>
+                          <TableHead>{t("dashboard.bookings.table.participants") || "Participants"}</TableHead>
+                          <TableHead>{t("dashboard.bookings.table.total") || "Total"}</TableHead>
+                          <TableHead>{t("dashboard.bookings.table.status") || "Status"}</TableHead>
+                          <TableHead className='text-right'>{t("dashboard.bookings.table.actions") || "Actions"}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -303,7 +303,7 @@ export default function BookingsPage() {
                               <TableCell>฿{booking.totalAmount.toLocaleString()}</TableCell>
                               <TableCell>
                                 <Badge variant={getStatusBadgeVariant(booking.status)}>
-                                  {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                                  {t(`dashboard.bookings.status.${booking.status}`) || booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
                                 </Badge>
                               </TableCell>
                               <TableCell className='text-right'>
@@ -311,13 +311,13 @@ export default function BookingsPage() {
                                   <DropdownMenuTrigger asChild>
                                     <Button variant='ghost' size='icon'>
                                       <MoreHorizontal className='h-4 w-4' />
-                                      <span className='sr-only'>Actions</span>
+                                      <span className='sr-only'>{t("dashboard.bookings.actions.label") || "Actions"}</span>
                                     </Button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align='end'>
-                                    <DropdownMenuItem>View Details</DropdownMenuItem>
-                                    <DropdownMenuItem>Send Reminder</DropdownMenuItem>
-                                    <DropdownMenuItem>Cancel Booking</DropdownMenuItem>
+                                    <DropdownMenuItem>{t("dashboard.bookings.actions.viewDetails") || "View Details"}</DropdownMenuItem>
+                                    <DropdownMenuItem>{t("dashboard.bookings.actions.sendReminder") || "Send Reminder"}</DropdownMenuItem>
+                                    <DropdownMenuItem>{t("dashboard.bookings.actions.cancelBooking") || "Cancel Booking"}</DropdownMenuItem>
                                   </DropdownMenuContent>
                                 </DropdownMenu>
                               </TableCell>
@@ -326,7 +326,7 @@ export default function BookingsPage() {
                         ) : (
                           <TableRow>
                             <TableCell colSpan={8} className='text-center py-6 text-muted-foreground'>
-                              No bookings found matching your filters.
+                              {t("dashboard.bookings.noResults") || "No bookings found matching your filters."}
                             </TableCell>
                           </TableRow>
                         )}
@@ -340,7 +340,7 @@ export default function BookingsPage() {
             <TabsContent value='upcoming' className='m-0'>
               <Card>
                 <CardContent className='p-6 text-center'>
-                  <p>Upcoming bookings view will be implemented here.</p>
+                  <p>{t("dashboard.bookings.upcomingMessage") || "Upcoming bookings view will be implemented here."}</p>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -348,7 +348,7 @@ export default function BookingsPage() {
             <TabsContent value='past' className='m-0'>
               <Card>
                 <CardContent className='p-6 text-center'>
-                  <p>Past bookings view will be implemented here.</p>
+                  <p>{t("dashboard.bookings.pastMessage") || "Past bookings view will be implemented here."}</p>
                 </CardContent>
               </Card>
             </TabsContent>
