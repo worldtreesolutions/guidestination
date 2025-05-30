@@ -176,5 +176,8 @@
   "dashboard.bookings.title": "จัดการการจอง",
   "dashboard.bookings.subtitle": "ดูและจัดการการจองกิจกรรมทั้งหมดของคุณ",
   "dashboard.bookings.manage": "การจอง",
-  "dashboard.bookings.description": "จัดการการจองกิจกรรมของคุณ"
+  "dashboard.bookings.description": "จัดการการจองกิจกรรมของคุณ",
+  "dashboard.bookings.all": "การจองทั้งหมด",
+  "dashboard.bookings.upcoming": "การจองที่จะมาถึง",
+  "dashboard.bookings.past": "การจองที่ผ่านมา"
 }
