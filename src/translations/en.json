@@ -178,6 +178,8 @@
   "dashboard.bookings.manage": "Bookings",
   "dashboard.bookings.description": "Manage your activity bookings",
   "dashboard.bookings.all": "All Bookings",
+  "dashboard.bookings.upcoming": "Upcoming",
+  "dashboard.bookings.past": "Past",
   "dashboard.bookings.pending": "Pending",
   "dashboard.bookings.confirmed": "Confirmed",
   "dashboard.bookings.completed": "Completed",
