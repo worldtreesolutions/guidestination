@@ -191,9 +191,9 @@ export default function CustomersPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full">
             {/* Customer List */}
-            <Card className={`lg:col-span-${selectedCustomer ? "2" : "3"}`}>
+            <Card className={selectedCustomer ? "lg:col-span-2" : "lg:col-span-3"}>
               <CardHeader>
                 <CardTitle>{t("dashboard.customers.customerList") || "Customer List"}</CardTitle>
                 <CardDescription>
@@ -205,12 +205,12 @@ export default function CustomersPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Customer</TableHead>
-                        <TableHead>Location</TableHead>
-                        <TableHead>Spent</TableHead>
-                        <TableHead>Bookings</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
+                        <TableHead>{t("dashboard.customers.table.customer") || "Customer"}</TableHead>
+                        <TableHead>{t("dashboard.customers.table.location") || "Location"}</TableHead>
+                        <TableHead>{t("dashboard.customers.table.spent") || "Spent"}</TableHead>
+                        <TableHead>{t("dashboard.customers.table.bookings") || "Bookings"}</TableHead>
+                        <TableHead>{t("dashboard.customers.table.status") || "Status"}</TableHead>
+                        <TableHead className="text-right">{t("dashboard.customers.table.actions") || "Actions"}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -241,7 +241,7 @@ export default function CustomersPage() {
                                 <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                                   <Button variant="ghost" size="icon">
                                     <MoreHorizontal className="h-4 w-4" />
-                                    <span className="sr-only">Actions</span>
+                                    <span className="sr-only">{t("dashboard.customers.table.actions") || "Actions"}</span>
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
@@ -249,13 +249,13 @@ export default function CustomersPage() {
                                     e.stopPropagation();
                                     handleViewCustomer(customer);
                                   }}>
-                                    View Details
+                                    {t("dashboard.customers.actions.viewDetails") || "View Details"}
                                   </DropdownMenuItem>
                                   <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
-                                    Edit Customer
+                                    {t("dashboard.customers.actions.editCustomer") || "Edit Customer"}
                                   </DropdownMenuItem>
                                   <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
-                                    Send Email
+                                    {t("dashboard.customers.actions.sendEmail") || "Send Email"}
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
@@ -265,7 +265,7 @@ export default function CustomersPage() {
                       ) : (
                         <TableRow>
                           <TableCell colSpan={6} className="text-center py-6 text-muted-foreground">
-                            No customers found matching your search.
+                            {t("dashboard.customers.noResults") || "No customers found matching your search."}
                           </TableCell>
                         </TableRow>
                       )}
@@ -280,7 +280,7 @@ export default function CustomersPage() {
               <Card className="lg:col-span-1">
                 <CardHeader>
                   <div className="flex justify-between items-start">
-                    <CardTitle>Customer Details</CardTitle>
+                    <CardTitle>{t("dashboard.customers.details.title") || "Customer Details"}</CardTitle>
                     <Button variant="ghost" size="icon" onClick={() => setSelectedCustomer(null)}>
                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -321,21 +321,21 @@ export default function CustomersPage() {
                     <div className="flex justify-between">
                       <div className="flex items-center gap-2">
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">Total Spent</span>
+                        <span className="text-muted-foreground">{t("dashboard.customers.details.totalSpent") || "Total Spent"}</span>
                       </div>
                       <span className="font-medium">฿{selectedCustomer.totalSpent.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between">
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">Bookings</span>
+                        <span className="text-muted-foreground">{t("dashboard.customers.details.bookings") || "Bookings"}</span>
                       </div>
                       <span className="font-medium">{selectedCustomer.bookings}</span>
                     </div>
                     <div className="flex justify-between">
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">Last Booking</span>
+                        <span className="text-muted-foreground">{t("dashboard.customers.details.lastBooking") || "Last Booking"}</span>
                       </div>
                       <span className="font-medium">{format(selectedCustomer.lastBooking, "MMM d, yyyy")}</span>
                     </div>
@@ -344,10 +344,10 @@ export default function CustomersPage() {
                 <CardFooter className="flex flex-col gap-2">
                   <Button className="w-full">
                     <Mail className="mr-2 h-4 w-4" />
-                    Send Email
+                    {t("dashboard.customers.actions.sendEmail") || "Send Email"}
                   </Button>
                   <Button variant="outline" className="w-full">
-                    View Bookings
+                    {t("dashboard.customers.actions.viewBookings") || "View Bookings"}
                   </Button>
                 </CardFooter>
               </Card>
