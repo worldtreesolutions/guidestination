@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 
 // Define available languages
@@ -50,6 +49,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
     const loadTranslations = async () => {
       setIsLoading(true);
       try {
+        console.log(`Loading translations for language: ${language}`);
         // Dynamic import of translations
         let translationData;
         switch (language) {
@@ -71,6 +71,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
           default:
             translationData = (await import("@/translations/en.json")).default;
         }
+        console.log(`Loaded ${Object.keys(translationData).length} translation keys for ${language}`);
         setTranslations(translationData);
       } catch (error) {
         console.error(`Failed to load translations for ${language}:`, error);
@@ -79,6 +80,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
           try {
             const fallbackModule = await import("@/translations/en.json");
             setTranslations(fallbackModule.default);
+            console.log("Loaded fallback English translations");
           } catch (fallbackError) {
             console.error("Failed to load fallback translations:", fallbackError);
             setTranslations({});
@@ -94,6 +96,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
 
   // Set language and save to localStorage
   const setLanguage = (newLanguage: Language) => {
+    console.log(`Changing language from ${language} to ${newLanguage}`);
     setLanguageState(newLanguage);
     if (typeof window !== 'undefined') {
       localStorage.setItem("preferredLanguage", newLanguage);
@@ -105,8 +108,15 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
     if (isLoading || !translations) {
       return key;
     }
-    return translations[key] || key;
+    const translation = translations[key];
+    if (!translation) {
+      console.warn(`Translation missing for key: ${key} in language: ${language}`);
+      return key;
+    }
+    return translation;
   };
+
+  console.log(`LanguageContext: current language=${language}, isLoading=${isLoading}, translationsCount=${Object.keys(translations).length}`);
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t, isLoading }}>
