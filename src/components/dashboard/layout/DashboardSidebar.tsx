@@ -1,8 +1,8 @@
-
 import Link from "next/link"
 import Image from "next/image"
 import { useRouter } from "next/router"
 import { useAuth } from "@/contexts/AuthContext"
+import { useLanguage } from "@/contexts/LanguageContext"
 import { 
   LayoutDashboard, 
   CalendarDays, 
@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button"
 
 export function DashboardSidebar() {
   const { signOut } = useAuth()
+  const { t } = useLanguage()
   const router = useRouter()
 
   const handleSignOut = async () => {
@@ -31,43 +32,43 @@ export function DashboardSidebar() {
 
   const navItems = [
     {
-      name: "Overview",
+      name: t("dashboard.sidebar.overview") || "Overview",
       href: "/dashboard/overview",
       icon: <LayoutDashboard className="h-5 w-5" />,
       active: isActive("/dashboard/overview"),
     },
     {
-      name: "Activities",
+      name: t("dashboard.sidebar.activities") || "Activities",
       href: "/dashboard/activities",
       icon: <Package className="h-5 w-5" />,
       active: isActive("/dashboard/activities"),
     },
     {
-      name: "Bookings",
+      name: t("dashboard.sidebar.bookings") || "Bookings",
       href: "/dashboard/bookings",
       icon: <CalendarDays className="h-5 w-5" />,
       active: isActive("/dashboard/bookings"),
     },
     {
-      name: "Customers",
+      name: t("dashboard.sidebar.customers") || "Customers",
       href: "/dashboard/customers",
       icon: <Users className="h-5 w-5" />,
       active: isActive("/dashboard/customers"),
     },
     {
-      name: "Revenue",
+      name: t("dashboard.sidebar.revenue") || "Revenue",
       href: "/dashboard/revenue",
       icon: <DollarSign className="h-5 w-5" />,
       active: isActive("/dashboard/revenue"),
     },
     {
-      name: "Inbox",
+      name: t("dashboard.sidebar.inbox") || "Inbox",
       href: "/dashboard/inbox",
       icon: <MessageSquare className="h-5 w-5" />,
       active: isActive("/dashboard/inbox"),
     },
     {
-      name: "Settings",
+      name: t("dashboard.sidebar.settings") || "Settings",
       href: "/dashboard/settings",
       icon: <Settings className="h-5 w-5" />,
       active: isActive("/dashboard/settings"),
@@ -112,7 +113,7 @@ export function DashboardSidebar() {
           onClick={handleSignOut}
         >
           <LogOut className="mr-2 h-5 w-5" />
-          Sign Out
+          {t("dashboard.sidebar.signOut") || "Sign Out"}
         </Button>
       </div>
     </div>
