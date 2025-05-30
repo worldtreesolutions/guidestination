@@ -335,9 +335,9 @@ export default function NewActivityPage() {
               {/* Basic Information Card */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Basic Information</CardTitle>
+                  <CardTitle>{t("dashboard.activities.basicInfo") || "Basic Information"}</CardTitle>
                   <CardDescription>
-                    Provide the essential details about your activity.
+                    {t("dashboard.activities.basicInfoDescription") || "Provide the essential details about your activity."}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className='space-y-6'>
@@ -346,9 +346,9 @@ export default function NewActivityPage() {
                     name='title'
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Activity Title</FormLabel>
+                        <FormLabel>{t("dashboard.activities.activityTitle") || "Activity Title"}</FormLabel>
                         <FormControl>
-                          <Input placeholder='e.g. Chiang Mai Old City Temple Tour' {...field} />
+                          <Input placeholder={t("dashboard.activities.titlePlaceholder") || 'e.g. Chiang Mai Old City Temple Tour'} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -360,10 +360,10 @@ export default function NewActivityPage() {
                     name='description'
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Description</FormLabel>
+                        <FormLabel>{t("dashboard.activities.description") || "Description"}</FormLabel>
                         <FormControl>
                           <Textarea
-                            placeholder='Describe the activity, what makes it unique...'
+                            placeholder={t("dashboard.activities.descriptionPlaceholder") || 'Describe the activity, what makes it unique...'}
                             className='min-h-[120px]'
                             {...field}
                             value={field.value ?? ''} // Handle null value for Textarea
@@ -380,12 +380,12 @@ export default function NewActivityPage() {
                       name='category_id'
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Category</FormLabel>
+                          <FormLabel>{t("dashboard.activities.category") || "Category"}</FormLabel>
                            {/* Use Select for better UX */}
                            <Select onValueChange={(value) => field.onChange(value ? Number(value) : null)} value={field.value?.toString() ?? ''}>
                              <FormControl>
                                <SelectTrigger>
-                                 <SelectValue placeholder='Select a category' />
+                                 <SelectValue placeholder={t("dashboard.activities.categoryPlaceholder") || 'Select a category'} />
                                </SelectTrigger>
                              </FormControl>
                              <SelectContent>
@@ -406,25 +406,25 @@ export default function NewActivityPage() {
                       name='duration'
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Duration</FormLabel>
+                          <FormLabel>{t("dashboard.activities.duration") || "Duration"}</FormLabel>
                           <Select 
                             onValueChange={field.onChange} 
                             value={field.value}
                           >
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder='Select duration' />
+                                <SelectValue placeholder={t("dashboard.activities.durationPlaceholder") || 'Select duration'} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value='1_hour'>1 Hour</SelectItem>
-                              <SelectItem value='2_hours'>2 Hours</SelectItem>
-                              <SelectItem value='half_day'>Half Day (4 Hours)</SelectItem>
-                              <SelectItem value='full_day'>Full Day (8 Hours)</SelectItem>
+                              <SelectItem value='1_hour'>{t("dashboard.activities.duration1Hour") || "1 Hour"}</SelectItem>
+                              <SelectItem value='2_hours'>{t("dashboard.activities.duration2Hours") || "2 Hours"}</SelectItem>
+                              <SelectItem value='half_day'>{t("dashboard.activities.durationHalfDay") || "Half Day (4 Hours)"}</SelectItem>
+                              <SelectItem value='full_day'>{t("dashboard.activities.durationFullDay") || "Full Day (8 Hours)"}</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormDescription>
-                            Select the duration of the activity
+                            {t("dashboard.activities.durationDescription") || "Select the duration of the activity"}
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -438,19 +438,19 @@ export default function NewActivityPage() {
                       name='price'
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Price per Person (THB)</FormLabel>
+                          <FormLabel>{t("dashboard.activities.pricePerPerson") || "Price per Person (THB)"}</FormLabel>
                           <FormControl>
                             <Input type='number' min='0' {...field} />
                           </FormControl>
                           <FormDescription>
-                            The price customers will see.
+                            {t("dashboard.activities.priceDescription") || "The price customers will see."}
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
                     <FormItem>
-                <FormLabel>Final Price (with 20% markup + 7% VAT)</FormLabel>
+                <FormLabel>{t("dashboard.activities.finalPrice") || "Final Price (with 20% markup + 7% VAT)"}</FormLabel>
                 <Input
                   type="text"
                   value={formatCurrency(finalPrice)}
@@ -458,7 +458,7 @@ export default function NewActivityPage() {
                   className="bg-muted"
                 />
                 <FormDescription>
-                  Automatically calculated based on price per person
+                  {t("dashboard.activities.finalPriceDescription") || "Automatically calculated based on price per person"}
                 </FormDescription>
               </FormItem>
 
@@ -467,12 +467,12 @@ export default function NewActivityPage() {
                       name='max_participants'
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Maximum Participants</FormLabel>
+                          <FormLabel>{t("dashboard.activities.maxParticipants") || "Maximum Participants"}</FormLabel>
                           <FormControl>
                             <Input type='number' min='1' {...field} />
                           </FormControl>
                            <FormDescription>
-                            Maximum group size per session.
+                            {t("dashboard.activities.maxParticipantsDescription") || "Maximum group size per session."}
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -485,9 +485,9 @@ export default function NewActivityPage() {
               {/* Schedule Card */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Activity Schedule</CardTitle>
+                  <CardTitle>{t("dashboard.activities.schedule") || "Activity Schedule"}</CardTitle>
                   <CardDescription>
-                    Set when this activity is available for booking.
+                    {t("dashboard.activities.scheduleDescription") || "Set when this activity is available for booking."}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className='space-y-6'>
@@ -497,7 +497,7 @@ export default function NewActivityPage() {
                       name='schedule_start_time'
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Start Time</FormLabel>
+                          <FormLabel>{t("dashboard.activities.startTime") || "Start Time"}</FormLabel>
                           <FormControl>
                             <Input type='time' {...field} value={field.value || ''} />
                           </FormControl>
@@ -511,12 +511,12 @@ export default function NewActivityPage() {
                       name='schedule_end_time'
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>End Time</FormLabel>
+                          <FormLabel>{t("dashboard.activities.endTime") || "End Time"}</FormLabel>
                           <FormControl>
                             <Input type='time' {...field} disabled value={field.value || ''} />
                           </FormControl>
                           <FormDescription>
-                            Auto-calculated based on duration
+                            {t("dashboard.activities.endTimeDescription") || "Auto-calculated based on duration"}
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -529,7 +529,7 @@ export default function NewActivityPage() {
                     name='schedule_capacity'
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Capacity per Schedule</FormLabel>
+                        <FormLabel>{t("dashboard.activities.capacityPerSchedule") || "Capacity per Schedule"}</FormLabel>
                         <FormControl>
                           <Input 
                             type='number' 
@@ -539,7 +539,7 @@ export default function NewActivityPage() {
                           />
                         </FormControl>
                         <FormDescription>
-                          Maximum number of bookings per scheduled time
+                          {t("dashboard.activities.capacityDescription") || "Maximum number of bookings per scheduled time"}
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -552,7 +552,7 @@ export default function NewActivityPage() {
                       name='schedule_availability_start_date'
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Available From</FormLabel>
+                          <FormLabel>{t("dashboard.activities.availableFrom") || "Available From"}</FormLabel>
                           <FormControl>
                             <Input type='date' {...field} value={field.value || ''} />
                           </FormControl>
@@ -566,7 +566,7 @@ export default function NewActivityPage() {
                       name='schedule_availability_end_date'
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Available Until</FormLabel>
+                          <FormLabel>{t("dashboard.activities.availableUntil") || "Available Until"}</FormLabel>
                           <FormControl>
                             <Input type='date' {...field} value={field.value || ''} />
                           </FormControl>
@@ -581,9 +581,9 @@ export default function NewActivityPage() {
               {/* Additional Details Card */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Additional Details</CardTitle>
+                  <CardTitle>{t("dashboard.activities.additionalDetails") || "Additional Details"}</CardTitle>
                   <CardDescription>
-                    Provide more specific information about the activity.
+                    {t("dashboard.activities.additionalDetailsDescription") || "Provide more specific information about the activity."}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className='space-y-6'>
@@ -594,9 +594,9 @@ export default function NewActivityPage() {
                     render={({ field }) => (
                       <FormItem className='flex flex-row items-center justify-between rounded-lg border p-4'>
                         <div className='space-y-0.5'>
-                          <FormLabel className='text-base'>Pickup Available</FormLabel>
+                          <FormLabel className='text-base'>{t("dashboard.activities.pickupAvailable") || "Pickup Available"}</FormLabel>
                           <FormDescription>
-                            Toggle if pickup service is available for this activity
+                            {t("dashboard.activities.pickupDescription") || "Toggle if pickup service is available for this activity"}
                           </FormDescription>
                         </div>
                         <FormControl>
@@ -616,12 +616,12 @@ export default function NewActivityPage() {
                       name='pickup_location'
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Pickup Location</FormLabel>
+                          <FormLabel>{t("dashboard.activities.pickupLocation") || "Pickup Location"}</FormLabel>
                           <FormControl>
-                            <Input placeholder='e.g., Your hotel lobby' {...field} value={field.value || ''} />
+                            <Input placeholder={t("dashboard.activities.pickupLocationPlaceholder") || 'e.g., Your hotel lobby'} {...field} value={field.value || ''} />
                           </FormControl>
                           <FormDescription>
-                            Where will participants be picked up from?
+                            {t("dashboard.activities.pickupLocationDescription") || "Where will participants be picked up from?"}
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -634,9 +634,9 @@ export default function NewActivityPage() {
                     name='dropoff_location'
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Dropoff Location</FormLabel>
+                        <FormLabel>{t("dashboard.activities.dropoffLocation") || "Dropoff Location"}</FormLabel>
                         <FormControl>
-                          <Input placeholder='e.g., Your hotel lobby' {...field} />
+                          <Input placeholder={t("dashboard.activities.dropoffLocationPlaceholder") || 'e.g., Your hotel lobby'} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -648,9 +648,9 @@ export default function NewActivityPage() {
                     name='meeting_point'
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Meeting Point</FormLabel>
+                        <FormLabel>{t("dashboard.activities.meetingPoint") || "Meeting Point"}</FormLabel>
                         <FormControl>
-                          <Input placeholder='e.g., Tha Phae Gate' {...field} value={field.value || ''} />
+                          <Input placeholder={t("dashboard.activities.meetingPointPlaceholder") || 'e.g., Tha Phae Gate'} {...field} value={field.value || ''} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -662,9 +662,9 @@ export default function NewActivityPage() {
                     name='languages'
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Languages Offered</FormLabel>
+                        <FormLabel>{t("dashboard.activities.languagesOffered") || "Languages Offered"}</FormLabel>
                         <FormControl>
-                          <Input placeholder='e.g., English, Thai' {...field} value={field.value || ''} />
+                          <Input placeholder={t("dashboard.activities.languagesPlaceholder") || 'e.g., English, Thai'} {...field} value={field.value || ''} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -676,9 +676,9 @@ export default function NewActivityPage() {
               {/* Activity Specifics Card */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Activity Specifics</CardTitle>
+                  <CardTitle>{t("dashboard.activities.specifics") || "Activity Specifics"}</CardTitle>
                   <CardDescription>
-                    Detail the highlights and what's included or excluded.
+                    {t("dashboard.activities.specificsDescription") || "Detail the highlights and what's included or excluded."}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className='space-y-6'>
@@ -687,9 +687,9 @@ export default function NewActivityPage() {
                     name='highlights'
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Highlights</FormLabel>
+                        <FormLabel>{t("dashboard.activities.highlights") || "Highlights"}</FormLabel>
                         <FormControl>
-                          <Textarea placeholder='e.g., Scenic views, local culture' {...field} value={field.value || ''} />
+                          <Textarea placeholder={t("dashboard.activities.highlightsPlaceholder") || 'e.g., Scenic views, local culture'} {...field} value={field.value || ''} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -701,9 +701,9 @@ export default function NewActivityPage() {
                     name='included'
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>What's Included</FormLabel>
+                        <FormLabel>{t("dashboard.activities.included") || "What's Included"}</FormLabel>
                         <FormControl>
-                          <Textarea placeholder='e.g., Guide, meals' {...field} value={field.value || ''} />
+                          <Textarea placeholder={t("dashboard.activities.includedPlaceholder") || 'e.g., Guide, meals'} {...field} value={field.value || ''} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -715,9 +715,9 @@ export default function NewActivityPage() {
                     name='not_included'
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>What's Not Included (Optional)</FormLabel>
+                        <FormLabel>{t("dashboard.activities.notIncluded") || "What's Not Included (Optional)"}</FormLabel>
                         <FormControl>
-                          <Textarea placeholder='e.g., Tips, personal expenses' {...field} value={field.value || ''} />
+                          <Textarea placeholder={t("dashboard.activities.notIncludedPlaceholder") || 'e.g., Tips, personal expenses'} {...field} value={field.value || ''} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -729,9 +729,9 @@ export default function NewActivityPage() {
               {/* Images Card */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Images</CardTitle>
+                  <CardTitle>{t("dashboard.activities.images") || "Images"}</CardTitle>
                   <CardDescription>
-                    Upload images showcasing your activity. The first image will be the main cover.
+                    {t("dashboard.activities.imagesDescription") || "Upload images showcasing your activity. The first image will be the main cover."}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -740,7 +740,7 @@ export default function NewActivityPage() {
                     name='image_urls'
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Activity Images</FormLabel>
+                        <FormLabel>{t("dashboard.activities.activityImages") || "Activity Images"}</FormLabel>
                         <FormControl>
                           <ImageUploader 
                             value={field.value} 
@@ -758,9 +758,9 @@ export default function NewActivityPage() {
               {/* Status Card */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Activity Status</CardTitle>
+                  <CardTitle>{t("dashboard.activities.status") || "Activity Status"}</CardTitle>
                   <CardDescription>
-                    Set the visibility of your activity.
+                    {t("dashboard.activities.statusDescription") || "Set the visibility of your activity."}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -769,20 +769,20 @@ export default function NewActivityPage() {
                     name='status'
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Status</FormLabel>
+                        <FormLabel>{t("dashboard.activities.statusLabel") || "Status"}</FormLabel>
                         <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString() || '1'}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder='Select status' />
+                              <SelectValue placeholder={t("dashboard.activities.statusPlaceholder") || 'Select status'} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value='1'>Draft (Hidden)</SelectItem>
-                            <SelectItem value='2'>Published (Visible)</SelectItem>
+                            <SelectItem value='1'>{t("dashboard.activities.statusDraft") || "Draft (Hidden)"}</SelectItem>
+                            <SelectItem value='2'>{t("dashboard.activities.statusPublished") || "Published (Visible)"}</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormDescription>
-                          'Draft' keeps it hidden, 'Published' makes it live.
+                          {t("dashboard.activities.statusHelpText") || "'Draft' keeps it hidden, 'Published' makes it live."}
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -799,16 +799,16 @@ export default function NewActivityPage() {
                   onClick={() => router.push('/dashboard/activities')}
                   disabled={isSubmitting}
                 >
-                  Cancel
+                  {t("dashboard.activities.cancel") || "Cancel"}
                 </Button>
                 <Button type='submit' disabled={isSubmitting}>
                   {isSubmitting ? (
                     <>
                       <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                      Creating...
+                      {t("dashboard.activities.creating") || "Creating..."}
                     </>
                   ) : (
-                    'Create Activity'
+                    t("dashboard.activities.createActivity") || "Create Activity"
                   )}
                 </Button>
               </CardFooter>
