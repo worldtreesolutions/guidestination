@@ -172,5 +172,9 @@
   "dashboard.sidebar.revenue": "收入",
   "dashboard.sidebar.inbox": "收件箱",
   "dashboard.sidebar.settings": "设置",
-  "dashboard.sidebar.signOut": "退出登录"
+  "dashboard.sidebar.signOut": "退出登录",
+  "dashboard.bookings.title": "管理预订",
+  "dashboard.bookings.subtitle": "查看和管理您的所有活动预订。",
+  "dashboard.bookings.manage": "预订",
+  "dashboard.bookings.description": "管理您的活动预订"
 }
