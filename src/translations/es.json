@@ -172,5 +172,9 @@
   "dashboard.sidebar.revenue": "Ingresos",
   "dashboard.sidebar.inbox": "Bandeja de entrada",
   "dashboard.sidebar.settings": "Configuración",
-  "dashboard.sidebar.signOut": "Cerrar Sesión"
+  "dashboard.sidebar.signOut": "Cerrar Sesión",
+  "dashboard.bookings.title": "Gestionar Reservas",
+  "dashboard.bookings.subtitle": "Ver y gestionar todas tus reservas de actividades.",
+  "dashboard.bookings.manage": "Reservas",
+  "dashboard.bookings.description": "Gestionar tus reservas de actividades"
 }
