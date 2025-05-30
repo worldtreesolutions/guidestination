@@ -31,16 +31,24 @@ export function LanguageSelector() {
   const handleLanguageChange = (newLanguage: Language) => {
     console.log(`Language selector: changing from ${language} to ${newLanguage}`);
     
-    // Apply the language change
-    setLanguage(newLanguage);
-    
-    // Force a page refresh to ensure all components update with the new language
-    // This is a more robust approach to ensure language changes are applied everywhere
     if (typeof window !== 'undefined') {
-      // Use a small timeout to ensure the language is saved to localStorage first
-      setTimeout(() => {
+      try {
+        // Save the language preference to localStorage
+        localStorage.setItem("preferredLanguage", newLanguage);
+        console.log(`Saved language preference to localStorage: ${newLanguage}`);
+        
+        // Force a hard page reload to ensure all components update with the new language
+        console.log("Forcing page reload to apply language change");
         window.location.reload();
-      }, 50);
+      } catch (error) {
+        console.error("Error during language change:", error);
+        
+        // If there's an error with localStorage, still try to update the language state
+        setLanguage(newLanguage);
+      }
+    } else {
+      // Fallback for non-browser environments
+      setLanguage(newLanguage);
     }
   };
 

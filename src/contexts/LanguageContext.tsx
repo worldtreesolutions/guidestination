@@ -109,8 +109,8 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
     if (newLanguage === language) return;
     
     console.log(`Changing language from ${language} to ${newLanguage}`);
-    setLanguageState(newLanguage);
     
+    // Save to localStorage first
     if (typeof window !== 'undefined') {
       try {
         localStorage.setItem("preferredLanguage", newLanguage);
@@ -119,6 +119,9 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
         console.error("Error saving language to localStorage:", error);
       }
     }
+    
+    // Update state after localStorage is updated
+    setLanguageState(newLanguage);
     
     // Force a re-render of all components using the language context
     setForceUpdate(prev => prev + 1);
@@ -153,7 +156,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
     setLanguage,
     t,
     isLoading
-  }), [language, setLanguage, t, isLoading, forceUpdate]);
+  }), [language, setLanguage, t, isLoading]);
 
   return (
     <LanguageContext.Provider value={contextValue}>
