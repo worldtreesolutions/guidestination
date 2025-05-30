@@ -157,5 +157,13 @@
   "dashboard.activities.statusHelpText": "'Borrador' lo mantiene oculto, 'Publicado' lo hace visible.",
   "dashboard.activities.cancel": "Cancelar",
   "dashboard.activities.creating": "Creando...",
-  "dashboard.activities.createActivity": "Crear Actividad"
+  "dashboard.activities.createActivity": "Crear Actividad",
+  "dashboard.sidebar.overview": "Resumen",
+  "dashboard.sidebar.activities": "Actividades",
+  "dashboard.sidebar.bookings": "Reservas",
+  "dashboard.sidebar.customers": "Clientes",
+  "dashboard.sidebar.revenue": "Ingresos",
+  "dashboard.sidebar.inbox": "Bandeja de entrada",
+  "dashboard.sidebar.settings": "Configuración",
+  "dashboard.sidebar.signOut": "Cerrar Sesión"
 }
