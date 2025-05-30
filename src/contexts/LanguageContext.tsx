@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 
 // Define available languages
 export type Language = "en" | "th" | "zh" | "es" | "fr";
@@ -30,13 +30,21 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
   const [translations, setTranslations] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [forceUpdate, setForceUpdate] = useState(0);
 
   // Load language from localStorage on initial render
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const savedLanguage = localStorage.getItem("preferredLanguage") as Language;
-      if (savedLanguage && ["en", "th", "zh", "es", "fr"].includes(savedLanguage)) {
-        setLanguageState(savedLanguage);
+      try {
+        const savedLanguage = localStorage.getItem("preferredLanguage") as Language;
+        if (savedLanguage && ["en", "th", "zh", "es", "fr"].includes(savedLanguage)) {
+          console.log(`Initializing with saved language: ${savedLanguage}`);
+          setLanguageState(savedLanguage);
+        } else {
+          console.log("No valid saved language found, using default: en");
+        }
+      } catch (error) {
+        console.error("Error reading language from localStorage:", error);
       }
       setIsInitialized(true);
     }
@@ -73,6 +81,8 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
         }
         console.log(`Loaded ${Object.keys(translationData).length} translation keys for ${language}`);
         setTranslations(translationData);
+        // Force a re-render to ensure all components update
+        setForceUpdate(prev => prev + 1);
       } catch (error) {
         console.error(`Failed to load translations for ${language}:`, error);
         // Fallback to English if translation file is missing
@@ -95,31 +105,58 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
   }, [language, isInitialized]);
 
   // Set language and save to localStorage
-  const setLanguage = (newLanguage: Language) => {
+  const setLanguage = useCallback((newLanguage: Language) => {
+    if (newLanguage === language) return;
+    
     console.log(`Changing language from ${language} to ${newLanguage}`);
     setLanguageState(newLanguage);
+    
     if (typeof window !== 'undefined') {
-      localStorage.setItem("preferredLanguage", newLanguage);
+      try {
+        localStorage.setItem("preferredLanguage", newLanguage);
+        console.log(`Saved language preference to localStorage: ${newLanguage}`);
+      } catch (error) {
+        console.error("Error saving language to localStorage:", error);
+      }
     }
-  };
+    
+    // Force a re-render of all components using the language context
+    setForceUpdate(prev => prev + 1);
+  }, [language]);
 
   // Translation function
-  const t = (key: string): string => {
+  const t = useCallback((key: string): string => {
     if (isLoading || !translations) {
       return key;
     }
+    
     const translation = translations[key];
     if (!translation) {
-      console.warn(`Translation missing for key: ${key} in language: ${language}`);
+      // Only log missing translations in development
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(`Translation missing for key: ${key} in language: ${language}`);
+      }
       return key;
     }
+    
     return translation;
-  };
+  }, [isLoading, translations, language]);
 
-  console.log(`LanguageContext: current language=${language}, isLoading=${isLoading}, translationsCount=${Object.keys(translations).length}`);
+  // Log current state for debugging
+  useEffect(() => {
+    console.log(`LanguageContext updated: language=${language}, isLoading=${isLoading}, translationsCount=${Object.keys(translations).length}, forceUpdate=${forceUpdate}`);
+  }, [language, isLoading, translations, forceUpdate]);
+
+  // Memoize the context value to prevent unnecessary re-renders
+  const contextValue = useMemo(() => ({
+    language,
+    setLanguage,
+    t,
+    isLoading
+  }), [language, setLanguage, t, isLoading, forceUpdate]);
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t, isLoading }}>
+    <LanguageContext.Provider value={contextValue}>
       {children}
     </LanguageContext.Provider>
   );
