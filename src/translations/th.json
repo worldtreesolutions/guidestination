@@ -157,5 +157,13 @@
   "dashboard.activities.statusHelpText": "'ร่าง' จะซ่อนไว้, 'เผยแพร่' จะทำให้มองเห็นได้",
   "dashboard.activities.cancel": "ยกเลิก",
   "dashboard.activities.creating": "กำลังสร้าง...",
-  "dashboard.activities.createActivity": "สร้างกิจกรรม"
+  "dashboard.activities.createActivity": "สร้างกิจกรรม",
+  "dashboard.sidebar.overview": "ภาพรวม",
+  "dashboard.sidebar.activities": "กิจกรรม",
+  "dashboard.sidebar.bookings": "การจอง",
+  "dashboard.sidebar.customers": "ลูกค้า",
+  "dashboard.sidebar.revenue": "รายได้",
+  "dashboard.sidebar.inbox": "กล่องข้อความ",
+  "dashboard.sidebar.settings": "การตั้งค่า",
+  "dashboard.sidebar.signOut": "ออกจากระบบ"
 }
