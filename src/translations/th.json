@@ -172,5 +172,9 @@
   "dashboard.sidebar.revenue": "รายได้",
   "dashboard.sidebar.inbox": "กล่องข้อความ",
   "dashboard.sidebar.settings": "การตั้งค่า",
-  "dashboard.sidebar.signOut": "ออกจากระบบ"
+  "dashboard.sidebar.signOut": "ออกจากระบบ",
+  "dashboard.bookings.title": "จัดการการจอง",
+  "dashboard.bookings.subtitle": "ดูและจัดการการจองกิจกรรมทั้งหมดของคุณ",
+  "dashboard.bookings.manage": "การจอง",
+  "dashboard.bookings.description": "จัดการการจองกิจกรรมของคุณ"
 }
