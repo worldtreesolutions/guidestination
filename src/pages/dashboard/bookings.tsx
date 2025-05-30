@@ -42,6 +42,7 @@ import {
   PopoverTrigger
 } from "@/components/ui/popover"
 import { format } from "date-fns"
+import { enUS, th, zhCN, es, fr } from "date-fns/locale"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSelector } from "@/components/layout/LanguageSelector";
@@ -115,7 +116,7 @@ const mockBookings = [
 
 export default function BookingsPage() {
   const { user, isAuthenticated } = useAuth()
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const router = useRouter()
   const [bookings, setBookings] = useState(mockBookings)
   const [searchQuery, setSearchQuery] = useState('')
@@ -127,6 +128,32 @@ export default function BookingsPage() {
     from: undefined,
     to: undefined,
   })
+
+  // Get the appropriate locale for date formatting
+  const getDateLocale = () => {
+    switch (language) {
+      case 'th':
+        return th
+      case 'zh':
+        return zhCN
+      case 'es':
+        return es
+      case 'fr':
+        return fr
+      default:
+        return enUS
+    }
+  }
+
+  // Format date with locale
+  const formatDate = (date: Date, formatString: string = 'MMM d, yyyy') => {
+    return format(date, formatString, { locale: getDateLocale() })
+  }
+
+  // Format participants count with translation
+  const formatParticipants = (count: number) => {
+    return `${count} ${count === 1 ? t("dashboard.bookings.participant") || "participant" : t("dashboard.bookings.participants") || "participants"}`
+  }
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -245,10 +272,10 @@ export default function BookingsPage() {
                         {dateRange.from ? (
                           dateRange.to ? (
                             <>
-                              {format(dateRange.from, 'LLL dd')} - {format(dateRange.to, 'LLL dd')}
+                              {formatDate(dateRange.from, 'LLL dd')} - {formatDate(dateRange.to, 'LLL dd')}
                             </>
                           ) : (
-                            format(dateRange.from, 'LLL dd')
+                            formatDate(dateRange.from, 'LLL dd')
                           )
                         ) : (
                           t("dashboard.bookings.dateRange") || "Date Range"
@@ -263,6 +290,7 @@ export default function BookingsPage() {
                         selected={dateRange}
                         onSelect={handleDateRangeChange}
                         numberOfMonths={2}
+                        locale={getDateLocale()}
                       />
                     </PopoverContent>
                   </Popover>
@@ -298,8 +326,8 @@ export default function BookingsPage() {
                               <TableCell className='font-medium'>{booking.id}</TableCell>
                               <TableCell>{booking.activityName}</TableCell>
                               <TableCell>{booking.customerName}</TableCell>
-                              <TableCell>{format(booking.date, 'MMM d, yyyy')}</TableCell>
-                              <TableCell>{booking.participants}</TableCell>
+                              <TableCell>{formatDate(booking.date)}</TableCell>
+                              <TableCell>{formatParticipants(booking.participants)}</TableCell>
                               <TableCell>฿{booking.totalAmount.toLocaleString()}</TableCell>
                               <TableCell>
                                 <Badge variant={getStatusBadgeVariant(booking.status)}>
