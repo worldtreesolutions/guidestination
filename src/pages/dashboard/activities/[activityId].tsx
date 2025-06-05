@@ -330,7 +330,7 @@ export default function EditActivityPage() {
 
     try {
       // Extract only the activity fields (not schedule fields) for the activity update
-      const activityData: ActivityUpdate = {
+      const activityData: Partial<ActivityUpdate> = {
         title: data.title,
         description: data.description,
         category_id: data.category_id ? Number(data.category_id) : null,
