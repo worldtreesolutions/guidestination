@@ -228,7 +228,7 @@ export default function NewActivityPage() {
         not_included: data.not_included ?? null,
         image_url: data.image_urls && data.image_urls.length > 0 ? data.image_urls[0] : null, // Take first URL or null
         is_active: data.is_active,
-        b_price: data.b_price ? Number(data.price) : undefined,
+        b_price: data.b_price ? Number(data.b_price) : undefined,
         final_price: finalPrice,
         status: data.status ? Number(data.status) : null,
         discounts: data.discounts ? Number(data.discounts) : 0,

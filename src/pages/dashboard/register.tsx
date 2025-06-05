@@ -43,17 +43,17 @@ export default function RegisterPage() {
     setError(null);
 
     try {
-      const { data, error } = await authService.signUp(email, password); 
+      const response = await authService.signUp(email, password); 
 
-      if (error) {
+      if (response.error) {
         toast({
           variant: "destructive",
-          description: error.message || "An unexpected error occurred during registration.",
+          description: response.error.message || "An unexpected error occurred during registration.",
         });
         return;
       }
 
-      if (data?.session) {
+      if (response.session) {
         router.push("/dashboard/overview");
       } else {
         setError("Registration successful, but no session was created. Please try logging in.");

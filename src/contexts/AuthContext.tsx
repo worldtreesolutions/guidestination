@@ -1,17 +1,13 @@
-
 import { createContext, useContext, useEffect, useState } from "react"
 import { supabase } from "@/integrations/supabase/client"
 import { Session, User } from "@supabase/supabase-js"
-import authService from "@/services/authService"
+import authService, { SignInResponse } from "@/services/authService"
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<{
-    data: { user: User; session: Session; provider_id?: string } | null;
-    error: Error | null;
-  }>;
+  login: (email: string, password: string) => Promise<SignInResponse>;
   signOut: () => Promise<void>;
   isAuthenticated: boolean;
   provider_id?: string;
@@ -21,7 +17,7 @@ const defaultContext: AuthContextType = {
   user: null,
   session: null,
   loading: true,
-  login: async () => ({ data: null, error: null }),
+  login: async () => ({ user: null, session: null, error: new Error("Login function not implemented") }),
   signOut: async () => {},
   isAuthenticated: false,
   provider_id: undefined
@@ -90,21 +86,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<SignInResponse> => {
     try {
-      const { data, error } = await authService.signInWithEmail(email, password)
-      if (error) throw error
+      const response = await authService.signInWithEmail(email, password)
+      if (response.error) throw response.error
       
       // Set provider_id if available
-      if (data?.provider_id) {
-        setProviderId(data.provider_id);
+      if (response.provider_id) {
+        setProviderId(response.provider_id);
       }
       
-      return { data, error: null }
+      return response;
     } catch (error) {
       console.error("Login error:", error)
       return {
-        data: null,
+        user: null,
+        session: null,
         error: error as Error,
       }
     }
