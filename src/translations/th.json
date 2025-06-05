@@ -281,6 +281,7 @@
   "dashboard.inbox.typePlaceholder": "พิมพ์ข้อความของคุณ...",
   "dashboard.inbox.selectConversation": "เลือกการสนทนาเพื่อเริ่มแชท",
   "dashboard.inbox.backToConversations": "กลับไปที่การสนทนา",
+  "dashboard.inbox.yesterday": "เมื่อวาน",
   "dashboard.inbox.messages.tourStart": "ทัวร์พรุ่งนี้เริ่มกี่โมง?",
   "dashboard.inbox.messages.menuUpdate": "เราได้อัปเดตเมนูสำหรับคลาสของคุณแล้ว",
   "dashboard.inbox.messages.bookingConfirmed": "การจองของคุณสำหรับวันจันทร์หน้าได้รับการยืนยันแล้ว",
