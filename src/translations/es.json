@@ -244,6 +244,7 @@
   "dashboard.revenue.subtitle": "Ver y analizar tus ingresos de actividades.",
   "dashboard.revenue.manage": "Ingresos",
   "dashboard.revenue.description": "Gestionar tus ingresos de actividades",
+  "dashboard.revenue.totalRevenue": "Ingresos Totales",
   "dashboard.revenue.netEarnings": "Ganancias Netas",
   "dashboard.revenue.selectPeriod": "Seleccionar Período",
   "dashboard.revenue.last7Days": "Últimos 7 Días",
