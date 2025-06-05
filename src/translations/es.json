@@ -264,6 +264,7 @@
   "dashboard.revenue.percentageIncrease": "+8.2% del período anterior",
   "dashboard.revenue.percentageIncrease2": "+3.1% del período anterior",
   "dashboard.revenue.percentageDecrease": "-2.5% del período anterior",
+  "dashboard.revenue.totalRevenueIncrease": "+12.5% del período anterior",
   "dashboard.revenue.table.transactionId": "ID de Transacción",
   "dashboard.revenue.table.date": "Fecha",
   "dashboard.revenue.table.activity": "Actividad",
