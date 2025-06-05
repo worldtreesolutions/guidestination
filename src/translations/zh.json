@@ -295,6 +295,7 @@
   "dashboard.inbox.typePlaceholder": "输入您的消息...",
   "dashboard.inbox.selectConversation": "选择一个对话开始聊天",
   "dashboard.inbox.backToConversations": "返回对话",
+  "dashboard.inbox.yesterday": "昨天",
   "dashboard.inbox.messages.tourStart": "明天的旅行什么时候开始？",
   "dashboard.inbox.messages.menuUpdate": "我们已为您的课程更新了菜单",
   "dashboard.inbox.messages.bookingConfirmed": "您下周一的预订已确认",
