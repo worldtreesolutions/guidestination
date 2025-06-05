@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Database } from "@/integrations/supabase/types";
@@ -20,6 +19,27 @@ export interface ActivityFilters {
 export interface Pagination {
   page: number;
   limit: number;
+}
+
+export interface ActivityUpdate {
+  title?: string;
+  description?: string | null;
+  category_id?: number | null;
+  duration?: number | null;
+  final_price?: number;
+  max_participants?: number | null;
+  pickup_location?: string | null;
+  dropoff_location?: string | null;
+  meeting_point?: string | null;
+  languages?: string | null;
+  highlights?: string | null;
+  included?: string | null;
+  not_included?: string | null;
+  image_url?: string | null;
+  is_active?: boolean | null;
+  b_price?: number | null;
+  status?: number | null; // Changed from number | undefined to number | null
+  discounts?: number | null;
 }
 
 const activityCrudService = {

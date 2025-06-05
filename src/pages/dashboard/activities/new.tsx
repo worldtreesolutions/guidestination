@@ -192,7 +192,7 @@ export default function NewActivityPage() {
 
 
   // Handle form submission using activityCrudService
-  const onSubmit = async ( FormValues) => {
+  const onSubmit = async (data: FormValues) => {
     if (!user || !user.id) {
       toast({ title: 'Error', description: 'User not found. Please log in again.', variant: 'destructive' });
       return;
@@ -205,11 +205,6 @@ export default function NewActivityPage() {
       const providerId = user.app_metadata?.provider_id;
       
       console.log('Provider ID from metadata:', providerId, 'Type:', typeof providerId);
-      
-      // Force provider_id to be a number, use a fallback value of 1 if not found
-      //const numericProviderId = providerId ? Number(providerId) : 1;
-      
-     // console.log('Numeric provider_id:', numericProviderId, 'Type:', typeof numericProviderId);
 
       // Prepare data directly matching ActivityInsert structure
       const activityData: ActivityInsert = {
@@ -246,7 +241,7 @@ export default function NewActivityPage() {
       if (createdActivity && createdActivity.activity_id) {
         try {
           // Create new schedule
-          const {  newScheduleData, error: scheduleError } = await supabase
+          const { data: scheduleData, error: scheduleError } = await supabase
             .from('activity_schedules')
             .insert({
               activity_id: createdActivity.activity_id, // Use the ID from the created activity

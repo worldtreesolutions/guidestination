@@ -1,14 +1,14 @@
 import { supabase } from "@/integrations/supabase/client"
 import { User, Session } from "@supabase/supabase-js"
 
-interface SignInResponse {
+export interface SignInResponse {
   user: User | null;
   session: Session | null;
   provider_id?: string;
   error: Error | null;
 }
 
-interface SignUpResponse {
+export interface SignUpResponse {
   user: User | null;
   session: Session | null;
   error: Error | null;

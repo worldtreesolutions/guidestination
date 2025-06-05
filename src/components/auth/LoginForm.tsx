@@ -1,4 +1,3 @@
-
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -32,25 +31,26 @@ export function LoginForm() {
     },
   })
 
-  async function onSubmit(values: LoginFormValues) {
+  const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true)
     setError(null)
-    try {
-      const { data, error: signInError } = await login(values.email, values.password)
 
-      if (signInError) {
-        setError(signInError.message || "An unexpected error occurred during login.")
+    try {
+      const response = await login(data.email, data.password)
+      
+      if (response.error) {
+        setError(response.error.message)
         return
       }
 
-      if (data?.session) {
-        router.push("/dashboard/overview")
+      // Check if user has provider_id to determine redirect
+      if (response.provider_id) {
+        router.push('/dashboard/overview')
       } else {
-        setError("Login successful, but no session was created. Please try again.")
+        router.push('/dashboard/overview')
       }
-    } catch (e: any) {
-      console.error("Login error:", e)
-      setError(e.message || "An unexpected error occurred.")
+    } catch (err: any) {
+      setError(err.message || 'An error occurred during login')
     } finally {
       setIsLoading(false)
     }

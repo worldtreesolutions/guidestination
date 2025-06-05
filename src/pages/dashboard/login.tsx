@@ -1,4 +1,3 @@
-
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -33,54 +32,26 @@ export default function LoginPage() {
     },
   })
 
-  async function onSubmit({ email, password }: LoginFormValues) {
+  const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true)
     setError(null)
 
     try {
-      const { data, error: signInError } = await login(email, password)
-
-      if (signInError) {
-        setError(signInError.message || "An unexpected error occurred during login.")
-        setIsLoading(false) // Reset loading state on error
+      const response = await login(data.email, data.password)
+      
+      if (response.error) {
+        setError(response.error.message)
         return
       }
 
-      if (data?.user) {
-        const role = data.user.user_metadata?.role
-        console.log("User role from meta", role) // For debugging
-        console.log("Provider ID:", data.provider_id) // Log provider_id if available
-
-        // Store provider_id in localStorage for use in activity creation
-        if (data.provider_id) {
-          localStorage.setItem('provider_id', data.provider_id)
-        }
-
-        if (role === "activity_owner") {
-          router.push("/activity-owner/dashboard")
-        } else if (role === "admin") { 
-          router.push("/admin") // Adjust if your admin dashboard path is different
-        } else {
-          router.push("/dashboard/overview") // Default dashboard
-        }
-      } else if (data?.session) {
-        // Session exists, but user object (and thus metadata) might not be immediately available.
-        // The AuthContext's onAuthStateChange listener should handle full user profile loading.
-        // Redirect to a default page; role-based redirection might be handled by a layout component.
-        console.warn("Login successful with session, but user metadata not immediately available. Defaulting redirect to /dashboard/overview.")
-        router.push("/dashboard/overview")
+      // Check if user has provider_id to determine redirect
+      if (response.provider_id) {
+        router.push('/dashboard/overview')
       } else {
-        setError("Login successful, but no session or user data was returned. Please try again.")
+        router.push('/dashboard/overview')
       }
     } catch (err: any) {
-      console.error("Login page onSubmit error:", err)
-      let message = "An unexpected error occurred during login."
-      if (err instanceof Error) {
-        message = err.message
-      } else if (typeof err === "object" && err && "message" in err) {
-        message = (err as {message: string}).message
-      }
-      setError(message)
+      setError(err.message || 'An error occurred during login')
     } finally {
       setIsLoading(false)
     }
