@@ -42,35 +42,30 @@ export default function LoginPage() {
 
       if (signInError) {
         setError(signInError.message || "An unexpected error occurred during login.")
-        setIsLoading(false) // Reset loading state on error
+        setIsLoading(false)
         return
       }
 
-      if (data?.user) {
+      if (data?.user && data?.session) {
         const role = data.user.user_metadata?.role
-        console.log("User role from meta", role) // For debugging
-        console.log("Provider ID:", data.provider_id) // Log provider_id if available
+        console.log("User role from meta", role)
+        console.log("Provider ID:", data.provider_id)
 
         // Store provider_id in localStorage for use in activity creation
         if (data.provider_id) {
           localStorage.setItem('provider_id', data.provider_id)
         }
 
+        // Successful login with both user and session
         if (role === "activity_owner") {
           router.push("/activity-owner/dashboard")
         } else if (role === "admin") { 
-          router.push("/admin") // Adjust if your admin dashboard path is different
+          router.push("/admin")
         } else {
-          router.push("/dashboard/overview") // Default dashboard
+          router.push("/dashboard/overview")
         }
-      } else if (data?.session) {
-        // Session exists, but user object (and thus metadata) might not be immediately available.
-        // The AuthContext's onAuthStateChange listener should handle full user profile loading.
-        // Redirect to a default page; role-based redirection might be handled by a layout component.
-        console.warn("Login successful with session, but user metadata not immediately available. Defaulting redirect to /dashboard/overview.")
-        router.push("/dashboard/overview")
       } else {
-        setError("Login successful, but no session or user data was returned. Please try again.")
+        setError("Login failed. Please check your credentials and try again.")
       }
     } catch (err: any) {
       console.error("Login page onSubmit error:", err)

@@ -7,7 +7,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<SignInResponse>;
+  login: (email: string, password: string) => Promise<{ data?: { user: User | null; session: Session | null; provider_id?: string }; error?: Error | null }>;
   signOut: () => Promise<void>;
   isAuthenticated: boolean;
   provider_id?: string;
@@ -17,7 +17,7 @@ const defaultContext: AuthContextType = {
   user: null,
   session: null,
   loading: true,
-  login: async () => ({ user: null, session: null, error: new Error("Login function not implemented") }),
+  login: async () => ({ error: new Error("Login function not implemented") }),
   signOut: async () => {},
   isAuthenticated: false,
   provider_id: undefined
@@ -41,12 +41,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (initialSession?.user) {
         const { data: ownerData } = await supabase
           .from('activity_owners')
-          .select('provider_id')  // Changed from 'id' to 'provider_id'
+          .select('provider_id')
           .eq('user_id', initialSession.user.id)
           .single();
           
         if (ownerData) {
-          setProviderId(ownerData.provider_id);  // Changed from ownerData.id to ownerData.provider_id
+          setProviderId(ownerData.provider_id);
         }
       }
       
@@ -64,12 +64,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (newSession?.user) {
           const { data: ownerData } = await supabase
             .from('activity_owners')
-            .select('provider_id')  // Changed from 'id' to 'provider_id'
+            .select('provider_id')
             .eq('user_id', newSession.user.id)
             .single();
             
           if (ownerData) {
-            setProviderId(ownerData.provider_id);  // Changed from ownerData.id to ownerData.provider_id
+            setProviderId(ownerData.provider_id);
           } else {
             setProviderId(undefined);
           }
@@ -86,22 +86,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  const login = async (email: string, password: string): Promise<SignInResponse> => {
+  const login = async (email: string, password: string) => {
     try {
       const response = await authService.signInWithEmail(email, password)
-      if (response.error) throw response.error
       
-      // Set provider_id if available
-      if (response.provider_id) {
-        setProviderId(response.provider_id);
+      if (response.error) {
+        return { error: response.error }
       }
       
-      return response;
+      // Update local state immediately
+      if (response.user && response.session) {
+        setUser(response.user)
+        setSession(response.session)
+        
+        // Set provider_id if available
+        if (response.provider_id) {
+          setProviderId(response.provider_id);
+        }
+      }
+      
+      return {
+        data: {
+          user: response.user,
+          session: response.session,
+          provider_id: response.provider_id
+        }
+      };
     } catch (error) {
       console.error("Login error:", error)
       return {
-        user: null,
-        session: null,
         error: error as Error,
       }
     }
