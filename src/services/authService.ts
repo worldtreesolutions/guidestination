@@ -1,20 +1,24 @@
 import { supabase } from "@/integrations/supabase/client"
 import { User, Session } from "@supabase/supabase-js"
 
+interface SignInResponseData {
+  user: User;
+  session: Session;
+  provider_id?: string;
+}
+
 interface SignInResponse {
-  data: {
-    user: User;
-    session: Session;
-    provider_id?: string;
-  } | null;
+  data: SignInResponseData | null;
   error: Error | null;
 }
 
+interface SignUpResponseData {
+  user: User;
+  session: Session;
+}
+
 interface SignUpResponse {
-  data: {
-    user: User;
-    session: Session;
-  } | null;
+  data: SignUpResponseData | null;
   error: Error | null;
 }
 
@@ -76,7 +80,7 @@ const authService = {
         return {  { user: data.user, session: data.session }, error: null };
       }
       // If user or session is null, it's an unexpected state.
-      return { data: null, error: new Error("User or session data is missing after sign up.") };
+      return {  null, error: new Error("User or session data is missing after sign up.") };
     } catch (error) {
       return {  null, error: error as Error };
     }
