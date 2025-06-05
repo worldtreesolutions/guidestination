@@ -44,7 +44,7 @@ export function LoginForm() {
       }
 
       // Check if user has provider_id to determine redirect
-      if (response.provider_id) {
+      if (response.data?.provider_id) {
         router.push('/dashboard/overview')
       } else {
         router.push('/dashboard/overview')
