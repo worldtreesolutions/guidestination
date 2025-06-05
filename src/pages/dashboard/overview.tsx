@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -95,50 +94,56 @@ export default function DashboardOverviewPage() {
 
   return (
     <DashboardLayout>
-      <div className="container mx-auto px-4 py-8">
+      <div className="space-y-4 sm:space-y-6">
         {/* Language Selector */}
-        <div className="flex justify-end mb-4">
+        <div className="flex justify-end">
           <LanguageSelector />
         </div>
 
-        <h1 className="text-2xl font-bold mb-6">{t("dashboard.overview.title") || "Dashboard Overview"}</h1>
+        <div className="space-y-2">
+          <h1 className="text-xl sm:text-2xl font-bold">{t("dashboard.overview.title") || "Dashboard Overview"}</h1>
+        </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-lg font-semibold mb-4">{t("dashboard.overview.totalEarnings") || "Total Earnings"}</h2>
-            <p className="text-3xl font-bold">${totalEarnings.toFixed(2)}</p>
+        {/* Responsive grid layout */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          {/* Total Earnings Card */}
+          <div className="bg-white p-4 sm:p-6 rounded-lg shadow">
+            <h2 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4">{t("dashboard.overview.totalEarnings") || "Total Earnings"}</h2>
+            <p className="text-2xl sm:text-3xl font-bold">${totalEarnings.toFixed(2)}</p>
           </div>
           
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-lg font-semibold mb-4">{t("dashboard.overview.recentBookings") || "Recent Bookings"}</h2>
+          {/* Recent Bookings Card */}
+          <div className="bg-white p-4 sm:p-6 rounded-lg shadow sm:col-span-2 lg:col-span-1">
+            <h2 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4">{t("dashboard.overview.recentBookings") || "Recent Bookings"}</h2>
             {recentBookings.length > 0 ? (
-              <div className="space-y-4">
-                {recentBookings.map((booking) => (
-                  <div key={booking.id} className="border-b pb-2">
-                    <p className="font-medium">{booking.activity_name}</p>
-                    <p className="text-sm text-gray-600">{booking.customer_name}</p>
-                    <p className="text-sm text-gray-600">{new Date(booking.date).toLocaleDateString()}</p>
-                    <p className="text-sm text-gray-600">{t("dashboard.overview.status") || "Status"}: {booking.status}</p>
+              <div className="space-y-3 sm:space-y-4">
+                {recentBookings.slice(0, 3).map((booking) => (
+                  <div key={booking.id} className="border-b pb-2 last:border-b-0">
+                    <p className="font-medium text-sm sm:text-base truncate">{booking.activity_name}</p>
+                    <p className="text-xs sm:text-sm text-gray-600 truncate">{booking.customer_name}</p>
+                    <p className="text-xs sm:text-sm text-gray-600">{new Date(booking.date).toLocaleDateString()}</p>
+                    <p className="text-xs sm:text-sm text-gray-600">{t("dashboard.overview.status") || "Status"}: {booking.status}</p>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-gray-500 text-center">{t("dashboard.overview.noBookings") || "No recent bookings found"}</p>
+              <p className="text-gray-500 text-center text-sm sm:text-base">{t("dashboard.overview.noBookings") || "No recent bookings found"}</p>
             )}
           </div>
           
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-lg font-semibold mb-4">{t("dashboard.overview.quickActions") || "Quick Actions"}</h2>
-            <div className="space-y-2">
+          {/* Quick Actions Card */}
+          <div className="bg-white p-4 sm:p-6 rounded-lg shadow sm:col-span-2 lg:col-span-1">
+            <h2 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4">{t("dashboard.overview.quickActions") || "Quick Actions"}</h2>
+            <div className="space-y-2 sm:space-y-3">
               <button 
                 onClick={() => router.push('/dashboard/activities/new')}
-                className="w-full py-2 px-4 bg-[#ededed] text-foreground rounded-md hover:bg-[#e0e0e0] transition-colors"
+                className="w-full py-2 sm:py-3 px-3 sm:px-4 bg-[#ededed] text-foreground rounded-md hover:bg-[#e0e0e0] transition-colors text-sm sm:text-base"
               >
                 {t("dashboard.overview.createActivity") || "Create New Activity"}
               </button>
               <button 
                 onClick={() => router.push('/dashboard/bookings')}
-                className="w-full py-2 px-4 bg-gray-100 text-gray-800 rounded-md hover:bg-gray-200 transition-colors"
+                className="w-full py-2 sm:py-3 px-3 sm:px-4 bg-gray-100 text-gray-800 rounded-md hover:bg-gray-200 transition-colors text-sm sm:text-base"
               >
                 {t("dashboard.overview.viewBookings") || "View All Bookings"}
               </button>

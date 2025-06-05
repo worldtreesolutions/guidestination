@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "next/router"
@@ -94,11 +93,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         </div>
         
-        {/* Main content - responsive */}
-        <main className={`flex-1 p-4 md:p-6 lg:p-8 transition-all duration-300 ease-in-out ${
+        {/* Main content - responsive with better mobile spacing */}
+        <main className={`flex-1 p-3 sm:p-4 md:p-6 lg:p-8 transition-all duration-300 ease-in-out ${
           sidebarOpen && !isMobile ? "lg:ml-0" : "ml-0"
-        } pt-16 lg:pt-4 w-full`}>
-          <div className="max-w-7xl mx-auto">
+        } pt-16 lg:pt-4 w-full min-h-screen`}>
+          <div className="max-w-7xl mx-auto w-full">
             {children}
           </div>
         </main>
