@@ -46,9 +46,13 @@ export default function LoginPage() {
 
       // Check if user has provider_id to determine redirect
       if (response.provider_id) {
+        // User is a provider, redirect to provider dashboard
         router.push('/dashboard/overview')
       } else {
-        router.push('/dashboard/overview')
+        // User is not a provider, show error message
+        setError("Your account doesn't have provider access. Please register as a provider first.")
+        setIsLoading(false)
+        return
       }
     } catch (err: any) {
       setError(err.message || 'An error occurred during login')
