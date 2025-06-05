@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react"
 import { useRouter } from "next/router"
 import Head from "next/head"
@@ -94,6 +93,20 @@ interface ActivitySchedule {
   status: string | null;
 }
 
+// Helper function to convert duration string to hours
+const convertDurationStringToHours = (durationString: string | null | undefined): number | null => {
+  if (!durationString) return null;
+  switch (durationString) {
+    case "1_hour": return 1;
+    case "2_hours": return 2;
+    case "half_day": return 4;
+    case "full_day": return 8;
+    default:
+      const numericDuration = parseInt(durationString, 10);
+      return !isNaN(numericDuration) ? numericDuration : null;
+  }
+};
+
 export default function EditActivityPage() {
   const { user, isAuthenticated } = useAuth()
   const router = useRouter()
@@ -163,7 +176,6 @@ export default function EditActivityPage() {
   const duration = form.watch('duration')
   const startTime = form.watch('schedule_start_time')
 
-
   const toTimestamp = (timeString: string) => {
   const today = new Date();
   const [hours, minutes] = timeString.split(':');
@@ -172,25 +184,15 @@ export default function EditActivityPage() {
 };
   // Update end time when start time or duration changes
   useEffect(() => {
-    if (startTime) {
+    if (startTime && duration) { // Ensure duration is also available
       const start = new Date(`2000-01-01T${startTime}`);
       let hours = 2; // Default to 2 hours
       
-      switch (duration) {
-        case '1_hour':
-          hours = 1;
-          break;
-        case '2_hours':
-          hours = 2;
-          break;
-        case 'half_day':
-          hours = 4; // Half day is 4 hours
-          break;
-        case 'full_day':
-          hours = 8; // Full day is 8 hours
-          break;
+      const numericDuration = convertDurationStringToHours(duration);
+      if (numericDuration !== null) {
+        hours = numericDuration;
       }
-      
+            
       const end = new Date(start.getTime() + hours * 60 * 60 * 1000);
       const endTimeString = end.toTimeString().substring(0, 5);
       
@@ -246,16 +248,30 @@ export default function EditActivityPage() {
             // Get the first schedule if available
             const firstSchedule = activitySchedules.length > 0 ? activitySchedules[0] : null;
             
-            // Ensure duration is a string
-            const durationString = typeof fetchedActivity.duration === 'string' 
-              ? fetchedActivity.duration 
-              : '2_hours'; // Default if it's not a string
+            // Ensure duration is a string for the form, but it will be converted for saving
+            const durationString = typeof fetchedActivity.duration === "number" 
+              ? `${fetchedActivity.duration}_hours` // Attempt to reverse map, might need better logic if not direct hours
+              : typeof fetchedActivity.duration === "string" 
+                ? fetchedActivity.duration
+                : "2_hours";
+
+            // A more robust way to map numeric duration back to form string if needed:
+            let formDuration = "2_hours";
+            if (typeof fetchedActivity.duration === "number") {
+                if (fetchedActivity.duration === 1) formDuration = "1_hour";
+                else if (fetchedActivity.duration === 2) formDuration = "2_hours";
+                else if (fetchedActivity.duration === 4) formDuration = "half_day";
+                else if (fetchedActivity.duration === 8) formDuration = "full_day";
+                // else keep default or handle other numeric values if they exist
+            } else if (typeof fetchedActivity.duration === "string") {
+                formDuration = fetchedActivity.duration;
+            }
             
             form.reset({
               title: fetchedActivity.title,
               description: fetchedActivity.description ?? '',
               category_id: fetchedActivity.category_id ?? null,
-              duration: durationString,
+              duration: formDuration, // Use the mapped form duration
               final_price: fetchedActivity.final_price ?? 0,
               max_participants: fetchedActivity.max_participants ?? 10,
               has_pickup: hasPickup, // Set based on pickup_location
@@ -318,7 +334,7 @@ export default function EditActivityPage() {
         title: data.title,
         description: data.description,
         category_id: data.category_id ? Number(data.category_id) : null,
-        duration: data.duration,
+        duration: convertDurationStringToHours(data.duration), // Convert duration string to number
         final_price: Number(data.final_price),
         max_participants: data.max_participants ? Number(data.max_participants) : null,
         pickup_location: data.has_pickup ? data.pickup_location || '' : '',
@@ -331,7 +347,7 @@ export default function EditActivityPage() {
         image_url: data.image_urls && data.image_urls.length > 0 ? data.image_urls[0] : null,
         is_active: data.is_active,
         b_price: data.b_price ? Number(data.b_price) : null,
-        status: data.status ? Number(data.status) : null,
+        status: data.status !== null && data.status !== undefined ? Number(data.status) : undefined,
         discounts: data.discounts ? Number(data.discounts) : 0,
       };
 
@@ -344,12 +360,11 @@ export default function EditActivityPage() {
         start_time: toTimestamp(data.schedule_start_time ?? '09:00'),
         end_time: toTimestamp(data.schedule_end_time ?? '11:00'),
         capacity: data.schedule_capacity || 10,
-        availability_start_date: data.schedule_availability_start_date,
-        availability_end_date: data.schedule_availability_end_date,
+        availability_start_date: data.schedule_availability_start_date || undefined, // Convert null/empty to undefined
+        availability_end_date: data.schedule_availability_end_date || undefined,   // Convert null/empty to undefined
         is_active: true,
-        status: 'active',
-        // Don't use user.id directly for integer columns
-        updated_by: null,
+        status: 'active' as const, // Ensure status is of literal type 'active' or string | null based on DB
+        updated_by: user.id, // Assuming user.id is string (UUID)
       };
 
       if (data.schedule_id) {
@@ -373,8 +388,7 @@ export default function EditActivityPage() {
           .from('activity_schedules')
           .insert({
             ...scheduleData,
-            // Don't use user.id directly for integer columns
-            created_by: null,
+            created_by: user.id, // Assuming user.id is string (UUID)
           });
 
         if (error) {

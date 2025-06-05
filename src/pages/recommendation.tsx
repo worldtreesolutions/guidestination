@@ -10,17 +10,58 @@ import { Loader2 } from "lucide-react"
 import Image from "next/image"
 import { usePlanning } from "@/contexts/PlanningContext"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { useToast } from "@/hooks/use-toast"; // Corrected import
 
 const parseDuration = (duration: string): number => {
   const hours = parseInt(duration.replace("h", ""))
   return isNaN(hours) ? 2 : hours
 }
 
+const mockActivities = [
+  {
+    id: "1",
+    title: "Elephant Sanctuary Visit",
+    imageUrl: "https://images.unsplash.com/photo-1585970480901-90d6bb2a48b5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8ZWxlcGhhbnQlMjBzYW5jdHVhcnl8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=500&q=60",
+    price: 1500,
+    duration: 4, // hours
+    day: "Monday",
+    hour: 9, // 9 AM
+    participants: 2,
+    image_url: "https://images.unsplash.com/photo-1585970480901-90d6bb2a48b5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8ZWxlcGhhbnQlMjBzYW5jdHVhcnl8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=500&q=60", // Added
+    b_price: 1500, // Added
+  },
+  {
+    id: "2",
+    title: "Thai Cooking Class",
+    imageUrl: "https://images.unsplash.com/photo-1556909172-6ab63f18fd12?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8dGhhaSUyMGNvb2tpbmclMjBjbGFzc3xlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=500&q=60",
+    price: 1200,
+    duration: 3, // hours
+    day: "Tuesday",
+    hour: 14, // 2 PM
+    participants: 2,
+    image_url: "https://images.unsplash.com/photo-1556909172-6ab63f18fd12?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8dGhhaSUyMGNvb2tpbmclMjBjbGFzc3xlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=500&q=60", // Added
+    b_price: 1200, // Added
+  },
+  {
+    id: "3",
+    title: "Doi Suthep Temple Tour",
+    imageUrl: "https://images.unsplash.com/photo-1583250005041-8208a03d1399?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8ZG9pJTIwc3V0aGVwJTIwdGVtcGxlfGVufDB8fDB8fHww&auto=format&fit=crop&w=500&q=60",
+    price: 800,
+    duration: 3, // hours
+    day: "Wednesday",
+    hour: 10, // 10 AM
+    participants: 2,
+    image_url: "https://images.unsplash.com/photo-1583250005041-8208a03d1399?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8ZG9pJTIwc3V0aGVwJTIwdGVtcGxlfGVufDB8fDB8fHww&auto=format&fit=crop&w=500&q=60", // Added
+    b_price: 800, // Added
+  },
+];
+
 export default function RecommendationPage() {
   const [loading, setLoading] = useState(false)
   const [recommendations, setRecommendations] = useState<RecommendedPlan | null>(null)
-  const { addActivity } = usePlanning()
+  const { addActivity } = usePlanning() // Corrected: remove addActivityToPlanning
   const isMobile = useIsMobile()
+  const { toast } = useToast(); // Initialize useToast
 
   const handleSubmit = async (data: PreferencesFormData) => {
     setLoading(true)
@@ -38,17 +79,45 @@ export default function RecommendationPage() {
     if (recommendations) {
       recommendations.activities.forEach((activity) => {
         addActivity({
-          id: activity.id,
+          activity_id: activity.id, // Map id to activity_id
           title: activity.title,
-          imageUrl: activity.image,
-          price: activity.price,
-          duration: parseDuration(activity.duration),
-          day: activity.day,
-          hour: 0,
-          participants: 1
-        })
+          image_url: activity.image, // Map image to image_url
+          b_price: activity.price,   // Map price to b_price
+          duration: parseDuration(activity.duration), // Ensure duration is number
+          // Add other necessary fields for PartialActivity if any, or ensure they are optional
+          name: activity.title, // Assuming name is required or useful
+        });
       })
     }
+  }
+
+  const handleAddToPlanner = (activity: typeof mockActivities[0]) => {
+    addActivity({ // Use addActivity
+      activity_id: parseInt(activity.id),
+      title: activity.title,
+      image_url: activity.imageUrl,
+      b_price: activity.price,
+      final_price: activity.price,
+      duration: activity.duration,
+      description: `An exciting ${activity.title} experience.`,
+      category_id: null, 
+      max_participants: activity.participants,
+      pickup_location: null,
+      dropoff_location: null,
+      meeting_point: null,
+      languages: null,
+      highlights: null,
+      included: null,
+      not_included: null,
+      is_active: true,
+      status: 1, 
+      discounts: null,
+      name: activity.title, 
+    });
+    toast({
+      title: "Activity Added",
+      description: `Added ${activity.title} to your planner.`,
+    });
   }
 
   return (
@@ -126,14 +195,17 @@ export default function RecommendationPage() {
                             <Button
                               className="w-full sm:w-auto"
                               onClick={() => addActivity({
-                                id: activity.id,
+                                activity_id: activity.id, // Map id to activity_id
                                 title: activity.title,
-                                imageUrl: activity.image,
-                                price: activity.price,
-                                duration: parseDuration(activity.duration),
-                                day: activity.day,
-                                hour: 0,
-                                participants: 1
+                                image_url: activity.image, // Map image to image_url
+                                b_price: activity.price,   // Map price to b_price
+                                duration: parseDuration(activity.duration), // Ensure duration is number
+                                // Add other necessary fields for PartialActivity
+                                name: activity.title, // Assuming name is required or useful
+                                // Default other fields as in PlanningContext
+                                day: activity.day, // If these are part of PartialActivity
+                                hour: 0,           // If these are part of PartialActivity
+                                participants: 1    // If these are part of PartialActivity
                               })}
                             >
                               Add to Planning

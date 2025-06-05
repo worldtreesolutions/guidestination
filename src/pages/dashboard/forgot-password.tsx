@@ -1,4 +1,3 @@
-
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -8,7 +7,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useAuth } from "@/contexts/AuthContext"
-import Link from "next/link"
+import Link from "next/link";
+import { useRouter } from "next/router";
+import { useToast } from "@/hooks/use-toast"; // Corrected import
+import authService from "@/services/authService";
 
 const forgotPasswordSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
@@ -17,10 +19,13 @@ const forgotPasswordSchema = z.object({
 type ForgotPasswordValues = z.infer<typeof forgotPasswordSchema>
 
 export default function ForgotPasswordPage() {
+  const router = useRouter();
+  const { toast } = useToast();
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const { resetPasswordForEmail } = useAuth()
+  const [email, setEmail] = useState("");
+  // const { resetPasswordForEmail } = useAuth(); // Remove this
 
   const form = useForm<ForgotPasswordValues>({
     resolver: zodResolver(forgotPasswordSchema),
@@ -34,8 +39,15 @@ export default function ForgotPasswordPage() {
     setError(null)
 
     try {
-      const { error } = await resetPasswordForEmail(email)
-      if (error) throw error
+      const result = await authService.resetPassword(email); 
+      if (result.error) {
+        toast({
+          title: "Error",
+          description: result.error.message || "Failed to send reset password email",
+          variant: "destructive",
+        });
+        throw result.error
+      }
       setSuccess(true)
     } catch (err: any) {
       console.error("Reset password error:", err)

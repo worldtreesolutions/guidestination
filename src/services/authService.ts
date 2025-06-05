@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client"
 import { User, Session } from "@supabase/supabase-js"
 
@@ -7,6 +6,14 @@ interface SignInResponse {
     user: User;
     session: Session;
     provider_id?: string;
+  } | null;
+  error: Error | null;
+}
+
+interface SignUpResponse {
+  data: {
+    user: User;
+    session: Session;
   } | null;
   error: Error | null;
 }
@@ -59,18 +66,34 @@ const authService = {
     if (error) throw error
   },
 
-  async resetPassword(email: string) {
+  async signUp(email: string, password: string): Promise<SignUpResponse> {
+    try {
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      if (error) {
+        return {  null, error };
+      }
+      if (data.user && data.session) {
+        return {  { user: data.user, session: data.session }, error: null };
+      }
+      // If user or session is null, it's an unexpected state.
+      return { data: null, error: new Error("User or session data is missing after sign up.") };
+    } catch (error) {
+      return {  null, error: error as Error };
+    }
+  },
+
+  async resetPassword(email: string): Promise<{ error: Error | null }> {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/dashboard/reset-password`,
     })
-    if (error) throw error
+    return { error: error ? error : null };
   },
 
-  async updatePassword(password: string) {
+  async updatePassword(password: string): Promise<{ error: Error | null }> {
     const { error } = await supabase.auth.updateUser({
       password,
     })
-    if (error) throw error
+    return { error: error ? error : null };
   },
 }
 

@@ -48,6 +48,7 @@ import categoryService, { Category } from '@/services/categoryService'
 import { formatCurrency } from "@/lib/utils"
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSelector } from "@/components/layout/LanguageSelector";
+import { convertDurationStringToHours, toTimestamp } from "@/lib/activityUtils";
 
 // Define the form schema using Zod (ensure it aligns with ActivityInsert)
 const formSchema = z.object({
@@ -152,31 +153,21 @@ export default function NewActivityPage() {
 
   // Update end time when start time or duration changes
   useEffect(() => {
-    if (startTime) {
+    if (startTime && duration) {
       const start = new Date(`2000-01-01T${startTime}`);
       let hours = 2; // Default to 2 hours
       
-      switch (duration) {
-        case '1_hour':
-          hours = 1;
-          break;
-        case '2_hours':
-          hours = 2;
-          break;
-        case 'half_day':
-          hours = 4; // Half day is 4 hours
-          break;
-        case 'full_day':
-          hours = 8; // Full day is 8 hours
-          break;
+      const numericDuration = convertDurationStringToHours(duration);
+      if (numericDuration !== null) {
+        hours = numericDuration;
       }
-      
+            
       const end = new Date(start.getTime() + hours * 60 * 60 * 1000);
       const endTimeString = end.toTimeString().substring(0, 5);
       
       form.setValue('schedule_end_time', endTimeString);
     }
-  }, [startTime, duration, form]);
+  }, [startTime, duration, form]); // Added form to dependency array
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -186,23 +177,23 @@ export default function NewActivityPage() {
   }, [isAuthenticated, router])
 
  // Calculate final price whenever price changes
+  const priceFormValue = form.watch("price");
   useEffect(() => {
-    const price = form.watch("price")
-    if (price) {
+    if (priceFormValue) {
       // Add 20% markup
-      const withMarkup = price * 1.2
+      const withMarkup = priceFormValue * 1.2
       // Add 7% VAT
       const withVAT = withMarkup * 1.07
       setFinalPrice(withVAT)
     } else {
       setFinalPrice(0)
     }
-  }, [form.watch("price")])
+  }, [priceFormValue]); // Corrected dependency array
 
 
   // Handle form submission using activityCrudService
-  const onSubmit = async (data: FormValues) => {
-    if (!user) {
+  const onSubmit = async ( FormValues) => {
+    if (!user || !user.id) {
       toast({ title: 'Error', description: 'User not found. Please log in again.', variant: 'destructive' });
       return;
     }
@@ -226,7 +217,7 @@ export default function NewActivityPage() {
         title: data.title,
         description: data.description,
         category_id: data.category_id ? Number(data.category_id) : null,
-        duration: Number(data.duration),
+        duration: convertDurationStringToHours(data.duration), // Use imported helper
         max_participants: Number(data.max_participants),
         pickup_location: data.has_pickup ? data.pickup_location || '' : '', // Use empty string if no pickup
         dropoff_location: data.dropoff_location,
@@ -254,23 +245,26 @@ export default function NewActivityPage() {
       // Create schedule for the activity if activity was created successfully
       if (createdActivity && createdActivity.activity_id) {
         try {
-          // Create schedule entry in activity_schedules table
-          const { error } = await supabase.from('activity_schedules').insert({
-            activity_id: createdActivity.activity_id,
-            start_time: data.schedule_start_time || '09:00',
-            end_time: data.schedule_end_time || '11:00',
-            capacity: data.schedule_capacity || 10,
-            availability_start_date: data.schedule_availability_start_date,
-            availability_end_date: data.schedule_availability_end_date,
-            is_active: true,
-            status: 'active',
-            // Don't use user.id directly for integer columns
-            created_by: null,
-            updated_by: null,
-          });
+          // Create new schedule
+          const {  newScheduleData, error: scheduleError } = await supabase
+            .from('activity_schedules')
+            .insert({
+              activity_id: createdActivity.activity_id, // Use the ID from the created activity
+              start_time: toTimestamp(data.schedule_start_time ?? '09:00'), // Use imported helper
+              end_time: toTimestamp(data.schedule_end_time ?? '11:00'), // Use imported helper
+              capacity: data.schedule_capacity || 10,
+              availability_start_date: data.schedule_availability_start_date || undefined,
+              availability_end_date: data.schedule_availability_end_date || undefined,
+              is_active: true,
+              status: 'active',
+              created_by: user.id,
+              updated_by: user.id,
+            })
+            .select()
+            .single();
 
-          if (error) {
-            console.error('Error creating schedule:', error);
+          if (scheduleError) {
+            console.error('Error creating schedule:', scheduleError);
             toast({
               title: 'Warning',
               description: 'Activity created but schedule could not be saved. You can add schedules later.',

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -7,9 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useAuth } from "@/contexts/AuthContext";
 import authService from "@/services/authService";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { useToast } from "@/hooks/use-toast"; // Corrected import
 
 const resetPasswordSchema = z.object({
   password: z.string().min(6, { message: "Password must be at least 6 characters." }),
@@ -26,6 +27,9 @@ export default function ResetPasswordPage() {
   const [success, setSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { toast } = useToast();
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const form = useForm<ResetPasswordValues>({
     resolver: zodResolver(resetPasswordSchema),
@@ -40,8 +44,16 @@ export default function ResetPasswordPage() {
     setError(null);
 
     try {
-      const { error } = await authService.updatePasswordWithResetToken(password);
-      if (error) throw error;
+      const result = await authService.updatePassword(password); 
+
+      if (result.error) {
+        toast({
+          title: "Error",
+          description: result.error.message || "Failed to reset password",
+          variant: "destructive",
+        });
+        throw result.error;
+      }
       setSuccess(true);
       setTimeout(() => {
         router.push("/dashboard/login");

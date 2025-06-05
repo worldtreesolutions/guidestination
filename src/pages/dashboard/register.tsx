@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,6 +10,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import Image from "next/image";
+import { useToast } from "@/hooks/use-toast"; // Corrected import
+import authService from "@/services/authService"; 
 
 const registerSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -21,8 +22,10 @@ const registerSchema = z.object({
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
-  const { register } = useAuth();
   const router = useRouter();
+  const { toast } = useToast();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -40,13 +43,13 @@ export default function RegisterPage() {
     setError(null);
 
     try {
-      const { data, error: registrationError } = await register(email, password, {
-        name,
-        role: "user",
-      });
+      const { data, error } = await authService.signUp(email, password); 
 
-      if (registrationError) {
-        setError(registrationError.message || "An unexpected error occurred during registration.");
+      if (error) {
+        toast({
+          variant: "destructive",
+          description: error.message || "An unexpected error occurred during registration.",
+        });
         return;
       }
 
