@@ -1,4 +1,3 @@
-
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,12 +16,15 @@ export function ImageUploader({ value = [], onChange, maxImages = 10 }: ImageUpl
   const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Ensure value is always an array
+  const imageUrls = Array.isArray(value) ? value : [];
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
     // Check if adding these files would exceed the maximum
-    if (value.length + files.length > maxImages) {
+    if (imageUrls.length + files.length > maxImages) {
       setUploadError(`You can only upload a maximum of ${maxImages} images.`);
       return;
     }
@@ -38,7 +40,7 @@ export function ImageUploader({ value = [], onChange, maxImages = 10 }: ImageUpl
       );
 
       // Add the new images to the existing ones
-      onChange([...value, ...newImageUrls]);
+      onChange([...imageUrls, ...newImageUrls]);
     } catch (error) {
       console.error("Error processing images:", error);
       setUploadError("Failed to process images. Please try again.");
@@ -61,7 +63,7 @@ export function ImageUploader({ value = [], onChange, maxImages = 10 }: ImageUpl
   };
 
   const handleRemoveImage = (index: number) => {
-    const newImages = [...value];
+    const newImages = [...imageUrls];
     newImages.splice(index, 1);
     onChange(newImages);
   };
@@ -69,11 +71,11 @@ export function ImageUploader({ value = [], onChange, maxImages = 10 }: ImageUpl
   const handleAddUrlClick = () => {
     const url = prompt("Enter image URL:");
     if (url && isValidUrl(url)) {
-      if (value.length + 1 > maxImages) {
+      if (imageUrls.length + 1 > maxImages) {
         setUploadError(`You can only upload a maximum of ${maxImages} images.`);
         return;
       }
-      onChange([...value, url]);
+      onChange([...imageUrls, url]);
       setUploadError(null);
     } else if (url) {
       setUploadError("Please enter a valid URL.");
@@ -96,7 +98,7 @@ export function ImageUploader({ value = [], onChange, maxImages = 10 }: ImageUpl
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-4">
-        {value.map((imageUrl, index) => (
+        {imageUrls.map((imageUrl, index) => (
           <div 
             key={index} 
             className="relative group border rounded-md overflow-hidden w-32 h-32"
@@ -120,7 +122,7 @@ export function ImageUploader({ value = [], onChange, maxImages = 10 }: ImageUpl
                   className="object-cover"
                   onError={() => {
                     // Replace with placeholder if image fails to load
-                    const newImages = [...value];
+                    const newImages = [...imageUrls];
                     newImages[index] = "https://images.unsplash.com/photo-1563492065599-3520f775eeed";
                     onChange(newImages);
                   }}
@@ -139,7 +141,7 @@ export function ImageUploader({ value = [], onChange, maxImages = 10 }: ImageUpl
           </div>
         ))}
 
-        {value.length < maxImages && (
+        {imageUrls.length < maxImages && (
           <div className="border rounded-md w-32 h-32 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-muted/50 transition-colors"
                onClick={() => fileInputRef.current?.click()}>
             <Upload className="h-8 w-8 text-muted-foreground" />
@@ -167,7 +169,7 @@ export function ImageUploader({ value = [], onChange, maxImages = 10 }: ImageUpl
           variant="outline"
           size="sm"
           onClick={() => fileInputRef.current?.click()}
-          disabled={isUploading || value.length >= maxImages}
+          disabled={isUploading || imageUrls.length >= maxImages}
         >
           <Upload className="h-4 w-4 mr-2" />
           Upload Images
@@ -177,7 +179,7 @@ export function ImageUploader({ value = [], onChange, maxImages = 10 }: ImageUpl
           variant="outline"
           size="sm"
           onClick={handleAddUrlClick}
-          disabled={value.length >= maxImages}
+          disabled={imageUrls.length >= maxImages}
         >
           <ImageIcon className="h-4 w-4 mr-2" />
           Add Image URL
