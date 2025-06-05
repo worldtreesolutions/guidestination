@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
@@ -205,9 +204,9 @@ export default function SettingsPage() {
             <TabsContent value='profile' className='space-y-6'>
               <Card>
                 <CardHeader>
-                  <CardTitle>Profile Information</CardTitle>
+                  <CardTitle>{t("dashboard.settings.profile.title") || "Profile Information"}</CardTitle>
                   <CardDescription>
-                    Update your personal information and profile picture.
+                    {t("dashboard.settings.profile.description") || "Update your personal information and profile picture."}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className='space-y-6'>
@@ -218,26 +217,26 @@ export default function SettingsPage() {
                       </Avatar>
                       <Button variant='outline' size='sm' className='mt-2'>
                         <Upload className='h-4 w-4 mr-2' />
-                        Change
+                        {t("dashboard.settings.profile.change") || "Change"}
                       </Button>
                     </div>
                     <div className='grid gap-4 flex-1'>
                       <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
                         <div className='space-y-2'>
-                          <Label htmlFor='firstName'>First Name</Label>
+                          <Label htmlFor='firstName'>{t("dashboard.settings.profile.firstName") || "First Name"}</Label>
                           <Input id='firstName' defaultValue='John' />
                         </div>
                         <div className='space-y-2'>
-                          <Label htmlFor='lastName'>Last Name</Label>
+                          <Label htmlFor='lastName'>{t("dashboard.settings.profile.lastName") || "Last Name"}</Label>
                           <Input id='lastName' defaultValue='Doe' />
                         </div>
                       </div>
                       <div className='space-y-2'>
-                        <Label htmlFor='email'>Email</Label>
+                        <Label htmlFor='email'>{t("dashboard.settings.profile.email") || "Email"}</Label>
                         <Input id='email' type='email' defaultValue='john.doe@example.com' />
                       </div>
                       <div className='space-y-2'>
-                        <Label htmlFor='phone'>Phone Number</Label>
+                        <Label htmlFor='phone'>{t("dashboard.settings.profile.phone") || "Phone Number"}</Label>
                         <Input id='phone' type='tel' defaultValue='+1 (555) 123-4567' />
                       </div>
                     </div>
@@ -246,30 +245,30 @@ export default function SettingsPage() {
                   <Separator />
 
                   <div className='space-y-2'>
-                    <Label htmlFor='bio'>Bio</Label>
+                    <Label htmlFor='bio'>{t("dashboard.settings.profile.bio") || "Bio"}</Label>
                     <Textarea
                       id='bio'
-                      placeholder='Write a short bio about yourself...'
+                      placeholder={t("dashboard.settings.profile.bioPlaceholder") || 'Write a short bio about yourself...'}
                       defaultValue='Tour guide and adventure enthusiast with over 5 years of experience leading tours in Chiang Mai.'
                       className='min-h-[120px]'
                     />
                     <p className='text-sm text-muted-foreground'>
-                      This will be displayed on your public profile.
+                      {t("dashboard.settings.profile.bioDescription") || "This will be displayed on your public profile."}
                     </p>
                   </div>
                 </CardContent>
                 <CardFooter className='flex justify-end gap-2'>
-                  <Button variant='outline'>Cancel</Button>
+                  <Button variant='outline'>{t("dashboard.settings.profile.cancel") || "Cancel"}</Button>
                   <Button onClick={handleSaveProfile} disabled={isLoading}>
                     {isLoading ? (
                       <>
                         <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                        Saving...
+                        {t("dashboard.settings.profile.saving") || "Saving..."}
                       </>
                     ) : (
                       <>
                         <Save className='mr-2 h-4 w-4' />
-                        Save Changes
+                        {t("dashboard.settings.profile.saveChanges") || "Save Changes"}
                       </>
                     )}
                   </Button>
@@ -281,14 +280,14 @@ export default function SettingsPage() {
             <TabsContent value='business' className='space-y-6'>
               <Card>
                 <CardHeader>
-                  <CardTitle>Business Information</CardTitle>
+                  <CardTitle>{t("dashboard.settings.business.title") || "Business Information"}</CardTitle>
                   <CardDescription>
-                    Your business details as registered in our system. To make changes, please submit a change request.
+                    {t("dashboard.settings.business.description") || "Your business details as registered in our system. To make changes, please submit a change request."}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className='space-y-6'>
                   <div className='space-y-2'>
-                    <Label htmlFor='businessName'>Business Name</Label>
+                    <Label htmlFor='businessName'>{t("dashboard.settings.business.businessName") || "Business Name"}</Label>
                     <Input 
                       id='businessName' 
                       value={businessDetails.businessName} 
@@ -297,7 +296,7 @@ export default function SettingsPage() {
                     />
                   </div>
                   <div className='space-y-2'>
-                    <Label htmlFor='businessType'>Business Type</Label>
+                    <Label htmlFor='businessType'>{t("dashboard.settings.business.businessType") || "Business Type"}</Label>
                     <Input 
                       id='businessType' 
                       value={businessDetails.businessType} 
@@ -306,7 +305,7 @@ export default function SettingsPage() {
                     />
                   </div>
                   <div className='space-y-2'>
-                    <Label htmlFor='businessAddress'>Business Address</Label>
+                    <Label htmlFor='businessAddress'>{t("dashboard.settings.business.businessAddress") || "Business Address"}</Label>
                     <Textarea
                       id='businessAddress'
                       value={businessDetails.businessAddress}
@@ -315,7 +314,7 @@ export default function SettingsPage() {
                     />
                   </div>
                   <div className='space-y-2'>
-                    <Label htmlFor='website'>Website</Label>
+                    <Label htmlFor='website'>{t("dashboard.settings.business.website") || "Website"}</Label>
                     <Input 
                       id='website' 
                       type='url' 
@@ -325,7 +324,7 @@ export default function SettingsPage() {
                     />
                   </div>
                   <div className='space-y-2'>
-                    <Label htmlFor='taxId'>Tax ID / Business Registration Number</Label>
+                    <Label htmlFor='taxId'>{t("dashboard.settings.business.taxId") || "Tax ID / Business Registration Number"}</Label>
                     <Input 
                       id='taxId' 
                       value={businessDetails.taxId} 
@@ -337,21 +336,21 @@ export default function SettingsPage() {
                 <CardFooter className='flex justify-end gap-2'>
                   <Dialog open={changeRequestOpen} onOpenChange={setChangeRequestOpen}>
                     <DialogTrigger asChild>
-                      <Button>Request Changes</Button>
+                      <Button>{t("dashboard.settings.business.requestChanges") || "Request Changes"}</Button>
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
-                        <DialogTitle>Request Business Information Changes</DialogTitle>
+                        <DialogTitle>{t("dashboard.settings.business.changeRequestTitle") || "Request Business Information Changes"}</DialogTitle>
                         <DialogDescription>
-                          Please provide details about the changes you need to make to your business information. Our admin team will review your request.
+                          {t("dashboard.settings.business.changeRequestDescription") || "Please provide details about the changes you need to make to your business information. Our admin team will review your request."}
                         </DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4 py-4">
                         <div className="space-y-2">
-                          <Label htmlFor="changeDetails">Change Details</Label>
+                          <Label htmlFor="changeDetails">{t("dashboard.settings.business.changeDetails") || "Change Details"}</Label>
                           <Textarea
                             id="changeDetails"
-                            placeholder="Please describe the changes you need to make to your business information..."
+                            placeholder={t("dashboard.settings.business.changeDetailsPlaceholder") || "Please describe the changes you need to make to your business information..."}
                             value={changeRequestMessage}
                             onChange={(e) => setChangeRequestMessage(e.target.value)}
                             className="h-32"
@@ -359,9 +358,9 @@ export default function SettingsPage() {
                         </div>
                       </div>
                       <DialogFooter>
-                        <Button variant="outline" onClick={() => setChangeRequestOpen(false)}>Cancel</Button>
+                        <Button variant="outline" onClick={() => setChangeRequestOpen(false)}>{t("dashboard.settings.profile.cancel") || "Cancel"}</Button>
                         <Button onClick={handleSubmitChangeRequest} disabled={isLoading}>
-                          {isLoading ? 'Submitting...' : 'Submit Request'}
+                          {isLoading ? (t("dashboard.settings.business.submitting") || 'Submitting...') : (t("dashboard.settings.business.submitRequest") || 'Submit Request')}
                         </Button>
                       </DialogFooter>
                     </DialogContent>
@@ -374,15 +373,15 @@ export default function SettingsPage() {
             <TabsContent value='billing' className='space-y-6'>
               <Card>
                 <CardHeader>
-                  <CardTitle>Billing Information</CardTitle>
+                  <CardTitle>{t("dashboard.settings.billing.title") || "Billing Information"}</CardTitle>
                   <CardDescription>
-                    Manage your payment methods and billing preferences.
+                    {t("dashboard.settings.billing.description") || "Manage your payment methods and billing preferences."}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className='space-y-6'>
                   <div className='space-y-4'>
                     <div className='flex items-center justify-between'>
-                      <Label className='text-base'>Payment Methods</Label>
+                      <Label className='text-base'>{t("dashboard.settings.billing.paymentMethods") || "Payment Methods"}</Label>
                       <Button 
                         variant='outline' 
                         size='sm'
@@ -391,12 +390,12 @@ export default function SettingsPage() {
                         {showPaymentForm ? (
                           <>
                             <X className='h-4 w-4 mr-2' />
-                            Cancel
+                            {t("dashboard.settings.profile.cancel") || "Cancel"}
                           </>
                         ) : (
                           <>
                             <Plus className='h-4 w-4 mr-2' />
-                            Add Payment Method
+                            {t("dashboard.settings.billing.addPaymentMethod") || "Add Payment Method"}
                           </>
                         )}
                       </Button>
@@ -405,15 +404,15 @@ export default function SettingsPage() {
                     {showPaymentForm && (
                       <Card className='border-primary'>
                         <CardHeader className='bg-primary/5'>
-                          <CardTitle className='text-lg'>Add New Payment Method</CardTitle>
+                          <CardTitle className='text-lg'>{t("dashboard.settings.billing.addNewPaymentMethod") || "Add New Payment Method"}</CardTitle>
                           <CardDescription>
-                            Enter your card details to add a new payment method
+                            {t("dashboard.settings.billing.cardDetails") || "Enter your card details to add a new payment method"}
                           </CardDescription>
                         </CardHeader>
                         <CardContent className='pt-6'>
                           <form id='paymentForm' onSubmit={handleAddPaymentMethod} className='space-y-4'>
                             <div className='space-y-2'>
-                              <Label htmlFor='cardholderName'>Cardholder Name</Label>
+                              <Label htmlFor='cardholderName'>{t("dashboard.settings.billing.cardholderName") || "Cardholder Name"}</Label>
                               <Input 
                                 id='cardholderName' 
                                 name='cardholderName'
@@ -423,7 +422,7 @@ export default function SettingsPage() {
                               />
                             </div>
                             <div className='space-y-2'>
-                              <Label htmlFor='cardNumber'>Card Number</Label>
+                              <Label htmlFor='cardNumber'>{t("dashboard.settings.billing.cardNumber") || "Card Number"}</Label>
                               <Input 
                                 id='cardNumber' 
                                 name='cardNumber'
@@ -436,7 +435,7 @@ export default function SettingsPage() {
                             </div>
                             <div className='grid grid-cols-2 gap-4'>
                               <div className='space-y-2'>
-                                <Label htmlFor='expiryDate'>Expiry Date</Label>
+                                <Label htmlFor='expiryDate'>{t("dashboard.settings.billing.expiryDate") || "Expiry Date"}</Label>
                                 <Input 
                                   id='expiryDate' 
                                   name='expiryDate'
@@ -447,7 +446,7 @@ export default function SettingsPage() {
                                 />
                               </div>
                               <div className='space-y-2'>
-                                <Label htmlFor='cvv'>CVV</Label>
+                                <Label htmlFor='cvv'>{t("dashboard.settings.billing.cvv") || "CVV"}</Label>
                                 <Input 
                                   id='cvv' 
                                   name='cvv'
@@ -465,10 +464,10 @@ export default function SettingsPage() {
                                 variant='outline'
                                 onClick={() => setShowPaymentForm(false)}
                               >
-                                Cancel
+                                {t("dashboard.settings.profile.cancel") || "Cancel"}
                               </Button>
                               <Button type='submit'>
-                                Save Payment Method
+                                {t("dashboard.settings.billing.savePaymentMethod") || "Save Payment Method"}
                               </Button>
                             </div>
                           </form>
@@ -485,7 +484,7 @@ export default function SettingsPage() {
                               <div>
                                 <p className='font-medium'>{method.type}</p>
                                 <p className='text-sm text-muted-foreground'>
-                                  {method.cardNumber} • Expires {method.expiryDate}
+                                  {method.cardNumber} • {t("dashboard.settings.billing.expires") || "Expires"} {method.expiryDate}
                                 </p>
                                 <p className='text-xs text-muted-foreground mt-1'>
                                   {method.cardholderName}
@@ -498,7 +497,7 @@ export default function SettingsPage() {
                                 size='sm'
                                 className='hidden sm:flex'
                               >
-                                Edit
+                                {t("dashboard.settings.billing.edit") || "Edit"}
                               </Button>
                               <Button 
                                 variant='ghost' 
@@ -507,7 +506,7 @@ export default function SettingsPage() {
                                 className='text-red-500 hover:text-red-600 hover:bg-red-50'
                               >
                                 <X className='h-4 w-4 sm:mr-1' />
-                                <span className='hidden sm:inline'>Remove</span>
+                                <span className='hidden sm:inline'>{t("dashboard.settings.billing.remove") || "Remove"}</span>
                               </Button>
                             </div>
                           </div>
@@ -516,16 +515,16 @@ export default function SettingsPage() {
                     ) : (
                       <div className='border rounded-md p-6 text-center'>
                         <CreditCard className='h-10 w-10 text-muted-foreground mx-auto mb-3' />
-                        <p className='text-muted-foreground'>No payment methods added yet.</p>
+                        <p className='text-muted-foreground'>{t("dashboard.settings.billing.noPaymentMethods") || "No payment methods added yet."}</p>
                         <p className='text-sm text-muted-foreground mt-1'>
-                          Add a payment method to receive payments for your bookings.
+                          {t("dashboard.settings.billing.noPaymentMethodsDescription") || "Add a payment method to receive payments for your bookings."}
                         </p>
                         <Button 
                           className='mt-4'
                           onClick={() => setShowPaymentForm(true)}
                         >
                           <Plus className='h-4 w-4 mr-2' />
-                          Add Payment Method
+                          {t("dashboard.settings.billing.addPaymentMethod") || "Add Payment Method"}
                         </Button>
                       </div>
                     )}
@@ -534,23 +533,23 @@ export default function SettingsPage() {
                   <Separator />
                   
                   <div className='space-y-2'>
-                    <Label>Billing Address</Label>
+                    <Label>{t("dashboard.settings.billing.billingAddress") || "Billing Address"}</Label>
                     <div className='border rounded-md p-4'>
                       <p>John Doe</p>
                       <p>123 Main Street</p>
                       <p>Chiang Mai, Thailand, 50000</p>
                     </div>
                     <div className='flex justify-end'>
-                      <Button variant='outline' size='sm'>Edit</Button>
+                      <Button variant='outline' size='sm'>{t("dashboard.settings.billing.edit") || "Edit"}</Button>
                     </div>
                   </div>
                   
                   <Separator />
                   
                   <div className='space-y-2'>
-                    <Label>Billing History</Label>
+                    <Label>{t("dashboard.settings.billing.billingHistory") || "Billing History"}</Label>
                     <div className='border rounded-md p-4'>
-                      <p className='text-muted-foreground text-center'>No billing history available.</p>
+                      <p className='text-muted-foreground text-center'>{t("dashboard.settings.billing.noBillingHistory") || "No billing history available."}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -561,18 +560,18 @@ export default function SettingsPage() {
             <TabsContent value='notifications' className='space-y-6'>
               <Card>
                 <CardHeader>
-                  <CardTitle>Notification Preferences</CardTitle>
+                  <CardTitle>{t("dashboard.settings.notifications.title") || "Notification Preferences"}</CardTitle>
                   <CardDescription>
-                    Choose how and when you want to be notified.
+                    {t("dashboard.settings.notifications.description") || "Choose how and when you want to be notified."}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className='space-y-6'>
                   <div className='space-y-4'>
                     <div className='flex items-center justify-between'>
                       <div className='space-y-0.5'>
-                        <Label className='text-base'>Email Notifications</Label>
+                        <Label className='text-base'>{t("dashboard.settings.notifications.emailNotifications") || "Email Notifications"}</Label>
                         <p className='text-sm text-muted-foreground'>
-                          Receive email notifications for important updates.
+                          {t("dashboard.settings.notifications.emailNotificationsDescription") || "Receive email notifications for important updates."}
                         </p>
                       </div>
                       <Switch defaultChecked />
@@ -581,13 +580,13 @@ export default function SettingsPage() {
                     <Separator />
                     
                     <div className='space-y-4'>
-                      <Label className='text-base'>Email Notification Types</Label>
+                      <Label className='text-base'>{t("dashboard.settings.notifications.emailTypes") || "Email Notification Types"}</Label>
                       
                       <div className='flex items-center justify-between'>
                         <div className='space-y-0.5'>
-                          <Label>New Bookings</Label>
+                          <Label>{t("dashboard.settings.notifications.newBookings") || "New Bookings"}</Label>
                           <p className='text-sm text-muted-foreground'>
-                            Get notified when you receive a new booking.
+                            {t("dashboard.settings.notifications.newBookingsDescription") || "Get notified when you receive a new booking."}
                           </p>
                         </div>
                         <Switch defaultChecked />
@@ -595,9 +594,9 @@ export default function SettingsPage() {
                       
                       <div className='flex items-center justify-between'>
                         <div className='space-y-0.5'>
-                          <Label>Booking Cancellations</Label>
+                          <Label>{t("dashboard.settings.notifications.bookingCancellations") || "Booking Cancellations"}</Label>
                           <p className='text-sm text-muted-foreground'>
-                            Get notified when a booking is cancelled.
+                            {t("dashboard.settings.notifications.bookingCancellationsDescription") || "Get notified when a booking is cancelled."}
                           </p>
                         </div>
                         <Switch defaultChecked />
@@ -605,9 +604,9 @@ export default function SettingsPage() {
                       
                       <div className='flex items-center justify-between'>
                         <div className='space-y-0.5'>
-                          <Label>Reviews</Label>
+                          <Label>{t("dashboard.settings.notifications.reviews") || "Reviews"}</Label>
                           <p className='text-sm text-muted-foreground'>
-                            Get notified when you receive a new review.
+                            {t("dashboard.settings.notifications.reviewsDescription") || "Get notified when you receive a new review."}
                           </p>
                         </div>
                         <Switch defaultChecked />
@@ -615,9 +614,9 @@ export default function SettingsPage() {
                       
                       <div className='flex items-center justify-between'>
                         <div className='space-y-0.5'>
-                          <Label>Marketing Updates</Label>
+                          <Label>{t("dashboard.settings.notifications.marketingUpdates") || "Marketing Updates"}</Label>
                           <p className='text-sm text-muted-foreground'>
-                            Receive marketing emails and promotions.
+                            {t("dashboard.settings.notifications.marketingUpdatesDescription") || "Receive marketing emails and promotions."}
                           </p>
                         </div>
                         <Switch />
@@ -626,8 +625,8 @@ export default function SettingsPage() {
                   </div>
                 </CardContent>
                 <CardFooter className='flex justify-end gap-2'>
-                  <Button variant='outline'>Cancel</Button>
-                  <Button>Save Preferences</Button>
+                  <Button variant='outline'>{t("dashboard.settings.profile.cancel") || "Cancel"}</Button>
+                  <Button>{t("dashboard.settings.notifications.savePreferences") || "Save Preferences"}</Button>
                 </CardFooter>
               </Card>
             </TabsContent>
@@ -636,38 +635,38 @@ export default function SettingsPage() {
             <TabsContent value='security' className='space-y-6'>
               <Card>
                 <CardHeader>
-                  <CardTitle>Security Settings</CardTitle>
+                  <CardTitle>{t("dashboard.settings.security.title") || "Security Settings"}</CardTitle>
                   <CardDescription>
-                    Manage your password and account security.
+                    {t("dashboard.settings.security.description") || "Manage your password and account security."}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className='space-y-6'>
                   <div className='space-y-4'>
-                    <h3 className='text-lg font-medium'>Change Password</h3>
+                    <h3 className='text-lg font-medium'>{t("dashboard.settings.security.changePassword") || "Change Password"}</h3>
                     <div className='space-y-2'>
-                      <Label htmlFor='currentPassword'>Current Password</Label>
+                      <Label htmlFor='currentPassword'>{t("dashboard.settings.security.currentPassword") || "Current Password"}</Label>
                       <Input id='currentPassword' type='password' />
                     </div>
                     <div className='space-y-2'>
-                      <Label htmlFor='newPassword'>New Password</Label>
+                      <Label htmlFor='newPassword'>{t("dashboard.settings.security.newPassword") || "New Password"}</Label>
                       <Input id='newPassword' type='password' />
                     </div>
                     <div className='space-y-2'>
-                      <Label htmlFor='confirmPassword'>Confirm New Password</Label>
+                      <Label htmlFor='confirmPassword'>{t("dashboard.settings.security.confirmPassword") || "Confirm New Password"}</Label>
                       <Input id='confirmPassword' type='password' />
                     </div>
-                    <Button className='mt-2'>Update Password</Button>
+                    <Button className='mt-2'>{t("dashboard.settings.security.updatePassword") || "Update Password"}</Button>
                   </div>
                   
                   <Separator />
                   
                   <div className='space-y-4'>
-                    <h3 className='text-lg font-medium'>Two-Factor Authentication</h3>
+                    <h3 className='text-lg font-medium'>{t("dashboard.settings.security.twoFactor") || "Two-Factor Authentication"}</h3>
                     <div className='flex items-center justify-between'>
                       <div className='space-y-0.5'>
-                        <Label className='text-base'>Enable Two-Factor Authentication</Label>
+                        <Label className='text-base'>{t("dashboard.settings.security.enableTwoFactor") || "Enable Two-Factor Authentication"}</Label>
                         <p className='text-sm text-muted-foreground'>
-                          Add an extra layer of security to your account.
+                          {t("dashboard.settings.security.twoFactorDescription") || "Add an extra layer of security to your account."}
                         </p>
                       </div>
                       <Switch />
@@ -677,17 +676,17 @@ export default function SettingsPage() {
                   <Separator />
                   
                   <div className='space-y-4'>
-                    <h3 className='text-lg font-medium'>Session Management</h3>
+                    <h3 className='text-lg font-medium'>{t("dashboard.settings.security.sessionManagement") || "Session Management"}</h3>
                     <div className='border rounded-md p-4'>
                       <div className='flex justify-between items-center'>
                         <div>
-                          <p className='font-medium'>Current Session</p>
+                          <p className='font-medium'>{t("dashboard.settings.security.currentSession") || "Current Session"}</p>
                           <p className='text-sm text-muted-foreground'>Bangkok, Thailand • Chrome on Windows</p>
                         </div>
-                        <Badge>Active</Badge>
+                        <Badge>{t("dashboard.settings.security.active") || "Active"}</Badge>
                       </div>
                     </div>
-                    <Button variant='outline'>Sign Out All Devices</Button>
+                    <Button variant='outline'>{t("dashboard.settings.security.signOutAllDevices") || "Sign Out All Devices"}</Button>
                   </div>
                 </CardContent>
               </Card>
@@ -697,50 +696,50 @@ export default function SettingsPage() {
             <TabsContent value='support' className='space-y-6'>
               <Card>
                 <CardHeader>
-                  <CardTitle>Support</CardTitle>
+                  <CardTitle>{t("dashboard.settings.support.title") || "Support"}</CardTitle>
                   <CardDescription>
-                    Get help with your account or contact our support team.
+                    {t("dashboard.settings.support.description") || "Get help with your account or contact our support team."}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className='space-y-6'>
                   <div className='space-y-4'>
-                    <h3 className='text-lg font-medium'>Contact Support</h3>
+                    <h3 className='text-lg font-medium'>{t("dashboard.settings.support.contactSupport") || "Contact Support"}</h3>
                     <div className='space-y-2'>
-                      <Label htmlFor='supportSubject'>Subject</Label>
-                      <Input id='supportSubject' placeholder='What can we help you with?' />
+                      <Label htmlFor='supportSubject'>{t("dashboard.settings.support.subject") || "Subject"}</Label>
+                      <Input id='supportSubject' placeholder={t("dashboard.settings.support.subjectPlaceholder") || 'What can we help you with?'} />
                     </div>
                     <div className='space-y-2'>
-                      <Label htmlFor='supportMessage'>Message</Label>
+                      <Label htmlFor='supportMessage'>{t("dashboard.settings.support.message") || "Message"}</Label>
                       <Textarea
                         id='supportMessage'
-                        placeholder='Please describe your issue in detail...'
+                        placeholder={t("dashboard.settings.support.messagePlaceholder") || 'Please describe your issue in detail...'}
                         className='min-h-[150px]'
                       />
                     </div>
-                    <Button className='mt-2'>Submit Request</Button>
+                    <Button className='mt-2'>{t("dashboard.settings.support.submitRequest") || "Submit Request"}</Button>
                   </div>
                   
                   <Separator />
                   
                   <div className='space-y-4'>
-                    <h3 className='text-lg font-medium'>Frequently Asked Questions</h3>
+                    <h3 className='text-lg font-medium'>{t("dashboard.settings.support.faq") || "Frequently Asked Questions"}</h3>
                     <div className='space-y-2'>
                       <div className='border rounded-md p-4'>
-                        <h4 className='font-medium'>How do I update my activity details?</h4>
+                        <h4 className='font-medium'>{t("dashboard.settings.support.faq1.question") || "How do I update my activity details?"}</h4>
                         <p className='text-sm text-muted-foreground mt-1'>
-                          You can update your activity details by going to the Activities section, selecting the activity you want to edit, and clicking on the Edit button.
+                          {t("dashboard.settings.support.faq1.answer") || "You can update your activity details by going to the Activities section, selecting the activity you want to edit, and clicking on the Edit button."}
                         </p>
                       </div>
                       <div className='border rounded-md p-4'>
-                        <h4 className='font-medium'>How do I manage bookings?</h4>
+                        <h4 className='font-medium'>{t("dashboard.settings.support.faq2.question") || "How do I manage bookings?"}</h4>
                         <p className='text-sm text-muted-foreground mt-1'>
-                          You can view and manage all your bookings in the Bookings section. From there, you can confirm, reschedule, or cancel bookings.
+                          {t("dashboard.settings.support.faq2.answer") || "You can view and manage all your bookings in the Bookings section. From there, you can confirm, reschedule, or cancel bookings."}
                         </p>
                       </div>
                       <div className='border rounded-md p-4'>
-                        <h4 className='font-medium'>How do I get paid?</h4>
+                        <h4 className='font-medium'>{t("dashboard.settings.support.faq3.question") || "How do I get paid?"}</h4>
                         <p className='text-sm text-muted-foreground mt-1'>
-                          Payments are processed automatically and transferred to your registered bank account. You can view your payment history in the Revenue section.
+                          {t("dashboard.settings.support.faq3.answer") || "Payments are processed automatically and transferred to your registered bank account. You can view your payment history in the Revenue section."}
                         </p>
                       </div>
                     </div>
