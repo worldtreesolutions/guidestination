@@ -250,6 +250,7 @@
   "dashboard.revenue.percentageIncrease": "+8.2% จากช่วงก่อนหน้า",
   "dashboard.revenue.percentageIncrease2": "+3.1% จากช่วงก่อนหน้า",
   "dashboard.revenue.percentageDecrease": "-2.5% จากช่วงก่อนหน้า",
+  "dashboard.revenue.totalRevenueIncrease": "+12.5% จากช่วงก่อนหน้า",
   "dashboard.revenue.table.transactionId": "รหัสธุรกรรม",
   "dashboard.revenue.table.date": "วันที่",
   "dashboard.revenue.table.activity": "กิจกรรม",
