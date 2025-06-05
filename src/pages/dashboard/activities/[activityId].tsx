@@ -347,7 +347,7 @@ export default function EditActivityPage() {
         image_url: data.image_urls && data.image_urls.length > 0 ? data.image_urls[0] : null,
         is_active: data.is_active,
         b_price: data.b_price ? Number(data.b_price) : null,
-        status: data.status !== null && data.status !== undefined ? Number(data.status) : null,
+        status: data.status !== null && data.status !== undefined ? Number(data.status) as number : null,
         discounts: data.discounts ? Number(data.discounts) : 0,
       };
 
