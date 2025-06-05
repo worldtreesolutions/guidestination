@@ -321,5 +321,8 @@
   "dashboard.revenue.table.status": "Statut",
   "dashboard.revenue.status.completed": "Terminé",
   "dashboard.revenue.status.refunded": "Remboursé",
-  "dashboard.revenue.viewAllTransactions": "Voir Toutes les Transactions"
+  "dashboard.revenue.viewAllTransactions": "Voir Toutes les Transactions",
+  "dashboard.customers.title": "Clients",
+  "dashboard.customers.description": "Gérez vos relations clients",
+  "dashboard.customers.manage": "Clients"
 }
