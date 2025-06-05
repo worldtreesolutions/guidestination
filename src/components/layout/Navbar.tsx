@@ -77,11 +77,6 @@ export function Navbar() {
           <nav className="flex items-center space-x-1 sm:space-x-2">
             {user ? (
               <>
-                <Link href="/dashboard">
-                  <Button variant="outline" size={isMobile ? "sm" : "sm"} className="text-xs sm:text-sm px-2 sm:px-4">
-                    Dashboard
-                  </Button>
-                </Link>
                 <Button variant="ghost" size={isMobile ? "sm" : "sm"} onClick={handleSignOut} className="text-xs sm:text-sm px-2 sm:px-4">
                   {t("nav.logout")}
                 </Button>
