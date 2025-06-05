@@ -230,6 +230,7 @@
   "dashboard.revenue.subtitle": "ดูและวิเคราะห์รายได้จากกิจกรรมของคุณ",
   "dashboard.revenue.manage": "รายได้",
   "dashboard.revenue.description": "จัดการรายได้จากกิจกรรมของคุณ",
+  "dashboard.revenue.totalRevenue": "รายได้รวม",
   "dashboard.revenue.netEarnings": "รายได้สุทธิ",
   "dashboard.revenue.selectPeriod": "เลือกช่วงเวลา",
   "dashboard.revenue.last7Days": "7 วันที่ผ่านมา",
