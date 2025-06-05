@@ -467,5 +467,14 @@
   "dashboard.settings.support.faq2.question": "How do I manage bookings?",
   "dashboard.settings.support.faq2.answer": "You can view and manage all your bookings in the Bookings section. From there, you can confirm, reschedule, or cancel bookings.",
   "dashboard.settings.support.faq3.question": "How do I get paid?",
-  "dashboard.settings.support.faq3.answer": "Payments are processed automatically and transferred to your registered bank account. You can view your payment history in the Revenue section."
+  "dashboard.settings.support.faq3.answer": "Payments are processed automatically and transferred to your registered bank account. You can view your payment history in the Revenue section.",
+  "dashboard.overview.title": "Dashboard Overview",
+  "dashboard.overview.totalEarnings": "Total Earnings",
+  "dashboard.overview.recentBookings": "Recent Bookings",
+  "dashboard.overview.status": "Status",
+  "dashboard.overview.noBookings": "No recent bookings found",
+  "dashboard.overview.quickActions": "Quick Actions",
+  "dashboard.overview.createActivity": "Create New Activity",
+  "dashboard.overview.viewBookings": "View All Bookings",
+  "loading": "Loading dashboard data..."
 }
