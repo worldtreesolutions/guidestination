@@ -466,5 +466,14 @@
   "dashboard.settings.support.faq2.question": "如何管理预订？",
   "dashboard.settings.support.faq2.answer": "您可以在预订部分查看和管理所有预订。在那里，您可以确认、重新安排或取消预订。",
   "dashboard.settings.support.faq3.question": "如何获得付款？",
-  "dashboard.settings.support.faq3.answer": "付款会自动处理并转入您注册的银行账户。您可以在收入部分查看付款历史。"
+  "dashboard.settings.support.faq3.answer": "付款会自动处理并转入您注册的银行账户。您可以在收入部分查看付款历史。",
+  "dashboard.overview.title": "仪表板概览",
+  "dashboard.overview.totalEarnings": "总收入",
+  "dashboard.overview.recentBookings": "最近预订",
+  "dashboard.overview.status": "状态",
+  "dashboard.overview.noBookings": "未找到最近的预订",
+  "dashboard.overview.quickActions": "快速操作",
+  "dashboard.overview.createActivity": "创建新活动",
+  "dashboard.overview.viewBookings": "查看所有预订",
+  "loading": "正在加载仪表板数据..."
 }
