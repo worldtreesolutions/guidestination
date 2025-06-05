@@ -295,6 +295,7 @@
   "dashboard.inbox.typePlaceholder": "Escribe tu mensaje...",
   "dashboard.inbox.selectConversation": "Selecciona una conversación para comenzar a chatear",
   "dashboard.inbox.backToConversations": "Volver a conversaciones",
+  "dashboard.inbox.yesterday": "Ayer",
   "dashboard.inbox.messages.tourStart": "¿Cuándo comienza el tour mañana?",
   "dashboard.inbox.messages.menuUpdate": "Hemos actualizado el menú para tu clase",
   "dashboard.inbox.messages.bookingConfirmed": "Tu reserva está confirmada para el próximo lunes",
