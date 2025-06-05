@@ -341,7 +341,7 @@ export default function InboxPage() {
         <div className="flex-1 flex flex-col md:flex-row h-full">
           {/* Conversation List - Conditionally shown on mobile */}
           {(showConversationList || windowWidth >= 768) && (
-            <Card className="md:w-80 flex-shrink-0 border-r md:rounded-r-none h-full">
+            <Card className="md:w-96 lg:w-80 xl:w-96 flex-shrink-0 border-r md:rounded-r-none h-full">
               <CardHeader>
                 <CardTitle>{t("dashboard.inbox.title") || "Inbox"}</CardTitle>
                 <CardDescription>{t("dashboard.inbox.description") || "Chat with activity providers"}</CardDescription>
