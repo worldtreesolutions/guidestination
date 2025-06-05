@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useMemo } from "react"
 import { useDroppable, useDraggable } from "@dnd-kit/core"
 import { CSS } from "@dnd-kit/utilities"
@@ -6,7 +5,6 @@ import Image from "next/image"
 import { X, Clock, Calendar, MapPin, ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ScheduledActivity } from "./ExcursionPlanner"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useLanguage } from "@/contexts/LanguageContext"
 
 interface MobileWeeklyActivityScheduleProps {
@@ -381,18 +379,21 @@ export const MobileWeeklyActivitySchedule = ({
       </div>
       
       <div className='mt-4 flex justify-center'>
-        <TabsList className='grid grid-cols-7 w-full'>
+        <div className='grid grid-cols-7 w-full gap-1 bg-gray-100 p-1 rounded-lg'>
           {dayKeys.map((day, index) => (
-            <TabsTrigger 
-              key={day} 
-              value={day}
+            <button
+              key={day}
               onClick={() => setActiveDay(day)}
-              className={activeDay === day ? 'bg-primary text-primary-foreground' : ''}
+              className={`px-2 py-2 text-xs font-medium rounded transition-colors ${
+                activeDay === day 
+                  ? 'bg-primary text-primary-foreground shadow-sm' 
+                  : 'text-gray-600 hover:bg-gray-200'
+              }`}
             >
               {days[index].substring(0, 2)}
-            </TabsTrigger>
+            </button>
           ))}
-        </TabsList>
+        </div>
       </div>
     </div>
   )
