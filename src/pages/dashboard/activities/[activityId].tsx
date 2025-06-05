@@ -333,10 +333,10 @@ export default function EditActivityPage() {
       const activityData: Partial<ActivityUpdate> = {
         title: data.title,
         description: data.description,
-        category_id: data.category_id ? Number(data.category_id) : null,
+        category_id: data.category_id ? Number(data.category_id) : null, // This can remain null if your DB/type allows
         duration: convertDurationStringToHours(data.duration), // Convert duration string to number
         final_price: Number(data.final_price),
-        max_participants: data.max_participants ? Number(data.max_participants) : null,
+        max_participants: data.max_participants ? Number(data.max_participants) : null, // This can remain null if your DB/type allows
         pickup_location: data.has_pickup ? data.pickup_location || '' : '',
         dropoff_location: data.dropoff_location,
         meeting_point: data.meeting_point,
@@ -344,10 +344,10 @@ export default function EditActivityPage() {
         highlights: data.highlights,
         included: data.included,
         not_included: data.not_included,
-        image_url: data.image_urls && data.image_urls.length > 0 ? data.image_urls[0] : null,
+        image_url: data.image_urls && data.image_urls.length > 0 ? data.image_urls[0] : null, // This can remain null if your DB/type allows
         is_active: data.is_active,
-        b_price: data.b_price ? Number(data.b_price) : null,
-        status: data.status !== null && data.status !== undefined ? Number(data.status) : null,
+        b_price: data.b_price ? Number(data.b_price) : null, // This can remain null if your DB/type allows
+        status: data.status !== null && data.status !== undefined ? Number(data.status) : undefined,
         discounts: data.discounts ? Number(data.discounts) : 0,
       };
 

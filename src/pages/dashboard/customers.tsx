@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react"
 import Head from "next/head"
 import { useRouter } from "next/router"
@@ -160,7 +159,7 @@ export default function CustomersPage() {
       </Head>
 
       <DashboardLayout>
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Language Selector */}
           <div className="flex justify-end mb-4">
             <LanguageSelector />
@@ -168,35 +167,37 @@ export default function CustomersPage() {
 
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">{t("dashboard.customers.manage") || "Customers"}</h1>
-              <p className="text-muted-foreground">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight">{t("dashboard.customers.manage") || "Customers"}</h1>
+              <p className="text-sm sm:text-base text-muted-foreground">
                 {t("dashboard.customers.subtitle") || "View and manage your customer relationships."}
               </p>
             </div>
-            <div className="flex gap-2 w-full sm:w-auto">
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
               <div className="relative flex-1 sm:flex-none">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
                   placeholder={t("dashboard.customers.searchPlaceholder") || "Search customers..."}
-                  className="pl-8 w-full sm:w-[250px]"
+                  className="pl-8 w-full sm:w-[250px] text-sm"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              <Button variant="outline" onClick={handleExportCSV}>
-                <Download className="h-4 w-4" />
-              </Button>
-              <Button>{t("dashboard.customers.addCustomer") || "Add Customer"}</Button>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={handleExportCSV} size="sm">
+                  <Download className="h-4 w-4" />
+                </Button>
+                <Button className="w-full sm:w-auto text-sm">{t("dashboard.customers.addCustomer") || "Add Customer"}</Button>
+              </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 w-full">
             {/* Customer List */}
             <Card className={selectedCustomer ? "lg:col-span-2" : "lg:col-span-3"}>
               <CardHeader>
-                <CardTitle>{t("dashboard.customers.customerList") || "Customer List"}</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-lg sm:text-xl">{t("dashboard.customers.customerList") || "Customer List"}</CardTitle>
+                <CardDescription className="text-sm">
                   {filteredCustomers.length} {t("dashboard.customers.totalCustomers") || "total customers"}
                 </CardDescription>
               </CardHeader>
@@ -205,12 +206,12 @@ export default function CustomersPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>{t("dashboard.customers.table.customer") || "Customer"}</TableHead>
-                        <TableHead>{t("dashboard.customers.table.location") || "Location"}</TableHead>
-                        <TableHead>{t("dashboard.customers.table.spent") || "Spent"}</TableHead>
-                        <TableHead>{t("dashboard.customers.table.bookings") || "Bookings"}</TableHead>
-                        <TableHead>{t("dashboard.customers.table.status") || "Status"}</TableHead>
-                        <TableHead className="text-right">{t("dashboard.customers.table.actions") || "Actions"}</TableHead>
+                        <TableHead className="text-xs sm:text-sm">{t("dashboard.customers.table.customer") || "Customer"}</TableHead>
+                        <TableHead className="text-xs sm:text-sm hidden md:table-cell">{t("dashboard.customers.table.location") || "Location"}</TableHead>
+                        <TableHead className="text-xs sm:text-sm">{t("dashboard.customers.table.spent") || "Spent"}</TableHead>
+                        <TableHead className="text-xs sm:text-sm hidden sm:table-cell">{t("dashboard.customers.table.bookings") || "Bookings"}</TableHead>
+                        <TableHead className="text-xs sm:text-sm hidden lg:table-cell">{t("dashboard.customers.table.status") || "Status"}</TableHead>
+                        <TableHead className="text-right text-xs sm:text-sm">{t("dashboard.customers.table.actions") || "Actions"}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -218,43 +219,44 @@ export default function CustomersPage() {
                         filteredCustomers.map((customer) => (
                           <TableRow key={customer.id} className="cursor-pointer" onClick={() => handleViewCustomer(customer)}>
                             <TableCell>
-                              <div className="flex items-center gap-3">
-                                <Avatar>
-                                  <AvatarFallback>{customer.name.split(" ").map(n => n[0]).join("")}</AvatarFallback>
+                              <div className="flex items-center gap-2 sm:gap-3">
+                                <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
+                                  <AvatarFallback className="text-xs sm:text-sm">{customer.name.split(" ").map(n => n[0]).join("")}</AvatarFallback>
                                 </Avatar>
-                                <div>
-                                  <div className="font-medium">{customer.name}</div>
-                                  <div className="text-sm text-muted-foreground">{customer.email}</div>
+                                <div className="min-w-0 flex-1">
+                                  <div className="font-medium text-xs sm:text-sm truncate">{customer.name}</div>
+                                  <div className="text-xs text-muted-foreground truncate md:hidden">{customer.location}</div>
+                                  <div className="text-xs text-muted-foreground truncate">{customer.email}</div>
                                 </div>
                               </div>
                             </TableCell>
-                            <TableCell>{customer.location}</TableCell>
-                            <TableCell>฿{customer.totalSpent.toLocaleString()}</TableCell>
-                            <TableCell>{customer.bookings}</TableCell>
-                            <TableCell>
-                              <Badge variant={customer.status === "active" ? "outline" : "secondary"}>
+                            <TableCell className="text-xs sm:text-sm hidden md:table-cell">{customer.location}</TableCell>
+                            <TableCell className="text-xs sm:text-sm font-medium">฿{customer.totalSpent.toLocaleString()}</TableCell>
+                            <TableCell className="text-xs sm:text-sm hidden sm:table-cell">{customer.bookings}</TableCell>
+                            <TableCell className="hidden lg:table-cell">
+                              <Badge variant={customer.status === "active" ? "outline" : "secondary"} className="text-xs">
                                 {customer.status.charAt(0).toUpperCase() + customer.status.slice(1)}
                               </Badge>
                             </TableCell>
                             <TableCell className="text-right">
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                  <Button variant="ghost" size="icon">
-                                    <MoreHorizontal className="h-4 w-4" />
+                                  <Button variant="ghost" size="sm">
+                                    <MoreHorizontal className="h-3 w-3 sm:h-4 sm:w-4" />
                                     <span className="sr-only">{t("dashboard.customers.table.actions") || "Actions"}</span>
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                  <DropdownMenuItem onClick={(e) => {
+                                  <DropdownMenuItem className="text-xs sm:text-sm" onClick={(e) => {
                                     e.stopPropagation();
                                     handleViewCustomer(customer);
                                   }}>
                                     {t("dashboard.customers.actions.viewDetails") || "View Details"}
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
+                                  <DropdownMenuItem className="text-xs sm:text-sm" onClick={(e) => e.stopPropagation()}>
                                     {t("dashboard.customers.actions.editCustomer") || "Edit Customer"}
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
+                                  <DropdownMenuItem className="text-xs sm:text-sm" onClick={(e) => e.stopPropagation()}>
                                     {t("dashboard.customers.actions.sendEmail") || "Send Email"}
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
@@ -264,7 +266,7 @@ export default function CustomersPage() {
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={6} className="text-center py-6 text-muted-foreground">
+                          <TableCell colSpan={6} className="text-center py-6 text-muted-foreground text-sm">
                             {t("dashboard.customers.noResults") || "No customers found matching your search."}
                           </TableCell>
                         </TableRow>
@@ -280,7 +282,7 @@ export default function CustomersPage() {
               <Card className="lg:col-span-1">
                 <CardHeader>
                   <div className="flex justify-between items-start">
-                    <CardTitle>{t("dashboard.customers.details.title") || "Customer Details"}</CardTitle>
+                    <CardTitle className="text-lg sm:text-xl">{t("dashboard.customers.details.title") || "Customer Details"}</CardTitle>
                     <Button variant="ghost" size="icon" onClick={() => setSelectedCustomer(null)}>
                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -289,64 +291,64 @@ export default function CustomersPage() {
                     </Button>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent className="space-y-4 sm:space-y-6">
                   <div className="flex flex-col items-center">
-                    <Avatar className="h-20 w-20 mb-4">
-                      <AvatarFallback className="text-xl">
+                    <Avatar className="h-16 w-16 sm:h-20 sm:w-20 mb-3 sm:mb-4">
+                      <AvatarFallback className="text-lg sm:text-xl">
                         {selectedCustomer.name.split(" ").map(n => n[0]).join("")}
                       </AvatarFallback>
                     </Avatar>
-                    <h3 className="text-xl font-semibold">{selectedCustomer.name}</h3>
-                    <Badge variant={selectedCustomer.status === "active" ? "outline" : "secondary"} className="mt-1">
+                    <h3 className="text-lg sm:text-xl font-semibold text-center">{selectedCustomer.name}</h3>
+                    <Badge variant={selectedCustomer.status === "active" ? "outline" : "secondary"} className="mt-1 text-xs">
                       {selectedCustomer.status.charAt(0).toUpperCase() + selectedCustomer.status.slice(1)}
                     </Badge>
                   </div>
 
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                      <span>{selectedCustomer.email}</span>
+                      <Mail className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <span className="text-sm truncate">{selectedCustomer.email}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4 text-muted-foreground" />
-                      <span>{selectedCustomer.phone}</span>
+                      <Phone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <span className="text-sm">{selectedCustomer.phone}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-muted-foreground" />
-                      <span>{selectedCustomer.location}</span>
+                      <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <span className="text-sm">{selectedCustomer.location}</span>
                     </div>
                   </div>
 
                   <div className="pt-4 border-t space-y-3">
-                    <div className="flex justify-between">
+                    <div className="flex justify-between items-center">
                       <div className="flex items-center gap-2">
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">{t("dashboard.customers.details.totalSpent") || "Total Spent"}</span>
+                        <span className="text-sm text-muted-foreground">{t("dashboard.customers.details.totalSpent") || "Total Spent"}</span>
                       </div>
-                      <span className="font-medium">฿{selectedCustomer.totalSpent.toLocaleString()}</span>
+                      <span className="font-medium text-sm">฿{selectedCustomer.totalSpent.toLocaleString()}</span>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex justify-between items-center">
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">{t("dashboard.customers.details.bookings") || "Bookings"}</span>
+                        <span className="text-sm text-muted-foreground">{t("dashboard.customers.details.bookings") || "Bookings"}</span>
                       </div>
-                      <span className="font-medium">{selectedCustomer.bookings}</span>
+                      <span className="font-medium text-sm">{selectedCustomer.bookings}</span>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex justify-between items-center">
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">{t("dashboard.customers.details.lastBooking") || "Last Booking"}</span>
+                        <span className="text-sm text-muted-foreground">{t("dashboard.customers.details.lastBooking") || "Last Booking"}</span>
                       </div>
-                      <span className="font-medium">{format(selectedCustomer.lastBooking, "MMM d, yyyy")}</span>
+                      <span className="font-medium text-sm">{format(selectedCustomer.lastBooking, "MMM d, yyyy")}</span>
                     </div>
                   </div>
                 </CardContent>
                 <CardFooter className="flex flex-col gap-2">
-                  <Button className="w-full">
+                  <Button className="w-full text-sm">
                     <Mail className="mr-2 h-4 w-4" />
                     {t("dashboard.customers.actions.sendEmail") || "Send Email"}
                   </Button>
-                  <Button variant="outline" className="w-full">
+                  <Button variant="outline" className="w-full text-sm">
                     {t("dashboard.customers.actions.viewBookings") || "View Bookings"}
                   </Button>
                 </CardFooter>
