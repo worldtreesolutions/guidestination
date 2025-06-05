@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Database } from "@/integrations/supabase/types";
@@ -19,27 +20,6 @@ export interface ActivityFilters {
 export interface Pagination {
   page: number;
   limit: number;
-}
-
-export interface ActivityUpdate {
-  title?: string;
-  description?: string | null;
-  category_id?: number | null;
-  duration?: number | null;
-  final_price?: number;
-  max_participants?: number | null;
-  pickup_location?: string | null;
-  dropoff_location?: string | null;
-  meeting_point?: string | null;
-  languages?: string | null;
-  highlights?: string | null;
-  included?: string | null;
-  not_included?: string | null;
-  image_url?: string | null;
-  is_active?: boolean | null;
-  b_price?: number | null;
-  status?: number | null; // Changed from number | undefined to number | null
-  discounts?: number | null;
 }
 
 const activityCrudService = {
@@ -187,7 +167,7 @@ const activityCrudService = {
     const { data, error } = await supabase
       .from('activities')
       .select('*')
-      .eq('id', id)
+      .eq('activity_id', id)
       .single();
 
     if (error) {
@@ -204,7 +184,7 @@ const activityCrudService = {
   /**
    * Update an existing activity
    */
-  async updateActivity(id: number, activityUpdates: ActivityUpdate, user: User): Promise<Activity> {
+  async updateActivity(id: number, activityUpdates: Partial<ActivityUpdate>, user: User): Promise<Activity> {
     // Convert duration string to proper interval format if it exists in the updates
     const durationMap: { [key: string]: string } = {
       '1_hour': '1 hour',
@@ -245,7 +225,7 @@ const activityCrudService = {
     const { data, error } = await supabase
       .from('activities')
       .update(updateData)
-      .eq('id', id)
+      .eq('activity_id', id)
       .select()
       .single();
 
@@ -273,7 +253,7 @@ const activityCrudService = {
         updated_by: null,
         updated_at: new Date().toISOString()
       })
-      .eq('id', id);
+      .eq('activity_id', id);
 
     if (error) {
       console.error("Error soft deleting activity:", error.message);
@@ -288,7 +268,7 @@ const activityCrudService = {
     const { error } = await supabase
       .from('activities')
       .delete()
-      .eq('id', id);
+      .eq('activity_id', id);
 
     if (error) {
       console.error("Error hard deleting activity:", error.message);
@@ -308,7 +288,7 @@ const activityCrudService = {
         updated_by: null,
         updated_at: new Date().toISOString()
       })
-      .eq('id', id)
+      .eq('activity_id', id)
       .select()
       .single();
 
@@ -384,7 +364,7 @@ const activityCrudService = {
    */
   async bulkUpdateActivities(
     activityIds: number[],
-    updates: ActivityUpdate,
+    updates: Partial<ActivityUpdate>,
     user: User
   ): Promise<void> {
     const updateData = {
@@ -401,7 +381,7 @@ const activityCrudService = {
     const { error } = await supabase
       .from('activities')
       .update(updateData)
-      .in('id', activityIds);
+      .in('activity_id', activityIds);
 
     if (error) {
       console.error("Error bulk updating activities:", error.message);
@@ -421,7 +401,7 @@ const activityCrudService = {
         updated_by: null,
         updated_at: new Date().toISOString()
       })
-      .in('id', activityIds);
+      .in('activity_id', activityIds);
 
     if (error) {
       console.error("Error bulk soft deleting activities:", error.message);
