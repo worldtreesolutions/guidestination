@@ -244,6 +244,7 @@
   "dashboard.revenue.subtitle": "查看和分析您的活动收入。",
   "dashboard.revenue.manage": "收入",
   "dashboard.revenue.description": "管理您的活动收入",
+  "dashboard.revenue.totalRevenue": "总收入",
   "dashboard.revenue.netEarnings": "净收入",
   "dashboard.revenue.selectPeriod": "选择期间",
   "dashboard.revenue.last7Days": "最近7天",
