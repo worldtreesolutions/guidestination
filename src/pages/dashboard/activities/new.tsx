@@ -483,7 +483,18 @@ export default function NewActivityPage() {
                       )}
                     />
                   </div>
+                </CardContent>
+              </Card>
 
+              {/* Requirements Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>{t("dashboard.activities.requirements") || "Requirements"}</CardTitle>
+                  <CardDescription>
+                    {t("dashboard.activities.requirementsDescription") || "Set age restrictions and other requirements for this activity."}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className='space-y-6'>
                   {/* Age Requirements Section */}
                   <div className='space-y-4'>
                     <div>
