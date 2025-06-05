@@ -251,19 +251,19 @@ export default function RevenuePage() {
           {/* Recent Transactions */}
           <Card>
             <CardHeader>
-              <CardTitle>Recent Transactions</CardTitle>
-              <CardDescription>Your most recent revenue transactions</CardDescription>
+              <CardTitle>{t("dashboard.revenue.recentTransactions") || "Recent Transactions"}</CardTitle>
+              <CardDescription>{t("dashboard.revenue.recentTransactionsDescription") || "Your most recent revenue transactions"}</CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Transaction ID</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Activity</TableHead>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>{t("dashboard.revenue.table.transactionId") || "Transaction ID"}</TableHead>
+                    <TableHead>{t("dashboard.revenue.table.date") || "Date"}</TableHead>
+                    <TableHead>{t("dashboard.revenue.table.activity") || "Activity"}</TableHead>
+                    <TableHead>{t("dashboard.revenue.table.customer") || "Customer"}</TableHead>
+                    <TableHead>{t("dashboard.revenue.table.amount") || "Amount"}</TableHead>
+                    <TableHead>{t("dashboard.revenue.table.status") || "Status"}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -280,7 +280,7 @@ export default function RevenuePage() {
                             ? "bg-green-100 text-green-800" 
                             : "bg-red-100 text-red-800"
                         }`}>
-                          {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}
+                          {t(`dashboard.revenue.status.${transaction.status}`) || transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}
                         </span>
                       </TableCell>
                     </TableRow>
@@ -289,7 +289,7 @@ export default function RevenuePage() {
               </Table>
             </CardContent>
             <CardFooter>
-              <Button variant="outline" className="w-full">View All Transactions</Button>
+              <Button variant="outline" className="w-full">{t("dashboard.revenue.viewAllTransactions") || "View All Transactions"}</Button>
             </CardFooter>
           </Card>
         </div>
