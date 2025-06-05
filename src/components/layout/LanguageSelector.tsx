@@ -1,5 +1,6 @@
+
 import { useState, useEffect } from "react";
-import { useRouter } from "next/router"; // Corrected typo: removed 's'
+import { useRouter } from "next/router";
 import { useLanguage, Language } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,7 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Check, Globe } from "lucide-react";
+import { Check } from "lucide-react";
 
 export function LanguageSelector() {
   const { language, setLanguage, t, isLoading } = useLanguage();
@@ -20,12 +21,48 @@ export function LanguageSelector() {
     setMounted(true);
   }, []);
 
-  const languages: { value: Language; label: string; fallbackLabel: string }[] = [
-    { value: "en", label: t("language.english"), fallbackLabel: "English" },
-    { value: "fr", label: t("language.french"), fallbackLabel: "Français" },
-    { value: "es", label: t("language.spanish"), fallbackLabel: "Español" },
-    { value: "zh", label: t("language.chinese"), fallbackLabel: "中文" },
-    { value: "th", label: t("language.thai"), fallbackLabel: "ไทย" },
+  const languages: { 
+    value: Language; 
+    label: string; 
+    fallbackLabel: string; 
+    flag: string;
+    country: string;
+  }[] = [
+    { 
+      value: "en", 
+      label: t("language.english"), 
+      fallbackLabel: "English",
+      flag: "🇺🇸",
+      country: "United States"
+    },
+    { 
+      value: "fr", 
+      label: t("language.french"), 
+      fallbackLabel: "Français",
+      flag: "🇫🇷",
+      country: "France"
+    },
+    { 
+      value: "es", 
+      label: t("language.spanish"), 
+      fallbackLabel: "Español",
+      flag: "🇪🇸",
+      country: "Spain"
+    },
+    { 
+      value: "zh", 
+      label: t("language.chinese"), 
+      fallbackLabel: "中文",
+      flag: "🇨🇳",
+      country: "China"
+    },
+    { 
+      value: "th", 
+      label: t("language.thai"), 
+      fallbackLabel: "ไทย",
+      flag: "🇹🇭",
+      country: "Thailand"
+    },
   ];
 
   const handleLanguageChange = (newLanguage: Language) => {
@@ -58,31 +95,37 @@ export function LanguageSelector() {
   if (!mounted || isLoading) {
     return (
       <Button variant="outline" size="sm" disabled>
-        <Globe className="h-4 w-4 mr-2" />
-        <span>Loading...</span>
+        <span className="text-base">🌐</span>
+        <span className="ml-2">Loading...</span>
       </Button>
     );
   }
 
   const currentLanguage = languages.find((l) => l.value === language);
-  const displayLabel = currentLanguage?.label || currentLanguage?.fallbackLabel || "English";
+  const currentFlag = currentLanguage?.flag || "🌐";
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Globe className="h-4 w-4 mr-2" />
-          <span>{displayLabel}</span>
+        <Button variant="outline" size="sm" className="min-w-[60px]">
+          <span className="text-base" title={currentLanguage?.country}>
+            {currentFlag}
+          </span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" className="min-w-[180px]">
         {languages.map((lang) => (
           <DropdownMenuItem
             key={lang.value}
             onClick={() => handleLanguageChange(lang.value)}
-            className="flex items-center justify-between"
+            className="flex items-center justify-between cursor-pointer"
           >
-            <span>{lang.label || lang.fallbackLabel}</span>
+            <div className="flex items-center">
+              <span className="text-base mr-3" title={lang.country}>
+                {lang.flag}
+              </span>
+              <span>{lang.label || lang.fallbackLabel}</span>
+            </div>
             {language === lang.value && <Check className="h-4 w-4 ml-2" />}
           </DropdownMenuItem>
         ))}
