@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react"
 import Image from "next/image"
 import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout"
@@ -95,7 +94,7 @@ export default function InboxPage() {
           user_id: "activity-owner-1",
           user_name: "Mountain Trek Tours",
           user_avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-          last_message: "When does the tour start tomorrow?",
+          last_message: t("dashboard.inbox.messages.tourStart") || "When does the tour start tomorrow?",
           last_message_time: new Date(Date.now() - 3600000).toISOString(),
           unread_count: 2
         },
@@ -103,7 +102,7 @@ export default function InboxPage() {
           id: "2",
           user_id: "activity-owner-2",
           user_name: "Cooking Class Thailand",
-          last_message: "We've updated the menu for your class",
+          last_message: t("dashboard.inbox.messages.menuUpdate") || "We've updated the menu for your class",
           last_message_time: new Date(Date.now() - 86400000).toISOString(),
           unread_count: 1
         },
@@ -111,7 +110,7 @@ export default function InboxPage() {
           id: "3",
           user_id: "activity-owner-3",
           user_name: "Elephant Sanctuary",
-          last_message: "Your booking is confirmed for next Monday",
+          last_message: t("dashboard.inbox.messages.bookingConfirmed") || "Your booking is confirmed for next Monday",
           last_message_time: new Date(Date.now() - 172800000).toISOString(),
           unread_count: 0
         }
@@ -151,7 +150,7 @@ export default function InboxPage() {
             id: "m1",
             sender_id: user.id,
             receiver_id: "activity-owner-1",
-            content: "Hi, I've booked your mountain trek tour for tomorrow",
+            content: t("dashboard.inbox.messages.bookedTour") || "Hi, I've booked your mountain trek tour for tomorrow",
             created_at: new Date(Date.now() - 7200000).toISOString(),
             read: true
           },
@@ -159,7 +158,7 @@ export default function InboxPage() {
             id: "m2",
             sender_id: "activity-owner-1",
             receiver_id: user.id,
-            content: "Hello! Yes, we're looking forward to having you join us.",
+            content: t("dashboard.inbox.messages.lookingForward") || "Hello! Yes, we're looking forward to having you join us.",
             created_at: new Date(Date.now() - 5400000).toISOString(),
             read: true,
             sender_name: "Mountain Trek Tours"
@@ -168,7 +167,7 @@ export default function InboxPage() {
             id: "m3",
             sender_id: "activity-owner-1",
             receiver_id: user.id,
-            content: "Please make sure to bring appropriate footwear and a water bottle.",
+            content: t("dashboard.inbox.messages.bringFootwear") || "Please make sure to bring appropriate footwear and a water bottle.",
             created_at: new Date(Date.now() - 5300000).toISOString(),
             read: true,
             sender_name: "Mountain Trek Tours"
@@ -177,7 +176,7 @@ export default function InboxPage() {
             id: "m4",
             sender_id: user.id,
             receiver_id: "activity-owner-1",
-            content: "Great, thanks for the reminder. What time should I arrive?",
+            content: t("dashboard.inbox.messages.arrivalTime") || "Great, thanks for the reminder. What time should I arrive?",
             created_at: new Date(Date.now() - 3700000).toISOString(),
             read: true
           },
@@ -185,7 +184,7 @@ export default function InboxPage() {
             id: "m5",
             sender_id: "activity-owner-1",
             receiver_id: user.id,
-            content: "When does the tour start tomorrow?",
+            content: t("dashboard.inbox.messages.tourStart") || "When does the tour start tomorrow?",
             created_at: new Date(Date.now() - 3600000).toISOString(),
             read: false,
             sender_name: "Mountain Trek Tours"
@@ -197,7 +196,7 @@ export default function InboxPage() {
             id: "m6",
             sender_id: user.id,
             receiver_id: "activity-owner-2",
-            content: "I have a question about the cooking class I booked",
+            content: t("dashboard.inbox.messages.cookingQuestion") || "I have a question about the cooking class I booked",
             created_at: new Date(Date.now() - 172800000).toISOString(),
             read: true
           },
@@ -205,7 +204,7 @@ export default function InboxPage() {
             id: "m7",
             sender_id: "activity-owner-2",
             receiver_id: user.id,
-            content: "Of course, how can I help?",
+            content: t("dashboard.inbox.messages.howCanHelp") || "Of course, how can I help?",
             created_at: new Date(Date.now() - 172700000).toISOString(),
             read: true,
             sender_name: "Cooking Class Thailand"
@@ -214,7 +213,7 @@ export default function InboxPage() {
             id: "m8",
             sender_id: "activity-owner-2",
             receiver_id: user.id,
-            content: "We've updated the menu for your class",
+            content: t("dashboard.inbox.messages.menuUpdate") || "We've updated the menu for your class",
             created_at: new Date(Date.now() - 86400000).toISOString(),
             read: false,
             sender_name: "Cooking Class Thailand"
@@ -226,7 +225,7 @@ export default function InboxPage() {
             id: "m9",
             sender_id: "activity-owner-3",
             receiver_id: user.id,
-            content: "Your booking is confirmed for next Monday",
+            content: t("dashboard.inbox.messages.bookingConfirmed") || "Your booking is confirmed for next Monday",
             created_at: new Date(Date.now() - 172800000).toISOString(),
             read: true,
             sender_name: "Elephant Sanctuary"
@@ -235,7 +234,7 @@ export default function InboxPage() {
             id: "m10",
             sender_id: user.id,
             receiver_id: "activity-owner-3",
-            content: "Thank you! I'm looking forward to it.",
+            content: t("dashboard.inbox.messages.thankYou") || "Thank you! I'm looking forward to it.",
             created_at: new Date(Date.now() - 172700000).toISOString(),
             read: true
           }
@@ -302,7 +301,7 @@ export default function InboxPage() {
     if (diffDays === 0) {
       return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     } else if (diffDays === 1) {
-      return 'Yesterday'
+      return t("dashboard.inbox.yesterday") || 'Yesterday'
     } else if (diffDays < 7) {
       return date.toLocaleDateString([], { weekday: 'short' })
     } else {
@@ -325,7 +324,7 @@ export default function InboxPage() {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-full">
-          <p>Please log in to view your inbox</p>
+          <p>{t("dashboard.inbox.pleaseLogin") || "Please log in to view your inbox"}</p>
         </div>
       </DashboardLayout>
     )
