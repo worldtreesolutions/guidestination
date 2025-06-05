@@ -391,5 +391,14 @@
   "dashboard.bookings.actions.cancelBooking": "Annuler Réservation",
   "dashboard.bookings.noResults": "Aucune réservation trouvée correspondant à vos filtres.",
   "dashboard.bookings.upcomingMessage": "La vue des réservations à venir sera implémentée ici.",
-  "dashboard.bookings.pastMessage": "La vue des réservations passées sera implémentée ici."
+  "dashboard.bookings.pastMessage": "La vue des réservations passées sera implémentée ici.",
+  "dashboard.overview.title": "Aperçu du Tableau de Bord",
+  "dashboard.overview.totalEarnings": "Revenus Totaux",
+  "dashboard.overview.recentBookings": "Réservations Récentes",
+  "dashboard.overview.status": "Statut",
+  "dashboard.overview.noBookings": "Aucune réservation récente trouvée",
+  "dashboard.overview.quickActions": "Actions Rapides",
+  "dashboard.overview.createActivity": "Créer Nouvelle Activité",
+  "dashboard.overview.viewBookings": "Voir Toutes les Réservations",
+  "loading": "Chargement..."
 }
