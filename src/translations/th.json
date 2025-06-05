@@ -1,7 +1,9 @@
 {
   "nav.aiPlanning": "การวางแผน AI",
   "nav.listActivities": "ลงรายการกิจกรรมของคุณ",
+  "nav.listActivitiesFull": "ลงรายการกิจกรรมของคุณ",
   "nav.becomePartner": "เป็นพาร์ทเนอร์",
+  "nav.becomePartnerFull": "เป็นพาร์ทเนอร์",
   "nav.providerDashboard": "แดชบอร์ดผู้ให้บริการ",
   "nav.login": "เข้าสู่ระบบ",
   "nav.logout": "ออกจากระบบ",
