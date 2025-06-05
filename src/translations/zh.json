@@ -264,6 +264,7 @@
   "dashboard.revenue.percentageIncrease": "比上期增长+8.2%",
   "dashboard.revenue.percentageIncrease2": "比上期增长+3.1%",
   "dashboard.revenue.percentageDecrease": "比上期下降-2.5%",
+  "dashboard.revenue.totalRevenueIncrease": "比上期增长+12.5%",
   "dashboard.revenue.table.transactionId": "交易ID",
   "dashboard.revenue.table.date": "日期",
   "dashboard.revenue.table.activity": "活动",
