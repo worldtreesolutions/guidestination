@@ -1,4 +1,3 @@
-
 {
   "nav.aiPlanning": "AI Planning",
   "nav.listActivities": "List Your Activities",
@@ -260,6 +259,13 @@
   "dashboard.revenue.commission": "Commission",
   "dashboard.revenue.fees": "Fees",
   "dashboard.revenue.netEarnings": "Net Earnings",
+  "dashboard.revenue.selectPeriod": "Select Period",
+  "dashboard.revenue.last7Days": "Last 7 Days",
+  "dashboard.revenue.last30Days": "Last 30 Days",
+  "dashboard.revenue.last90Days": "Last 90 Days",
+  "dashboard.revenue.thisYear": "This Year",
+  "dashboard.revenue.allTime": "All Time",
+  "dashboard.revenue.export": "Export",
   "form.validation.businessName": "Business name must be at least 2 characters",
   "form.validation.ownerName": "Owner name must be at least 2 characters",
   "form.validation.email": "Please enter a valid email address",

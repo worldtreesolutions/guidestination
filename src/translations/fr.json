@@ -1,4 +1,3 @@
-
 {
   "nav.aiPlanning": "Planification IA",
   "nav.listActivities": "Ajouter vos Activités",
@@ -260,6 +259,13 @@
   "dashboard.revenue.commission": "Commission",
   "dashboard.revenue.fees": "Frais",
   "dashboard.revenue.netEarnings": "Gains Nets",
+  "dashboard.revenue.selectPeriod": "Sélectionner la période",
+  "dashboard.revenue.last7Days": "7 derniers jours",
+  "dashboard.revenue.last30Days": "30 derniers jours",
+  "dashboard.revenue.last90Days": "90 derniers jours",
+  "dashboard.revenue.thisYear": "Cette année",
+  "dashboard.revenue.allTime": "Tout le temps",
+  "dashboard.revenue.export": "Exporter",
   "form.validation.businessName": "Le nom de l'entreprise doit contenir au moins 2 caractères",
   "form.validation.ownerName": "Le nom du propriétaire doit contenir au moins 2 caractères",
   "form.validation.email": "Veuillez entrer une adresse email valide",
