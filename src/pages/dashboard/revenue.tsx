@@ -144,7 +144,7 @@ export default function RevenuePage() {
                 <div className="text-2xl font-bold">฿{revenueStats.totalRevenue.toLocaleString()}</div>
                 <p className="text-xs text-muted-foreground">
                   <TrendingUp className="inline h-4 w-4 text-green-500 mr-1" />
-                  +12.5% from previous period
+                  {t("dashboard.revenue.totalRevenueIncrease") || "+12.5% from previous period"}
                 </p>
               </CardContent>
             </Card>
