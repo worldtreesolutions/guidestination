@@ -324,5 +324,6 @@
   "dashboard.revenue.viewAllTransactions": "Voir Toutes les Transactions",
   "dashboard.customers.title": "Clients",
   "dashboard.customers.description": "Gérez vos relations clients",
-  "dashboard.customers.manage": "Clients"
+  "dashboard.customers.manage": "Clients",
+  "dashboard.customers.subtitle": "Gérez vos relations clients et suivez leur historique d'activités."
 }
