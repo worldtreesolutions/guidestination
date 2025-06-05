@@ -1,7 +1,9 @@
 {
   "nav.aiPlanning": "AI 规划",
   "nav.listActivities": "列出您的活动",
+  "nav.listActivitiesFull": "列出您的活动",
   "nav.becomePartner": "成为合作伙伴",
+  "nav.becomePartnerFull": "成为合作伙伴",
   "nav.providerDashboard": "提供商仪表板",
   "nav.login": "登录",
   "nav.logout": "登出",
