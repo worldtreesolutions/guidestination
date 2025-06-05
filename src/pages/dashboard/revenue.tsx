@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react"
 import Head from "next/head"
 import { useRouter } from "next/router"
@@ -198,8 +197,8 @@ export default function RevenuePage() {
             {/* Monthly Revenue Chart */}
             <Card className="lg:col-span-2">
               <CardHeader>
-                <CardTitle>Revenue Over Time</CardTitle>
-                <CardDescription>Monthly revenue breakdown</CardDescription>
+                <CardTitle>{t("dashboard.revenue.revenueOverTime") || "Revenue Over Time"}</CardTitle>
+                <CardDescription>{t("dashboard.revenue.monthlyBreakdown") || "Monthly revenue breakdown"}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="h-[300px] flex items-end justify-between">
@@ -221,8 +220,8 @@ export default function RevenuePage() {
             {/* Top Activities */}
             <Card>
               <CardHeader>
-                <CardTitle>Top Activities</CardTitle>
-                <CardDescription>By revenue</CardDescription>
+                <CardTitle>{t("dashboard.revenue.topActivities") || "Top Activities"}</CardTitle>
+                <CardDescription>{t("dashboard.revenue.byRevenue") || "By revenue"}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -233,7 +232,7 @@ export default function RevenuePage() {
                           {activity.name}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {activity.bookings} bookings
+                          {activity.bookings} {t("dashboard.revenue.bookingsText") || "bookings"}
                         </p>
                       </div>
                       <div className="font-medium">
@@ -244,7 +243,7 @@ export default function RevenuePage() {
                 </div>
               </CardContent>
               <CardFooter>
-                <Button variant="outline" className="w-full">View All Activities</Button>
+                <Button variant="outline" className="w-full">{t("dashboard.revenue.viewAllActivities") || "View All Activities"}</Button>
               </CardFooter>
             </Card>
           </div>
