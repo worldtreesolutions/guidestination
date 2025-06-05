@@ -1,24 +1,16 @@
 import { supabase } from "@/integrations/supabase/client"
 import { User, Session } from "@supabase/supabase-js"
 
-interface SignInResponseData {
-  user: User;
-  session: Session;
-  provider_id?: string;
-}
-
 interface SignInResponse {
-  data: SignInResponseData | null;
+  user: User | null;
+  session: Session | null;
+  provider_id?: string;
   error: Error | null;
 }
 
-interface SignUpResponseData {
-  user: User;
-  session: Session;
-}
-
 interface SignUpResponse {
-  data: SignUpResponseData | null;
+  user: User | null;
+  session: Session | null;
   error: Error | null;
 }
 
@@ -49,17 +41,16 @@ const authService = {
       }
 
       return {
-        data: { 
-          user: data.user, 
-          session: data.session,
-          provider_id 
-        },
+        user: data.user, 
+        session: data.session,
+        provider_id,
         error: null,
       }
     } catch (error) {
       console.error("Auth service signInWithEmail error:", error)
       return {
-        data: null,
+        user: null,
+        session: null,
         error: error as Error,
       }
     }
@@ -74,15 +65,15 @@ const authService = {
     try {
       const { data, error } = await supabase.auth.signUp({ email, password });
       if (error) {
-        return {  null, error };
+        return { user: null, session: null, error };
       }
       if (data.user && data.session) {
-        return {  { user: data.user, session: data.session }, error: null };
+        return { user: data.user, session: data.session, error: null };
       }
       // If user or session is null, it's an unexpected state.
-      return {  null, error: new Error("User or session data is missing after sign up.") };
+      return { user: null, session: null, error: new Error("User or session data is missing after sign up.") };
     } catch (error) {
-      return {  null, error: error as Error };
+      return { user: null, session: null, error: error as Error };
     }
   },
 
