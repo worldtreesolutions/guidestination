@@ -124,7 +124,7 @@ export default function InboxPage() {
     }
 
     fetchConversations()
-  }, [user, activeConversation])
+  }, [user, activeConversation, t])
 
   // Fetch messages for active conversation
   useEffect(() => {
@@ -248,7 +248,7 @@ export default function InboxPage() {
     }
 
     fetchMessages()
-  }, [activeConversation, user])
+  }, [activeConversation, user, t])
 
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !activeConversation || !user) return
