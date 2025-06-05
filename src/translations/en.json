@@ -1,7 +1,9 @@
 {
   "nav.aiPlanning": "AI Planning",
   "nav.listActivities": "List Your Activities",
+  "nav.listActivitiesFull": "List Your Activities",
   "nav.becomePartner": "Become a Partner",
+  "nav.becomePartnerFull": "Become a Partner",
   "nav.providerDashboard": "Provider Dashboard",
   "nav.login": "Login",
   "nav.logout": "Logout",
