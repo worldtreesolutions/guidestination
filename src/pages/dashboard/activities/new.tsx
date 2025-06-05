@@ -58,6 +58,8 @@ const formSchema = z.object({
   duration: z.string().min(1, "Please select a duration"),
   price: z.coerce.number().min(1, "Price must be greater than 0"),
   max_participants: z.coerce.number().min(1, "Maximum participants must be at least 1"),
+  min_age: z.coerce.number().min(0, "Minimum age must be 0 or greater").optional().nullable(),
+  max_age: z.coerce.number().min(1, "Maximum age must be at least 1").optional().nullable(),
   has_pickup: z.boolean().default(false), // New field for pickup toggle
   pickup_location: z.string().optional().nullable(), // Made optional
   dropoff_location: z.string().min(5, "Dropoff location is required"),
@@ -78,6 +80,15 @@ const formSchema = z.object({
   schedule_capacity: z.coerce.number().optional().nullable(),
   schedule_availability_start_date: z.string().optional().nullable(),
   schedule_availability_end_date: z.string().optional().nullable(),
+}).refine((data) => {
+  // Custom validation to ensure min_age is less than or equal to max_age
+  if (data.min_age !== null && data.max_age !== null && data.min_age !== undefined && data.max_age !== undefined) {
+    return data.min_age <= data.max_age;
+  }
+  return true;
+}, {
+  message: "Minimum age must be less than or equal to maximum age",
+  path: ["min_age"],
 })
 
 // Adjust FormValues to match the new schema
@@ -122,6 +133,8 @@ export default function NewActivityPage() {
       duration: '2_hours', // Default to 2 hours
       price: 0,
       max_participants: 10,
+      min_age: null,
+      max_age: null,
       has_pickup: false, // Default to false
       pickup_location: '',
       dropoff_location: '',
@@ -214,6 +227,8 @@ export default function NewActivityPage() {
         category_id: data.category_id ? Number(data.category_id) : null,
         duration: convertDurationStringToHours(data.duration), // Use imported helper
         max_participants: Number(data.max_participants),
+        min_age: data.min_age ? Number(data.min_age) : null,
+        max_age: data.max_age ? Number(data.max_age) : null,
         pickup_location: data.has_pickup ? data.pickup_location || '' : '', // Use empty string if no pickup
         dropoff_location: data.dropoff_location,
         meeting_point: data.meeting_point ?? null,
@@ -467,6 +482,65 @@ export default function NewActivityPage() {
                         </FormItem>
                       )}
                     />
+                  </div>
+
+                  {/* Age Requirements Section */}
+                  <div className='space-y-4'>
+                    <div>
+                      <h4 className='text-sm font-medium'>{t("dashboard.activities.ageRequirements") || "Age Requirements"}</h4>
+                      <p className='text-sm text-muted-foreground'>
+                        {t("dashboard.activities.ageRequirementsDescription") || "Set age restrictions for this activity (optional)"}
+                      </p>
+                    </div>
+                    <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                      <FormField
+                        control={form.control}
+                        name='min_age'
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{t("dashboard.activities.minimumAge") || "Minimum Age"}</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type='number' 
+                                min='0' 
+                                max='100'
+                                placeholder={t("dashboard.activities.minimumAgePlaceholder") || "e.g., 5"}
+                                {...field} 
+                                value={field.value || ''} 
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              {t("dashboard.activities.minimumAgeDescription") || "Minimum age required to participate (leave empty for no restriction)"}
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name='max_age'
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{t("dashboard.activities.maximumAge") || "Maximum Age"}</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type='number' 
+                                min='1' 
+                                max='120'
+                                placeholder={t("dashboard.activities.maximumAgePlaceholder") || "e.g., 65"}
+                                {...field} 
+                                value={field.value || ''} 
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              {t("dashboard.activities.maximumAgeDescription") || "Maximum age allowed to participate (leave empty for no restriction)"}
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
