@@ -467,5 +467,14 @@
   "dashboard.settings.support.faq2.question": "Comment gérer les réservations ?",
   "dashboard.settings.support.faq2.answer": "Vous pouvez voir et gérer toutes vos réservations dans la section Réservations. De là, vous pouvez confirmer, reprogrammer ou annuler des réservations.",
   "dashboard.settings.support.faq3.question": "Comment suis-je payé ?",
-  "dashboard.settings.support.faq3.answer": "Les paiements sont traités automatiquement et transférés sur votre compte bancaire enregistré. Vous pouvez voir votre historique de paiement dans la section Revenus."
+  "dashboard.settings.support.faq3.answer": "Les paiements sont traités automatiquement et transférés sur votre compte bancaire enregistré. Vous pouvez voir votre historique de paiement dans la section Revenus.",
+  "dashboard.overview.title": "Aperçu du Tableau de Bord",
+  "dashboard.overview.totalEarnings": "Gains Totaux",
+  "dashboard.overview.recentBookings": "Réservations Récentes",
+  "dashboard.overview.status": "Statut",
+  "dashboard.overview.noBookings": "Aucune réservation récente trouvée",
+  "dashboard.overview.quickActions": "Actions Rapides",
+  "dashboard.overview.createActivity": "Créer une Nouvelle Activité",
+  "dashboard.overview.viewBookings": "Voir Toutes les Réservations",
+  "loading": "Chargement des données du tableau de bord..."
 }

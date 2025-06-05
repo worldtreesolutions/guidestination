@@ -466,5 +466,14 @@
   "dashboard.settings.support.faq2.question": "¿Cómo gestiono las reservas?",
   "dashboard.settings.support.faq2.answer": "Puedes ver y gestionar todas tus reservas en la sección Reservas. Desde ahí, puedes confirmar, reprogramar o cancelar reservas.",
   "dashboard.settings.support.faq3.question": "¿Cómo me pagan?",
-  "dashboard.settings.support.faq3.answer": "Los pagos se procesan automáticamente y se transfieren a tu cuenta bancaria registrada. Puedes ver tu historial de pagos en la sección Ingresos."
+  "dashboard.settings.support.faq3.answer": "Los pagos se procesan automáticamente y se transfieren a tu cuenta bancaria registrada. Puedes ver tu historial de pagos en la sección Ingresos.",
+  "dashboard.overview.title": "Resumen del Panel de Control",
+  "dashboard.overview.totalEarnings": "Ganancias Totales",
+  "dashboard.overview.recentBookings": "Reservas Recientes",
+  "dashboard.overview.status": "Estado",
+  "dashboard.overview.noBookings": "No se encontraron reservas recientes",
+  "dashboard.overview.quickActions": "Acciones Rápidas",
+  "dashboard.overview.createActivity": "Crear Nueva Actividad",
+  "dashboard.overview.viewBookings": "Ver Todas las Reservas",
+  "loading": "Cargando datos del panel de control..."
 }
