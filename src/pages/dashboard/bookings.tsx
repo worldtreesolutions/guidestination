@@ -217,7 +217,7 @@ export default function BookingsPage() {
       </Head>
 
       <DashboardLayout>
-        <div className='space-y-6'>
+        <div className='space-y-4 sm:space-y-6'>
           {/* Language Selector */}
           <div className="flex justify-end mb-4">
             <LanguageSelector />
@@ -225,28 +225,28 @@ export default function BookingsPage() {
 
           <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4'>
             <div>
-              <h1 className='text-2xl font-bold tracking-tight'>{t("dashboard.bookings.manage") || "Bookings"}</h1>
-              <p className='text-muted-foreground'>
+              <h1 className='text-xl sm:text-2xl font-bold tracking-tight'>{t("dashboard.bookings.manage") || "Bookings"}</h1>
+              <p className='text-sm sm:text-base text-muted-foreground'>
                 {t("dashboard.bookings.subtitle") || "View and manage all your activity bookings."}
               </p>
             </div>
           </div>
 
           <Tabs defaultValue='all' className='w-full'>
-            <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4'>
-              <TabsList className='mb-2 sm:mb-0'>
-                <TabsTrigger value='all'>{t("dashboard.bookings.all") || "All Bookings"}</TabsTrigger>
-                <TabsTrigger value='upcoming'>{t("dashboard.bookings.upcoming") || "Upcoming"}</TabsTrigger>
-                <TabsTrigger value='past'>{t("dashboard.bookings.past") || "Past"}</TabsTrigger>
+            <div className='flex flex-col lg:flex-row justify-between items-start lg:items-center mb-4 sm:mb-6 gap-4'>
+              <TabsList className='mb-2 lg:mb-0 w-full lg:w-auto'>
+                <TabsTrigger value='all' className="text-xs sm:text-sm">{t("dashboard.bookings.all") || "All Bookings"}</TabsTrigger>
+                <TabsTrigger value='upcoming' className="text-xs sm:text-sm">{t("dashboard.bookings.upcoming") || "Upcoming"}</TabsTrigger>
+                <TabsTrigger value='past' className="text-xs sm:text-sm">{t("dashboard.bookings.past") || "Past"}</TabsTrigger>
               </TabsList>
               
-              <div className='flex flex-col sm:flex-row gap-2 w-full sm:w-auto'>
+              <div className='flex flex-col sm:flex-row gap-2 w-full lg:w-auto'>
                 <div className='relative w-full sm:w-auto'>
                   <Search className='absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground' />
                   <Input
                     type='search'
                     placeholder={t("dashboard.bookings.search.placeholder") || "Search bookings..."}
-                    className='pl-8 w-full sm:w-[250px]'
+                    className='pl-8 w-full sm:w-[200px] lg:w-[250px] text-sm'
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
@@ -254,7 +254,7 @@ export default function BookingsPage() {
                 
                 <div className='flex gap-2'>
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className='w-full sm:w-[130px]'>
+                    <SelectTrigger className='w-full sm:w-[120px] lg:w-[130px] text-sm'>
                       <SelectValue placeholder={t("dashboard.bookings.status.label") || "Status"} />
                     </SelectTrigger>
                     <SelectContent>
@@ -267,19 +267,22 @@ export default function BookingsPage() {
                   
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant='outline' className='w-full sm:w-auto'>
-                        <Calendar className='mr-2 h-4 w-4' />
-                        {dateRange.from ? (
-                          dateRange.to ? (
-                            <>
-                              {formatDate(dateRange.from, 'LLL dd')} - {formatDate(dateRange.to, 'LLL dd')}
-                            </>
+                      <Button variant='outline' className='w-full sm:w-auto text-xs sm:text-sm'>
+                        <Calendar className='mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4' />
+                        <span className="hidden sm:inline">
+                          {dateRange.from ? (
+                            dateRange.to ? (
+                              <>
+                                {formatDate(dateRange.from, 'LLL dd')} - {formatDate(dateRange.to, 'LLL dd')}
+                              </>
+                            ) : (
+                              formatDate(dateRange.from, 'LLL dd')
+                            )
                           ) : (
-                            formatDate(dateRange.from, 'LLL dd')
-                          )
-                        ) : (
-                          t("dashboard.bookings.dateRange") || "Date Range"
-                        )}
+                            t("dashboard.bookings.dateRange") || "Date Range"
+                          )}
+                        </span>
+                        <span className="sm:hidden">Date</span>
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className='w-auto p-0' align='end'>
@@ -295,8 +298,8 @@ export default function BookingsPage() {
                     </PopoverContent>
                   </Popover>
                   
-                  <Button variant='outline' onClick={handleExportCSV}>
-                    <Download className='h-4 w-4' />
+                  <Button variant='outline' onClick={handleExportCSV} size="sm">
+                    <Download className='h-3 w-3 sm:h-4 sm:w-4' />
                   </Button>
                 </div>
               </div>
@@ -309,43 +312,47 @@ export default function BookingsPage() {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>{t("dashboard.bookings.table.bookingId") || "Booking ID"}</TableHead>
-                          <TableHead>{t("dashboard.bookings.table.activity") || "Activity"}</TableHead>
-                          <TableHead>{t("dashboard.bookings.table.customer") || "Customer"}</TableHead>
-                          <TableHead>{t("dashboard.bookings.table.date") || "Date"}</TableHead>
-                          <TableHead>{t("dashboard.bookings.table.participants") || "Participants"}</TableHead>
-                          <TableHead>{t("dashboard.bookings.table.total") || "Total"}</TableHead>
-                          <TableHead>{t("dashboard.bookings.table.status") || "Status"}</TableHead>
-                          <TableHead className='text-right'>{t("dashboard.bookings.table.actions") || "Actions"}</TableHead>
+                          <TableHead className="text-xs sm:text-sm">{t("dashboard.bookings.table.bookingId") || "Booking ID"}</TableHead>
+                          <TableHead className="text-xs sm:text-sm">{t("dashboard.bookings.table.activity") || "Activity"}</TableHead>
+                          <TableHead className="text-xs sm:text-sm hidden sm:table-cell">{t("dashboard.bookings.table.customer") || "Customer"}</TableHead>
+                          <TableHead className="text-xs sm:text-sm">{t("dashboard.bookings.table.date") || "Date"}</TableHead>
+                          <TableHead className="text-xs sm:text-sm hidden md:table-cell">{t("dashboard.bookings.table.participants") || "Participants"}</TableHead>
+                          <TableHead className="text-xs sm:text-sm">{t("dashboard.bookings.table.total") || "Total"}</TableHead>
+                          <TableHead className="text-xs sm:text-sm">{t("dashboard.bookings.table.status") || "Status"}</TableHead>
+                          <TableHead className='text-right text-xs sm:text-sm'>{t("dashboard.bookings.table.actions") || "Actions"}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {filteredBookings.length > 0 ? (
                           filteredBookings.map((booking) => (
                             <TableRow key={booking.id}>
-                              <TableCell className='font-medium'>{booking.id}</TableCell>
-                              <TableCell>{booking.activityName}</TableCell>
-                              <TableCell>{booking.customerName}</TableCell>
-                              <TableCell>{formatDate(booking.date)}</TableCell>
-                              <TableCell>{formatParticipants(booking.participants)}</TableCell>
-                              <TableCell>฿{booking.totalAmount.toLocaleString()}</TableCell>
+                              <TableCell className='font-medium text-xs sm:text-sm'>{booking.id}</TableCell>
+                              <TableCell className="text-xs sm:text-sm">
+                                <div className="max-w-[150px] sm:max-w-none truncate">
+                                  {booking.activityName}
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-xs sm:text-sm hidden sm:table-cell">{booking.customerName}</TableCell>
+                              <TableCell className="text-xs sm:text-sm">{formatDate(booking.date, 'MMM d')}</TableCell>
+                              <TableCell className="text-xs sm:text-sm hidden md:table-cell">{formatParticipants(booking.participants)}</TableCell>
+                              <TableCell className="text-xs sm:text-sm">฿{booking.totalAmount.toLocaleString()}</TableCell>
                               <TableCell>
-                                <Badge variant={getStatusBadgeVariant(booking.status)}>
+                                <Badge variant={getStatusBadgeVariant(booking.status)} className="text-xs">
                                   {t(`dashboard.bookings.status.${booking.status}`) || booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
                                 </Badge>
                               </TableCell>
                               <TableCell className='text-right'>
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
-                                    <Button variant='ghost' size='icon'>
-                                      <MoreHorizontal className='h-4 w-4' />
+                                    <Button variant='ghost' size='sm'>
+                                      <MoreHorizontal className='h-3 w-3 sm:h-4 sm:w-4' />
                                       <span className='sr-only'>{t("dashboard.bookings.actions.label") || "Actions"}</span>
                                     </Button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align='end'>
-                                    <DropdownMenuItem>{t("dashboard.bookings.actions.viewDetails") || "View Details"}</DropdownMenuItem>
-                                    <DropdownMenuItem>{t("dashboard.bookings.actions.sendReminder") || "Send Reminder"}</DropdownMenuItem>
-                                    <DropdownMenuItem>{t("dashboard.bookings.actions.cancelBooking") || "Cancel Booking"}</DropdownMenuItem>
+                                    <DropdownMenuItem className="text-xs sm:text-sm">{t("dashboard.bookings.actions.viewDetails") || "View Details"}</DropdownMenuItem>
+                                    <DropdownMenuItem className="text-xs sm:text-sm">{t("dashboard.bookings.actions.sendReminder") || "Send Reminder"}</DropdownMenuItem>
+                                    <DropdownMenuItem className="text-xs sm:text-sm">{t("dashboard.bookings.actions.cancelBooking") || "Cancel Booking"}</DropdownMenuItem>
                                   </DropdownMenuContent>
                                 </DropdownMenu>
                               </TableCell>
@@ -353,7 +360,7 @@ export default function BookingsPage() {
                           ))
                         ) : (
                           <TableRow>
-                            <TableCell colSpan={8} className='text-center py-6 text-muted-foreground'>
+                            <TableCell colSpan={8} className='text-center py-6 text-muted-foreground text-sm'>
                               {t("dashboard.bookings.noResults") || "No bookings found matching your filters."}
                             </TableCell>
                           </TableRow>
@@ -367,16 +374,16 @@ export default function BookingsPage() {
             
             <TabsContent value='upcoming' className='m-0'>
               <Card>
-                <CardContent className='p-6 text-center'>
-                  <p>{t("dashboard.bookings.upcomingMessage") || "Upcoming bookings view will be implemented here."}</p>
+                <CardContent className='p-4 sm:p-6 text-center'>
+                  <p className="text-sm sm:text-base">{t("dashboard.bookings.upcomingMessage") || "Upcoming bookings view will be implemented here."}</p>
                 </CardContent>
               </Card>
             </TabsContent>
             
             <TabsContent value='past' className='m-0'>
               <Card>
-                <CardContent className='p-6 text-center'>
-                  <p>{t("dashboard.bookings.pastMessage") || "Past bookings view will be implemented here."}</p>
+                <CardContent className='p-4 sm:p-6 text-center'>
+                  <p className="text-sm sm:text-base">{t("dashboard.bookings.pastMessage") || "Past bookings view will be implemented here."}</p>
                 </CardContent>
               </Card>
             </TabsContent>

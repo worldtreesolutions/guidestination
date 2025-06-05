@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import Head from "next/head";
 import Link from "next/link";
@@ -211,35 +210,35 @@ export default function ActivitiesPage() {
   const renderContent = () => {
     if (isLoading) {
       return (
-        <div className="flex items-center justify-center py-10">
-          <Loader2 className="h-8 w-8 animate-spin text-[#ededed]" />
-          <p className="ml-2 text-muted-foreground">Loading activities...</p>
+        <div className="flex items-center justify-center py-8 sm:py-10">
+          <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 animate-spin text-[#ededed]" />
+          <p className="ml-2 text-sm sm:text-base text-muted-foreground">Loading activities...</p>
         </div>
       );
     }
 
     if (error) {
       return (
-        <div className="flex flex-col items-center justify-center py-10 text-destructive">
-          <AlertCircle className="h-8 w-8 mb-2" />
-          <p>{error}</p>
+        <div className="flex flex-col items-center justify-center py-8 sm:py-10 text-destructive">
+          <AlertCircle className="h-6 w-6 sm:h-8 sm:w-8 mb-2" />
+          <p className="text-sm sm:text-base text-center">{error}</p>
         </div>
       );
     }
 
     if (filteredActivities.length === 0) {
       return (
-        <div className="text-center py-10 text-muted-foreground">
-          <p>No activities found in the "{activeTabKey}" section.</p>
+        <div className="text-center py-8 sm:py-10 text-muted-foreground">
+          <p className="text-sm sm:text-base">No activities found in the "{activeTabKey}" section.</p>
           {activeTabKey === 'active' && activities.length === 0 && (
-            <p className="mt-2">Click "Add New Activity" to get started!</p>
+            <p className="mt-2 text-sm sm:text-base">Click "Add New Activity" to get started!</p>
           )}
         </div>
       );
     }
 
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
         {filteredActivities.map(activity => (
           <ActivityCard
             key={activity.activity_id}
@@ -260,7 +259,7 @@ export default function ActivitiesPage() {
       </Head>
 
       <DashboardLayout>
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Language Selector */}
           <div className="flex justify-end mb-4">
             <LanguageSelector />
@@ -268,12 +267,12 @@ export default function ActivitiesPage() {
 
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">{t("dashboard.activities.manage") || "Manage Activities"}</h1>
-              <p className="text-muted-foreground">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight">{t("dashboard.activities.manage") || "Manage Activities"}</h1>
+              <p className="text-sm sm:text-base text-muted-foreground">
                 {t("dashboard.activities.subtitle") || "View, edit, and manage your listed activities."}
               </p>
             </div>
-            <Button asChild>
+            <Button asChild className="w-full sm:w-auto">
               <Link href="/dashboard/activities/new">
                 <Plus className="mr-2 h-4 w-4" /> {t("dashboard.activities.addNew") || "Add New Activity"}
               </Link>
@@ -282,17 +281,17 @@ export default function ActivitiesPage() {
 
           <Tabs value={activeTabKey} onValueChange={(value) => setActiveTabKey(value)}>
             <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="active">{t("dashboard.activities.active") || "Active"}</TabsTrigger>
-              <TabsTrigger value="draft">{t("dashboard.activities.draft") || "Draft"}</TabsTrigger>
-              <TabsTrigger value="archived">{t("dashboard.activities.archived") || "Archived"}</TabsTrigger>
+              <TabsTrigger value="active" className="text-xs sm:text-sm">{t("dashboard.activities.active") || "Active"}</TabsTrigger>
+              <TabsTrigger value="draft" className="text-xs sm:text-sm">{t("dashboard.activities.draft") || "Draft"}</TabsTrigger>
+              <TabsTrigger value="archived" className="text-xs sm:text-sm">{t("dashboard.activities.archived") || "Archived"}</TabsTrigger>
             </TabsList>
-            <TabsContent value="active" className="mt-6">
+            <TabsContent value="active" className="mt-4 sm:mt-6">
               {renderContent()}
             </TabsContent>
-            <TabsContent value="draft" className="mt-6">
+            <TabsContent value="draft" className="mt-4 sm:mt-6">
               {renderContent()}
             </TabsContent>
-            <TabsContent value="archived" className="mt-6">
+            <TabsContent value="archived" className="mt-4 sm:mt-6">
               {renderContent()}
             </TabsContent>
           </Tabs>
