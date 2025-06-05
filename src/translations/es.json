@@ -1,7 +1,9 @@
 {
   "nav.aiPlanning": "Planificación IA",
   "nav.listActivities": "Lista tus Actividades",
+  "nav.listActivitiesFull": "Lista tus Actividades",
   "nav.becomePartner": "Conviértete en Socio",
+  "nav.becomePartnerFull": "Conviértete en Socio",
   "nav.providerDashboard": "Panel de Proveedor",
   "nav.login": "Iniciar Sesión",
   "nav.logout": "Cerrar Sesión",
