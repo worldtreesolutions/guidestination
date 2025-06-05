@@ -295,6 +295,8 @@
   "dashboard.inbox.typePlaceholder": "Type your message...",
   "dashboard.inbox.selectConversation": "Select a conversation to start chatting",
   "dashboard.inbox.backToConversations": "Back to conversations",
+  "dashboard.inbox.yesterday": "Yesterday",
+  "dashboard.inbox.pleaseLogin": "Please log in to view your inbox",
   "dashboard.inbox.messages.tourStart": "When does the tour start tomorrow?",
   "dashboard.inbox.messages.menuUpdate": "We've updated the menu for your class",
   "dashboard.inbox.messages.bookingConfirmed": "Your booking is confirmed for next Monday",
