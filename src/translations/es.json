@@ -1,4 +1,3 @@
-
 {
   "nav.aiPlanning": "Planificación IA",
   "nav.listActivities": "Lista tus Actividades",
@@ -241,6 +240,18 @@
   "dashboard.customers.details.totalSpent": "Total Gastado",
   "dashboard.customers.details.bookings": "Reservas",
   "dashboard.customers.details.lastBooking": "Última Reserva",
+  "dashboard.revenue.title": "Gestionar Ingresos",
+  "dashboard.revenue.subtitle": "Ver y analizar tus ingresos de actividades.",
+  "dashboard.revenue.manage": "Ingresos",
+  "dashboard.revenue.description": "Gestionar tus ingresos de actividades",
+  "dashboard.revenue.netEarnings": "Ganancias Netas",
+  "dashboard.revenue.selectPeriod": "Seleccionar Período",
+  "dashboard.revenue.last7Days": "Últimos 7 Días",
+  "dashboard.revenue.last30Days": "Últimos 30 Días",
+  "dashboard.revenue.last90Days": "Últimos 90 Días",
+  "dashboard.revenue.thisYear": "Este Año",
+  "dashboard.revenue.allTime": "Todo el Tiempo",
+  "dashboard.revenue.export": "Exportar",
   "form.validation.businessName": "El nombre de la empresa debe tener al menos 2 caracteres",
   "form.validation.ownerName": "El nombre del propietario debe tener al menos 2 caracteres",
   "form.validation.email": "Por favor ingresa una dirección de email válida",

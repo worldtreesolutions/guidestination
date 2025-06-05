@@ -1,4 +1,3 @@
-
 {
   "nav.aiPlanning": "AI 规划",
   "nav.listActivities": "列出您的活动",
@@ -241,6 +240,18 @@
   "dashboard.customers.details.totalSpent": "总消费",
   "dashboard.customers.details.bookings": "预订",
   "dashboard.customers.details.lastBooking": "最后预订",
+  "dashboard.revenue.title": "管理收入",
+  "dashboard.revenue.subtitle": "查看和分析您的活动收入。",
+  "dashboard.revenue.manage": "收入",
+  "dashboard.revenue.description": "管理您的活动收入",
+  "dashboard.revenue.netEarnings": "净收入",
+  "dashboard.revenue.selectPeriod": "选择期间",
+  "dashboard.revenue.last7Days": "最近7天",
+  "dashboard.revenue.last30Days": "最近30天",
+  "dashboard.revenue.last90Days": "最近90天",
+  "dashboard.revenue.thisYear": "今年",
+  "dashboard.revenue.allTime": "所有时间",
+  "dashboard.revenue.export": "导出",
   "form.validation.businessName": "企业名称必须至少2个字符",
   "form.validation.ownerName": "所有者姓名必须至少2个字符",
   "form.validation.email": "请输入有效的电子邮件地址",
