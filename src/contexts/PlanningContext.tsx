@@ -102,6 +102,8 @@ export function PlanningProvider({ children }: { children: React.ReactNode }) {
       rating: null,
       place_id: null,
       min_participants: null,
+      min_age: null,
+      max_age: null,
       // Additional properties from Activity type
       languages: null,
       highlights: null,
@@ -190,6 +192,8 @@ export function PlanningProvider({ children }: { children: React.ReactNode }) {
           rating: null,
           place_id: null,
           min_participants: null,
+          min_age: null,
+          max_age: null,
           // Additional properties from Activity type
           languages: null,
           highlights: null,

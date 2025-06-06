@@ -115,6 +115,8 @@ export interface Database {
           not_included: string | null
           max_participants: number | null
           min_participants: number | null
+          min_age: number | null
+          max_age: number | null
           name: string
           image_url: Json | null
           place_id: string | null
@@ -150,6 +152,8 @@ export interface Database {
           not_included?: string | null
           max_participants?: number | null
           min_participants?: number | null
+          min_age?: number | null
+          max_age?: number | null
           name?: string
           image_url?: Json | null
           place_id?: string | null
@@ -185,6 +189,8 @@ export interface Database {
           not_included?: string | null
           max_participants?: number | null
           min_participants?: number | null
+          min_age?: number | null
+          max_age?: number | null
           name?: string
           image_url?: Json | null
           place_id?: string | null
