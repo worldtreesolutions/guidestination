@@ -478,5 +478,15 @@
   "dashboard.overview.quickActions": "Quick Actions",
   "dashboard.overview.createActivity": "Create New Activity",
   "dashboard.overview.viewBookings": "View All Bookings",
-  "loading": "Loading dashboard data..."
+  "loading": "Loading dashboard data...",
+  "requirements": "Requirements",
+  "requirementsDescription": "Set age restrictions and other requirements for this activity.",
+  "ageRequirements": "Age Requirements",
+  "ageRequirementsDescription": "Set age restrictions for this activity (optional)",
+  "minimumAge": "Minimum Age",
+  "minimumAgePlaceholder": "e.g., 5",
+  "minimumAgeDescription": "Minimum age required to participate (leave empty for no restriction)",
+  "maximumAge": "Maximum Age",
+  "maximumAgePlaceholder": "e.g., 65",
+  "maximumAgeDescription": "Maximum age allowed to participate (leave empty for no restriction)"
 }

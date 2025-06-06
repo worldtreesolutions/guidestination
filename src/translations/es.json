@@ -477,5 +477,15 @@
   "dashboard.overview.quickActions": "Acciones Rápidas",
   "dashboard.overview.createActivity": "Crear Nueva Actividad",
   "dashboard.overview.viewBookings": "Ver Todas las Reservas",
-  "loading": "Cargando datos del panel de control..."
+  "loading": "Cargando datos del panel de control...",
+  "requirements": "Requisitos",
+  "requirementsDescription": "Establecer restricciones de edad y otros requisitos para esta actividad.",
+  "ageRequirements": "Requisitos de edad",
+  "ageRequirementsDescription": "Establecer restricciones de edad para esta actividad (opcional)",
+  "minimumAge": "Edad mínima",
+  "minimumAgePlaceholder": "ej., 5",
+  "minimumAgeDescription": "Edad mínima requerida para participar (dejar vacío para sin restricción)",
+  "maximumAge": "Edad máxima",
+  "maximumAgePlaceholder": "ej., 65",
+  "maximumAgeDescription": "Edad máxima permitida para participar (dejar vacío para sin restricción)"
 }

@@ -400,5 +400,15 @@
   "dashboard.overview.quickActions": "Actions Rapides",
   "dashboard.overview.createActivity": "Créer Nouvelle Activité",
   "dashboard.overview.viewBookings": "Voir Toutes les Réservations",
-  "loading": "Chargement..."
+  "loading": "Chargement...",
+  "requirements": "Exigences",
+  "requirementsDescription": "Définir les restrictions d'âge et autres exigences pour cette activité.",
+  "ageRequirements": "Exigences d'âge",
+  "ageRequirementsDescription": "Définir les restrictions d'âge pour cette activité (optionnel)",
+  "minimumAge": "Âge minimum",
+  "minimumAgePlaceholder": "ex., 5",
+  "minimumAgeDescription": "Âge minimum requis pour participer (laisser vide pour aucune restriction)",
+  "maximumAge": "Âge maximum",
+  "maximumAgePlaceholder": "ex., 65",
+  "maximumAgeDescription": "Âge maximum autorisé pour participer (laisser vide pour aucune restriction)",
 }

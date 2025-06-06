@@ -477,5 +477,15 @@
   "dashboard.overview.quickActions": "快速操作",
   "dashboard.overview.createActivity": "创建新活动",
   "dashboard.overview.viewBookings": "查看所有预订",
-  "loading": "正在加载仪表板数据..."
+  "loading": "正在加载仪表板数据...",
+  "requirements": "要求",
+  "requirementsDescription": "为此活动设置年龄限制和其他要求。",
+  "ageRequirements": "年龄要求",
+  "ageRequirementsDescription": "为此活动设置年龄限制（可选）",
+  "minimumAge": "最小年龄",
+  "minimumAgePlaceholder": "例如，5",
+  "minimumAgeDescription": "参与所需的最小年龄（留空表示无限制）",
+  "maximumAge": "最大年龄",
+  "maximumAgePlaceholder": "例如，65",
+  "maximumAgeDescription": "允许参与的最大年龄（留空表示无限制）"
 }

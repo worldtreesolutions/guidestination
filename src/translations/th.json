@@ -396,5 +396,15 @@
   "dashboard.overview.quickActions": "การดำเนินการด่วน",
   "dashboard.overview.createActivity": "สร้างกิจกรรมใหม่",
   "dashboard.overview.viewBookings": "ดูการจองทั้งหมด",
-  "loading": "กำลังโหลดข้อมูลแดชบอร์ด..."
+  "loading": "กำลังโหลดข้อมูลแดชบอร์ด...",
+  "requirements": "ข้อกำหนด",
+  "requirementsDescription": "กำหนดข้อจำกัดด้านอายุและข้อกำหนดอื่นๆ สำหรับกิจกรรมนี้",
+  "ageRequirements": "ข้อกำหนดด้านอายุ",
+  "ageRequirementsDescription": "กำหนดข้อจำกัดด้านอายุสำหรับกิจกรรมนี้ (ไม่บังคับ)",
+  "minimumAge": "อายุขั้นต่ำ",
+  "minimumAgePlaceholder": "เช่น 5",
+  "minimumAgeDescription": "อายุขั้นต่ำที่ต้องการในการเข้าร่วม (เว้นว่างไว้หากไม่มีข้อจำกัด)",
+  "maximumAge": "อายุสูงสุด",
+  "maximumAgePlaceholder": "เช่น 65",
+  "maximumAgeDescription": "อายุสูงสุดที่อนุญาตให้เข้าร่วม (เว้นว่างไว้หากไม่มีข้อจำกัด)",
 }
