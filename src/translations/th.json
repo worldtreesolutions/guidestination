@@ -168,6 +168,7 @@
   "dashboard.activities.createActivity": "สร้างกิจกรรม",
   "dashboard.activities.requirements": "ข้อกำหนด",
   "dashboard.activities.ageRequirements": "ข้อกำหนดอายุ",
+  "dashboard.activities.minimumAge": "อายุขั้นต่ำ",
   "dashboard.sidebar.overview": "ภาพรวม",
   "dashboard.sidebar.activities": "กิจกรรม",
   "dashboard.sidebar.bookings": "การจอง",
