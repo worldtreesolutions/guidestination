@@ -166,6 +166,8 @@
   "dashboard.activities.cancel": "ยกเลิก",
   "dashboard.activities.creating": "กำลังสร้าง...",
   "dashboard.activities.createActivity": "สร้างกิจกรรม",
+  "dashboard.activities.requirements": "ข้อกำหนด",
+  "dashboard.activities.ageRequirements": "ข้อกำหนดอายุ",
   "dashboard.sidebar.overview": "ภาพรวม",
   "dashboard.sidebar.activities": "กิจกรรม",
   "dashboard.sidebar.bookings": "การจอง",
