@@ -420,5 +420,17 @@
   "minimumAgeDescription": "Âge minimum requis pour participer (laisser vide pour aucune restriction)",
   "maximumAge": "Âge maximum",
   "maximumAgePlaceholder": "ex., 65",
-  "maximumAgeDescription": "Âge maximum autorisé pour participer (laisser vide pour aucune restriction)"
+  "maximumAgeDescription": "Âge maximum autorisé pour participer (laisser vide pour aucune restriction)",
+  "login.title": "Connectez-vous à votre compte",
+  "login.subtitle": "Entrez votre email ci-dessous pour accéder à votre compte",
+  "login.email": "Email",
+  "login.emailPlaceholder": "m@exemple.com",
+  "login.password": "Mot de passe",
+  "login.forgotPassword": "Mot de passe oublié ?",
+  "login.signIn": "Se connecter",
+  "login.signingIn": "Connexion en cours...",
+  "login.noAccount": "Vous n'avez pas de compte ?",
+  "login.signUp": "S'inscrire",
+  "login.activityOwner": "Propriétaire d'activité ?",
+  "login.registerHere": "S'inscrire ici"
 }
