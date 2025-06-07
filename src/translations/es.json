@@ -485,7 +485,19 @@
   "minimumAge": "Edad mínima",
   "minimumAgePlaceholder": "ej., 5",
   "minimumAgeDescription": "Edad mínima requerida para participar (dejar vacío para sin restricción)",
-  "maximumAge": "Edad máxima",
+  "maximumAge": "Edad Máxima",
   "maximumAgePlaceholder": "ej., 65",
-  "maximumAgeDescription": "Edad máxima permitida para participar (dejar vacío para sin restricción)"
+  "maximumAgeDescription": "Edad máxima permitida para participar (dejar vacío para sin restricción)",
+  "login.title": "Inicia sesión en tu cuenta",
+  "login.subtitle": "Ingresa tu email a continuación para acceder a tu cuenta",
+  "login.email": "Email",
+  "login.emailPlaceholder": "m@ejemplo.com",
+  "login.password": "Contraseña",
+  "login.forgotPassword": "¿Olvidaste tu contraseña?",
+  "login.signIn": "Iniciar Sesión",
+  "login.signingIn": "Iniciando Sesión...",
+  "login.noAccount": "¿No tienes una cuenta?",
+  "login.signUp": "Registrarse",
+  "login.activityOwner": "¿Propietario de Actividad?",
+  "login.registerHere": "Regístrate aquí"
 }
