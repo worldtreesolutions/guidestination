@@ -498,5 +498,17 @@
   "minimumAgeDescription": "Minimum age required to participate (leave empty for no restriction)",
   "maximumAge": "Maximum Age",
   "maximumAgePlaceholder": "e.g., 65",
-  "maximumAgeDescription": "Maximum age allowed to participate (leave empty for no restriction)"
+  "maximumAgeDescription": "Maximum age allowed to participate (leave empty for no restriction)",
+  "login.title": "Sign in to your account",
+  "login.subtitle": "Enter your email below to access your account",
+  "login.email": "Email",
+  "login.emailPlaceholder": "m@example.com",
+  "login.password": "Password",
+  "login.forgotPassword": "Forgot password?",
+  "login.signIn": "Sign In",
+  "login.signingIn": "Signing In...",
+  "login.noAccount": "Don't have an account?",
+  "login.signUp": "Sign up",
+  "login.activityOwner": "Activity Owner?",
+  "login.registerHere": "Register here"
 }
