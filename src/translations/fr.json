@@ -467,6 +467,7 @@
   "form.field.insurancePolicy": "Numéro de Police d'Assurance",
   "form.field.insuranceAmount": "Montant de l'Assurance",
   "form.field.supportingDocuments": "Documents Justificatifs",
+  "form.field.terms": "J'accepte les conditions générales",
   "form.placeholder.businessName": "ex. Chiang Mai Tours Ltd.",
   "form.placeholder.ownerName": "ex. Jean Dupont",
   "form.placeholder.email": "exemple@email.com",

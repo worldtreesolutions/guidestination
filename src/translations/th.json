@@ -443,6 +443,7 @@
   "form.field.insurancePolicy": "หมายเลขกรมธรรม์ประกันภัย",
   "form.field.insuranceAmount": "จำนวนเงินประกันภัย",
   "form.field.supportingDocuments": "เอกสารประกอบ",
+  "form.field.terms": "ฉันยอมรับข้อกำหนดและเงื่อนไข",
   "form.placeholder.businessName": "เช่น บริษัท ทัวร์เชียงใหม่ จำกัด",
   "form.placeholder.ownerName": "เช่น สมชาย ใจดี",
   "form.placeholder.email": "example@email.com",
