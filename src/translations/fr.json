@@ -500,6 +500,8 @@
   "form.error.unexpected": "Une erreur inattendue s'est produite. Veuillez réessayer",
   "form.info.title": "Information",
   "form.info.providerDashboardSeparated": "L'inscription des fournisseurs a été déplacée vers un tableau de bord séparé. Veuillez contacter le support pour l'inscription des fournisseurs",
+  "form.terms.agreeToThe": "J'accepte les",
+  "form.terms.termsOfService": "Conditions Générales",
   "partner.meta.title": "Devenir Partenaire - Guidestination",
   "partner.meta.description": "Partenariat avec Guidestination pour offrir des expériences locales incroyables à vos clients",
   "partner.hero.title": "Partenariat avec Guidestination",

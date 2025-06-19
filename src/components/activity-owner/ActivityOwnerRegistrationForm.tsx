@@ -433,10 +433,10 @@ export const ActivityOwnerRegistrationForm = () => {
                 </FormControl>
                 <div className='space-y-1 leading-none'>
                   <FormLabel htmlFor='terms' className="cursor-pointer">
-                    I agree to the{" "}
+                    {t("form.terms.agreeToThe")}{" "}
                     <TermsOfServiceModal>
                       <span className="text-primary underline hover:text-primary/80 font-medium cursor-pointer">
-                        Terms of Service
+                        {t("form.terms.termsOfService")}
                       </span>
                     </TermsOfServiceModal>
                   </FormLabel>

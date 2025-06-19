@@ -476,6 +476,8 @@
   "form.error.unexpected": "เกิดข้อผิดพลาดที่ไม่คาดคิด กรุณาลองใหม่อีกครั้ง",
   "form.info.title": "ข้อมูล",
   "form.info.providerDashboardSeparated": "การลงทะเบียนผู้ให้บริการได้ถูกย้ายไปยังแดชบอร์ดแยกต่างหาก กรุณาติดต่อฝ่ายสนับสนุนสำหรับการลงทะเบียนผู้ให้บริการ",
+  "form.terms.agreeToThe": "ฉันยอมรับ",
+  "form.terms.termsOfService": "ข้อกำหนดและเงื่อนไข",
   "requirements": "ข้อกำหนด",
   "requirementsDescription": "กำหนดข้อจำกัดด้านอายุและข้อกำหนดอื่นๆ สำหรับกิจกรรมนี้",
   "ageRequirements": "ข้อกำหนดด้านอายุ",
