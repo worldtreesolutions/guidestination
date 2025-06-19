@@ -435,13 +435,9 @@ export const ActivityOwnerRegistrationForm = () => {
                   <FormLabel htmlFor='terms' className="cursor-pointer">
                     I agree to the{" "}
                     <TermsOfServiceModal>
-                      <button
-                        type="button"
-                        className="text-primary underline hover:text-primary/80 font-medium"
-                        onClick={(e) => e.preventDefault()}
-                      >
+                      <span className="text-primary underline hover:text-primary/80 font-medium cursor-pointer">
                         Terms of Service
-                      </button>
+                      </span>
                     </TermsOfServiceModal>
                   </FormLabel>
                   <FormDescription>
