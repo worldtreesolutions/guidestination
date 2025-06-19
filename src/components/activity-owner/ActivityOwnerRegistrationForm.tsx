@@ -25,7 +25,6 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useToast } from '@/hooks/use-toast'
-import activityOwnerService from '@/services/activityOwnerService'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { InfoIcon, MapPin } from 'lucide-react'
 import { PlacesAutocomplete, PlaceData } from "@/components/ui/places-autocomplete"
@@ -93,85 +92,17 @@ export const ActivityOwnerRegistrationForm = () => {
     setRegistrationStatus({ type: null, message: null });
     
     try {
-      const registrationData = {
-        business_name: values.businessName,
-        owner_name: values.ownerName,
-        email: values.email,
-        phone: values.phone,
-        business_type: values.businessType,
-        tax_id: values.taxId,
-        address: values.address,
-        description: values.description,
-        tourism_license_number: values.tourismLicenseNumber,
-        tat_license_number: values.tatLicenseNumber || null,
-        guide_card_number: values.guideCardNumber || null,
-        insurance_policy: values.insurancePolicy,
-        insurance_amount: values.insuranceAmount,
-        location_lat: locationData?.lat || null,
-        location_lng: locationData?.lng || null,
-        place_id: locationData?.placeId || null,
-      };
+      // Since the provider dashboard is separated, show info message
+      setRegistrationStatus({
+        type: 'info',
+        message: t('form.info.providerDashboardSeparated') || 'Provider registration has been moved to a separate dashboard. Please contact support for provider registration.'
+      });
       
-      try {
-        const result = await activityOwnerService.registerActivityOwner(registrationData);
-        const isNewUser = result.isNewUser;
-        
-        let statusMessage = isNewUser 
-          ? t('form.success.newUser')
-          : t('form.success.existingUser');
-        
-        setRegistrationStatus({
-          type: 'success',
-          message: statusMessage,
-          isNewUser
-        });
-        
-        toast({
-          title: t('form.success.title'),
-          description: statusMessage,
-        });
-        
-        form.reset();
-        setLocationData(null);
-      } catch (serviceError: any) {
-        if (serviceError.code === 'ACTIVITY_OWNER_EXISTS') {
-          setRegistrationStatus({
-            type: 'error',
-            message: serviceError.message || t('form.error.accountExists')
-          });
-          
-          toast({
-            title: t('form.error.title'),
-            description: serviceError.message || t('form.error.accountExists'),
-            variant: 'destructive',
-          });
-        }
-        else if (serviceError.code === '23505' || 
-            (serviceError.message && serviceError.message.includes('duplicate key value violates unique constraint'))) {
-          
-          setRegistrationStatus({
-            type: 'error',
-            message: t('form.error.accountExists')
-          });
-          
-          toast({
-            title: t('form.error.title'),
-            description: t('form.error.accountExists'),
-            variant: 'destructive',
-          });
-        } else {
-          setRegistrationStatus({
-            type: 'error',
-            message: serviceError.message || t('form.error.unexpected')
-          });
-          
-          toast({
-            title: t('form.error.title'),
-            description: serviceError.message || t('form.error.unexpected'),
-            variant: 'destructive',
-          });
-        }
-      }
+      toast({
+        title: t('form.info.title') || 'Information',
+        description: t('form.info.providerDashboardSeparated') || 'Provider registration has been moved to a separate dashboard. Please contact support for provider registration.',
+      });
+      
     } catch (error) {
       let errorMessage = t('form.error.unexpected');
       if (error instanceof Error) {
