@@ -1,4 +1,3 @@
-
 import { useState } from "react"
 import Head from "next/head"
 import { Navbar } from "@/components/layout/Navbar"
@@ -15,8 +14,8 @@ export default function ActivityOwnerPage() {
   return (
     <>
       <Head>
-        <title>{t("activityOwner.meta.title") || "List Your Activities - Guidestination"}</title>
-        <meta name="description" content={t("activityOwner.meta.description") || "Join Guidestination as an activity provider in Chiang Mai"} />
+        <title>{t("activityOwner.meta.title")}</title>
+        <meta name="description" content={t("activityOwner.meta.description")} />
       </Head>
 
       <div className="min-h-screen flex flex-col w-full">
@@ -27,10 +26,10 @@ export default function ActivityOwnerPage() {
             <div className="w-full px-4 sm:px-6 lg:px-8">
               <div className="text-center mb-12">
                 <h1 className="text-4xl font-bold mb-4">
-                  {t("activityOwner.hero.title") || "List Your Activities on Guidestination"}
+                  {t("activityOwner.hero.title")}
                 </h1>
                 <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                  {t("activityOwner.hero.subtitle") || "Join the leading platform for local experiences in Chiang Mai and connect with travelers worldwide"}
+                  {t("activityOwner.hero.subtitle")}
                 </p>
               </div>
 
@@ -38,9 +37,9 @@ export default function ActivityOwnerPage() {
                 <Card>
                   <CardHeader>
                     <Shield className="h-10 w-10 text-primary mb-4" />
-                    <CardTitle>{t("activityOwner.benefits.legalProtection.title") || "Legal Protection"}</CardTitle>
+                    <CardTitle>{t("activityOwner.benefits.legalProtection.title")}</CardTitle>
                     <CardDescription>
-                      {t("activityOwner.benefits.legalProtection.description") || "All activities are covered by our comprehensive insurance policy"}
+                      {t("activityOwner.benefits.legalProtection.description")}
                     </CardDescription>
                   </CardHeader>
                 </Card>
@@ -48,9 +47,9 @@ export default function ActivityOwnerPage() {
                 <Card>
                   <CardHeader>
                     <Building2 className="h-10 w-10 text-primary mb-4" />
-                    <CardTitle>{t("activityOwner.benefits.businessGrowth.title") || "Business Growth"}</CardTitle>
+                    <CardTitle>{t("activityOwner.benefits.businessGrowth.title")}</CardTitle>
                     <CardDescription>
-                      {t("activityOwner.benefits.businessGrowth.description") || "Access to a wide network of hotels and tourism partners"}
+                      {t("activityOwner.benefits.businessGrowth.description")}
                     </CardDescription>
                   </CardHeader>
                 </Card>
@@ -58,9 +57,9 @@ export default function ActivityOwnerPage() {
                 <Card>
                   <CardHeader>
                     <Award className="h-10 w-10 text-primary mb-4" />
-                    <CardTitle>{t("activityOwner.benefits.qualityStandards.title") || "Quality Standards"}</CardTitle>
+                    <CardTitle>{t("activityOwner.benefits.qualityStandards.title")}</CardTitle>
                     <CardDescription>
-                      {t("activityOwner.benefits.qualityStandards.description") || "Maintain high service standards with our certification program"}
+                      {t("activityOwner.benefits.qualityStandards.description")}
                     </CardDescription>
                   </CardHeader>
                 </Card>
@@ -68,9 +67,9 @@ export default function ActivityOwnerPage() {
                 <Card>
                   <CardHeader>
                     <Clock className="h-10 w-10 text-primary mb-4" />
-                    <CardTitle>{t("activityOwner.benefits.flexibleSchedule.title") || "Flexible Schedule"}</CardTitle>
+                    <CardTitle>{t("activityOwner.benefits.flexibleSchedule.title")}</CardTitle>
                     <CardDescription>
-                      {t("activityOwner.benefits.flexibleSchedule.description") || "Set your own availability and manage bookings easily"}
+                      {t("activityOwner.benefits.flexibleSchedule.description")}
                     </CardDescription>
                   </CardHeader>
                 </Card>
@@ -78,9 +77,9 @@ export default function ActivityOwnerPage() {
 
               <Card className="max-w-3xl mx-auto">
                 <CardHeader>
-                  <CardTitle>{t("activityOwner.registration.title") || "Register as an Activity Provider"}</CardTitle>
+                  <CardTitle>{t("activityOwner.registration.title")}</CardTitle>
                   <CardDescription>
-                    {t("activityOwner.registration.description") || "Fill out the form below to start listing your activities"}
+                    {t("activityOwner.registration.description")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
