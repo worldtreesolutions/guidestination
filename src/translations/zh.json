@@ -499,5 +499,19 @@
   "minimumAgeDescription": "参与所需的最小年龄（留空表示无限制）",
   "maximumAge": "最大年龄",
   "maximumAgePlaceholder": "例如，65",
-  "maximumAgeDescription": "允许参与的最大年龄（留空表示无限制）"
+  "maximumAgeDescription": "允许参与的最大年龄（留空表示无限制）",
+  "partner.meta.title": "成为合作伙伴 - Guidestination",
+  "partner.meta.description": "与 Guidestination 合作，为您的客户提供令人惊叹的本地体验",
+  "partner.hero.title": "与 Guidestination 合作",
+  "partner.hero.subtitle": "通过将您的客户与清迈独特的本地活动联系起来，扩展您的服务并赚取佣金。",
+  "partner.benefits.hotels.title": "适用于酒店和住宿",
+  "partner.benefits.hotels.description": "提升客户体验并产生辅助收入。",
+  "partner.benefits.agencies.title": "适用于旅行社",
+  "partner.benefits.agencies.description": "为您的客户获取经过验证的本地活动精选列表。",
+  "partner.benefits.tracking.title": "轻松佣金跟踪",
+  "partner.benefits.tracking.description": "通过我们的合作伙伴仪表板进行透明报告和及时付款。",
+  "partner.benefits.support.title": "专属支持",
+  "partner.benefits.support.description": "我们的团队在每一步都会帮助您成功。",
+  "partner.registration.title": "注册为分销合作伙伴",
+  "partner.registration.description": "填写下面的表格加入我们的网络。"
 }

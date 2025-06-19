@@ -499,5 +499,19 @@
   "login.noAccount": "¿No tienes una cuenta?",
   "login.signUp": "Registrarse",
   "login.activityOwner": "¿Propietario de Actividad?",
-  "login.registerHere": "Regístrate aquí"
+  "login.registerHere": "Regístrate aquí",
+  "partner.meta.title": "Conviértete en Socio - Guidestination",
+  "partner.meta.description": "Asóciate con Guidestination para ofrecer experiencias locales increíbles a tus clientes",
+  "partner.hero.title": "Asóciate con Guidestination",
+  "partner.hero.subtitle": "Amplía tu oferta y gana comisiones conectando a tus huéspedes con actividades locales únicas en Chiang Mai.",
+  "partner.benefits.hotels.title": "Para Hoteles y Alojamientos",
+  "partner.benefits.hotels.description": "Mejora la experiencia del huésped y genera ingresos auxiliares.",
+  "partner.benefits.agencies.title": "Para Agencias de Viajes",
+  "partner.benefits.agencies.description": "Accede a una lista curada de actividades locales verificadas para tus clientes.",
+  "partner.benefits.tracking.title": "Seguimiento Fácil de Comisiones",
+  "partner.benefits.tracking.description": "Informes transparentes y pagos puntuales a través de nuestro panel de socios.",
+  "partner.benefits.support.title": "Soporte Dedicado",
+  "partner.benefits.support.description": "Nuestro equipo está aquí para ayudarte a tener éxito en cada paso.",
+  "partner.registration.title": "Regístrate como Socio de Distribución",
+  "partner.registration.description": "Completa el formulario a continuación para unirte a nuestra red."
 }

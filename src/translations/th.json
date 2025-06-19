@@ -485,5 +485,19 @@
   "minimumAgeDescription": "อายุขั้นต่ำที่ต้องการในการเข้าร่วม (เว้นว่างไว้หากไม่มีข้อจำกัด)",
   "maximumAge": "อายุสูงสุด",
   "maximumAgePlaceholder": "เช่น 65",
-  "maximumAgeDescription": "อายุสูงสุดที่อนุญาตให้เข้าร่วม (เว้นว่างไว้หากไม่มีข้อจำกัด)"
+  "maximumAgeDescription": "อายุสูงสุดที่อนุญาตให้เข้าร่วม (เว้นว่างไว้หากไม่มีข้อจำกัด)",
+  "partner.meta.title": "เป็นพาร์ทเนอร์ - Guidestination",
+  "partner.meta.description": "เป็นพาร์ทเนอร์กับ Guidestination เพื่อเสนอประสบการณ์ท้องถิ่นที่น่าทึ่งให้กับลูกค้าของคุณ",
+  "partner.hero.title": "เป็นพาร์ทเนอร์กับ Guidestination",
+  "partner.hero.subtitle": "ขยายการเสนอของคุณและรับค่าคอมมิชชั่นโดยการเชื่อมต่อลูกค้าของคุณกับกิจกรรมท้องถิ่นที่ไม่เหมือนใครในเชียงใหม่",
+  "partner.benefits.hotels.title": "สำหรับโรงแรมและที่พัก",
+  "partner.benefits.hotels.description": "ยกระดับประสบการณ์ของแขกและสร้างรายได้เสริม",
+  "partner.benefits.agencies.title": "สำหรับบริษัทท่องเที่ยว",
+  "partner.benefits.agencies.description": "เข้าถึงรายการกิจกรรมท้องถิ่นที่ได้รับการตรวจสอบแล้วสำหรับลูกค้าของคุณ",
+  "partner.benefits.tracking.title": "ติดตามค่าคอมมิชชั่นง่าย",
+  "partner.benefits.tracking.description": "รายงานที่โปร่งใสและการจ่ายเงินตรงเวลาผ่านแดชบอร์ดพาร์ทเนอร์ของเรา",
+  "partner.benefits.support.title": "การสนับสนุนเฉพาะ",
+  "partner.benefits.support.description": "ทีมของเราพร้อมช่วยให้คุณประสบความสำเร็จในทุกขั้นตอน",
+  "partner.registration.title": "ลงทะเบียนเป็นพาร์ทเนอร์จัดจำหน่าย",
+  "partner.registration.description": "กรอกแบบฟอร์มด้านล่างเพื่อเข้าร่วมเครือข่ายของเรา"
 }

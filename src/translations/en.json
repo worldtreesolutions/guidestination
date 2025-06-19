@@ -510,5 +510,19 @@
   "login.noAccount": "Don't have an account?",
   "login.signUp": "Sign up",
   "login.activityOwner": "Activity Owner?",
-  "login.registerHere": "Register here"
+  "login.registerHere": "Register here",
+  "partner.meta.title": "Become a Partner - Guidestination",
+  "partner.meta.description": "Partner with Guidestination to offer amazing local experiences to your guests",
+  "partner.hero.title": "Partner with Guidestination",
+  "partner.hero.subtitle": "Expand your offerings and earn commissions by connecting your guests with unique local activities in Chiang Mai.",
+  "partner.benefits.hotels.title": "For Hotels & Accommodations",
+  "partner.benefits.hotels.description": "Enhance guest experience and generate ancillary revenue.",
+  "partner.benefits.agencies.title": "For Travel Agencies",
+  "partner.benefits.agencies.description": "Access a curated list of verified local activities for your clients.",
+  "partner.benefits.tracking.title": "Easy Commission Tracking",
+  "partner.benefits.tracking.description": "Transparent reporting and timely payouts through our partner dashboard.",
+  "partner.benefits.support.title": "Dedicated Support",
+  "partner.benefits.support.description": "Our team is here to help you succeed every step of the way.",
+  "partner.registration.title": "Register as a Distribution Partner",
+  "partner.registration.description": "Fill out the form below to join our network."
 }
