@@ -6,13 +6,16 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { PartnerRegistrationForm } from "@/components/partner/PartnerRegistrationForm"
 import { Handshake, Hotel, Users, BarChart3 } from "lucide-react"
+import { useLanguage } from "@/contexts/LanguageContext"
 
 export default function PartnerPage() {
+  const { t } = useLanguage()
+
   return (
     <>
       <Head>
-        <title>Become a Partner - Guidestination</title>
-        <meta name="description" content="Partner with Guidestination to offer amazing local experiences to your guests" />
+        <title>{t("partner.meta.title")}</title>
+        <meta name="description" content={t("partner.meta.description")} />
       </Head>
 
       <div className="min-h-screen flex flex-col w-full">
@@ -20,11 +23,11 @@ export default function PartnerPage() {
         
         <main className="flex-1 w-full">
           <div className="w-full py-12 bg-gradient-to-b from-primary/10 to-background">
-            <div className="w-full px-4 sm:px-6 lg:px-8"> {/* Ensure this container is full width */}
+            <div className="w-full px-4 sm:px-6 lg:px-8">
               <div className="text-center mb-12">
-                <h1 className="text-4xl font-bold mb-4">Partner with Guidestination</h1>
+                <h1 className="text-4xl font-bold mb-4">{t("partner.hero.title")}</h1>
                 <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                  Expand your offerings and earn commissions by connecting your guests with unique local activities in Chiang Mai.
+                  {t("partner.hero.subtitle")}
                 </p>
               </div>
 
@@ -32,9 +35,9 @@ export default function PartnerPage() {
                 <Card>
                   <CardHeader>
                     <Hotel className="h-10 w-10 text-primary mb-4" />
-                    <CardTitle>For Hotels & Accommodations</CardTitle>
+                    <CardTitle>{t("partner.benefits.hotels.title")}</CardTitle>
                     <CardDescription>
-                      Enhance guest experience and generate ancillary revenue.
+                      {t("partner.benefits.hotels.description")}
                     </CardDescription>
                   </CardHeader>
                 </Card>
@@ -42,9 +45,9 @@ export default function PartnerPage() {
                 <Card>
                   <CardHeader>
                     <Users className="h-10 w-10 text-primary mb-4" />
-                    <CardTitle>For Travel Agencies</CardTitle>
+                    <CardTitle>{t("partner.benefits.agencies.title")}</CardTitle>
                     <CardDescription>
-                      Access a curated list of verified local activities for your clients.
+                      {t("partner.benefits.agencies.description")}
                     </CardDescription>
                   </CardHeader>
                 </Card>
@@ -52,9 +55,9 @@ export default function PartnerPage() {
                 <Card>
                   <CardHeader>
                     <BarChart3 className="h-10 w-10 text-primary mb-4" />
-                    <CardTitle>Easy Commission Tracking</CardTitle>
+                    <CardTitle>{t("partner.benefits.tracking.title")}</CardTitle>
                     <CardDescription>
-                      Transparent reporting and timely payouts through our partner dashboard.
+                      {t("partner.benefits.tracking.description")}
                     </CardDescription>
                   </CardHeader>
                 </Card>
@@ -62,9 +65,9 @@ export default function PartnerPage() {
                 <Card>
                   <CardHeader>
                     <Handshake className="h-10 w-10 text-primary mb-4" />
-                    <CardTitle>Dedicated Support</CardTitle>
+                    <CardTitle>{t("partner.benefits.support.title")}</CardTitle>
                     <CardDescription>
-                      Our team is here to help you succeed every step of the way.
+                      {t("partner.benefits.support.description")}
                     </CardDescription>
                   </CardHeader>
                 </Card>
@@ -72,9 +75,9 @@ export default function PartnerPage() {
 
               <Card className="max-w-3xl mx-auto">
                 <CardHeader>
-                  <CardTitle>Register as a Distribution Partner</CardTitle>
+                  <CardTitle>{t("partner.registration.title")}</CardTitle>
                   <CardDescription>
-                    Fill out the form below to join our network.
+                    {t("partner.registration.description")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
