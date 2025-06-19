@@ -1,3 +1,4 @@
+
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -27,27 +28,31 @@ import {
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Check } from "lucide-react"
+import { useLanguage } from "@/contexts/LanguageContext"
 
-const formSchema = z.object({
-  businessName: z.string().min(2, 'Business name must be at least 2 characters'),
+const createFormSchema = (t: (key: string) => string) => z.object({
+  businessName: z.string().min(2, t('form.validation.businessName')),
   businessType: z.string(),
-  hotelLicenseNumber: z.string().min(1, 'Hotel License number is required'),
-  tourismLicenseNumber: z.string().min(1, 'Tourism Business License number is required'),
-  ownerName: z.string().min(2, 'Owner name must be at least 2 characters'),
-  email: z.string().email('Invalid email address'),
-  phone: z.string().min(10, 'Phone number must be at least 10 digits'),
-  address: z.string().min(10, 'Please enter a complete address'),
-  roomCount: z.string().min(1, 'Number of rooms is required'),
-  taxId: z.string().min(13, 'Tax ID must be 13 digits'),
-  bankName: z.string().min(2, 'Bank name is required'),
-  bankAccount: z.string().min(10, 'Bank account number is required'),
+  hotelLicenseNumber: z.string().min(1, t('partner.form.validation.hotelLicense')),
+  tourismLicenseNumber: z.string().min(1, t('partner.form.validation.tourismLicense')),
+  ownerName: z.string().min(2, t('form.validation.ownerName')),
+  email: z.string().email(t('form.validation.email')),
+  phone: z.string().min(10, t('form.validation.phone')),
+  address: z.string().min(10, t('form.validation.address')),
+  roomCount: z.string().min(1, t('partner.form.validation.roomCount')),
+  taxId: z.string().min(13, t('form.validation.taxId')),
+  bankName: z.string().min(2, t('partner.form.validation.bankName')),
+  bankAccount: z.string().min(10, t('partner.form.validation.bankAccount')),
   termsAccepted: z.boolean().refine((val) => val === true, {
-    message: 'You must accept the terms and conditions',
+    message: t('form.validation.terms'),
   }),
   commissionPackage: z.enum(['basic', 'premium']),
 })
 
 export const PartnerRegistrationForm = () => {
+  const { t } = useLanguage()
+  const formSchema = createFormSchema(t)
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -65,24 +70,24 @@ export const PartnerRegistrationForm = () => {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <div className="space-y-4">
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-            <h4 className="font-medium text-yellow-800 mb-2">Thai Legal Requirements</h4>
+            <h4 className="font-medium text-yellow-800 mb-2">{t('partner.form.legal.title')}</h4>
             <ul className="text-sm text-yellow-700 space-y-1">
-              <li>• Hotel License from Ministry of Tourism</li>
-              <li>• Tourism Business License</li>
-              <li>• Valid Tax ID</li>
-              <li>• Business Registration in Thailand</li>
+              <li>• {t('partner.form.legal.requirement1')}</li>
+              <li>• {t('partner.form.legal.requirement2')}</li>
+              <li>• {t('partner.form.legal.requirement3')}</li>
+              <li>• {t('partner.form.legal.requirement4')}</li>
             </ul>
           </div>
 
-          <h3 className="text-lg font-medium">Business Information</h3>
+          <h3 className="text-lg font-medium">{t('form.section.business')}</h3>
           <FormField
             control={form.control}
             name="businessName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Business Name</FormLabel>
+                <FormLabel>{t('form.field.businessName')}</FormLabel>
                 <FormControl>
-                  <Input placeholder="Hotel or property name" {...field} />
+                  <Input placeholder={t('partner.form.placeholder.businessName')} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -94,18 +99,18 @@ export const PartnerRegistrationForm = () => {
             name="businessType"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Business Type</FormLabel>
+                <FormLabel>{t('form.field.businessType')}</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select business type" />
+                      <SelectValue placeholder={t('form.placeholder.businessType')} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="hotel">Hotel</SelectItem>
-                    <SelectItem value="resort">Resort</SelectItem>
-                    <SelectItem value="guesthouse">Guesthouse</SelectItem>
-                    <SelectItem value="airbnb">Airbnb Property</SelectItem>
+                    <SelectItem value="hotel">{t('partner.form.businessType.hotel')}</SelectItem>
+                    <SelectItem value="resort">{t('partner.form.businessType.resort')}</SelectItem>
+                    <SelectItem value="guesthouse">{t('partner.form.businessType.guesthouse')}</SelectItem>
+                    <SelectItem value="airbnb">{t('partner.form.businessType.airbnb')}</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -119,12 +124,12 @@ export const PartnerRegistrationForm = () => {
               name="hotelLicenseNumber"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Hotel License Number</FormLabel>
+                  <FormLabel>{t('partner.form.field.hotelLicense')}</FormLabel>
                   <FormControl>
-                    <Input placeholder="License number from Ministry of Tourism" {...field} />
+                    <Input placeholder={t('partner.form.placeholder.hotelLicense')} {...field} />
                   </FormControl>
                   <FormDescription>
-                    Required for all accommodation businesses
+                    {t('partner.form.description.hotelLicense')}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -136,24 +141,98 @@ export const PartnerRegistrationForm = () => {
               name="tourismLicenseNumber"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Tourism Business License Number</FormLabel>
+                  <FormLabel>{t('partner.form.field.tourismLicense')}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Tourism Business License number" {...field} />
+                    <Input placeholder={t('partner.form.placeholder.tourismLicense')} {...field} />
                   </FormControl>
                   <FormDescription>
-                    Required for tourism-related activities
+                    {t('partner.form.description.tourismLicense')}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
           </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="ownerName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('form.field.ownerName')}</FormLabel>
+                  <FormControl>
+                    <Input placeholder={t('form.placeholder.ownerName')} {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('form.field.email')}</FormLabel>
+                  <FormControl>
+                    <Input placeholder={t('form.placeholder.email')} {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('form.field.phone')}</FormLabel>
+                  <FormControl>
+                    <Input placeholder={t('form.placeholder.phone')} {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="roomCount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('partner.form.field.roomCount')}</FormLabel>
+                  <FormControl>
+                    <Input placeholder={t('partner.form.placeholder.roomCount')} {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <FormField
+            control={form.control}
+            name="address"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('form.field.address')}</FormLabel>
+                <FormControl>
+                  <Textarea placeholder={t('form.placeholder.address')} {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
 
         <Separator />
 
         <div className="space-y-4">
-          <h3 className="text-lg font-medium">Commission Package Selection</h3>
+          <h3 className="text-lg font-medium">{t('partner.form.section.commission')}</h3>
           
           <div className='grid md:grid-cols-2 gap-6'>
             <Card 
@@ -161,28 +240,28 @@ export const PartnerRegistrationForm = () => {
               onClick={() => form.setValue('commissionPackage', 'basic')}
             >
               <CardHeader>
-                <CardTitle>Basic Package - 10% Commission</CardTitle>
+                <CardTitle>{t('partner.form.package.basic.title')}</CardTitle>
                 <CardDescription>
-                  Perfect for hotels starting their partnership
+                  {t('partner.form.package.basic.description')}
                 </CardDescription>
               </CardHeader>
               <CardContent className='space-y-4'>
                 <ul className='space-y-2 text-sm mb-12'>
                   <li className='flex items-center gap-2'>
                     <Check className='h-4 w-4 text-primary' />
-                    Custom QR code for your property
+                    {t('partner.form.package.basic.feature1')}
                   </li>
                   <li className='flex items-center gap-2'>
                     <Check className='h-4 w-4 text-primary' />
-                    Roll-up banner for lobby display
+                    {t('partner.form.package.basic.feature2')}
                   </li>
                   <li className='flex items-center gap-2'>
                     <Check className='h-4 w-4 text-primary' />
-                    Promotional materials and brochures
+                    {t('partner.form.package.basic.feature3')}
                   </li>
                   <li className='flex items-center gap-2'>
                     <Check className='h-4 w-4 text-primary' />
-                    Monthly commission payments
+                    {t('partner.form.package.basic.feature4')}
                   </li>
                 </ul>
                 <div className='absolute bottom-4 left-4'>
@@ -199,7 +278,7 @@ export const PartnerRegistrationForm = () => {
                           >
                             <div className='flex items-center space-x-2'>
                               <RadioGroupItem value='basic' id='basic' />
-                              <Label htmlFor='basic'>Select Basic Package</Label>
+                              <Label htmlFor='basic'>{t('partner.form.package.basic.select')}</Label>
                             </div>
                           </RadioGroup>
                         </FormControl>
@@ -215,31 +294,31 @@ export const PartnerRegistrationForm = () => {
               onClick={() => form.setValue('commissionPackage', 'premium')}
             >
               <div className='absolute -top-3 right-4 px-3 py-1 bg-primary text-primary-foreground text-sm rounded-full'>
-                Recommended
+                {t('partner.form.package.recommended')}
               </div>
               <CardHeader>
-                <CardTitle>Premium Package - 15% Commission</CardTitle>
+                <CardTitle>{t('partner.form.package.premium.title')}</CardTitle>
                 <CardDescription>
-                  Maximize your earnings with enhanced promotion
+                  {t('partner.form.package.premium.description')}
                 </CardDescription>
               </CardHeader>
               <CardContent className='space-y-4'>
                 <ul className='space-y-2 text-sm mb-12'>
                   <li className='flex items-center gap-2'>
                     <Check className='h-4 w-4 text-primary' />
-                    All Basic Package features
+                    {t('partner.form.package.premium.feature1')}
                   </li>
                   <li className='flex items-center gap-2'>
                     <Check className='h-4 w-4 text-primary' />
-                    QR codes in every room
+                    {t('partner.form.package.premium.feature2')}
                   </li>
                   <li className='flex items-center gap-2'>
                     <Check className='h-4 w-4 text-primary' />
-                    QR codes in elevators and common areas
+                    {t('partner.form.package.premium.feature3')}
                   </li>
                   <li className='flex items-center gap-2'>
                     <Check className='h-4 w-4 text-primary' />
-                    Integration with welcome emails
+                    {t('partner.form.package.premium.feature4')}
                   </li>
                 </ul>
                 <div className='absolute bottom-4 left-4'>
@@ -256,7 +335,7 @@ export const PartnerRegistrationForm = () => {
                           >
                             <div className='flex items-center space-x-2'>
                               <RadioGroupItem value='premium' id='premium' />
-                              <Label htmlFor='premium'>Select Premium Package</Label>
+                              <Label htmlFor='premium'>{t('partner.form.package.premium.select')}</Label>
                             </div>
                           </RadioGroup>
                         </FormControl>
@@ -269,15 +348,15 @@ export const PartnerRegistrationForm = () => {
           </div>
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
-            <h4 className="font-medium text-blue-800 mb-2">Promotional Materials Included</h4>
+            <h4 className="font-medium text-blue-800 mb-2">{t('partner.form.materials.title')}</h4>
             <p className="text-sm text-blue-700 mb-2">
-              We provide all necessary promotional materials for both packages:
+              {t('partner.form.materials.description')}
             </p>
             <ul className="text-sm text-blue-700 space-y-1">
-              <li>• Professional roll-up banners for lobby display</li>
-              <li>• High-quality QR code stickers and displays</li>
-              <li>• Digital assets for email marketing</li>
-              <li>• Brochures and information cards</li>
+              <li>• {t('partner.form.materials.item1')}</li>
+              <li>• {t('partner.form.materials.item2')}</li>
+              <li>• {t('partner.form.materials.item3')}</li>
+              <li>• {t('partner.form.materials.item4')}</li>
             </ul>
           </div>
         </div>
@@ -285,16 +364,16 @@ export const PartnerRegistrationForm = () => {
         <Separator />
 
         <div className="space-y-4">
-          <h3 className="text-lg font-medium">Payment Information</h3>
+          <h3 className="text-lg font-medium">{t('partner.form.section.payment')}</h3>
           <div className="grid md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="taxId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Tax ID</FormLabel>
+                  <FormLabel>{t('form.field.taxId')}</FormLabel>
                   <FormControl>
-                    <Input placeholder="13-digit Tax ID number" {...field} />
+                    <Input placeholder={t('partner.form.placeholder.taxId')} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -308,9 +387,9 @@ export const PartnerRegistrationForm = () => {
               name="bankName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Bank Name</FormLabel>
+                  <FormLabel>{t('partner.form.field.bankName')}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Bank name for commission payments" {...field} />
+                    <Input placeholder={t('partner.form.placeholder.bankName')} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -322,9 +401,9 @@ export const PartnerRegistrationForm = () => {
               name="bankAccount"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Bank Account Number</FormLabel>
+                  <FormLabel>{t('partner.form.field.bankAccount')}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Account number for receiving payments" {...field} />
+                    <Input placeholder={t('partner.form.placeholder.bankAccount')} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -333,15 +412,15 @@ export const PartnerRegistrationForm = () => {
           </div>
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
-            <h4 className="font-medium text-blue-800 mb-2">Commission Structure</h4>
+            <h4 className="font-medium text-blue-800 mb-2">{t('partner.form.commission.title')}</h4>
             <p className="text-sm text-blue-700 mb-2">
-              Choose between two partnership levels:
+              {t('partner.form.commission.description')}
             </p>
             <ul className="text-sm text-blue-700 space-y-1">
-              <li>• Basic Package: 10% commission with lobby promotion</li>
-              <li>• Premium Package: 15% commission with full property integration</li>
-              <li>• All commissions are calculated and paid monthly</li>
-              <li>• Track your earnings in real-time through your partner dashboard</li>
+              <li>• {t('partner.form.commission.basic')}</li>
+              <li>• {t('partner.form.commission.premium')}</li>
+              <li>• {t('partner.form.commission.monthly')}</li>
+              <li>• {t('partner.form.commission.tracking')}</li>
             </ul>
           </div>
 
@@ -358,11 +437,10 @@ export const PartnerRegistrationForm = () => {
                 </FormControl>
                 <div className="space-y-1 leading-none">
                   <FormLabel>
-                    I accept the terms and conditions
+                    {t('form.field.terms')}
                   </FormLabel>
                   <FormDescription>
-                    By accepting, you agree to comply with all applicable Thai tourism laws and regulations,
-                    maintain valid licenses, and adhere to our platform's partnership terms.
+                    {t('partner.form.terms.description')}
                   </FormDescription>
                 </div>
                 <FormMessage />
@@ -372,7 +450,7 @@ export const PartnerRegistrationForm = () => {
         </div>
 
         <Button type="submit" className="w-full">
-          Submit Registration
+          {t('form.button.submit')}
         </Button>
       </form>
     </Form>
