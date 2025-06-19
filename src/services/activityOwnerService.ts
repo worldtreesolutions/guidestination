@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { UUID } from "crypto";
@@ -34,9 +33,12 @@ interface RegistrationResult {
 const activityOwnerService = {
   async registerActivityOwner(registrationData: ActivityOwnerRegistrationData): Promise<RegistrationResult> {
     try {
+      // Generate a secure temporary password for the user
+      const temporaryPassword = Math.random().toString(36).slice(-12) + Math.random().toString(36).slice(-12);
+      
       const apiData = {
         email: registrationData.email,
-        password: "temporary-password", 
+        password: temporaryPassword, // Use generated password instead of hardcoded one
         firstName: registrationData.owner_name.split(" ")[0],
         lastName: registrationData.owner_name.split(" ").slice(1).join(" "),
         phoneNumber: registrationData.phone,
@@ -55,7 +57,7 @@ const activityOwnerService = {
         place_id: registrationData.place_id
       };
 
-      console.log("Service: Sending to API:", apiData);
+      console.log("Service: Sending to API:", { ...apiData, password: "[REDACTED]" }); // Don't log the password
 
       const response = await fetch("/api/register-activity-owner", {
         method: "POST",

@@ -1,4 +1,3 @@
-
 import { NextApiRequest, NextApiResponse } from "next"
 import { supabaseAdmin } from "@/integrations/supabase/admin"
 import type { Database } from "@/integrations/supabase/types"
@@ -143,6 +142,28 @@ export default async function handler(
         }
 
         console.log("API Success: Activity owner registered successfully. DB Data:", newOwnerData);
+        
+        // CRITICAL: Update user metadata with provider_id after successful DB creation
+        const { error: updateMetadataError } = await supabaseAdmin.auth.admin.updateUserById(
+            authUser.id,
+            {
+                user_metadata: {
+                    ...authUser.user_metadata,
+                    firstName: firstName,
+                    lastName: lastName || "",
+                    role: "activity_owner",
+                    provider_id: newOwnerData.provider_id // Add the provider_id to user metadata
+                }
+            }
+        );
+
+        if (updateMetadataError) {
+            console.error("API Warning: Failed to update user metadata with provider_id:", updateMetadataError);
+            // Don't fail the registration, but log the warning
+        } else {
+            console.log("API Success: Updated user metadata with provider_id:", newOwnerData.provider_id);
+        }
+
         return res.status(200).json({ 
             message: "Activity owner registered successfully. Please check your email for verification.",
              newOwnerData, 
