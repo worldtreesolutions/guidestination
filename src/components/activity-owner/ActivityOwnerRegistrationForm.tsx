@@ -29,6 +29,7 @@ import { InfoIcon, MapPin } from 'lucide-react'
 import { PlacesAutocomplete, PlaceData } from "@/components/ui/places-autocomplete"
 import { useLanguage } from "@/contexts/LanguageContext"
 import FileUploader, { UploadedFile } from "@/components/ui/file-uploader"
+import { TermsOfServiceModal } from "./TermsOfServiceModal"
 
 const createFormSchema = (t: (key: string) => string) => z.object({
   businessName: z.string().min(2, t('form.validation.businessName')),
@@ -431,8 +432,17 @@ export const ActivityOwnerRegistrationForm = () => {
                   />
                 </FormControl>
                 <div className='space-y-1 leading-none'>
-                  <FormLabel htmlFor='terms'>
-                    {t('form.field.terms')}
+                  <FormLabel htmlFor='terms' className="cursor-pointer">
+                    I agree to the{" "}
+                    <TermsOfServiceModal>
+                      <button
+                        type="button"
+                        className="text-primary underline hover:text-primary/80 font-medium"
+                        onClick={(e) => e.preventDefault()}
+                      >
+                        Terms of Service
+                      </button>
+                    </TermsOfServiceModal>
                   </FormLabel>
                   <FormDescription>
                     {t('form.description.terms')}
