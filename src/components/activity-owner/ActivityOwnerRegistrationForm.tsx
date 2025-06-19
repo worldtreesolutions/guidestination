@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -29,6 +28,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { InfoIcon, MapPin } from 'lucide-react'
 import { PlacesAutocomplete, PlaceData } from "@/components/ui/places-autocomplete"
 import { useLanguage } from "@/contexts/LanguageContext"
+import FileUploader, { UploadedFile } from "@/components/ui/file-uploader"
 
 const createFormSchema = (t: (key: string) => string) => z.object({
   businessName: z.string().min(2, t('form.validation.businessName')),
@@ -58,6 +58,7 @@ export const ActivityOwnerRegistrationForm = () => {
     isNewUser?: boolean;
   }>({ type: null, message: null })
   const [locationData, setLocationData] = useState<PlaceData | null>(null)
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
   const { toast } = useToast()
   
   const formSchema = createFormSchema(t)
@@ -86,6 +87,10 @@ export const ActivityOwnerRegistrationForm = () => {
     setLocationData(placeData)
     form.setValue('address', placeData.address, { shouldValidate: true, shouldDirty: true })
   }, [form])
+
+  const handleFilesChange = useCallback((files: UploadedFile[]) => {
+    setUploadedFiles(files)
+  }, [])
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
@@ -402,6 +407,16 @@ export const ActivityOwnerRegistrationForm = () => {
               {t('form.compliance.description')}
             </p>
           </div>
+
+          <FileUploader
+            onFilesChange={handleFilesChange}
+            maxFiles={10}
+            maxSize={15 * 1024 * 1024} // 15MB
+            acceptedFileTypes={[".pdf", ".jpg", ".jpeg", ".png", ".doc", ".docx"]}
+            label={t('form.field.supportingDocuments') || "Supporting Documents"}
+            description={t('form.description.supportingDocuments') || "Upload insurance documents, licenses, certifications, and other required paperwork (PDF, JPG, PNG, DOC, DOCX - Max 15MB each)"}
+            disabled={isSubmitting}
+          />
 
           <FormField
             control={form.control}
