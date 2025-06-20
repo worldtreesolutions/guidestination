@@ -1,3 +1,4 @@
+
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -26,7 +27,8 @@ import {
 } from "@/components/ui/select"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import FileUploader from "@/components/ui/file-uploader"
+import FileUploader, { UploadedFile } from "@/components/ui/file-uploader"
+import PlacesAutocomplete from "@/components/ui/places-autocomplete"
 import { Check, Upload, FileText } from "lucide-react"
 import { useLanguage } from "@/contexts/LanguageContext"
 import partnerService from "@/services/partnerService"
@@ -40,11 +42,12 @@ const createFormSchema = (t: (key: string) => string) => z.object({
   email: z.string().email(t('form.validation.email')),
   phone: z.string().min(10, t('form.validation.phone')),
   address: z.string().min(10, t('form.validation.address')),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
+  placeId: z.string().optional(),
   roomCount: z.string().min(1, t('partner.form.validation.roomCount')),
   taxId: z.string().min(13, t('form.validation.taxId')),
-  bankName: z.string().min(2, t('partner.form.validation.bankName')),
-  bankAccount: z.string().min(10, t('partner.form.validation.bankAccount')),
-  supportingDocuments: z.array(z.instanceof(File)).optional(),
+  supportingDocuments: z.array(z.any()).optional(),
   termsAccepted: z.boolean().refine((val) => val === true, {
     message: t('form.validation.terms'),
   }),
@@ -54,7 +57,7 @@ const createFormSchema = (t: (key: string) => string) => z.object({
 export const PartnerRegistrationForm = () => {
   const { t } = useLanguage()
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
   const formSchema = createFormSchema(t)
   
   const form = useForm<z.infer<typeof formSchema>>({
@@ -72,7 +75,9 @@ export const PartnerRegistrationForm = () => {
       const documentUrls: string[] = []
       if (uploadedFiles.length > 0) {
         for (const file of uploadedFiles) {
-          const url = await partnerService.uploadSupportingDocument(file)
+          // Convert UploadedFile to File for upload
+          const fileBlob = new File([file.name], file.name, { type: file.type })
+          const url = await partnerService.uploadSupportingDocument(fileBlob)
           documentUrls.push(url)
         }
       }
@@ -87,10 +92,11 @@ export const PartnerRegistrationForm = () => {
         email: values.email,
         phone: values.phone,
         address: values.address,
+        latitude: values.latitude,
+        longitude: values.longitude,
+        place_id: values.placeId,
         room_count: parseInt(values.roomCount),
         tax_id: values.taxId,
-        bank_name: values.bankName,
-        bank_account: values.bankAccount,
         commission_package: values.commissionPackage,
         supporting_documents: documentUrls,
       }
@@ -112,9 +118,18 @@ export const PartnerRegistrationForm = () => {
     }
   }
 
-  const handleFileUpload = (files: File[]) => {
+  const handleFileUpload = (files: UploadedFile[]) => {
     setUploadedFiles(files)
     form.setValue('supportingDocuments', files)
+  }
+
+  const handlePlaceSelect = (place: any) => {
+    if (place) {
+      form.setValue('address', place.formatted_address || place.description)
+      form.setValue('latitude', place.geometry?.location?.lat())
+      form.setValue('longitude', place.geometry?.location?.lng())
+      form.setValue('placeId', place.place_id)
+    }
   }
 
   return (
@@ -273,7 +288,29 @@ export const PartnerRegistrationForm = () => {
               <FormItem>
                 <FormLabel>{t('form.field.address')}</FormLabel>
                 <FormControl>
-                  <Textarea placeholder={t('form.placeholder.address')} {...field} />
+                  <PlacesAutocomplete
+                    value={field.value || ""}
+                    onChange={field.onChange}
+                    onPlaceSelect={handlePlaceSelect}
+                    placeholder={t('form.placeholder.address')}
+                  />
+                </FormControl>
+                <FormDescription>
+                  {t('partner.form.description.address')}
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="taxId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('form.field.taxId')}</FormLabel>
+                <FormControl>
+                  <Input placeholder={t('partner.form.placeholder.taxId')} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -294,21 +331,14 @@ export const PartnerRegistrationForm = () => {
                 <FormLabel>{t('partner.form.field.supportingDocuments')}</FormLabel>
                 <FormControl>
                   <FileUploader
-                    files={uploadedFiles}
                     onFilesChange={handleFileUpload}
                     maxFiles={5}
                     maxSize={10 * 1024 * 1024}
-                    accept={{
-                      'application/pdf': ['.pdf'],
-                      'image/*': ['.png', '.jpg', '.jpeg'],
-                      'application/msword': ['.doc'],
-                      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx']
-                    }}
+                    acceptedFileTypes={['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx']}
+                    label={t('partner.form.field.supportingDocuments')}
+                    description={t('partner.form.description.supportingDocuments')}
                   />
                 </FormControl>
-                <FormDescription>
-                  {t('partner.form.description.supportingDocuments')}
-                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -327,7 +357,6 @@ export const PartnerRegistrationForm = () => {
               <li>• {t('partner.form.documents.item2')}</li>
               <li>• {t('partner.form.documents.item3')}</li>
               <li>• {t('partner.form.documents.item4')}</li>
-              <li>• {t('partner.form.documents.item5')}</li>
             </ul>
           </div>
         </div>
@@ -460,70 +489,6 @@ export const PartnerRegistrationForm = () => {
               <li>• {t('partner.form.materials.item2')}</li>
               <li>• {t('partner.form.materials.item3')}</li>
               <li>• {t('partner.form.materials.item4')}</li>
-            </ul>
-          </div>
-        </div>
-
-        <Separator />
-
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">{t('partner.form.section.payment')}</h3>
-          <div className="grid md:grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="taxId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('form.field.taxId')}</FormLabel>
-                  <FormControl>
-                    <Input placeholder={t('partner.form.placeholder.taxId')} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="bankName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('partner.form.field.bankName')}</FormLabel>
-                  <FormControl>
-                    <Input placeholder={t('partner.form.placeholder.bankName')} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="bankAccount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('partner.form.field.bankAccount')}</FormLabel>
-                  <FormControl>
-                    <Input placeholder={t('partner.form.placeholder.bankAccount')} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
-            <h4 className="font-medium text-blue-800 mb-2">{t('partner.form.commission.title')}</h4>
-            <p className="text-sm text-blue-700 mb-2">
-              {t('partner.form.commission.description')}
-            </p>
-            <ul className="text-sm text-blue-700 space-y-1">
-              <li>• {t('partner.form.commission.basic')}</li>
-              <li>• {t('partner.form.commission.premium')}</li>
-              <li>• {t('partner.form.commission.monthly')}</li>
-              <li>• {t('partner.form.commission.tracking')}</li>
             </ul>
           </div>
 
