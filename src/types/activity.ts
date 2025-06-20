@@ -1,4 +1,3 @@
-
 import { Database } from "@/integrations/supabase/types"
 
 export type Activity = Database["public"]["Tables"]["activities"]["Row"] & {
