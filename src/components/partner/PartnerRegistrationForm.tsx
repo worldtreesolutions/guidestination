@@ -1,4 +1,3 @@
-
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -82,7 +81,7 @@ export const PartnerRegistrationForm = () => {
         }
       }
 
-      // Create partner registration
+      // Create partner registration with user creation and email verification
       const registrationData = {
         business_name: values.businessName,
         business_type: values.businessType,
@@ -103,16 +102,26 @@ export const PartnerRegistrationForm = () => {
 
       const result = await partnerService.createPartnerRegistration(registrationData)
       
-      // Show success message
-      alert(t('partner.form.success.message'))
+      // Show success message with email verification info
+      alert(`${t('partner.form.success.message')}
+
+${result.message}`)
       
       // Reset form
       form.reset()
       setUploadedFiles([])
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting partner registration:', error)
-      alert(t('partner.form.error.message'))
+      
+      // Handle specific error cases
+      if (error.message?.includes('User already registered')) {
+        alert(t('form.error.accountExists'))
+      } else if (error.message?.includes('Invalid email')) {
+        alert(t('form.validation.email'))
+      } else {
+        alert(t('partner.form.error.message'))
+      }
     } finally {
       setIsSubmitting(false)
     }
