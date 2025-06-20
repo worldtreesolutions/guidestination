@@ -531,6 +531,7 @@
   "partner.form.field.bankAccount": "หมายเลขบัญชีธนาคาร",
   "partner.form.description.hotelLicense": "จำเป็นสำหรับผู้ให้บริการที่พัก",
   "partner.form.description.tourismLicense": "จำเป็นสำหรับธุรกิจที่เกี่ยวข้องกับการท่องเที่ยว",
+  "partner.form.description.address": "ที่อยู่พร้อมพิกัด GPS อัตโนมัติ",
   "partner.form.section.commission": "แพ็คเกจค่าคอมมิชชั่น",
   "partner.form.section.payment": "ข้อมูลการชำระเงิน",
   "partner.form.package.basic.title": "พาร์ทเนอร์พื้นฐาน",

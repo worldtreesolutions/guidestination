@@ -28,7 +28,7 @@ import {
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import FileUploader, { UploadedFile } from "@/components/ui/file-uploader"
-import PlacesAutocomplete from "@/components/ui/places-autocomplete"
+import { PlacesAutocomplete } from "@/components/ui/places-autocomplete"
 import { Check, Upload, FileText } from "lucide-react"
 import { useLanguage } from "@/contexts/LanguageContext"
 import partnerService from "@/services/partnerService"

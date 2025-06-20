@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client"
 
 export interface PartnerRegistration {
@@ -10,21 +11,24 @@ export interface PartnerRegistration {
   email: string
   phone: string
   address: string
+  latitude?: number
+  longitude?: number
+  place_id?: string
   room_count: number
   tax_id: string
-  bank_name: string
-  bank_account: string
   commission_package: "basic" | "premium"
   supporting_documents?: string[]
   status?: "pending" | "approved" | "rejected"
+  created_by?: string
+  updated_by?: string
   created_at?: string
   updated_at?: string
 }
 
 export const partnerService = {
-  async createPartnerRegistration(data: Omit<PartnerRegistration, "id" | "created_at" | "updated_at">) {
+  async createPartnerRegistration(data: Omit<PartnerRegistration, "id" | "created_at" | "updated_at" | "created_by" | "updated_by">) {
     const { data: result, error } = await supabase
-      .from("partner_registrations")
+      .from("partner_registrations" as any)
       .insert([{
         business_name: data.business_name,
         business_type: data.business_type,
@@ -34,17 +38,18 @@ export const partnerService = {
         email: data.email,
         phone: data.phone,
         address: data.address,
+        latitude: data.latitude,
+        longitude: data.longitude,
+        place_id: data.place_id,
         room_count: data.room_count,
         tax_id: data.tax_id,
-        bank_name: data.bank_name,
-        bank_account: data.bank_account,
         commission_package: data.commission_package,
         supporting_documents: data.supporting_documents || []
       }])
       .select()
 
     if (error) throw error
-    return result[0] as PartnerRegistration
+    return result[0] as any
   },
 
   async uploadSupportingDocument(file: File): Promise<string> {
@@ -67,23 +72,23 @@ export const partnerService = {
 
   async getPartnerRegistrations() {
     const { data, error } = await supabase
-      .from("partner_registrations")
+      .from("partner_registrations" as any)
       .select("*")
       .order("created_at", { ascending: false })
 
     if (error) throw error
-    return data as PartnerRegistration[]
+    return data as any[]
   },
 
   async getPartnerRegistrationByEmail(email: string) {
     const { data, error } = await supabase
-      .from("partner_registrations")
+      .from("partner_registrations" as any)
       .select("*")
       .eq("email", email)
       .single()
 
     if (error && error.code !== "PGRST116") throw error
-    return data as PartnerRegistration | null
+    return data as any
   }
 }
 

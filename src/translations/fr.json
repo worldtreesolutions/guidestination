@@ -545,6 +545,7 @@
   "partner.form.field.bankAccount": "Numéro de Compte Bancaire",
   "partner.form.description.hotelLicense": "Requis pour les fournisseurs d'hébergement",
   "partner.form.description.tourismLicense": "Requis pour les entreprises liées au tourisme",
+  "partner.form.description.address": "Adresse avec coordonnées GPS automatiques",
   "partner.form.section.commission": "Package de Commission",
   "partner.form.section.payment": "Informations de Paiement",
   "partner.form.package.basic.title": "Partenaire Basique",
