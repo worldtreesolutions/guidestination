@@ -558,6 +558,16 @@
   "partner.form.description.tourismLicense": "Required for tourism-related businesses",
   "partner.form.section.commission": "Commission Package",
   "partner.form.section.payment": "Payment Information",
+  "partner.form.section.documents": "Supporting Documents",
+  "partner.form.field.supportingDocuments": "Supporting Documents",
+  "partner.form.description.supportingDocuments": "Upload business license, tax documents, bank statements, and other relevant documents (PDF, DOC, or images, max 10MB each)",
+  "partner.form.documents.title": "Required Documents",
+  "partner.form.documents.description": "Please upload the following documents to complete your registration:",
+  "partner.form.documents.item1": "Business registration certificate",
+  "partner.form.documents.item2": "Hotel/accommodation license",
+  "partner.form.documents.item3": "Tourism business license",
+  "partner.form.documents.item4": "Tax identification documents",
+  "partner.form.documents.item5": "Bank account verification documents",
   "partner.form.package.basic.title": "Basic Partner",
   "partner.form.package.basic.description": "5% commission on bookings",
   "partner.form.package.basic.feature1": "5% commission on all bookings",
@@ -585,5 +595,11 @@
   "partner.form.commission.premium": "Premium: 8% commission on all successful bookings",
   "partner.form.commission.monthly": "Payments processed monthly (Basic) or weekly (Premium)",
   "partner.form.commission.tracking": "Real-time commission tracking through partner dashboard",
-  "partner.form.terms.description": "By registering, you agree to our partner terms and conditions"
+  "partner.form.terms.description": "By registering, you agree to our partner terms and conditions",
+  "partner.form.success.message": "Partner registration submitted successfully! We will review your application and contact you within 2-3 business days.",
+  "partner.form.error.message": "There was an error submitting your registration. Please try again or contact support.",
+  "form.button": {
+    "submit": "Submit Registration",
+    "submitting": "Submitting..."
+  }
 }

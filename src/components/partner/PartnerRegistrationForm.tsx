@@ -1,4 +1,3 @@
-
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -27,8 +26,10 @@ import {
 } from "@/components/ui/select"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Check } from "lucide-react"
+import { FileUploader } from "@/components/ui/file-uploader"
+import { Check, Upload, FileText } from "lucide-react"
 import { useLanguage } from "@/contexts/LanguageContext"
+import partnerService from "@/services/partnerService"
 
 const createFormSchema = (t: (key: string) => string) => z.object({
   businessName: z.string().min(2, t('form.validation.businessName')),
@@ -43,6 +44,7 @@ const createFormSchema = (t: (key: string) => string) => z.object({
   taxId: z.string().min(13, t('form.validation.taxId')),
   bankName: z.string().min(2, t('partner.form.validation.bankName')),
   bankAccount: z.string().min(10, t('partner.form.validation.bankAccount')),
+  supportingDocuments: z.array(z.instanceof(File)).optional(),
   termsAccepted: z.boolean().refine((val) => val === true, {
     message: t('form.validation.terms'),
   }),
@@ -51,18 +53,68 @@ const createFormSchema = (t: (key: string) => string) => z.object({
 
 export const PartnerRegistrationForm = () => {
   const { t } = useLanguage()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
   const formSchema = createFormSchema(t)
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       termsAccepted: false,
+      supportingDocuments: [],
     },
   })
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log(values)
-    // Handle form submission
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    setIsSubmitting(true)
+    try {
+      // Upload supporting documents first
+      const documentUrls: string[] = []
+      if (uploadedFiles.length > 0) {
+        for (const file of uploadedFiles) {
+          const url = await partnerService.uploadSupportingDocument(file)
+          documentUrls.push(url)
+        }
+      }
+
+      // Create partner registration
+      const registrationData = {
+        business_name: values.businessName,
+        business_type: values.businessType,
+        hotel_license_number: values.hotelLicenseNumber,
+        tourism_license_number: values.tourismLicenseNumber,
+        owner_name: values.ownerName,
+        email: values.email,
+        phone: values.phone,
+        address: values.address,
+        room_count: parseInt(values.roomCount),
+        tax_id: values.taxId,
+        bank_name: values.bankName,
+        bank_account: values.bankAccount,
+        commission_package: values.commissionPackage,
+        supporting_documents: documentUrls,
+      }
+
+      const result = await partnerService.createPartnerRegistration(registrationData)
+      
+      // Show success message
+      alert(t('partner.form.success.message'))
+      
+      // Reset form
+      form.reset()
+      setUploadedFiles([])
+      
+    } catch (error) {
+      console.error('Error submitting partner registration:', error)
+      alert(t('partner.form.error.message'))
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleFileUpload = (files: File[]) => {
+    setUploadedFiles(files)
+    form.setValue('supportingDocuments', files)
   }
 
   return (
@@ -227,6 +279,57 @@ export const PartnerRegistrationForm = () => {
               </FormItem>
             )}
           />
+        </div>
+
+        <Separator />
+
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">{t('partner.form.section.documents')}</h3>
+          
+          <FormField
+            control={form.control}
+            name="supportingDocuments"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('partner.form.field.supportingDocuments')}</FormLabel>
+                <FormControl>
+                  <FileUploader
+                    value={uploadedFiles}
+                    onValueChange={handleFileUpload}
+                    maxFiles={5}
+                    maxSize={10 * 1024 * 1024} // 10MB
+                    accept={{
+                      'application/pdf': ['.pdf'],
+                      'image/*': ['.png', '.jpg', '.jpeg'],
+                      'application/msword': ['.doc'],
+                      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx']
+                    }}
+                  />
+                </FormControl>
+                <FormDescription>
+                  {t('partner.form.description.supportingDocuments')}
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <h4 className="font-medium text-green-800 mb-2 flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              {t('partner.form.documents.title')}
+            </h4>
+            <p className="text-sm text-green-700 mb-2">
+              {t('partner.form.documents.description')}
+            </p>
+            <ul className="text-sm text-green-700 space-y-1">
+              <li>• {t('partner.form.documents.item1')}</li>
+              <li>• {t('partner.form.documents.item2')}</li>
+              <li>• {t('partner.form.documents.item3')}</li>
+              <li>• {t('partner.form.documents.item4')}</li>
+              <li>• {t('partner.form.documents.item5')}</li>
+            </ul>
+          </div>
         </div>
 
         <Separator />
@@ -449,8 +552,8 @@ export const PartnerRegistrationForm = () => {
           />
         </div>
 
-        <Button type="submit" className="w-full">
-          {t('form.button.submit')}
+        <Button type="submit" className="w-full" disabled={isSubmitting}>
+          {isSubmitting ? t('form.button.submitting') : t('form.button.submit')}
         </Button>
       </form>
     </Form>
