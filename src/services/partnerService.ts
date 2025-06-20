@@ -39,22 +39,39 @@ export interface PartnerActivity {
 export const partnerService = {
   async createPartnerRegistration(data: Omit<PartnerRegistration, "id" | "created_at" | "updated_at" | "created_by" | "updated_by" | "user_id">) {
     try {
-      // Step 1: Create user in auth.users table
+      // Check if user already exists with this email
+      const { data: existingUser } = await supabase
+        .from("partner_registrations")
+        .select("email")
+        .eq("email", data.email)
+        .single()
+
+      if (existingUser) {
+        throw new Error("User already registered with this email address")
+      }
+
+      // Step 1: Create user in auth.users table with email verification
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
-        password: Math.random().toString(36).substring(2, 15), // Generate temporary password
+        password: Math.random().toString(36).substring(2, 15) + "A1!", // Generate secure temporary password
         options: {
           data: {
             full_name: data.owner_name,
             role: 'partner',
             business_name: data.business_name
           },
-          emailRedirectTo: `${window.location.origin}/partner/verify-email`
+          emailRedirectTo: `https://3000-sandbox-63cb7384.h1088.daytona.work/partner/verify-email`
         }
       })
 
-      if (authError) throw authError
-      if (!authData.user) throw new Error('Failed to create user account')
+      if (authError) {
+        console.error("Auth error:", authError)
+        throw new Error(`Authentication error: ${authError.message}`)
+      }
+      
+      if (!authData.user) {
+        throw new Error("Failed to create user account")
+      }
 
       // Step 2: Create partner registration record with user_id as foreign key
       const { data: partnerData, error: partnerError } = await supabase
@@ -81,15 +98,14 @@ export const partnerService = {
         .select()
 
       if (partnerError) {
-        // If partner registration fails, we should clean up the auth user
-        await supabase.auth.admin.deleteUser(authData.user.id)
-        throw partnerError
+        console.error("Partner registration error:", partnerError)
+        throw new Error(`Registration error: ${partnerError.message}`)
       }
 
       return {
         user: authData.user,
         partner: partnerData[0],
-        message: 'Registration successful! Please check your email to verify your account.'
+        message: 'Registration successful! Please check your email to verify your account before you can access your partner dashboard.'
       }
     } catch (error) {
       console.error('Error in partner registration:', error)
@@ -132,9 +148,9 @@ export const partnerService = {
           id,
           title,
           description,
-          price_per_person,
-          category,
-          status
+          final_price,
+          category_id,
+          is_active
         )
       `)
       .eq('partner_id', partnerId)
@@ -168,7 +184,7 @@ export const partnerService = {
 
   async uploadSupportingDocument(file: File): Promise<string> {
     const fileExt = file.name.split(".").pop()
-    const fileName = `${Math.random()}.${fileExt}`
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`
     const filePath = `partner-documents/${fileName}`
 
     const { error: uploadError } = await supabase.storage
@@ -229,6 +245,34 @@ export const partnerService = {
 
     if (error) throw error
     return data[0]
+  },
+
+  async bulkLinkPartnerToActivities(partnerId: string, activityIds: string[], commissionRate: number = 0.05) {
+    const insertData = activityIds.map(activityId => ({
+      partner_id: partnerId,
+      activity_id: parseInt(activityId),
+      commission_rate: commissionRate,
+      is_active: true
+    }))
+
+    const { data, error } = await supabase
+      .from("partner_activities")
+      .insert(insertData)
+      .select()
+
+    if (error) throw error
+    return data
+  },
+
+  async getAvailableActivities() {
+    const { data, error } = await supabase
+      .from("activities")
+      .select("id, title, description, final_price, category_id")
+      .eq("is_active", true)
+      .order("title")
+
+    if (error) throw error
+    return data
   }
 }
 
