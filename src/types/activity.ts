@@ -1,7 +1,9 @@
 import { Database } from "@/integrations/supabase/types"
 
+// Ensure Activity type aligns with Database["public"]["Tables"]["activities"]["Row"]
 export type Activity = Database["public"]["Tables"]["activities"]["Row"] & {
-  final_price?: number;
+  // These are additional client-side properties or aliases
+  price?: number; // Alias for b_price or final_price for card components
   video_url?: string | null;
   video_duration?: number | null;
   video_size?: number | null;
@@ -14,7 +16,7 @@ export type Activity = Database["public"]["Tables"]["activities"]["Row"] & {
   latitude?: number | null;
   longitude?: number | null;
   id?: number; // Added for compatibility with ActivityCard
-  price?: number; // Added for compatibility with ActivityCard
+  final_price?: number; // Added for compatibility with ActivityCard
 }
 
 export type ActivityStatus = "draft" | "published" | "archived"
