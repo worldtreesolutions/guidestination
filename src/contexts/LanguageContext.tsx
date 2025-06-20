@@ -58,24 +58,26 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
       setIsLoading(true);
       try {
         console.log(`Loading translations for language: ${language}`);
-        // Dynamic import of translations
-        let enTranslations;
+        
         if (language === "en") {
-          enTranslations = (await import("@/translations/en.json")).default;
+          const enTranslations = (await import("@/translations/en.json")).default;
           setTranslations(enTranslations as Record<string, string>);
           return;
         }
 
         // Dynamically import other languages
         const langModule = await import(`@/translations/${language}.json`);
-        // Ensure the loaded translations are treated as Record<string, string>
-        // This might require flattening if the JSON contains nested objects.
-        // For now, we cast, but a more robust solution would flatten complex objects.
         setTranslations(langModule.default as Record<string, string>);
       } catch (error) {
         console.error(`Failed to load translations for ${language}:`, error);
         // Fallback to English if loading fails
-        setTranslations(enTranslations as Record<string, string>);
+        try {
+          const enTranslations = (await import("@/translations/en.json")).default;
+          setTranslations(enTranslations as Record<string, string>);
+        } catch (fallbackError) {
+          console.error("Failed to load English fallback translations:", fallbackError);
+          setTranslations({});
+        }
       } finally {
         setIsLoading(false);
       }
