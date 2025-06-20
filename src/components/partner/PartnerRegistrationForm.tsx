@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/select"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { FileUploader } from "@/components/ui/file-uploader"
+import FileUploader from "@/components/ui/file-uploader" // Corrected import: default import
 import { Check, Upload, FileText } from "lucide-react"
 import { useLanguage } from "@/contexts/LanguageContext"
 import partnerService from "@/services/partnerService"

@@ -59,43 +59,23 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
       try {
         console.log(`Loading translations for language: ${language}`);
         // Dynamic import of translations
-        let translationData;
-        switch (language) {
-          case "en":
-            translationData = (await import("@/translations/en.json")).default;
-            break;
-          case "th":
-            translationData = (await import("@/translations/th.json")).default;
-            break;
-          case "zh":
-            translationData = (await import("@/translations/zh.json")).default;
-            break;
-          case "es":
-            translationData = (await import("@/translations/es.json")).default;
-            break;
-          case "fr":
-            translationData = (await import("@/translations/fr.json")).default;
-            break;
-          default:
-            translationData = (await import("@/translations/en.json")).default;
+        let enTranslations;
+        if (language === "en") {
+          enTranslations = (await import("@/translations/en.json")).default;
+          setTranslations(enTranslations as Record<string, string>);
+          return;
         }
-        console.log(`Loaded ${Object.keys(translationData).length} translation keys for ${language}`);
-        setTranslations(translationData);
-        // Force a re-render to ensure all components update
-        setForceUpdate(prev => prev + 1);
+
+        // Dynamically import other languages
+        const langModule = await import(`@/translations/${language}.json`);
+        // Ensure the loaded translations are treated as Record<string, string>
+        // This might require flattening if the JSON contains nested objects.
+        // For now, we cast, but a more robust solution would flatten complex objects.
+        setTranslations(langModule.default as Record<string, string>);
       } catch (error) {
         console.error(`Failed to load translations for ${language}:`, error);
-        // Fallback to English if translation file is missing
-        if (language !== "en") {
-          try {
-            const fallbackModule = await import("@/translations/en.json");
-            setTranslations(fallbackModule.default);
-            console.log("Loaded fallback English translations");
-          } catch (fallbackError) {
-            console.error("Failed to load fallback translations:", fallbackError);
-            setTranslations({});
-          }
-        }
+        // Fallback to English if loading fails
+        setTranslations(enTranslations as Record<string, string>);
       } finally {
         setIsLoading(false);
       }

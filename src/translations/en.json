@@ -598,8 +598,6 @@
   "partner.form.terms.description": "By registering, you agree to our partner terms and conditions",
   "partner.form.success.message": "Partner registration submitted successfully! We will review your application and contact you within 2-3 business days.",
   "partner.form.error.message": "There was an error submitting your registration. Please try again or contact support.",
-  "form.button": {
-    "submit": "Submit Registration",
-    "submitting": "Submitting..."
-  }
+  "form.button.submit": "Submit Registration",
+  "form.button.submitting": "Submitting..."
 }
