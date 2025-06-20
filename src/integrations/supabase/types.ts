@@ -129,6 +129,11 @@ export interface Database {
           is_active: boolean | null
           tags: string[] | null
           type: string | null
+          address: string | null
+          Final_Price: number | null
+          id: number
+          provider_id: string | null // Assuming this is UUID from auth.users or another table
+          user_id: string | null // Assuming this is UUID from auth.users
         }
         Insert: {
           title?: string
@@ -166,6 +171,11 @@ export interface Database {
           is_active?: boolean | null
           tags?: string[] | null
           type?: string | null
+          address?: string | null
+          Final_Price?: number | null
+          id?: number
+          provider_id?: string | null
+          user_id?: string | null
         }
         Update: {
           title?: string
@@ -203,8 +213,25 @@ export interface Database {
           is_active?: boolean | null
           tags?: string[] | null
           type?: string | null
+          address?: string | null
+          Final_Price?: number | null
+          id?: number
+          provider_id?: string | null
+          user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "activities_category_id_fkey"
+            columns: ["category_id"]
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activities_provider_id_fkey" // Example, adjust if needed
+            columns: ["provider_id"]
+            referencedRelation: "activity_owners" // Or auth.users if it's a direct user
+            referencedColumns: ["provider_id"] // Or "id" if auth.users
+          },
           {
             foreignKeyName: "activities_provider_id_fkey"
             columns: ["provider_id"]
@@ -527,7 +554,214 @@ export interface Database {
           },
         ]
       }
-      
+      activity_owners: {
+        Row: {
+          address: string | null
+          business_name: string
+          business_type: string | null
+          created_at: string
+          description: string | null
+          email: string
+          guide_card_number: string | null
+          insurance_amount: string | null
+          insurance_policy: string | null
+          location_geom: unknown | null
+          location_lat: number | null
+          location_lng: number | null
+          owner_name: string
+          phone: string | null
+          place_id: string | null
+          provider_id: string
+          status: string
+          tat_license_number: string | null
+          tax_id: string | null
+          tourism_license_number: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          address?: string | null
+          business_name: string
+          business_type?: string | null
+          created_at?: string
+          description?: string | null
+          email: string
+          guide_card_number?: string | null
+          insurance_amount?: string | null
+          insurance_policy?: string | null
+          location_geom?: unknown | null
+          location_lat?: number | null
+          location_lng?: number | null
+          owner_name: string
+          phone?: string | null
+          place_id?: string | null
+          provider_id?: string
+          status?: string
+          tat_license_number?: string | null
+          tax_id?: string | null
+          tourism_license_number?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          address?: string | null
+          business_name?: string
+          business_type?: string | null
+          created_at?: string
+          description?: string | null
+          email?: string
+          guide_card_number?: string | null
+          insurance_amount?: string | null
+          insurance_policy?: string | null
+          location_geom?: unknown | null
+          location_lat?: number | null
+          location_lng?: number | null
+          owner_name?: string
+          phone?: string | null
+          place_id?: string | null
+          provider_id?: string
+          status?: string
+          tat_license_number?: string | null
+          tax_id?: string | null
+          tourism_license_number?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_owners_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_registrations: { // Added new table definition
+        Row: {
+          id: string // uuid
+          user_id: string | null // uuid, foreign key to auth.users
+          business_name: string
+          business_type: string
+          hotel_license_number: string
+          tourism_license_number: string
+          owner_name: string
+          email: string
+          phone: string
+          address: string
+          latitude: number | null
+          longitude: number | null
+          place_id: string | null
+          room_count: number
+          tax_id: string
+          commission_package: "basic" | "premium"
+          supporting_documents: Json | null // Assuming string[] stored as JSON
+          status: "pending" | "approved" | "rejected"
+          created_by: string | null // uuid
+          updated_by: string | null // uuid
+          created_at: string // timestamptz
+          updated_at: string // timestamptz
+        }
+        Insert: {
+          id?: string // uuid
+          user_id?: string | null // uuid
+          business_name: string
+          business_type: string
+          hotel_license_number: string
+          tourism_license_number: string
+          owner_name: string
+          email: string
+          phone: string
+          address: string
+          latitude?: number | null
+          longitude?: number | null
+          place_id?: string | null
+          room_count: number
+          tax_id: string
+          commission_package: "basic" | "premium"
+          supporting_documents?: Json | null
+          status?: "pending" | "approved" | "rejected"
+          created_by?: string | null
+          updated_by?: string | null
+          created_at?: string // timestamptz
+          updated_at?: string // timestamptz
+        }
+        Update: {
+          id?: string // uuid
+          user_id?: string | null // uuid
+          business_name?: string
+          business_type?: string
+          hotel_license_number?: string
+          tourism_license_number?: string
+          owner_name?: string
+          email?: string
+          phone?: string
+          address?: string
+          latitude?: number | null
+          longitude?: number | null
+          place_id?: string | null
+          room_count?: number
+          tax_id?: string
+          commission_package?: "basic" | "premium"
+          supporting_documents?: Json | null
+          status?: "pending" | "approved" | "rejected"
+          created_by?: string | null
+          updated_by?: string | null
+          created_at?: string // timestamptz
+          updated_at?: string // timestamptz
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_registrations_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "users" // This refers to auth.users
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      partner_activities: { // Added new table definition
+        Row: {
+          id: string // uuid
+          partner_id: string // uuid, foreign key to partner_registrations
+          activity_id: number // integer, foreign key to activities
+          commission_rate: number | null
+          is_active: boolean | null
+          created_at: string // timestamptz
+          updated_at: string // timestamptz
+        }
+        Insert: {
+          id?: string // uuid
+          partner_id: string // uuid
+          activity_id: number // integer
+          commission_rate?: number | null
+          is_active?: boolean | null
+          created_at?: string // timestamptz
+          updated_at?: string // timestamptz
+        }
+        Update: {
+          id?: string // uuid
+          partner_id?: string // uuid
+          activity_id?: number // integer
+          commission_rate?: number | null
+          is_active?: boolean | null
+          created_at?: string // timestamptz
+          updated_at?: string // timestamptz
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_activities_partner_id_fkey"
+            columns: ["partner_id"]
+            referencedRelation: "partner_registrations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_activities_activity_id_fkey"
+            columns: ["activity_id"]
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never

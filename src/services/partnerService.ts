@@ -1,9 +1,8 @@
-
 import { supabase } from "@/integrations/supabase/client"
 
 export interface PartnerRegistration {
   id?: string
-  user_id?: string
+  user_id?: string // This should already be here from previous steps
   business_name: string
   business_type: string
   hotel_license_number: string
@@ -29,7 +28,7 @@ export interface PartnerRegistration {
 export interface PartnerActivity {
   id?: string
   partner_id: string
-  activity_id: string
+  activity_id: number // Changed from string to number
   commission_rate?: number
   is_active?: boolean
   created_at?: string
@@ -77,7 +76,7 @@ export const partnerService = {
       const { data: partnerData, error: partnerError } = await supabase
         .from("partner_registrations")
         .insert([{
-          user_id: authData.user.id,
+          user_id: authData.user.id, // Ensure user_id is correctly assigned
           business_name: data.business_name,
           business_type: data.business_type,
           hotel_license_number: data.hotel_license_number,
@@ -99,6 +98,8 @@ export const partnerService = {
 
       if (partnerError) {
         console.error("Partner registration error:", partnerError)
+        // If user was created but partner registration failed, consider deleting the auth user
+        // For now, just throwing the error.
         throw new Error(`Registration error: ${partnerError.message}`)
       }
 
@@ -113,12 +114,12 @@ export const partnerService = {
     }
   },
 
-  async linkPartnerToActivity(partnerId: string, activityId: string, commissionRate: number = 0.05) {
+  async linkPartnerToActivity(partnerId: string, activityId: number, commissionRate: number = 0.05) { // activityId changed to number
     const { data, error } = await supabase
       .from("partner_activities")
       .insert([{
         partner_id: partnerId,
-        activity_id: activityId,
+        activity_id: activityId, // activityId is now number
         commission_rate: commissionRate,
         is_active: true
       }])
@@ -128,12 +129,12 @@ export const partnerService = {
     return data[0]
   },
 
-  async unlinkPartnerFromActivity(partnerId: string, activityId: string) {
+  async unlinkPartnerFromActivity(partnerId: string, activityId: number) { // activityId changed to number
     const { error } = await supabase
       .from("partner_activities")
       .delete()
       .eq('partner_id', partnerId)
-      .eq('activity_id', activityId)
+      .eq('activity_id', activityId) // activityId is now number
 
     if (error) throw error
     return true
@@ -160,7 +161,7 @@ export const partnerService = {
     return data
   },
 
-  async getActivityPartners(activityId: string) {
+  async getActivityPartners(activityId: number) { // activityId changed to number
     const { data, error } = await supabase
       .from("partner_activities")
       .select(`
@@ -175,7 +176,7 @@ export const partnerService = {
           status
         )
       `)
-      .eq('activity_id', activityId)
+      .eq('activity_id', activityId) // activityId is now number
       .eq('is_active', true)
 
     if (error) throw error
@@ -247,10 +248,10 @@ export const partnerService = {
     return data[0]
   },
 
-  async bulkLinkPartnerToActivities(partnerId: string, activityIds: string[], commissionRate: number = 0.05) {
+  async bulkLinkPartnerToActivities(partnerId: string, activityIds: number[], commissionRate: number = 0.05) { // activityIds changed to number[]
     const insertData = activityIds.map(activityId => ({
       partner_id: partnerId,
-      activity_id: parseInt(activityId),
+      activity_id: activityId, // No parseInt needed, already a number
       commission_rate: commissionRate,
       is_active: true
     }))
