@@ -575,5 +575,54 @@
   "partner.form.commission.premium": "Premium : 8% de commission sur toutes les réservations réussies",
   "partner.form.commission.monthly": "Paiements traités mensuellement (Basique) ou hebdomadairement (Premium)",
   "partner.form.commission.tracking": "Suivi des commissions en temps réel via le tableau de bord partenaire",
-  "partner.form.terms.description": "En vous inscrivant, vous acceptez nos conditions générales de partenariat"
+  "partner.form.terms.description": "En vous inscrivant, vous acceptez nos conditions générales de partenariat",
+  "form": {
+    "section": {
+      "business": "Informations sur l'établissement"
+    },
+    "field": {
+      "establishmentName": "Nom de l'établissement",
+      "establishmentType": "Type d'établissement",
+      "businessName": "Nom de l'établissement",
+      "businessType": "Type d'établissement",
+      "ownerName": "Nom du propriétaire",
+      "email": "Adresse e-mail",
+      "phone": "Numéro de téléphone",
+      "address": "Adresse de l'établissement",
+      "taxId": "Numéro fiscal",
+      "terms": "J'accepte les termes et conditions"
+    },
+    "placeholder": {
+      "establishmentName": "Entrez le nom de votre établissement",
+      "establishmentType": "Sélectionnez le type d'établissement",
+      "businessName": "Entrez le nom de votre établissement",
+      "businessType": "Sélectionnez le type d'établissement",
+      "ownerName": "Entrez le nom complet du propriétaire",
+      "email": "Entrez l'adresse e-mail",
+      "phone": "Entrez le numéro de téléphone",
+      "address": "Entrez l'adresse de l'établissement"
+    },
+    "validation": {
+      "establishmentName": "Le nom de l'établissement doit contenir au moins 2 caractères",
+      "businessName": "Le nom de l'établissement doit contenir au moins 2 caractères",
+      "ownerName": "Le nom du propriétaire doit contenir au moins 2 caractères",
+      "email": "Veuillez entrer une adresse e-mail valide",
+      "phone": "Le numéro de téléphone doit contenir au moins 10 chiffres",
+      "address": "L'adresse de l'établissement doit contenir au moins 10 caractères",
+      "taxId": "Le numéro fiscal doit contenir au moins 13 caractères",
+      "terms": "Vous devez accepter les termes et conditions"
+    }
+  },
+  "partner": {
+    "form": {
+      "placeholder": {
+        "establishmentName": "Entrez le nom de votre établissement",
+        "businessName": "Entrez le nom de votre établissement",
+        "address": "Entrez l'adresse de l'établissement"
+      },
+      "description": {
+        "address": "Veuillez fournir l'adresse complète de votre établissement"
+      }
+    }
+  }
 }

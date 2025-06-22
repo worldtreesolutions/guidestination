@@ -351,33 +351,33 @@
   "form.legal.requirement2": "强制性综合保险覆盖",
   "form.legal.requirement3": "建议旅游经营者获得TAT许可证",
   "form.legal.requirement4": "导游活动需要导游认证",
-  "form.section.business": "业务信息",
+  "form.section.business": "机构信息",
   "form.section.contact": "联系信息",
   "form.section.legal": "法律与合规",
-  "form.field.businessName": "企业名称",
-  "form.field.businessType": "业务类型",
+  "form.field.businessName": "机构名称",
+  "form.field.businessType": "机构类型",
   "form.field.taxId": "税务ID",
   "form.field.tourismLicense": "旅游许可证号码",
   "form.field.tatLicense": "TAT许可证号码",
   "form.field.description": "业务描述",
-  "form.field.ownerName": "所有者姓名",
-  "form.field.email": "电子邮件地址",
+  "form.field.ownerName": "业主姓名",
+  "form.field.email": "电子邮箱",
   "form.field.phone": "电话号码",
-  "form.field.address": "企业地址",
+  "form.field.address": "机构地址",
   "form.field.insurancePolicy": "保险单号码",
   "form.field.insuranceAmount": "保险覆盖金额（泰铢）",
   "form.field.guideCard": "导游卡号码",
   "form.field.terms": "我接受条款和条件",
-  "form.placeholder.businessName": "输入您的企业名称",
-  "form.placeholder.businessType": "选择业务类型",
+  "form.placeholder.businessName": "请输入您的机构名称",
+  "form.placeholder.businessType": "选择机构类型",
   "form.placeholder.taxId": "输入您的税务识别号码",
   "form.placeholder.tourismLicense": "输入旅游许可证号码",
   "form.placeholder.tatLicense": "输入TAT许可证号码（可选）",
   "form.placeholder.description": "描述您的业务和服务...",
-  "form.placeholder.ownerName": "输入所有者全名",
-  "form.placeholder.email": "输入电子邮件地址",
-  "form.placeholder.phone": "输入电话号码",
-  "form.placeholder.address": "输入企业地址",
+  "form.placeholder.ownerName": "请输入业主全名",
+  "form.placeholder.email": "请输入电子邮箱",
+  "form.placeholder.phone": "请输入电话号码",
+  "form.placeholder.address": "请输入机构地址",
   "form.placeholder.insurancePolicy": "输入保险单号码",
   "form.placeholder.insuranceAmount": "输入覆盖金额",
   "form.placeholder.guideCard": "输入导游卡号码（可选）",
@@ -574,5 +574,54 @@
   "partner.form.commission.premium": "高级：所有成功预订8%佣金",
   "partner.form.commission.monthly": "付款按月处理（基础）或按周处理（高级）",
   "partner.form.commission.tracking": "通过合作伙伴仪表板实时佣金跟踪",
-  "partner.form.terms.description": "注册即表示您同意我们的合作伙伴条款和条件"
+  "partner.form.terms.description": "注册即表示您同意我们的合作伙伴条款和条件",
+  "form": {
+    "section": {
+      "business": "机构信息"
+    },
+    "field": {
+      "establishmentName": "机构名称",
+      "establishmentType": "机构类型",
+      "businessName": "机构名称",
+      "businessType": "机构类型",
+      "ownerName": "业主姓名",
+      "email": "电子邮箱",
+      "phone": "电话号码",
+      "address": "机构地址",
+      "taxId": "税务编号",
+      "terms": "我同意条款和条件"
+    },
+    "placeholder": {
+      "establishmentName": "请输入您的机构名称",
+      "establishmentType": "选择机构类型",
+      "businessName": "请输入您的机构名称",
+      "businessType": "选择机构类型",
+      "ownerName": "请输入业主全名",
+      "email": "请输入电子邮箱",
+      "phone": "请输入电话号码",
+      "address": "请输入机构地址"
+    },
+    "validation": {
+      "establishmentName": "机构名称至少需要2个字符",
+      "businessName": "机构名称至少需要2个字符",
+      "ownerName": "业主姓名至少需要2个字符",
+      "email": "请输入有效的电子邮箱地址",
+      "phone": "电话号码至少需要10位数字",
+      "address": "机构地址至少需要10个字符",
+      "taxId": "税务编号至少需要13个字符",
+      "terms": "您必须接受条款和条件"
+    }
+  },
+  "partner": {
+    "form": {
+      "placeholder": {
+        "establishmentName": "请输入您的机构名称",
+        "businessName": "请输入您的机构名称",
+        "address": "请输入机构地址"
+      },
+      "description": {
+        "address": "请提供您机构的完整地址"
+      }
+    }
+  }
 }

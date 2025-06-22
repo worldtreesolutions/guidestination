@@ -574,5 +574,54 @@
   "partner.form.commission.premium": "Premium: 8% de comisión en todas las reservas exitosas",
   "partner.form.commission.monthly": "Pagos procesados mensualmente (Básico) o semanalmente (Premium)",
   "partner.form.commission.tracking": "Seguimiento de comisiones en tiempo real a través del panel de socios",
-  "partner.form.terms.description": "Al registrarte, aceptas nuestros términos y condiciones de socio"
+  "partner.form.terms.description": "Al registrarte, aceptas nuestros términos y condiciones de socio",
+  "form": {
+    "section": {
+      "business": "Información del establecimiento"
+    },
+    "field": {
+      "establishmentName": "Nombre del establecimiento",
+      "establishmentType": "Tipo de establecimiento",
+      "businessName": "Nombre del establecimiento",
+      "businessType": "Tipo de establecimiento",
+      "ownerName": "Nombre del propietario",
+      "email": "Dirección de correo electrónico",
+      "phone": "Número de teléfono",
+      "address": "Dirección del establecimiento",
+      "taxId": "Número de identificación fiscal",
+      "terms": "Acepto los términos y condiciones"
+    },
+    "placeholder": {
+      "establishmentName": "Ingrese el nombre de su establecimiento",
+      "establishmentType": "Seleccione el tipo de establecimiento",
+      "businessName": "Ingrese el nombre de su establecimiento",
+      "businessType": "Seleccione el tipo de establecimiento",
+      "ownerName": "Ingrese el nombre completo del propietario",
+      "email": "Ingrese la dirección de correo electrónico",
+      "phone": "Ingrese el número de teléfono",
+      "address": "Ingrese la dirección del establecimiento"
+    },
+    "validation": {
+      "establishmentName": "El nombre del establecimiento debe tener al menos 2 caracteres",
+      "businessName": "El nombre del establecimiento debe tener al menos 2 caracteres",
+      "ownerName": "El nombre del propietario debe tener al menos 2 caracteres",
+      "email": "Por favor ingrese una dirección de correo electrónico válida",
+      "phone": "El número de teléfono debe tener al menos 10 dígitos",
+      "address": "La dirección del establecimiento debe tener al menos 10 caracteres",
+      "taxId": "El número de identificación fiscal debe tener al menos 13 caracteres",
+      "terms": "Debe aceptar los términos y condiciones"
+    }
+  },
+  "partner": {
+    "form": {
+      "placeholder": {
+        "establishmentName": "Ingrese el nombre de su establecimiento",
+        "businessName": "Ingrese el nombre de su establecimiento",
+        "address": "Ingrese la dirección del establecimiento"
+      },
+      "description": {
+        "address": "Por favor proporcione la dirección completa de su establecimiento"
+      }
+    }
+  }
 }

@@ -348,11 +348,11 @@
   "form.legal.requirement2": "Comprehensive insurance coverage mandatory",
   "form.legal.requirement3": "TAT license recommended for tour operators",
   "form.legal.requirement4": "Guide certification required for guided activities",
-  "form.section.business": "Business Information",
+  "form.section.business": "Establishment Information",
   "form.section.contact": "Contact Information",
   "form.section.legal": "Legal & Compliance",
-  "form.field.businessName": "Business Name",
-  "form.field.businessType": "Business Type",
+  "form.field.businessName": "Establishment Name",
+  "form.field.businessType": "Establishment Type",
   "form.field.taxId": "Tax ID",
   "form.field.tourismLicense": "Tourism License Number",
   "form.field.tatLicense": "TAT License Number",
@@ -360,13 +360,13 @@
   "form.field.ownerName": "Owner Name",
   "form.field.email": "Email Address",
   "form.field.phone": "Phone Number",
-  "form.field.address": "Business Address",
+  "form.field.address": "Establishment Address",
   "form.field.insurancePolicy": "Insurance Policy Number",
   "form.field.insuranceAmount": "Insurance Coverage Amount (THB)",
   "form.field.guideCard": "Guide Card Number",
   "form.field.terms": "I accept the terms and conditions",
-  "form.placeholder.businessName": "Enter your business name",
-  "form.placeholder.businessType": "Select business type",
+  "form.placeholder.businessName": "Enter your establishment name",
+  "form.placeholder.businessType": "Select establishment type",
   "form.placeholder.taxId": "Enter your tax identification number",
   "form.placeholder.tourismLicense": "Enter tourism license number",
   "form.placeholder.tatLicense": "Enter TAT license number (optional)",
@@ -374,7 +374,7 @@
   "form.placeholder.ownerName": "Enter owner's full name",
   "form.placeholder.email": "Enter email address",
   "form.placeholder.phone": "Enter phone number",
-  "form.placeholder.address": "Enter business address",
+  "form.placeholder.address": "Enter establishment address",
   "form.placeholder.insurancePolicy": "Enter insurance policy number",
   "form.placeholder.insuranceAmount": "Enter coverage amount",
   "form.placeholder.guideCard": "Enter guide card number (optional)",
@@ -538,7 +538,7 @@
   "partner.form.validation.roomCount": "Room count is required",
   "partner.form.validation.bankName": "Bank name is required",
   "partner.form.validation.bankAccount": "Bank account number is required",
-  "partner.form.placeholder.businessName": "Enter your business name",
+  "partner.form.placeholder.businessName": "Enter your establishment name",
   "partner.form.placeholder.hotelLicense": "Enter hotel license number",
   "partner.form.placeholder.tourismLicense": "Enter tourism license number",
   "partner.form.placeholder.roomCount": "Enter number of rooms",
@@ -599,5 +599,54 @@
   "partner.form.success.message": "Partner registration submitted successfully! We will review your application and contact you within 2-3 business days.",
   "partner.form.error.message": "There was an error submitting your registration. Please try again or contact support.",
   "form.button.submit": "Submit Registration",
-  "form.button.submitting": "Submitting..."
+  "form.button.submitting": "Submitting...",
+  "form": {
+    "section": {
+      "business": "Establishment Information"
+    },
+    "field": {
+      "establishmentName": "Establishment Name",
+      "establishmentType": "Establishment Type",
+      "businessName": "Establishment Name",
+      "businessType": "Establishment Type",
+      "ownerName": "Owner Name",
+      "email": "Email Address",
+      "phone": "Phone Number",
+      "address": "Establishment Address",
+      "taxId": "Tax ID",
+      "terms": "I agree to the terms and conditions"
+    },
+    "placeholder": {
+      "establishmentName": "Enter your establishment name",
+      "establishmentType": "Select establishment type",
+      "businessName": "Enter your establishment name",
+      "businessType": "Select establishment type",
+      "ownerName": "Enter owner's full name",
+      "email": "Enter email address",
+      "phone": "Enter phone number",
+      "address": "Enter establishment address"
+    },
+    "validation": {
+      "establishmentName": "Establishment name must be at least 2 characters",
+      "businessName": "Establishment name must be at least 2 characters",
+      "ownerName": "Owner name must be at least 2 characters",
+      "email": "Please enter a valid email address",
+      "phone": "Phone number must be at least 10 digits",
+      "address": "Establishment address must be at least 10 characters",
+      "taxId": "Tax ID must be at least 13 characters",
+      "terms": "You must accept the terms and conditions"
+    }
+  },
+  "partner": {
+    "form": {
+      "placeholder": {
+        "establishmentName": "Enter your establishment name",
+        "businessName": "Enter your establishment name",
+        "address": "Enter establishment address"
+      },
+      "description": {
+        "address": "Please provide the complete address of your establishment"
+      }
+    }
+  }
 }
