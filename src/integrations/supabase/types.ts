@@ -1,4 +1,3 @@
-
 export type Json =
   | string
   | number
@@ -179,31 +178,145 @@ export type Database = {
       activities: {
         Row: {
           id: number
+          activity_id: number
           title: string
+          name: string
           description: string
           final_price: number
+          price: number
+          b_price: number
+          Final_Price: number
           category_id: number
           is_active: boolean
+          status: "draft" | "published" | "archived"
+          duration: string
+          image_url: string
           created_at: string
           updated_at: string
         }
         Insert: {
           id?: number
+          activity_id?: number
           title: string
+          name?: string
           description: string
           final_price: number
+          price?: number
+          b_price?: number
+          Final_Price?: number
           category_id: number
           is_active?: boolean
+          status?: "draft" | "published" | "archived"
+          duration?: string
+          image_url?: string
           created_at?: string
           updated_at?: string
         }
         Update: {
           id?: number
+          activity_id?: number
           title?: string
+          name?: string
           description?: string
           final_price?: number
+          price?: number
+          b_price?: number
+          Final_Price?: number
           category_id?: number
           is_active?: boolean
+          status?: "draft" | "published" | "archived"
+          duration?: string
+          image_url?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      activity_owners: {
+        Row: {
+          id: string
+          provider_id: string
+          user_id: string
+          email: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          provider_id: string
+          user_id: string
+          email: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          provider_id?: string
+          user_id?: string
+          email?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      categories: {
+        Row: {
+          id: number
+          name: string
+          description: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          name: string
+          description: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          name?: string
+          description?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      bookings: {
+        Row: {
+          id: string
+          activity_id: number
+          customer_name: string
+          customer_email: string
+          booking_date: string
+          participants: number
+          total_amount: number
+          status: "pending" | "confirmed" | "completed" | "cancelled"
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          activity_id: number
+          customer_name: string
+          customer_email: string
+          booking_date: string
+          participants: number
+          total_amount: number
+          status?: "pending" | "confirmed" | "completed" | "cancelled"
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          activity_id?: number
+          customer_name?: string
+          customer_email?: string
+          booking_date?: string
+          participants?: number
+          total_amount?: number
+          status?: "pending" | "confirmed" | "completed" | "cancelled"
           created_at?: string
           updated_at?: string
         }
