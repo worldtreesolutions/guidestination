@@ -3,6 +3,9 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 // Define available languages
 export type Language = "en" | "th" | "zh" | "es" | "fr";
 
+// Define a type for potentially nested translations
+export type Translations = Record<string, string | Translations>;
+
 // Define the context type
 interface LanguageContextType {
   language: Language;
@@ -27,7 +30,7 @@ interface LanguageProviderProps {
 export function LanguageProvider({ children }: LanguageProviderProps) {
   // Initialize language from localStorage or default to English
   const [language, setLanguageState] = useState<Language>("en");
-  const [translations, setTranslations] = useState<Record<string, string>>({});
+  const [translations, setTranslations] = useState<Translations>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
   const [forceUpdate, setForceUpdate] = useState(0);
@@ -59,24 +62,18 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
       try {
         console.log(`Loading translations for language: ${language}`);
         
-        if (language === "en") {
-          const enTranslations = (await import("@/translations/en.json")).default;
-          setTranslations(enTranslations as Record<string, string>);
-          return;
-        }
-
-        // Dynamically import other languages
+        // All languages are dynamically imported for consistency
         const langModule = await import(`@/translations/${language}.json`);
-        setTranslations(langModule.default as Record<string, string>);
+        setTranslations(langModule.default as Translations);
       } catch (error) {
         console.error(`Failed to load translations for ${language}:`, error);
         // Fallback to English if loading fails
         try {
-          const enTranslations = (await import("@/translations/en.json")).default;
-          setTranslations(enTranslations as Record<string, string>);
+          const enTranslationsModule = (await import("@/translations/en.json"));
+          setTranslations(enTranslationsModule.default as Translations);
         } catch (fallbackError) {
           console.error("Failed to load English fallback translations:", fallbackError);
-          setTranslations({});
+          setTranslations({}); // Set to empty object on error
         }
       } finally {
         setIsLoading(false);
@@ -111,20 +108,33 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
 
   // Translation function
   const t = useCallback((key: string): string => {
-    if (isLoading || !translations) {
+    if (isLoading || Object.keys(translations).length === 0) {
       return key;
     }
-    
-    const translation = translations[key];
-    if (!translation) {
-      // Only log missing translations in development
-      if (process.env.NODE_ENV === 'development') {
-        console.warn(`Translation missing for key: ${key} in language: ${language}`);
+
+    const keys = key.split(".");
+    let current: string | Translations | undefined = translations;
+
+    for (const k of keys) {
+      if (typeof current === "object" && current !== null && k in current) {
+        current = current[k] as string | Translations;
+      } else {
+        if (process.env.NODE_ENV === "development") {
+          console.warn(`Translation missing for key segment: ${k} in full key: ${key} in language: ${language}`);
+        }
+        return key; // Return the full key if any segment is not found
       }
-      return key;
     }
-    
-    return translation;
+
+    if (typeof current === "string") {
+      return current;
+    } else {
+      // The path led to an object, not a string. This might be an error in key usage or incomplete key.
+      if (process.env.NODE_ENV === "development") {
+        console.warn(`Translation key ${key} resolved to an object, not a string, in language: ${language}. This might mean the key is incomplete.`);
+      }
+      return key; // Return the key itself
+    }
   }, [isLoading, translations, language]);
 
   // Log current state for debugging
