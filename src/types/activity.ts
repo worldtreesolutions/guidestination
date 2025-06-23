@@ -51,3 +51,22 @@ export interface ActivityMedia {
   duration?: number;
   size?: number;
 }
+
+export interface Activity {
+  id: number
+  activity_id: number
+  title: string
+  name: string
+  description: string
+  final_price: number
+  price: number
+  b_price: number
+  Final_Price: number
+  category_id: number
+  is_active: boolean
+  status: "draft" | "published" | "archived"
+  duration: string
+  image_url: string
+  created_at: string
+  updated_at: string
+}
