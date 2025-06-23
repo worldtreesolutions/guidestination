@@ -2,11 +2,8 @@ import { supabase } from "@/integrations/supabase/client"
 
 export interface PartnerRegistration {
   id?: string
-  user_id?: string // This should already be here from previous steps
+  user_id?: string
   business_name: string
-  business_type: string
-  hotel_license_number: string
-  tourism_license_number: string
   owner_name: string
   email: string
   phone: string
@@ -15,7 +12,6 @@ export interface PartnerRegistration {
   longitude?: number
   place_id?: string
   room_count: number
-  tax_id: string
   commission_package: "basic" | "premium"
   supporting_documents?: string[]
   status?: "pending" | "approved" | "rejected"
@@ -76,11 +72,8 @@ export const partnerService = {
       const { data: partnerData, error: partnerError } = await supabase
         .from("partner_registrations")
         .insert([{
-          user_id: authData.user.id, // Ensure user_id is correctly assigned
+          user_id: authData.user.id,
           business_name: data.business_name,
-          business_type: data.business_type,
-          hotel_license_number: data.hotel_license_number,
-          tourism_license_number: data.tourism_license_number,
           owner_name: data.owner_name,
           email: data.email,
           phone: data.phone,
@@ -89,7 +82,6 @@ export const partnerService = {
           longitude: data.longitude,
           place_id: data.place_id,
           room_count: data.room_count,
-          tax_id: data.tax_id,
           commission_package: data.commission_package,
           supporting_documents: data.supporting_documents || [],
           status: 'pending'

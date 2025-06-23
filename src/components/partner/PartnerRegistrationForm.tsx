@@ -84,9 +84,6 @@ export const PartnerRegistrationForm = () => {
       // Create partner registration with user creation and email verification
       const registrationData = {
         business_name: values.businessName,
-        business_type: values.businessType,
-        hotel_license_number: values.hotelLicenseNumber,
-        tourism_license_number: values.tourismLicenseNumber,
         owner_name: values.ownerName,
         email: values.email,
         phone: values.phone,
@@ -95,7 +92,6 @@ export const PartnerRegistrationForm = () => {
         longitude: values.longitude,
         place_id: values.placeId,
         room_count: parseInt(values.roomCount),
-        tax_id: values.taxId,
         commission_package: values.commissionPackage,
         supporting_documents: documentUrls,
       }
@@ -161,9 +157,9 @@ ${result.message}`)
             name="businessName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('form.field.businessName')}</FormLabel>
+                <FormLabel>Business Name</FormLabel>
                 <FormControl>
-                  <Input placeholder={t('partner.form.placeholder.businessName')} {...field} />
+                  <Input placeholder="Enter your business name" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -295,17 +291,17 @@ ${result.message}`)
             name="address"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('form.field.address')}</FormLabel>
+                <FormLabel>Business Address</FormLabel>
                 <FormControl>
                   <PlacesAutocomplete
                     value={field.value || ""}
                     onChange={field.onChange}
                     onPlaceSelect={handlePlaceSelect}
-                    placeholder={t('form.placeholder.address')}
+                    placeholder="Enter business address"
                   />
                 </FormControl>
                 <FormDescription>
-                  {t('partner.form.description.address')}
+                  Please provide the complete address of your business
                 </FormDescription>
                 <FormMessage />
               </FormItem>
