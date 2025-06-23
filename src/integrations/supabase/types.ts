@@ -1,4 +1,3 @@
-
 export type Json =
   | string
   | number
@@ -723,6 +722,135 @@ export interface Database {
           },
           {
             foreignKeyName: "partner_activities_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      establishments: {
+        Row: {
+          id: string
+          partner_id: string
+          establishment_type: string
+          establishment_name: string
+          establishment_address: string
+          room_count: number
+          supporting_docs: Json | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          id?: string
+          partner_id: string
+          establishment_type: string
+          establishment_name: string
+          establishment_address: string
+          room_count?: number
+          supporting_docs?: Json | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          id?: string
+          partner_id?: string
+          establishment_type?: string
+          establishment_name?: string
+          establishment_address?: string
+          room_count?: number
+          supporting_docs?: Json | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "establishments_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_registrations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "establishments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "establishments_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      establishment_activities: {
+        Row: {
+          id: string
+          establishment_id: string
+          activity_id: number
+          commission_rate: number | null
+          is_active: boolean | null
+          created_at: string
+          updated_at: string
+          created_by: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          id?: string
+          establishment_id: string
+          activity_id: number
+          commission_rate?: number | null
+          is_active?: boolean | null
+          created_at?: string
+          updated_at?: string
+          created_by?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          id?: string
+          establishment_id?: string
+          activity_id?: number
+          commission_rate?: number | null
+          is_active?: boolean | null
+          created_at?: string
+          updated_at?: string
+          created_by?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "establishment_activities_establishment_id_fkey"
+            columns: ["establishment_id"]
+            isOneToOne: false
+            referencedRelation: "establishments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "establishment_activities_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "establishment_activities_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "establishment_activities_updated_by_fkey"
             columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "users"
