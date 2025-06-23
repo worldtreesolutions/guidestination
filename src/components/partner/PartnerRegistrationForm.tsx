@@ -1,3 +1,4 @@
+
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -13,30 +14,19 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Separator } from "@/components/ui/separator"
 import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import FileUploader, { UploadedFile } from "@/components/ui/file-uploader"
 import { PlacesAutocomplete } from "@/components/ui/places-autocomplete"
-import { Check, Upload, FileText } from "lucide-react"
+import { Check, FileText } from "lucide-react"
 import { useLanguage } from "@/contexts/LanguageContext"
 import partnerService from "@/services/partnerService"
 
 const createFormSchema = (t: (key: string) => string) => z.object({
   businessName: z.string().min(2, t('form.validation.businessName')),
-  businessType: z.string(),
-  hotelLicenseNumber: z.string().min(1, t('partner.form.validation.hotelLicense')),
-  tourismLicenseNumber: z.string().min(1, t('partner.form.validation.tourismLicense')),
   ownerName: z.string().min(2, t('form.validation.ownerName')),
   email: z.string().email(t('form.validation.email')),
   phone: z.string().min(10, t('form.validation.phone')),
@@ -45,7 +35,6 @@ const createFormSchema = (t: (key: string) => string) => z.object({
   longitude: z.number().optional(),
   placeId: z.string().optional(),
   roomCount: z.string().min(1, t('partner.form.validation.roomCount')),
-  taxId: z.string().min(13, t('form.validation.taxId')),
   supportingDocuments: z.array(z.any()).optional(),
   termsAccepted: z.boolean().refine((val) => val === true, {
     message: t('form.validation.terms'),
@@ -166,66 +155,6 @@ ${result.message}`)
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="businessType"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('form.field.businessType')}</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t('form.placeholder.businessType')} />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="hotel">{t('partner.form.businessType.hotel')}</SelectItem>
-                    <SelectItem value="resort">{t('partner.form.businessType.resort')}</SelectItem>
-                    <SelectItem value="guesthouse">{t('partner.form.businessType.guesthouse')}</SelectItem>
-                    <SelectItem value="airbnb">{t('partner.form.businessType.airbnb')}</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <div className="grid md:grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="hotelLicenseNumber"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('partner.form.field.hotelLicense')}</FormLabel>
-                  <FormControl>
-                    <Input placeholder={t('partner.form.placeholder.hotelLicense')} {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    {t('partner.form.description.hotelLicense')}
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="tourismLicenseNumber"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('partner.form.field.tourismLicense')}</FormLabel>
-                  <FormControl>
-                    <Input placeholder={t('partner.form.placeholder.tourismLicense')} {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    {t('partner.form.description.tourismLicense')}
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
           <div className="grid md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
@@ -303,20 +232,6 @@ ${result.message}`)
                 <FormDescription>
                   Please provide the complete address of your business
                 </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="taxId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('form.field.taxId')}</FormLabel>
-                <FormControl>
-                  <Input placeholder={t('partner.form.placeholder.taxId')} {...field} />
-                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
