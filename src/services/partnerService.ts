@@ -106,12 +106,12 @@ export const partnerService = {
     }
   },
 
-  async linkPartnerToActivity(partnerId: string, activityId: number, commissionRate: number = 0.05) { // activityId changed to number
+  async linkPartnerToActivity(partnerId: string, activityId: number, commissionRate: number = 0.05) {
     const { data, error } = await supabase
-      .from("partner_activities")
+      .from("establishment_activities")
       .insert([{
-        partner_id: partnerId,
-        activity_id: activityId, // activityId is now number
+        establishment_id: partnerId, // Using establishment_id instead of partner_id
+        activity_id: activityId,
         commission_rate: commissionRate,
         is_active: true
       }])
@@ -121,12 +121,12 @@ export const partnerService = {
     return data[0]
   },
 
-  async unlinkPartnerFromActivity(partnerId: string, activityId: number) { // activityId changed to number
+  async unlinkPartnerFromActivity(partnerId: string, activityId: number) {
     const { error } = await supabase
-      .from("partner_activities")
+      .from("establishment_activities")
       .delete()
-      .eq('partner_id', partnerId)
-      .eq('activity_id', activityId) // activityId is now number
+      .eq('establishment_id', partnerId)
+      .eq('activity_id', activityId)
 
     if (error) throw error
     return true
@@ -134,7 +134,7 @@ export const partnerService = {
 
   async getPartnerActivities(partnerId: string) {
     const { data, error } = await supabase
-      .from("partner_activities")
+      .from("establishment_activities")
       .select(`
         *,
         activities (
@@ -146,29 +146,36 @@ export const partnerService = {
           is_active
         )
       `)
-      .eq('partner_id', partnerId)
+      .eq('establishment_id', partnerId)
       .eq('is_active', true)
 
     if (error) throw error
     return data
   },
 
-  async getActivityPartners(activityId: number) { // activityId changed to number
+  async getActivityPartners(activityId: number) {
     const { data, error } = await supabase
-      .from("partner_activities")
+      .from("establishment_activities")
       .select(`
         *,
-        partner_registrations (
+        establishments (
           id,
-          business_name,
-          business_type,
-          email,
-          phone,
-          commission_package,
-          status
+          establishment_name,
+          establishment_type,
+          establishment_address,
+          room_count,
+          partner_id,
+          partner_registrations (
+            id,
+            business_name,
+            email,
+            phone,
+            commission_package,
+            status
+          )
         )
       `)
-      .eq('activity_id', activityId) // activityId is now number
+      .eq('activity_id', activityId)
       .eq('is_active', true)
 
     if (error) throw error
@@ -240,16 +247,16 @@ export const partnerService = {
     return data[0]
   },
 
-  async bulkLinkPartnerToActivities(partnerId: string, activityIds: number[], commissionRate: number = 0.05) { // activityIds changed to number[]
+  async bulkLinkPartnerToActivities(partnerId: string, activityIds: number[], commissionRate: number = 0.05) {
     const insertData = activityIds.map(activityId => ({
-      partner_id: partnerId,
-      activity_id: activityId, // No parseInt needed, already a number
+      establishment_id: partnerId, // Using establishment_id instead of partner_id
+      activity_id: activityId,
       commission_rate: commissionRate,
       is_active: true
     }))
 
     const { data, error } = await supabase
-      .from("partner_activities")
+      .from("establishment_activities")
       .insert(insertData)
       .select()
 
