@@ -1,10 +1,15 @@
+
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 
 // Define available languages
 export type Language = "en" | "th" | "zh" | "es" | "fr";
 
-// Define a type for potentially nested translations
-export type Translations = Record<string, string | Translations>;
+// Define a type for potentially nested translations using a proper recursive interface
+interface TranslationValue {
+  [key: string]: string | TranslationValue;
+}
+
+export type Translations = TranslationValue;
 
 // Define the context type
 interface LanguageContextType {
@@ -113,11 +118,11 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
     }
 
     const keys = key.split(".");
-    let current: string | Translations | undefined = translations;
+    let current: string | TranslationValue | undefined = translations;
 
     for (const k of keys) {
       if (typeof current === "object" && current !== null && k in current) {
-        current = current[k] as string | Translations;
+        current = current[k] as string | TranslationValue;
       } else {
         if (process.env.NODE_ENV === "development") {
           console.warn(`Translation missing for key segment: ${k} in full key: ${key} in language: ${language}`);
