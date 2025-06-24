@@ -25,13 +25,10 @@ export function SearchBar() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {/* Destination */}
         <div className="relative">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Destination
-          </label>
           <div className="relative">
             <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Where are you going?"
+              placeholder="Destination"
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
               className="pl-10 rounded-full"
@@ -41,9 +38,6 @@ export function SearchBar() {
 
         {/* Date */}
         <div className="relative">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Date
-          </label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
@@ -54,7 +48,7 @@ export function SearchBar() {
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? format(date, "PPP") : "Pick a date"}
+                {date ? format(date, "PPP") : "Date"}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
@@ -70,14 +64,11 @@ export function SearchBar() {
 
         {/* Guests */}
         <div className="relative">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Guests
-          </label>
           <Select value={guests} onValueChange={setGuests}>
             <SelectTrigger className="rounded-full">
               <div className="flex items-center">
                 <Users className="mr-2 h-4 w-4 text-gray-400" />
-                <SelectValue />
+                <SelectValue placeholder="Guests" />
               </div>
             </SelectTrigger>
             <SelectContent>

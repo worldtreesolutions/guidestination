@@ -9,19 +9,16 @@ export function FloatingCart() {
 
   return (
     <Link href="/planning">
-      <Button 
-        size="lg" 
-        className="fixed bottom-6 right-6 z-40 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 bg-green-600 hover:bg-green-700 text-white px-6 py-3 h-auto"
-      >
-        <ShoppingCart className="h-5 w-5 mr-2" />
-        <span className="hidden sm:inline">Cart ({totalItems})</span>
-        <span className="sm:hidden">{totalItems}</span>
-        {totalItems > 0 && (
-          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center">
-            {totalItems}
-          </span>
-        )}
-      </Button>
+      <div className="fixed bottom-6 right-6 z-40 cursor-pointer group">
+        <div className="relative bg-green-600 hover:bg-green-700 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-200">
+          <ShoppingCart className="h-6 w-6" />
+          {totalItems > 0 && (
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-medium">
+              {totalItems}
+            </span>
+          )}
+        </div>
+      </div>
     </Link>
   )
 }
