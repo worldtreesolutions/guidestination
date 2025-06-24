@@ -61,18 +61,13 @@ const mockActivities = [
 ]
 
 const mockCategories = [
-  { id: 1, name: "Cultural Tours" },
-  { id: 2, name: "Cooking Classes" },
-  { id: 3, name: "Nature & Wildlife" },
-  { id: 4, name: "Wellness & Spa" },
-  { id: 5, name: "Adventure Sports" },
-  { id: 6, name: "Food & Drink" },
-  { id: 7, name: "Art & History" },
-  { id: 8, name: "Outdoor Activities" },
-  { id: 9, name: "Water Sports" },
-  { id: 10, name: "Photography" },
-  { id: 11, name: "Music & Entertainment" },
-  { id: 12, name: "Shopping" }
+  { id: 1, name: "Adventure" },
+  { id: 2, name: "Culture" },
+  { id: 3, name: "Food & Cuisine" },
+  { id: 4, name: "Nature" },
+  { id: 5, name: "Landmarks" },
+  { id: 6, name: "Wellness" },
+  { id: 7, name: "Workshop" }
 ]
 
 export default function HomePage() {
@@ -82,16 +77,20 @@ export default function HomePage() {
   const getActivitiesByCategory = (categoryName: string) => {
     // Return different activities for each category
     switch (categoryName) {
-      case "Cultural Tours":
+      case "Adventure":
+        return [mockActivities[4], mockActivities[2]]
+      case "Culture":
         return [mockActivities[0], mockActivities[5]]
-      case "Cooking Classes":
-        return [mockActivities[1]]
-      case "Nature & Wildlife":
+      case "Food & Cuisine":
+        return [mockActivities[1], mockActivities[5]]
+      case "Nature":
         return [mockActivities[2]]
-      case "Wellness & Spa":
+      case "Landmarks":
+        return [mockActivities[0]]
+      case "Wellness":
         return [mockActivities[3]]
-      case "Adventure Sports":
-        return [mockActivities[4]]
+      case "Workshop":
+        return [mockActivities[1], mockActivities[3]]
       default:
         return mockActivities.slice(0, 3)
     }

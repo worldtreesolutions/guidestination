@@ -16,11 +16,6 @@ interface CategorySectionProps {
 export function CategorySection({ categories }: CategorySectionProps) {
   return (
     <div className="w-full max-w-4xl mx-auto">
-      <div className="mb-4 text-center">
-        <h2 className="text-lg font-semibold text-gray-800 mb-1">Browse by Category</h2>
-        <p className="text-sm text-gray-600">Discover activities that match your interests</p>
-      </div>
-      
       <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
         {categories.map((category) => (
           <Link key={category.id} href={`/activities?category=${category.id}`}>
