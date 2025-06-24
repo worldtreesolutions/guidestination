@@ -58,7 +58,7 @@ export function Navbar() {
                 </Button>
               </>
             ) : (
-              <Link href="/dashboard/login">
+              <Link href="/auth/login">
                 <Button variant="outline" size={isMobile ? "sm" : "sm"} className="text-xs sm:text-sm px-2 sm:px-4">
                   {t("nav.login")}
                 </Button>
