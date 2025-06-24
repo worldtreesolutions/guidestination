@@ -8,18 +8,17 @@ export type Activity = Database["public"]["Tables"]["activities"]["Row"] & {
   video_duration?: number | null;
   video_size?: number | null;
   video_thumbnail_url?: string | null;
-  meeting_point?: string | null;
-  languages?: string | null; // Changed from string[] | null to match database
-  highlights?: string | null;
-  included?: string | null;
-  not_included?: string | null;
-  latitude?: number | null;
-  longitude?: number | null;
-  id?: number; // Added for compatibility with ActivityCard
-  final_price?: number; // Added for compatibility with ActivityCard
+  // meeting_point is already in Database["public"]["Tables"]["activities"]["Row"]
+  // languages is already in Database["public"]["Tables"]["activities"]["Row"]
+  // highlights is already in Database["public"]["Tables"]["activities"]["Row"]
+  // included is already in Database["public"]["Tables"]["activities"]["Row"]
+  // not_included is already in Database["public"]["Tables"]["activities"]["Row"]
+  // latitude and longitude might be location_lat, location_lng from DB
+  // id is already in Database["public"]["Tables"]["activities"]["Row"] as number (PK)
+  // final_price is already in Database["public"]["Tables"]["activities"]["Row"] as final_price (number | null)
 }
 
-export type ActivityStatus = "draft" | "published" | "archived"
+export type ActivityStatus = "draft" | "published" | "archived" // This can be used for string representations if needed
 
 export interface ActivitySchedule {
   id?: number;
@@ -37,7 +36,7 @@ export interface ActivitySchedule {
 }
 
 export interface ActivityFilters {
-  status?: ActivityStatus;
+  status?: ActivityStatus; // Can use the string status type here
   category?: string;
   minPrice?: number;
   maxPrice?: number;
@@ -52,21 +51,22 @@ export interface ActivityMedia {
   size?: number;
 }
 
-export interface Activity {
-  id: number
-  activity_id: number
-  title: string
-  name: string
-  description: string
-  final_price: number
-  price: number
-  b_price: number
-  Final_Price: number
-  category_id: number
-  is_active: boolean
-  status: "draft" | "published" | "archived"
-  duration: string
-  image_url: string
-  created_at: string
-  updated_at: string
-}
+// REMOVE THE DUPLICATE Activity INTERFACE
+// export interface Activity {
+//   id: number
+//   activity_id: number
+//   title: string
+//   name: string
+//   description: string
+//   final_price: number
+//   price: number
+//   b_price: number
+//   Final_Price: number
+//   category_id: number
+//   is_active: boolean
+//   status: "draft" | "published" | "archived"
+//   duration: string
+//   image_url: string
+//   created_at: string
+//   updated_at: string
+// }
