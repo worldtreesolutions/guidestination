@@ -1,9 +1,9 @@
-
 import Head from "next/head"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { ActivityRow } from "@/components/home/ActivityRow"
 import { SearchBar } from "@/components/home/SearchBar"
+import { CategorySection } from "@/components/home/CategorySection"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { FloatingActionButtons } from "@/components/layout/FloatingActionButtons"
 import { useState } from "react"
@@ -121,6 +121,13 @@ export default function HomePage() {
         <section className="bg-white py-8 border-b">
           <div className="container mx-auto px-4">
             <SearchBar />
+          </div>
+        </section>
+
+        {/* Categories Section */}
+        <section className="bg-gray-50 py-8">
+          <div className="container mx-auto px-4">
+            <CategorySection categories={mockCategories} />
           </div>
         </section>
 
