@@ -1,20 +1,19 @@
-
-import type { AppProps } from "next/app"
-import { AuthProvider } from "@/contexts/AuthContext"
-import { PlanningProvider } from "@/contexts/PlanningContext"
-import { LanguageProvider } from "@/contexts/LanguageContext"
-import { Toaster } from "@/components/ui/toaster"
 import "@/styles/globals.css"
+import type { AppProps } from "next/app"
+import AuthProvider from "@/contexts/AuthContext"
+import { LanguageProvider } from "@/contexts/LanguageContext"
+import { PlanningProvider } from "@/contexts/PlanningContext"
+import { Toaster } from "@/components/ui/toaster"
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
     <AuthProvider>
-      <PlanningProvider>
-        <LanguageProvider>
+      <LanguageProvider>
+        <PlanningProvider>
           <Component {...pageProps} />
           <Toaster />
-        </LanguageProvider>
-      </PlanningProvider>
+        </PlanningProvider>
+      </LanguageProvider>
     </AuthProvider>
   )
 }
