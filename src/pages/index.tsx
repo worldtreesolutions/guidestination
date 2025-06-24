@@ -65,7 +65,14 @@ const mockCategories = [
   { id: 2, name: "Cooking Classes" },
   { id: 3, name: "Nature & Wildlife" },
   { id: 4, name: "Wellness & Spa" },
-  { id: 5, name: "Adventure Sports" }
+  { id: 5, name: "Adventure Sports" },
+  { id: 6, name: "Food & Drink" },
+  { id: 7, name: "Art & History" },
+  { id: 8, name: "Outdoor Activities" },
+  { id: 9, name: "Water Sports" },
+  { id: 10, name: "Photography" },
+  { id: 11, name: "Music & Entertainment" },
+  { id: 12, name: "Shopping" }
 ]
 
 export default function HomePage() {
