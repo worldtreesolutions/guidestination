@@ -1,14 +1,12 @@
 
 import Head from "next/head"
-import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
-import { CategoryNav } from "@/components/home/CategoryNav"
-import { ActivityCard } from "@/components/home/ActivityCard"
-import { Search, Calendar } from "lucide-react"
+import { ActivityRow } from "@/components/home/ActivityRow"
+import { SearchBar } from "@/components/home/SearchBar"
+import { Calendar } from "lucide-react"
 import { usePlanning } from "@/contexts/PlanningContext"
 import { useLanguage } from "@/contexts/LanguageContext"
 
@@ -16,9 +14,8 @@ export default function Home() {
   const { selectedActivities } = usePlanning()
   const { t } = useLanguage()
 
-  const featuredActivities = [
+  const recommendedActivities = [
     {
-      titleKey: "activities.doiSuthep.title",
       title: t("activities.doiSuthep.title"),
       image: "/wat-doi-suthep-mb4vp7pn.jpg",
       price: 1500,
@@ -27,7 +24,6 @@ export default function Home() {
       href: "/activities/doi-suthep"
     },
     {
-      titleKey: "activities.cookingClass.title",
       title: t("activities.cookingClass.title"),
       image: "/cooking-class-mb4w0l3a.jpg",
       price: 1200,
@@ -36,7 +32,6 @@ export default function Home() {
       href: "/activities/cooking-class"
     },
     {
-      titleKey: "activities.elephantPark.title",
       title: t("activities.elephantPark.title"),
       image: "https://images.unsplash.com/photo-1585970480901-90d6bb2a48b5",
       price: 2500,
@@ -45,7 +40,6 @@ export default function Home() {
       href: "/activities/elephant-sanctuary"
     },
     {
-      titleKey: "activities.massage.title",
       title: t("activities.massage.title"),
       image: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874",
       price: 1800,
@@ -54,16 +48,17 @@ export default function Home() {
       href: "/activities/massage-workshop"
     },
     {
-      titleKey: "activities.foodTour.title",
       title: t("activities.foodTour.title"),
       image: "/42de8397-8cce-8211-e115-56406ae074b9-mb4vvptt.jpg",
       price: 1000,
       location: t("activities.location.chiangMai"),
       rating: 5,
       href: "/activities/food-tour"
-    },
+    }
+  ]
+
+  const adventureActivities = [
     {
-      titleKey: "activities.biking.title",
       title: t("activities.biking.title"),
       image: "/trekking-mb4w3w4s.webp",
       price: 2200,
@@ -72,16 +67,41 @@ export default function Home() {
       href: "/activities/mountain-biking"
     },
     {
-      titleKey: "activities.ceramics.title",
-      title: t("activities.ceramics.title"),
-      image: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261",
-      price: 1300,
+      title: t("activities.elephantPark.title"),
+      image: "https://images.unsplash.com/photo-1585970480901-90d6bb2a48b5",
+      price: 2500,
       location: t("activities.location.chiangMai"),
       rating: 5,
-      href: "/activities/ceramics-workshop"
+      href: "/activities/elephant-sanctuary"
     },
     {
-      titleKey: "activities.templeBike.title",
+      title: "White Water Rafting",
+      image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5",
+      price: 1800,
+      location: t("activities.location.chiangMai"),
+      rating: 4,
+      href: "/activities/rafting"
+    },
+    {
+      title: "Rock Climbing",
+      image: "https://images.unsplash.com/photo-1522163182402-834f871fd851",
+      price: 2000,
+      location: t("activities.location.chiangMai"),
+      rating: 4,
+      href: "/activities/rock-climbing"
+    }
+  ]
+
+  const cultureActivities = [
+    {
+      title: t("activities.doiSuthep.title"),
+      image: "/wat-doi-suthep-mb4vp7pn.jpg",
+      price: 1500,
+      location: t("activities.location.chiangMai"),
+      rating: 5,
+      href: "/activities/doi-suthep"
+    },
+    {
       title: t("activities.templeBike.title"),
       image: "https://images.unsplash.com/photo-1528181304800-259b08848526",
       price: 800,
@@ -90,13 +110,90 @@ export default function Home() {
       href: "/activities/temple-bike-tour"
     },
     {
-      titleKey: "activities.meditation.title",
       title: t("activities.meditation.title"),
       image: "https://images.unsplash.com/photo-1545389336-cf090694435e",
       price: 1600,
       location: t("activities.location.chiangMai"),
       rating: 5,
       href: "/activities/meditation-retreat"
+    },
+    {
+      title: "Traditional Dance Class",
+      image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96",
+      price: 900,
+      location: t("activities.location.chiangMai"),
+      rating: 4,
+      href: "/activities/dance-class"
+    }
+  ]
+
+  const artCraftActivities = [
+    {
+      title: t("activities.ceramics.title"),
+      image: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261",
+      price: 1300,
+      location: t("activities.location.chiangMai"),
+      rating: 5,
+      href: "/activities/ceramics-workshop"
+    },
+    {
+      title: "Silver Jewelry Making",
+      image: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338",
+      price: 1500,
+      location: t("activities.location.chiangMai"),
+      rating: 5,
+      href: "/activities/jewelry-making"
+    },
+    {
+      title: "Wood Carving Workshop",
+      image: "https://images.unsplash.com/photo-1581833971358-2c8b550f87b3",
+      price: 1100,
+      location: t("activities.location.chiangMai"),
+      rating: 4,
+      href: "/activities/wood-carving"
+    },
+    {
+      title: "Textile Weaving",
+      image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64",
+      price: 1200,
+      location: t("activities.location.chiangMai"),
+      rating: 4,
+      href: "/activities/textile-weaving"
+    }
+  ]
+
+  const cookingActivities = [
+    {
+      title: t("activities.cookingClass.title"),
+      image: "/cooking-class-mb4w0l3a.jpg",
+      price: 1200,
+      location: t("activities.location.chiangMai"),
+      rating: 5,
+      href: "/activities/cooking-class"
+    },
+    {
+      title: t("activities.foodTour.title"),
+      image: "/42de8397-8cce-8211-e115-56406ae074b9-mb4vvptt.jpg",
+      price: 1000,
+      location: t("activities.location.chiangMai"),
+      rating: 5,
+      href: "/activities/food-tour"
+    },
+    {
+      title: "Street Food Adventure",
+      image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+      price: 800,
+      location: t("activities.location.chiangMai"),
+      rating: 4,
+      href: "/activities/street-food"
+    },
+    {
+      title: "Farm to Table Experience",
+      image: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b",
+      price: 1400,
+      location: t("activities.location.chiangMai"),
+      rating: 5,
+      href: "/activities/farm-to-table"
     }
   ]
 
@@ -107,10 +204,9 @@ export default function Home() {
         <meta name="description" content={t("meta.description")} />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
         <link rel="icon" type="image/png" href="/wts-logo-maq82ya8.png" />
-        {/* Remove Google Fonts from here as they're already in _document.tsx */}
       </Head>
 
-      <div className="min-h-screen flex flex-col w-full">
+      <div className="min-h-screen flex flex-col w-full bg-gray-50">
         <Navbar />
         
         <main className="flex-1 w-full">
@@ -126,50 +222,51 @@ export default function Home() {
             </div>
           )}
           
-          <section className="relative h-[350px] sm:h-[450px] md:h-[550px] w-full">
-            <div className="absolute inset-0">
-              <Image
-                src="https://images.unsplash.com/photo-1563492065599-3520f775eeed"
-                alt={t("hero.image.alt")}
-                fill
-                sizes="100vw"
-                className="object-cover brightness-75"
-                priority
-              />
-            </div>
-            <div className="relative w-full h-full flex flex-col items-center justify-center text-white px-4 sm:px-6 lg:px-8">
-              <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 text-center max-w-4xl">
+          <section className="py-8 sm:py-12 w-full px-4 sm:px-6 lg:px-8 bg-white">
+            <div className="max-w-7xl mx-auto w-full text-center">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 sm:mb-8">
                 {t("home.hero.title")}
               </h1>
-              <div className="w-full max-w-2xl flex flex-col sm:flex-row gap-2 bg-white/10 backdrop-blur-md p-2 rounded-lg">
-                <Input
-                  placeholder={t("home.search.placeholder")}
-                  className="bg-white/80 flex-1"
-                />
-                <Button className="w-full sm:w-auto mt-2 sm:mt-0">
-                  <Search className="h-5 w-5 mr-2" />
-                  {t("home.search.button")}
-                </Button>
-              </div>
+              <SearchBar />
             </div>
           </section>
 
-          <section className="py-6 sm:py-8 md:py-12 w-full px-4 sm:px-6 lg:px-8">
+          <section className="py-8 sm:py-12 w-full px-4 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto w-full">
-              <CategoryNav />
-            </div>
-          </section>
-
-          <section className="py-6 sm:py-8 md:py-12 w-full px-4 sm:px-6 lg:px-8">
-            <div className="max-w-7xl mx-auto w-full">
-              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-center mb-4 sm:mb-6 md:mb-8">
-                {t("home.popular.title")}
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                {featuredActivities.map((activity) => (
-                  <ActivityCard key={activity.href} {...activity} />
-                ))}
-              </div>
+              <ActivityRow
+                title="Recommended by Us"
+                activities={recommendedActivities}
+                showViewAll={true}
+                viewAllHref="/recommended"
+              />
+              
+              <ActivityRow
+                title={t("category.adventure")}
+                activities={adventureActivities}
+                showViewAll={true}
+                viewAllHref="/category/adventure"
+              />
+              
+              <ActivityRow
+                title={t("category.culture")}
+                activities={cultureActivities}
+                showViewAll={true}
+                viewAllHref="/category/culture"
+              />
+              
+              <ActivityRow
+                title={t("category.artCraft")}
+                activities={artCraftActivities}
+                showViewAll={true}
+                viewAllHref="/category/art-craft"
+              />
+              
+              <ActivityRow
+                title={t("category.cooking")}
+                activities={cookingActivities}
+                showViewAll={true}
+                viewAllHref="/category/cooking"
+              />
             </div>
           </section>
         </main>
