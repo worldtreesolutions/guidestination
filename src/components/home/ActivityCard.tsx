@@ -1,5 +1,4 @@
-
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Calendar, Heart } from "lucide-react"
 import Image from "next/image"
@@ -7,6 +6,8 @@ import Link from "next/link"
 import { usePlanning } from "@/contexts/PlanningContext"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useLanguage } from "@/contexts/LanguageContext"
+import { Badge } from "@/components/ui/badge"
+import { Star, MapPin } from "lucide-react"
 
 interface ActivityCardProps {
   title: string
@@ -17,14 +18,7 @@ interface ActivityCardProps {
   href: string
 }
 
-export function ActivityCard({
-  title,
-  image,
-  price,
-  location,
-  rating,
-  href
-}: ActivityCardProps) {
+export function ActivityCard({ title, image, price, location, rating, href }: ActivityCardProps) {
   const { addActivity } = usePlanning()
   const isMobile = useIsMobile()
   const { t } = useLanguage()
@@ -43,46 +37,47 @@ export function ActivityCard({
   }
 
   return (
-    <Card className="group overflow-hidden transition-shadow hover:shadow-md">
-      <Link href={href}>
-        <div className="relative aspect-[4/3]">
+    <Link href={href}>
+      <Card className="overflow-hidden h-full flex flex-col hover:shadow-lg transition-shadow duration-200 cursor-pointer group">
+        <div className="relative aspect-[4/3] overflow-hidden">
           <Image
             src={image}
             alt={title}
             fill
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            className="object-cover transition-transform group-hover:scale-105"
+            className="object-cover group-hover:scale-105 transition-transform duration-200"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
-          <div className="absolute top-2 right-2 sm:top-4 sm:right-4 flex flex-col sm:flex-row gap-2">
-            <Button
-              variant="secondary"
-              className="rounded-full bg-white/80 hover:bg-white flex items-center gap-1 sm:gap-2 px-2 sm:px-4 h-8 sm:h-10 text-xs sm:text-sm"
-              onClick={handleAddToPlanning}
-            >
-              <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
-              {isMobile ? t("activity.add") : t("activity.addToPlanning")}
-            </Button>
-            <Button
-              size="icon"
-              variant="secondary"
-              className="rounded-full bg-white/80 hover:bg-white h-8 w-8 sm:h-10 sm:w-10"
-            >
-              <Heart className="h-4 w-4 sm:h-5 sm:w-5" />
-            </Button>
+          <div className="absolute top-3 right-3">
+            <Badge variant="secondary" className="bg-white/90 text-gray-800">
+              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400 mr-1" />
+              {rating}
+            </Badge>
           </div>
         </div>
-        <CardContent className="p-3 sm:p-4">
-          <h3 className="font-semibold mb-1 sm:mb-2 line-clamp-2 text-sm sm:text-base">{title}</h3>
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
-            <div className="text-xs sm:text-sm text-muted-foreground">{location}</div>
-            <div className="font-medium text-sm sm:text-base">฿{formatPrice(price)} {t("activity.perPerson")}</div>
+        
+        <CardContent className="p-4 flex-grow flex flex-col">
+          <div className="flex-grow">
+            <h3 className="font-semibold text-lg mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
+              {title}
+            </h3>
+            <div className="flex items-center text-gray-600 mb-3">
+              <MapPin className="h-4 w-4 mr-1" />
+              <span className="text-sm">{location}</span>
+            </div>
           </div>
-          <div className="flex items-center gap-1 mt-1 sm:mt-2">
-            {'★'.repeat(rating)}{'☆'.repeat(5-rating)}
-            <span className="text-xs sm:text-sm text-muted-foreground ml-1">({rating}.0) {t("activity.rating")}</span>
+          
+          <div className="mt-auto">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-2xl font-bold text-gray-900">
+                  ฿{price.toLocaleString()}
+                </span>
+                <span className="text-gray-600 text-sm ml-1">per person</span>
+              </div>
+            </div>
           </div>
         </CardContent>
-      </Link>
-    </Card>
+      </Card>
+    </Link>
   )
 }

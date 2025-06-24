@@ -71,7 +71,7 @@ export function ActivityRow({ title, activities, showViewAll = false, viewAllHre
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           {activities.map((activity, index) => (
-            <div key={`${activity.href}-${index}`} className="flex-none w-64 sm:w-72">
+            <div key={`${activity.href}-${index}`} className="flex-none w-64 sm:w-72 h-80">
               <ActivityCard {...activity} />
             </div>
           ))}
