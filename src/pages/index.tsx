@@ -10,6 +10,9 @@ import { usePlanning } from "@/contexts/PlanningContext"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { FloatingActionButtons } from "@/components/layout/FloatingActionButtons"
 import { useState, useEffect } from "react"
+import { Activity } from "@/types/activity"
+import { activityService } from "@/services/activityService"
+import categoryService from "@/services/categoryService"
 
 export default function HomePage() {
   const { selectedActivities } = usePlanning()
@@ -21,12 +24,12 @@ export default function HomePage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [activitiesData, categoriesData] = await Promise.all([
+        const [activitiesData, categoriesResponse] = await Promise.all([
           activityService.getActivities(),
-          categoryService.getCategories()
+          categoryService.getAllCategories()
         ])
         setActivities(activitiesData)
-        setCategories(categoriesData)
+        setCategories(categoriesResponse.data || [])
       } catch (error) {
         console.error("Error fetching data:", error)
       } finally {
@@ -45,8 +48,8 @@ export default function HomePage() {
         title: activity.title,
         image: typeof activity.image_url === "string" ? activity.image_url : "https://images.unsplash.com/photo-1506905925346-21bda4d32df4",
         price: activity.final_price || activity.b_price || 0,
-        location: activity.address || "Location not specified",
-        rating: activity.rating || 4.5,
+        location: "Location not specified",
+        rating: 4.5,
         href: `/activities/${activity.activity_id}`
       }))
   }
@@ -58,8 +61,8 @@ export default function HomePage() {
         title: activity.title,
         image: typeof activity.image_url === "string" ? activity.image_url : "https://images.unsplash.com/photo-1506905925346-21bda4d32df4",
         price: activity.final_price || activity.b_price || 0,
-        location: activity.address || "Location not specified",
-        rating: activity.rating || 4.5,
+        location: "Location not specified",
+        rating: 4.5,
         href: `/activities/${activity.activity_id}`
       }))
   }

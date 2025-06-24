@@ -23,12 +23,14 @@ export default function ActivityCard({
   showActions = true
 }: ActivityCardProps) {
   const getStatusColor = (status: number | string | null): string => {
-    if (status === 2 || status === "published") {
-      return "bg-green-100 text-green-800";
-    } else if (status === 1 || status === "draft") {
-      return "bg-yellow-100 text-yellow-800";
-    } else if (status === 0 || status === "archived") {
-      return "bg-gray-100 text-gray-800";
+    if (typeof status === "number") {
+      if (status === 2) return "bg-green-100 text-green-800";
+      if (status === 1) return "bg-yellow-100 text-yellow-800";
+      if (status === 0) return "bg-gray-100 text-gray-800";
+    } else if (typeof status === "string") {
+      if (status === "published") return "bg-green-100 text-green-800";
+      if (status === "draft") return "bg-yellow-100 text-yellow-800";
+      if (status === "archived") return "bg-gray-100 text-gray-800";
     }
     return "bg-yellow-100 text-yellow-800"; // Default to draft styling
   }
@@ -58,6 +60,17 @@ export default function ActivityCard({
   // Use title if name is not available
   const displayName = activity.name || activity.title || "Unnamed Activity";
 
+  const getStatusText = (status: number | string | null): string => {
+    if (typeof status === "number") {
+      if (status === 2) return "published";
+      if (status === 1) return "draft";
+      if (status === 0) return "archived";
+    } else if (typeof status === "string") {
+      return status;
+    }
+    return "draft";
+  }
+
   return (
     <Card className="overflow-hidden h-full flex flex-col shadow-sm hover:shadow transition-shadow duration-200">
       <div className="relative w-full aspect-[16/9] xs:aspect-video">
@@ -73,9 +86,7 @@ export default function ActivityCard({
           variant="default"
           className={`absolute top-2 right-2 text-xs sm:text-sm ${getStatusColor(activity.status || null)}`}
         >
-          {activity.status === 2 ? "published" : 
-           activity.status === 1 ? "draft" : 
-           activity.status === 0 ? "archived" : "draft"}
+          {getStatusText(activity.status)}
         </Badge>
       </div>
 

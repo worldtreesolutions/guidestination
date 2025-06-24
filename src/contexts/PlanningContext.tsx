@@ -71,32 +71,33 @@ export function PlanningProvider({ children }: { children: React.ReactNode }) {
     }
     const primaryKeyId = activityData.id || numericActivityId;
 
-
     const activity: Activity = {
       // Fields from Database["public"]["Tables"]["activities"]["Row"]
       id: primaryKeyId, 
       activity_id: numericActivityId, 
       title: activityData.title,
       name: activityData.name || activityData.title, 
+      description: activityData.description || "",
       image_url: typeof activityData.image_url === "string" ? activityData.image_url : null,
       b_price: activityData.b_price,
-      final_price: activityData.final_price !== undefined ? activityData.final_price : (activityData.b_price || 0), // Changed Final_Price to final_price
+      final_price: activityData.final_price !== undefined ? activityData.final_price : (activityData.b_price || 0),
+      price: activityData.price !== undefined ? activityData.price : activityData.b_price,
+      Final_Price: activityData.final_price !== undefined ? activityData.final_price : (activityData.b_price || 0),
       user_id: activityData.user_id !== undefined ? activityData.user_id : null, 
+      category_id: activityData.category_id || 1,
+      is_active: activityData.is_active !== undefined ? activityData.is_active : true,
 
       address: activityData.address || null,
-      category_id: activityData.category_id || null,
       created_at: activityData.created_at || new Date().toISOString(),
-      updated_at: activityData.updated_at || new Date().toISOString(), // Added updated_at
-      description: activityData.description || null,
-      duration: activityData.duration || null, // Assuming duration from activityData is compatible (number | null)
+      updated_at: activityData.updated_at || new Date().toISOString(),
+      duration: activityData.duration || null,
       includes_hotel_pickup: activityData.includes_hotel_pickup !== undefined ? activityData.includes_hotel_pickup : null,
-      is_active: activityData.is_active !== undefined ? activityData.is_active : true,
       max_participants: activityData.max_participants || null,
       meeting_point: activityData.meeting_point || null,
       pickup_location: activityData.pickup_location || null,
       dropoff_location: activityData.dropoff_location || null,
       provider_id: activityData.provider_id || null,
-      status: typeof activityData.status === "number" ? activityData.status : (activityData.status === "published" ? 2 : activityData.status === "draft" ? 1 : activityData.status === "archived" ? 0 : 2), // Handle string status from partial
+      status: typeof activityData.status === "string" ? activityData.status as "draft" | "published" | "archived" : "published",
       type: activityData.type || null,
       language: activityData.language || null,
       location_geom: activityData.location_geom || null,
@@ -113,8 +114,6 @@ export function PlanningProvider({ children }: { children: React.ReactNode }) {
       highlights: activityData.highlights || null,
       included: activityData.included || null,
       not_included: activityData.not_included || null,
-      // Client-side specific additions from Activity type (if any, beyond Row)
-      price: activityData.price !== undefined ? activityData.price : activityData.b_price,
     };
 
     setSelectedActivities((prev) => {
@@ -170,24 +169,26 @@ export function PlanningProvider({ children }: { children: React.ReactNode }) {
           activity_id: parseInt(activityFromSchedule.activity_id || activityId, 10) || originalActivityNumericId,
           title: activityFromSchedule.title,
           name: activityFromSchedule.title,
+          description: "",
           image_url: typeof activityFromSchedule.imageUrl === "string" ? activityFromSchedule.imageUrl : null,
           b_price: activityFromSchedule.price,
-          final_price: activityFromSchedule.price, // Changed Final_Price to final_price
+          final_price: activityFromSchedule.price,
+          price: activityFromSchedule.price,
+          Final_Price: activityFromSchedule.price,
           user_id: null, 
-          address: null,
-          category_id: null,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(), // Added updated_at
-          description: null,
-          duration: activityFromSchedule.duration, // Assuming Activity.duration is number | null
-          includes_hotel_pickup: null,
+          category_id: 1,
           is_active: true,
+          address: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          duration: activityFromSchedule.duration,
+          includes_hotel_pickup: null,
           max_participants: null,
           meeting_point: null,
           pickup_location: null,
           dropoff_location: null,
           provider_id: null,
-          status: 2, // Published (number)
+          status: "published" as "draft" | "published" | "archived",
           type: null,
           language: null,
           location_geom: null,
@@ -204,7 +205,6 @@ export function PlanningProvider({ children }: { children: React.ReactNode }) {
           highlights: null,
           included: null,
           not_included: null,
-          price: activityFromSchedule.price,
         } as Activity;
         
         if (!selectedActivities.some((a) => a.id === originalActivity.id)) {
@@ -228,8 +228,8 @@ export function PlanningProvider({ children }: { children: React.ReactNode }) {
         imageUrl: typeof selectedActivity.image_url === "string" ? selectedActivity.image_url : "",
         day,
         hour,
-        duration: selectedActivity.duration || 2, // Assuming selectedActivity.duration is number | null
-        price: selectedActivity.final_price || selectedActivity.b_price || 0, // Used final_price
+        duration: selectedActivity.duration || 2,
+        price: selectedActivity.final_price || selectedActivity.b_price || 0,
         participants: 1, 
       };
       
