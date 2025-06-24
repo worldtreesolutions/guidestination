@@ -4,10 +4,9 @@ import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { ActivityRow } from "@/components/home/ActivityRow"
 import { SearchBar } from "@/components/home/SearchBar"
-import { usePlanning } from "@/contexts/PlanningContext"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { FloatingActionButtons } from "@/components/layout/FloatingActionButtons"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 
 // Mock data for now since we need to fix the service issues
 const mockActivities = [
@@ -42,6 +41,22 @@ const mockActivities = [
     location: "Chiang Mai",
     rating: 4.7,
     href: "/activities/4"
+  },
+  {
+    title: "White Water Rafting Adventure",
+    image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5",
+    price: 2500,
+    location: "Chiang Mai",
+    rating: 4.6,
+    href: "/activities/5"
+  },
+  {
+    title: "Night Bazaar Food Tour",
+    image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5",
+    price: 1200,
+    location: "Chiang Mai",
+    rating: 4.9,
+    href: "/activities/6"
   }
 ]
 
@@ -59,7 +74,20 @@ export default function HomePage() {
 
   const getActivitiesByCategory = (categoryName: string) => {
     // Return different activities for each category
-    return mockActivities.slice(0, 3)
+    switch (categoryName) {
+      case "Cultural Tours":
+        return [mockActivities[0], mockActivities[5]]
+      case "Cooking Classes":
+        return [mockActivities[1]]
+      case "Nature & Wildlife":
+        return [mockActivities[2]]
+      case "Wellness & Spa":
+        return [mockActivities[3]]
+      case "Adventure Sports":
+        return [mockActivities[4]]
+      default:
+        return mockActivities.slice(0, 3)
+    }
   }
 
   const getRecommendedActivities = () => {
@@ -89,15 +117,9 @@ export default function HomePage() {
       <Navbar />
       
       <div className="min-h-screen bg-gray-50">
-        {/* Search Section */}
-        <section className="bg-gradient-to-r from-blue-600 to-purple-700 text-white py-16">
-          <div className="container mx-auto px-4 text-center">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
-              {t("home.hero.title")}
-            </h1>
-            <p className="text-lg sm:text-xl mb-8 max-w-2xl mx-auto opacity-90">
-              {t("home.hero.subtitle")}
-            </p>
+        {/* Search Section - Replaced Hero */}
+        <section className="bg-white py-8 border-b">
+          <div className="container mx-auto px-4">
             <SearchBar />
           </div>
         </section>
