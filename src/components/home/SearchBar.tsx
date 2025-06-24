@@ -21,7 +21,7 @@ export function SearchBar() {
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto bg-white shadow-lg rounded-lg p-4">
+    <div className="w-full max-w-2xl mx-auto bg-white shadow-lg rounded-2xl p-6">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {/* Destination */}
         <div className="relative">
