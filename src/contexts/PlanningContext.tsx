@@ -83,7 +83,7 @@ export function PlanningProvider({ children }: { children: React.ReactNode }) {
       final_price: activityData.final_price !== undefined ? activityData.final_price : (activityData.b_price || 0),
       price: activityData.price !== undefined ? activityData.price : activityData.b_price,
       Final_Price: activityData.final_price !== undefined ? activityData.final_price : (activityData.b_price || 0),
-      user_id: activityData.user_id !== undefined ? activityData.user_id : null, 
+      user_id: activityData.user_id || null, 
       category_id: activityData.category_id || 1,
       is_active: activityData.is_active !== undefined ? activityData.is_active : true,
 
@@ -181,7 +181,7 @@ export function PlanningProvider({ children }: { children: React.ReactNode }) {
           address: null,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-          duration: activityFromSchedule.duration,
+          duration: activityFromSchedule.duration ? activityFromSchedule.duration.toString() : null,
           includes_hotel_pickup: null,
           max_participants: null,
           meeting_point: null,
@@ -228,7 +228,7 @@ export function PlanningProvider({ children }: { children: React.ReactNode }) {
         imageUrl: typeof selectedActivity.image_url === "string" ? selectedActivity.image_url : "",
         day,
         hour,
-        duration: selectedActivity.duration || 2,
+        duration: typeof selectedActivity.duration === "string" ? parseInt(selectedActivity.duration, 10) || 2 : selectedActivity.duration || 2,
         price: selectedActivity.final_price || selectedActivity.b_price || 0,
         participants: 1, 
       };
