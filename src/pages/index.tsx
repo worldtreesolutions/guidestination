@@ -5,7 +5,8 @@ import { ActivityRow } from "@/components/home/ActivityRow"
 import { SearchBar } from "@/components/home/SearchBar"
 import { CategorySection } from "@/components/home/CategorySection"
 import { useLanguage } from "@/contexts/LanguageContext"
-import { FloatingActionButtons } from "@/components/layout/FloatingActionButtons"
+import { BottomActionButtons } from "@/components/layout/BottomActionButtons"
+import { FloatingCart } from "@/components/layout/FloatingCart"
 import { useState } from "react"
 
 // Mock data for now since we need to fix the service issues
@@ -166,8 +167,11 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Floating Action Buttons */}
-        <FloatingActionButtons />
+        {/* Bottom Action Buttons */}
+        <BottomActionButtons />
+        
+        {/* Floating Cart */}
+        <FloatingCart />
       </div>
 
       <Footer />

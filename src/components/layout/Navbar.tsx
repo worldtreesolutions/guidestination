@@ -8,6 +8,7 @@ import { useRouter } from "next/router"
 import React from "react"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { Heart } from "lucide-react"
 
 export function Navbar() {
   const { user, signOut } = useAuth()
@@ -40,6 +41,14 @@ export function Navbar() {
 
         {/* Right side controls */}
         <div className="flex-1 flex items-center justify-end space-x-1 sm:space-x-4">
+          {/* Wishlist Icon */}
+          <Button variant="ghost" size="icon" className="relative">
+            <Heart className="h-5 w-5" />
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+              0
+            </span>
+          </Button>
+          
           <LanguageSelector />
           <nav className="flex items-center space-x-1 sm:space-x-2">
             {user ? (
