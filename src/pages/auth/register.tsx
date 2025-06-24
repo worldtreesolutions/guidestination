@@ -1,4 +1,3 @@
-
 import Head from "next/head"
 import Link from "next/link"
 import { useState } from "react"
@@ -250,7 +249,7 @@ export default function RegisterPage() {
                   <Checkbox
                     id="terms"
                     checked={acceptTerms}
-                    onCheckedChange={setAcceptTerms}
+                    onCheckedChange={(checked) => setAcceptTerms(checked === true)}
                   />
                   <Label htmlFor="terms" className="text-sm">
                     I agree to the{" "}
