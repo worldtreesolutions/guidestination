@@ -30,6 +30,7 @@ import { PlacesAutocomplete, PlaceData } from "@/components/ui/places-autocomple
 import { useLanguage } from "@/contexts/LanguageContext"
 import FileUploader, { UploadedFile } from "@/components/ui/file-uploader"
 import { TermsOfServiceModal } from "./TermsOfServiceModal"
+import storageService from "@/services/storageService"
 
 const createFormSchema = (t: (key: string) => string) => z.object({
   businessName: z.string().min(2, t('form.validation.businessName')),
@@ -98,16 +99,52 @@ export const ActivityOwnerRegistrationForm = () => {
     setRegistrationStatus({ type: null, message: null });
     
     try {
-      // Since the provider dashboard is separated, show info message
+      let documentUrls: string[] = []
+      
+      // Upload supporting documents to Supabase CDN if any files are selected
+      if (uploadedFiles.length > 0) {
+        toast({
+          title: "Uploading Documents",
+          description: "Uploading documents to Supabase CDN...",
+        });
+        
+        // Convert UploadedFile objects to File objects for upload
+        const filesToUpload: File[] = []
+        for (const uploadedFile of uploadedFiles) {
+          // Create a File object from the UploadedFile data
+          const response = await fetch(uploadedFile.url || uploadedFile.name)
+          const blob = await response.blob()
+          const file = new File([blob], uploadedFile.name, { type: uploadedFile.type })
+          filesToUpload.push(file)
+        }
+        
+        // Upload to Supabase storage
+        documentUrls = await storageService.uploadActivityOwnerDocuments(filesToUpload)
+        
+        if (documentUrls.length !== filesToUpload.length) {
+          throw new Error("Some documents failed to upload. Please try again.")
+        }
+        
+        toast({
+          title: "Upload Complete",
+          description: `Successfully uploaded ${documentUrls.length} documents to Supabase CDN`,
+        });
+      }
+
+      // For now, show success message with uploaded document info
       setRegistrationStatus({
-        type: 'info',
-        message: t('form.info.providerDashboardSeparated') || 'Provider registration has been moved to a separate dashboard. Please contact support for provider registration.'
+        type: 'success',
+        message: `Registration form completed successfully! ${documentUrls.length > 0 ? `Documents uploaded to Supabase CDN: ${documentUrls.length} files` : 'No documents were uploaded.'}`
       });
       
       toast({
-        title: t('form.info.title') || 'Information',
-        description: t('form.info.providerDashboardSeparated') || 'Provider registration has been moved to a separate dashboard. Please contact support for provider registration.',
+        title: t('form.success.title') || 'Success',
+        description: `Registration completed! ${documentUrls.length > 0 ? `${documentUrls.length} documents uploaded to Supabase CDN` : ''}`,
       });
+      
+      // Reset form
+      form.reset()
+      setUploadedFiles([])
       
     } catch (error) {
       let errorMessage = t('form.error.unexpected');

@@ -1,9 +1,10 @@
+
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Trash2, Upload, X, Image as ImageIcon } from "lucide-react";
 import Image from "next/image";
+import storageService from "@/services/storageService";
 
 interface ImageUploaderProps {
   value: string[];
@@ -33,17 +34,18 @@ export function ImageUploader({ value = [], onChange, maxImages = 10 }: ImageUpl
     setUploadError(null);
 
     try {
-      // Convert files to base64 strings for preview
-      // In a real app, you would upload these to a storage service
-      const newImageUrls = await Promise.all(
-        Array.from(files).map(file => readFileAsDataURL(file))
-      );
+      // Upload files to Supabase CDN
+      const uploadResults = await storageService.uploadActivityImages(Array.from(files));
+      
+      if (uploadResults.length === 0) {
+        throw new Error("Failed to upload images. Please try again.");
+      }
 
-      // Add the new images to the existing ones
-      onChange([...imageUrls, ...newImageUrls]);
+      // Add the new image URLs to the existing ones
+      onChange([...imageUrls, ...uploadResults]);
     } catch (error) {
-      console.error("Error processing images:", error);
-      setUploadError("Failed to process images. Please try again.");
+      console.error("Error uploading images:", error);
+      setUploadError("Failed to upload images to Supabase CDN. Please try again.");
     } finally {
       setIsUploading(false);
       // Reset the file input
@@ -51,15 +53,6 @@ export function ImageUploader({ value = [], onChange, maxImages = 10 }: ImageUpl
         fileInputRef.current.value = "";
       }
     }
-  };
-
-  const readFileAsDataURL = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
   };
 
   const handleRemoveImage = (index: number) => {
@@ -89,10 +82,6 @@ export function ImageUploader({ value = [], onChange, maxImages = 10 }: ImageUpl
     } catch (e) {
       return false;
     }
-  };
-
-  const isBase64Image = (url: string) => {
-    return url.startsWith('data:image');
   };
 
   return (
@@ -145,7 +134,9 @@ export function ImageUploader({ value = [], onChange, maxImages = 10 }: ImageUpl
           <div className="border rounded-md w-32 h-32 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-muted/50 transition-colors"
                onClick={() => fileInputRef.current?.click()}>
             <Upload className="h-8 w-8 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">Upload</span>
+            <span className="text-sm text-muted-foreground">
+              {isUploading ? "Uploading..." : "Upload"}
+            </span>
             <Input
               ref={fileInputRef}
               type="file"
@@ -163,6 +154,12 @@ export function ImageUploader({ value = [], onChange, maxImages = 10 }: ImageUpl
         <p className="text-sm text-destructive">{uploadError}</p>
       )}
 
+      {isUploading && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p className="text-blue-800 font-medium">Uploading images to Supabase CDN...</p>
+        </div>
+      )}
+
       <div className="flex gap-4">
         <Button
           type="button"
@@ -172,7 +169,7 @@ export function ImageUploader({ value = [], onChange, maxImages = 10 }: ImageUpl
           disabled={isUploading || imageUrls.length >= maxImages}
         >
           <Upload className="h-4 w-4 mr-2" />
-          Upload Images
+          {isUploading ? "Uploading..." : "Upload to CDN"}
         </Button>
         <Button
           type="button"
@@ -186,10 +183,13 @@ export function ImageUploader({ value = [], onChange, maxImages = 10 }: ImageUpl
         </Button>
       </div>
 
-      <p className="text-sm text-muted-foreground">
-        Upload up to {maxImages} images. The first image will be used as the cover image.
-        Supported formats: JPG, PNG, GIF.
-      </p>
+      <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+        <p className="text-sm text-green-700">
+          <strong>Supabase CDN Integration:</strong> Images are automatically uploaded to Supabase Storage and served via CDN for optimal performance. 
+          Upload up to {maxImages} images. The first image will be used as the cover image.
+          Supported formats: JPG, PNG, GIF.
+        </p>
+      </div>
     </div>
   );
 }
