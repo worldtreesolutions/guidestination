@@ -1,4 +1,3 @@
-
 import Head from "next/head"
 import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
@@ -31,10 +30,10 @@ interface Establishment {
 interface EstablishmentActivity {
   id: string
   activity_id: number
-  activity_name: string
-  activity_description?: string
-  distance_km?: number
-  activity_type?: string
+  commission_rate: number
+  is_active: boolean
+  created_at: string
+  updated_at: string
   activities?: {
     title: string
     image_url: string
@@ -66,7 +65,22 @@ export default function EstablishmentProfilePage() {
         establishmentService.getEstablishmentActivities(id)
       ])
       
-      setEstablishment(establishmentData)
+      // Map the database fields to our interface - handle the actual database structure
+      const mappedEstablishment: Establishment = {
+        id: establishmentData.id,
+        name: establishmentData.establishment_name || 'Unknown',
+        type: establishmentData.establishment_type || 'establishment',
+        description: `Establishment located at ${establishmentData.establishment_address}`,
+        address: establishmentData.establishment_address,
+        phone: undefined, // Not in current schema
+        email: undefined, // Not in current schema
+        location_lat: undefined, // Not in current schema
+        location_lng: undefined, // Not in current schema
+        place_id: undefined, // Not in current schema
+        verification_status: 'pending' // Default status
+      }
+      
+      setEstablishment(mappedEstablishment)
       setActivities(activitiesData)
     } catch (err) {
       console.error('Error loading establishment:', err)
@@ -221,19 +235,14 @@ export default function EstablishmentProfilePage() {
                       ) : (
                         <Card className="h-full">
                           <CardHeader>
-                            <CardTitle className="text-lg">{activity.activity_name}</CardTitle>
-                            {activity.distance_km && (
-                              <CardDescription>
-                                {activity.distance_km}km from {establishment.name}
-                              </CardDescription>
-                            )}
+                            <CardTitle className="text-lg">Activity {activity.activity_id}</CardTitle>
                           </CardHeader>
                           <CardContent>
                             <p className="text-gray-600 mb-4">
-                              {activity.activity_description || "Activity details coming soon"}
+                              Activity details coming soon
                             </p>
                             <div className="flex items-center justify-between">
-                              <Badge variant="outline">{activity.activity_type}</Badge>
+                              <Badge variant="outline">Activity</Badge>
                               <Link href={`/activities/${activity.activity_id}?ref=${establishment.id}`}>
                                 <Button size="sm">View Details</Button>
                               </Link>

@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client"
 
 export interface CustomerProfile {
@@ -17,11 +16,14 @@ export interface Booking {
   id: string
   customer_id: string
   activity_id: number
+  customer_name: string
+  customer_email: string
   booking_date: string
   participants: number
   total_amount: number
   status: "pending" | "confirmed" | "completed" | "cancelled"
   created_at: string
+  updated_at: string
 }
 
 export interface WishlistItem {
@@ -81,10 +83,17 @@ export const customerService = {
       .order('created_at', { ascending: false })
 
     if (error) throw error
-    return data as Booking[]
+    
+    // Map the data to ensure customer_id is included
+    const mappedData = data.map(booking => ({
+      ...booking,
+      customer_id: booking.customer_id || customerId
+    }))
+    
+    return mappedData as Booking[]
   },
 
-  async createBooking(booking: Omit<Booking, 'id' | 'created_at'>) {
+  async createBooking(booking: Omit<Booking, 'id' | 'created_at' | 'updated_at'>) {
     const { data, error } = await supabase
       .from('bookings')
       .insert([booking])

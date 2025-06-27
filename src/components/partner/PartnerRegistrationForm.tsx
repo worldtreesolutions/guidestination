@@ -1,4 +1,3 @@
-
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -24,6 +23,7 @@ import { PlacesAutocomplete } from "@/components/ui/places-autocomplete"
 import { Check, FileText } from "lucide-react"
 import { useLanguage } from "@/contexts/LanguageContext"
 import partnerService from "@/services/partnerService"
+import storageService from "@/services/storageService"
 
 const createFormSchema = (t: (key: string) => string) => z.object({
   businessName: z.string().min(2, t('form.validation.businessName')),
@@ -46,6 +46,7 @@ export const PartnerRegistrationForm = () => {
   const { t } = useLanguage()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
+  const [uploadProgress, setUploadProgress] = useState<string>("")
   const formSchema = createFormSchema(t)
   
   const form = useForm<z.infer<typeof formSchema>>({
@@ -58,17 +59,36 @@ export const PartnerRegistrationForm = () => {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true)
+    setUploadProgress("Starting submission...")
+    
     try {
-      // Upload supporting documents first
-      const documentUrls: string[] = []
+      let documentUrls: string[] = []
+      
+      // Upload supporting documents to Supabase CDN if any files are selected
       if (uploadedFiles.length > 0) {
-        for (const file of uploadedFiles) {
-          // Convert UploadedFile to File for upload
-          const fileBlob = new File([file.name], file.name, { type: file.type })
-          const url = await partnerService.uploadSupportingDocument(fileBlob)
-          documentUrls.push(url)
+        setUploadProgress("Uploading documents to Supabase CDN...")
+        
+        // Convert UploadedFile objects to File objects for upload
+        const filesToUpload: File[] = []
+        for (const uploadedFile of uploadedFiles) {
+          // Create a File object from the UploadedFile data
+          const response = await fetch(uploadedFile.url || uploadedFile.name)
+          const blob = await response.blob()
+          const file = new File([blob], uploadedFile.name, { type: uploadedFile.type })
+          filesToUpload.push(file)
         }
+        
+        // Upload to Supabase storage
+        documentUrls = await storageService.uploadPartnerDocuments(filesToUpload)
+        
+        if (documentUrls.length !== filesToUpload.length) {
+          throw new Error("Some documents failed to upload. Please try again.")
+        }
+        
+        setUploadProgress("Documents uploaded successfully!")
       }
+
+      setUploadProgress("Creating partner registration...")
 
       // Create partner registration with user creation and email verification
       const registrationData = {
@@ -87,28 +107,37 @@ export const PartnerRegistrationForm = () => {
 
       const result = await partnerService.createPartnerRegistration(registrationData)
       
+      setUploadProgress("Registration completed successfully!")
+      
       // Show success message with email verification info
       alert(`${t('partner.form.success.message')}
 
-${result.message}`)
+${result.message}
+
+Documents uploaded to Supabase CDN: ${documentUrls.length} files`)
       
       // Reset form
       form.reset()
       setUploadedFiles([])
+      setUploadProgress("")
       
     } catch (error: any) {
       console.error('Error submitting partner registration:', error)
+      setUploadProgress("")
       
       // Handle specific error cases
       if (error.message?.includes('User already registered')) {
         alert(t('form.error.accountExists'))
       } else if (error.message?.includes('Invalid email')) {
         alert(t('form.validation.email'))
+      } else if (error.message?.includes('upload')) {
+        alert(`Upload Error: ${error.message}`)
       } else {
         alert(t('partner.form.error.message'))
       }
     } finally {
       setIsSubmitting(false)
+      setUploadProgress("")
     }
   }
 
@@ -129,6 +158,12 @@ ${result.message}`)
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        {uploadProgress && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <p className="text-blue-800 font-medium">{uploadProgress}</p>
+          </div>
+        )}
+        
         <div className="space-y-4">
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
             <h4 className="font-medium text-yellow-800 mb-2">{t('partner.form.legal.title')}</h4>
@@ -256,7 +291,8 @@ ${result.message}`)
                     maxSize={10 * 1024 * 1024}
                     acceptedFileTypes={['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx']}
                     label={t('partner.form.field.supportingDocuments')}
-                    description={t('partner.form.description.supportingDocuments')}
+                    description="Upload documents to Supabase CDN - Business license, tax registration, hotel registration, etc. (PDF, JPG, PNG, DOC, DOCX - Max 10MB each)"
+                    disabled={isSubmitting}
                   />
                 </FormControl>
                 <FormMessage />
@@ -270,7 +306,7 @@ ${result.message}`)
               {t('partner.form.documents.title')}
             </h4>
             <p className="text-sm text-green-700 mb-2">
-              {t('partner.form.documents.description')}
+              Files will be securely uploaded to Supabase CDN. {t('partner.form.documents.description')}
             </p>
             <ul className="text-sm text-green-700 space-y-1">
               <li>• {t('partner.form.documents.item1')}</li>
@@ -438,7 +474,7 @@ ${result.message}`)
         </div>
 
         <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {isSubmitting ? t('form.button.submitting') : t('form.button.submit')}
+          {isSubmitting ? (uploadProgress || t('form.button.submitting')) : t('form.button.submit')}
         </Button>
       </form>
     </Form>

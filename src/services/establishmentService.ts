@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -27,34 +26,35 @@ export const establishmentService = {
 
   async getEstablishmentById(id: string) {
     const { data, error } = await supabase
-      .from("establishments")
+      .from('establishments')
+      .select('*')
+      .eq('id', id)
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  async getEstablishment(id: string) {
+    return this.getEstablishmentById(id)
+  },
+
+  async getEstablishmentActivities(establishmentId: string) {
+    const { data, error } = await supabase
+      .from('establishment_activities')
       .select(`
         *,
-        partner_registrations!inner(
-          business_name,
-          owner_name,
-          email,
-          phone
-        ),
-        establishment_activities(
-          id,
-          activity_id,
-          commission_rate,
-          is_active,
-          activities(
-            id,
-            title,
-            description,
-            b_price,
-            final_price
-          )
+        activities (
+          title,
+          image_url,
+          b_price,
+          description
         )
       `)
-      .eq("id", id)
-      .single();
+      .eq('establishment_id', establishmentId)
 
-    if (error) throw error;
-    return data;
+    if (error) throw error
+    return data
   },
 
   async createEstablishment(establishment: EstablishmentInsert) {

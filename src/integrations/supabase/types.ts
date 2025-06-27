@@ -6,7 +6,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export type Database = {
+export interface Database {
   public: {
     Tables: {
       partner_registrations: {
@@ -287,6 +287,7 @@ export type Database = {
         Row: {
           id: string
           activity_id: number
+          customer_id: string | null
           customer_name: string
           customer_email: string
           booking_date: string
@@ -299,6 +300,7 @@ export type Database = {
         Insert: {
           id?: string
           activity_id: number
+          customer_id?: string | null
           customer_name: string
           customer_email: string
           booking_date: string
@@ -311,6 +313,7 @@ export type Database = {
         Update: {
           id?: string
           activity_id?: number
+          customer_id?: string | null
           customer_name?: string
           customer_email?: string
           booking_date?: string
@@ -320,7 +323,205 @@ export type Database = {
           created_at?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "bookings_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      customer_profiles: {
+        Row: {
+          id: string
+          user_id: string | null
+          email: string
+          first_name: string | null
+          last_name: string | null
+          full_name: string | null
+          phone: string | null
+          date_of_birth: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          email: string
+          first_name?: string | null
+          last_name?: string | null
+          full_name?: string | null
+          phone?: string | null
+          date_of_birth?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          email?: string
+          first_name?: string | null
+          last_name?: string | null
+          full_name?: string | null
+          phone?: string | null
+          date_of_birth?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      wishlist: {
+        Row: {
+          id: string
+          customer_id: string
+          activity_id: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          customer_id: string
+          activity_id: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          customer_id?: string
+          activity_id?: number
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wishlist_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wishlist_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      referral_visits: {
+        Row: {
+          id: string
+          establishment_id: string
+          visitor_id: string | null
+          session_id: string | null
+          ip_address: string | null
+          user_agent: string | null
+          referrer_url: string | null
+          visited_at: string
+          metadata: any
+        }
+        Insert: {
+          id?: string
+          establishment_id: string
+          visitor_id?: string | null
+          session_id?: string | null
+          ip_address?: string | null
+          user_agent?: string | null
+          referrer_url?: string | null
+          visited_at?: string
+          metadata?: any
+        }
+        Update: {
+          id?: string
+          establishment_id?: string
+          visitor_id?: string | null
+          session_id?: string | null
+          ip_address?: string | null
+          user_agent?: string | null
+          referrer_url?: string | null
+          visited_at?: string
+          metadata?: any
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_visits_establishment_id_fkey"
+            columns: ["establishment_id"]
+            isOneToOne: false
+            referencedRelation: "establishments"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      establishment_commissions: {
+        Row: {
+          id: string
+          establishment_id: string
+          booking_id: string | null
+          activity_id: number
+          customer_id: string
+          referral_visit_id: string | null
+          commission_rate: number
+          booking_amount: number
+          commission_amount: number
+          commission_status: string
+          booking_source: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          establishment_id: string
+          booking_id?: string | null
+          activity_id: number
+          customer_id: string
+          referral_visit_id?: string | null
+          commission_rate?: number
+          booking_amount: number
+          commission_amount: number
+          commission_status?: string
+          booking_source?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          establishment_id?: string
+          booking_id?: string | null
+          activity_id?: number
+          customer_id?: string
+          referral_visit_id?: string | null
+          commission_rate?: number
+          booking_amount?: number
+          commission_amount?: number
+          commission_status?: string
+          booking_source?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "establishment_commissions_establishment_id_fkey"
+            columns: ["establishment_id"]
+            isOneToOne: false
+            referencedRelation: "establishments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "establishment_commissions_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          }
+        ]
       }
     }
     Views: {

@@ -6,26 +6,32 @@ interface AuthContextType {
   user: User | null
   session: Session | null
   loading: boolean
+  isAuthenticated: boolean
   signIn: (email: string, password: string) => Promise<{ error: any }>
   signUp: (email: string, password: string, metadata?: any) => Promise<{ error: any }>
   signOut: () => Promise<{ error: any }>
   resetPassword: (email: string) => Promise<{ error: any }>
+  login: (email: string, password: string) => Promise<{ error: any }>
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   session: null,
   loading: true,
+  isAuthenticated: false,
   signIn: async () => ({ error: null }),
   signUp: async () => ({ error: null }),
   signOut: async () => ({ error: null }),
-  resetPassword: async () => ({ error: null })
+  resetPassword: async () => ({ error: null }),
+  login: async () => ({ error: null })
 })
 
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
+
+  const isAuthenticated = !!user
 
   useEffect(() => {
     // Get initial session
@@ -55,6 +61,8 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     return { error }
   }
 
+  const login = signIn // Alias for backward compatibility
+
   const signUp = async (email: string, password: string, metadata?: any) => {
     const { error } = await supabase.auth.signUp({
       email,
@@ -83,10 +91,12 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
       user, 
       session, 
       loading, 
+      isAuthenticated,
       signIn, 
       signUp, 
       signOut, 
-      resetPassword 
+      resetPassword,
+      login
     }}>
       {children}
     </AuthContext.Provider>
