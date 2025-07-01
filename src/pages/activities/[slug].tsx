@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react"
 import { useRouter } from "next/router"
 import Head from "next/head"
@@ -31,12 +30,12 @@ import { AvailabilityCalendar } from "@/components/activities/AvailabilityCalend
 import { BookingForm } from "@/components/activities/BookingForm"
 import { ActivityReviews } from "@/components/activities/ActivityReviews"
 import { useIsMobile } from "@/hooks/use-mobile"
-import { activityService, Activity } from "@/services/activityService"
+import { supabaseActivityService, SupabaseActivity } from "@/services/supabaseActivityService"
 
 export default function ActivityPage() {
   const router = useRouter()
   const { slug } = router.query
-  const [activity, setActivity] = useState<Activity | null>(null)
+  const [activity, setActivity] = useState<SupabaseActivity | null>(null)
   const [loading, setLoading] = useState(true)
   const [selectedDate, setSelectedDate] = useState<Date>()
   const [selectedParticipants, setSelectedParticipants] = useState(1)
@@ -48,8 +47,8 @@ export default function ActivityPage() {
       
       try {
         setLoading(true)
-        // For demo, we'll use the first activity from mock data
-        const activityData = await activityService.getActivityById("act-1")
+        // Use Supabase service instead of mock data
+        const activityData = await supabaseActivityService.getActivityById(slug)
         setActivity(activityData)
       } catch (error) {
         console.error("Error fetching activity:", error)
@@ -92,7 +91,8 @@ export default function ActivityPage() {
     )
   }
 
-  const formatPrice = (price: number) => {
+  const formatPrice = (price: number | null) => {
+    if (!price) return "Free"
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "THB",
@@ -141,32 +141,32 @@ export default function ActivityPage() {
               </div>
 
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4">
-                {activity.title}
+                {activity.title || activity.name}
               </h1>
 
               <div className="flex flex-wrap items-center gap-4 mb-4">
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-primary" />
-                  <span className="text-sm sm:text-base">Chiang Mai, Thailand</span>
+                  <span className="text-sm sm:text-base">{activity.location || "Location TBD"}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4" />
-                  <span className="text-sm sm:text-base">{formatDuration(activity.duration)}</span>
+                  <span className="text-sm sm:text-base">{formatDuration(activity.duration || "")}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4" />
-                  <span className="text-sm sm:text-base">Max {activity.maxParticipants} people</span>
+                  <span className="text-sm sm:text-base">Max {activity.max_participants || 10} people</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Globe className="h-4 w-4" />
-                  <span className="text-sm sm:text-base">{activity.languages.join(", ")}</span>
+                  <span className="text-sm sm:text-base">{activity.languages?.join(", ") || "English"}</span>
                 </div>
               </div>
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="text-2xl sm:text-3xl font-bold text-primary">
-                    {formatPrice(activity.finalPrice)}
+                    {formatPrice(activity.final_price)}
                   </span>
                   <span className="text-muted-foreground">per person</span>
                 </div>
@@ -218,7 +218,7 @@ export default function ActivityPage() {
                       </CardHeader>
                       <CardContent>
                         <ul className="space-y-2">
-                          {activity.highlights.map((highlight, index) => (
+                          {(activity.highlights || []).map((highlight, index) => (
                             <li key={index} className="flex items-start gap-2">
                               <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
                               <span>{highlight}</span>
@@ -237,12 +237,12 @@ export default function ActivityPage() {
                       <CardContent>
                         <div className="flex items-start gap-2">
                           <MapPin className="h-5 w-5 text-primary mt-0.5" />
-                          <span>{activity.meetingPoint}</span>
+                          <span>{activity.meeting_point || "Meeting point TBD"}</span>
                         </div>
                       </CardContent>
                     </Card>
 
-                    {activity.includesPickup && (
+                    {activity.includes_pickup && (
                       <Card>
                         <CardHeader>
                           <CardTitle>Pickup Information</CardTitle>
@@ -253,7 +253,7 @@ export default function ActivityPage() {
                             <div>
                               <p className="font-medium">Hotel pickup included</p>
                               <p className="text-muted-foreground text-sm">
-                                {activity.pickupLocations}
+                                {activity.pickup_locations || "Pickup details TBD"}
                               </p>
                             </div>
                           </div>
@@ -261,7 +261,7 @@ export default function ActivityPage() {
                       </Card>
                     )}
 
-                    {activity.includesMeal && (
+                    {activity.includes_meal && (
                       <Card>
                         <CardHeader>
                           <CardTitle>Meals</CardTitle>
@@ -272,7 +272,7 @@ export default function ActivityPage() {
                             <div>
                               <p className="font-medium">Meal included</p>
                               <p className="text-muted-foreground text-sm">
-                                {activity.mealDescription}
+                                {activity.meal_description || "Meal details TBD"}
                               </p>
                             </div>
                           </div>
@@ -289,7 +289,7 @@ export default function ActivityPage() {
                         </CardHeader>
                         <CardContent>
                           <ul className="space-y-2">
-                            {activity.included.map((item, index) => (
+                            {(activity.included || []).map((item, index) => (
                               <li key={index} className="flex items-start gap-2">
                                 <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
                                 <span className="text-sm">{item}</span>
@@ -305,7 +305,7 @@ export default function ActivityPage() {
                         </CardHeader>
                         <CardContent>
                           <ul className="space-y-2">
-                            {activity.notIncluded.map((item, index) => (
+                            {(activity.not_included || []).map((item, index) => (
                               <li key={index} className="flex items-start gap-2">
                                 <XCircle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
                                 <span className="text-sm">{item}</span>
@@ -319,9 +319,9 @@ export default function ActivityPage() {
 
                   <TabsContent value="reviews">
                     <ActivityReviews 
-                      activityId={activity.id}
-                      rating={activity.rating || 0}
-                      reviewCount={activity.reviewCount || 0}
+                      activityId={activity.id.toString()}
+                      rating={activity.average_rating || 0}
+                      reviewCount={activity.review_count || 0}
                     />
                   </TabsContent>
                 </Tabs>
@@ -340,7 +340,7 @@ export default function ActivityPage() {
                     <CardContent className="space-y-6">
                       <div className="text-center">
                         <div className="text-2xl font-bold text-primary">
-                          {formatPrice(activity.finalPrice)}
+                          {formatPrice(activity.final_price)}
                         </div>
                         <div className="text-sm text-muted-foreground">per person</div>
                       </div>
