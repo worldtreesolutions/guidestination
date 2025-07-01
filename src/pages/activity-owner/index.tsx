@@ -7,9 +7,40 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ActivityOwnerRegistrationForm } from "@/components/activity-owner/ActivityOwnerRegistrationForm"
 import { Shield, Building2, Award, Clock } from "lucide-react"
 import { useLanguage } from "@/contexts/LanguageContext"
+import { uploadService } from "@/services/uploadService"
+import { useAuth } from "@/contexts/AuthContext"
 
-export default function ActivityOwnerPage() {
+export default function ActivityOwnerDashboard() {
+  const { user } = useAuth()
   const { t } = useLanguage()
+
+  // Example of how to use the upload service
+  const handleFileUpload = async (file: File, type: "image" | "document") => {
+    if (!user) return
+
+    try {
+      let result
+      if (type === "image") {
+        result = await uploadService.uploadProfileImage(file, user.id)
+      } else {
+        result = await uploadService.uploadBusinessDocument(
+          file, 
+          user.id, 
+          "verification", 
+          user.id
+        )
+      }
+
+      if (result?.url) {
+        console.log("File uploaded successfully:", result.url)
+        // Update your state or database with the new URL
+      } else {
+        console.error("Upload failed:", result?.error)
+      }
+    } catch (error) {
+      console.error("Upload error:", error)
+    }
+  }
 
   return (
     <>

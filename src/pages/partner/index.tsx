@@ -1,4 +1,3 @@
-
 import Head from "next/head"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
@@ -7,9 +6,35 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { PartnerRegistrationForm } from "@/components/partner/PartnerRegistrationForm"
 import { Handshake, Hotel, Users, BarChart3 } from "lucide-react"
 import { useLanguage } from "@/contexts/LanguageContext"
+import { uploadService } from "@/services/uploadService"
+import { useAuth } from "@/contexts/AuthContext"
 
-export default function PartnerPage() {
+export default function PartnerDashboard() {
+  const { user } = useAuth()
   const { t } = useLanguage()
+
+  // Example of how to use the upload service for partners
+  const handlePartnerFileUpload = async (file: File, documentType: string) => {
+    if (!user) return
+
+    try {
+      const result = await uploadService.uploadBusinessDocument(
+        file, 
+        user.id, 
+        documentType, 
+        user.id
+      )
+
+      if (result?.url) {
+        console.log("Partner document uploaded:", result.url)
+        // Save to partner profile or verification documents
+      } else {
+        console.error("Partner upload failed:", result?.error)
+      }
+    } catch (error) {
+      console.error("Partner upload error:", error)
+    }
+  }
 
   return (
     <>

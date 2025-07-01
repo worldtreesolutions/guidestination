@@ -1,4 +1,3 @@
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
@@ -12,11 +11,11 @@ import {
 } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast"
-import { Activity } from "@/services/activityService"
+import { SupabaseActivity } from "@/services/supabaseActivityService"
 import { Users, Minus, Plus } from "lucide-react"
 
 interface BookingFormProps {
-  activity: Activity
+  activity: SupabaseActivity
   selectedDate: Date | undefined
   participants: number
   onParticipantsChange: (count: number) => void
@@ -49,7 +48,7 @@ export function BookingForm({
   }
 
   const incrementParticipants = () => {
-    if (participants < activity.maxParticipants) {
+    if (participants < (activity.max_participants || 10)) {
       onParticipantsChange(participants + 1)
     }
   }
@@ -60,7 +59,7 @@ export function BookingForm({
     }
   }
 
-  const totalPrice = activity.finalPrice * participants
+  const totalPrice = (activity.final_price || 0) * participants
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -95,7 +94,7 @@ export function BookingForm({
               size="icon"
               className="h-8 w-8"
               onClick={incrementParticipants}
-              disabled={participants >= activity.maxParticipants}
+              disabled={participants >= (activity.max_participants || 10)}
             >
               <Plus className="h-4 w-4" />
             </Button>
@@ -108,7 +107,7 @@ export function BookingForm({
       <div className="space-y-2">
         <div className="flex justify-between items-center">
           <span className="text-muted-foreground">
-            {formatPrice(activity.finalPrice)} x {participants} person(s)
+            {formatPrice(activity.final_price || 0)} x {participants} person(s)
           </span>
           <span className="font-medium">{formatPrice(totalPrice)}</span>
         </div>
