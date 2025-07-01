@@ -1,10 +1,7 @@
-
 import { supabase } from "@/integrations/supabase/client"
 import type { Database } from "@/integrations/supabase/types"
 
 type ActivityRow = Database["public"]["Tables"]["activities"]["Row"]
-type ActivityInsert = Database["public"]["Tables"]["activities"]["Insert"]
-type ActivityUpdate = Database["public"]["Tables"]["activities"]["Update"]
 
 export interface SupabaseActivity extends ActivityRow {
   // Add computed properties for compatibility
@@ -15,6 +12,16 @@ export interface SupabaseActivity extends ActivityRow {
     startTime?: string
     endTime?: string
   }
+  // Add missing properties that might not be in the database schema yet
+  category?: string
+  location?: string
+  average_rating?: number
+  review_count?: number
+  includes_pickup?: boolean
+  pickup_locations?: string
+  includes_meal?: boolean
+  meal_description?: string
+  name?: string
 }
 
 export interface ActivityBooking {
@@ -111,14 +118,13 @@ export const supabaseActivityService = {
         .from("activities")
         .select(`
           *,
-          activity_media!inner (
+          activity_media (
             id,
             media_url,
             media_type,
             thumbnail_url
           )
         `, { count: "exact" })
-        .eq("status", "published")
         .eq("is_active", true)
 
       // Apply filters
@@ -212,9 +218,8 @@ export const supabaseActivityService = {
         .select(`
           *,
           customers (
-            first_name,
-            last_name,
-            profile_image_url
+            full_name,
+            email
           )
         `)
         .eq("activity_id", activityId)
