@@ -1,7 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import Stripe from "stripe";
 import stripeService from "@/services/stripeService";
-import { buffer } from "micro";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-06-20",
@@ -9,11 +8,30 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
+// Disable body parser for raw body access
 export const config = {
   api: {
     bodyParser: false,
   },
 };
+
+async function getRawBody(req: NextApiRequest): Promise<Buffer> {
+  const chunks: Buffer[] = [];
+  
+  return new Promise((resolve, reject) => {
+    req.on('data', (chunk: Buffer) => {
+      chunks.push(chunk);
+    });
+    
+    req.on('end', () => {
+      resolve(Buffer.concat(chunks));
+    });
+    
+    req.on('error', (err) => {
+      reject(err);
+    });
+  });
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
@@ -24,7 +42,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   let event: Stripe.Event;
 
   try {
-    const body = await buffer(req);
+    const body = await getRawBody(req);
     event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
   } catch (err) {
     console.error("Webhook signature verification failed:", err);
