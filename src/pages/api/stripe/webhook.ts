@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import Stripe from "stripe";
 import stripeService from "@/services/stripeService";
+import { buffer } from "micro";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-06-20",
@@ -10,9 +11,7 @@ const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
 export const config = {
   api: {
-    bodyParser: {
-      sizeLimit: "1mb",
-    },
+    bodyParser: false,
   },
 };
 
@@ -25,7 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   let event: Stripe.Event;
 
   try {
-    const body = JSON.stringify(req.body);
+    const body = await buffer(req);
     event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
   } catch (err) {
     console.error("Webhook signature verification failed:", err);
