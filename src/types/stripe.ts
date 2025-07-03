@@ -25,7 +25,7 @@ export interface StripeTransfer {
   id: string;
   checkoutSessionId: string;
   stripeTransferId?: string;
-  recipientType: 'provider' | 'partner';
+  recipientType: 'provider' | 'partner' | 'activity_owner';
   recipientId: string;
   amount: number;
   status: 'pending' | 'completed' | 'failed';
@@ -68,4 +68,17 @@ export interface StripeFeesCalculation {
   providerAmount: number;
   partnerCommission?: number;
   guidestinationCommission: number;
+}
+
+export interface StripePayout {
+  id: string;
+  recipientType: 'partner' | 'activity_owner';
+  recipientId: string;
+  stripePayoutId: string;
+  amount: number;
+  currency: string;
+  status: string;
+  arrivalDate?: string;
+  createdAt: string;
+  updatedAt: string;
 }

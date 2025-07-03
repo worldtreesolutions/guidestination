@@ -170,7 +170,7 @@ export const stripeService = {
     // Create booking
     await this.createBooking(session, metadata);
 
-    // Handle commission splitting
+    // Handle commission splitting and payouts
     await this.handleCommissionSplit(session, metadata);
   },
 
@@ -186,6 +186,7 @@ export const stripeService = {
       status: "confirmed",
       booking_source: metadata.establishment_id ? "qr_code" : "direct",
       establishment_id: metadata.establishment_id || null,
+      booking_date: new Date().toISOString(),
     };
 
     const { error } = await supabase.from("bookings").insert(bookingData);
@@ -199,6 +200,10 @@ export const stripeService = {
     const baseAmount = parseFloat(metadata.base_amount);
     const commissionPercent = parseFloat(metadata.commission_percent);
     const platformCommission = (baseAmount * commissionPercent) / 100;
+    const providerAmount = baseAmount - platformCommission;
+
+    // Track provider payout (they receive the base amount minus commission)
+    await this.trackProviderPayout(metadata.provider_id, providerAmount, session.id);
 
     // If establishment_id is present, split commission with partner
     if (metadata.establishment_id) {
@@ -232,11 +237,46 @@ export const stripeService = {
       // Record establishment commission
       await supabase.from("establishment_commissions").insert({
         establishment_id: metadata.establishment_id,
+        activity_id: parseInt(metadata.activity_id),
+        customer_id: metadata.customer_id || "guest",
         booking_amount: baseAmount, // Record base amount for commission tracking
         commission_amount: partnerCommission,
         commission_status: "pending",
         booking_source: "qr_code",
       });
+    }
+  },
+
+  async trackProviderPayout(providerId: string, amount: number, sessionId: string): Promise<void> {
+    try {
+      // Get provider's Stripe account details
+      const { data: provider } = await supabase
+        .from("activity_owners")
+        .select("stripe_account_id, stripe_payouts_enabled")
+        .eq("provider_id", providerId)
+        .single();
+
+      if (!provider?.stripe_account_id) {
+        console.warn(`Provider ${providerId} does not have Stripe account configured`);
+        return;
+      }
+
+      // Record the expected payout in our tracking table
+      // Note: Actual Stripe payouts are handled automatically by Stripe Connect
+      // This is for our internal tracking and reporting
+      await supabase.from("stripe_payouts").insert({
+        activity_owner_id: providerId,
+        recipient_type: "activity_owner",
+        stripe_payout_id: `pending_${sessionId}_${Date.now()}`, // Temporary ID until actual payout
+        amount: amount,
+        currency: "USD",
+        status: "pending",
+        arrival_date: null, // Will be updated when actual payout occurs
+      });
+
+      console.log(`Tracked provider payout: ${providerId} - $${amount.toFixed(2)}`);
+    } catch (error) {
+      console.error("Failed to track provider payout:", error);
     }
   },
 
@@ -269,6 +309,17 @@ export const stripeService = {
           recipient_id: partnerId,
           amount: amount,
           status: "completed",
+        });
+
+        // Also track in stripe_payouts table for unified payout tracking
+        await supabase.from("stripe_payouts").insert({
+          partner_id: partnerId,
+          recipient_type: "partner",
+          stripe_payout_id: transfer.id,
+          amount: amount,
+          currency: "USD",
+          status: "paid", // Transfer is immediate
+          arrival_date: new Date().toISOString(),
         });
       }
     } catch (error) {
@@ -340,6 +391,33 @@ export const stripeService = {
       .eq("stripe_account_id", accountId);
   },
 
+  async handlePayoutPaid(payout: Stripe.Payout): Promise<void> {
+    console.log("Payout completed:", payout.id);
+    
+    // Update our payout tracking when Stripe confirms payout
+    await supabase
+      .from("stripe_payouts")
+      .update({
+        status: "paid",
+        arrival_date: new Date(payout.arrival_date * 1000).toISOString(),
+        stripe_payout_id: payout.id,
+      })
+      .eq("stripe_payout_id", `pending_${payout.id}`)
+      .or(`stripe_payout_id.eq.${payout.id}`);
+  },
+
+  async handlePayoutFailed(payout: Stripe.Payout): Promise<void> {
+    console.error("Payout failed:", payout.id, payout.failure_message);
+    
+    // Update payout status to failed
+    await supabase
+      .from("stripe_payouts")
+      .update({
+        status: "failed",
+      })
+      .eq("stripe_payout_id", payout.id);
+  },
+
   async handleRefund(charge: Stripe.Charge): Promise<void> {
     console.log("Refund processed for charge:", charge.id);
     
@@ -371,6 +449,57 @@ export const stripeService = {
       .from("stripe_webhook_events")
       .update({ processed: true })
       .eq("stripe_event_id", eventId);
+  },
+
+  // New method to get payout summary for activity owners
+  async getActivityOwnerPayouts(providerId: string): Promise<any[]> {
+    const { data, error } = await supabase
+      .from("stripe_payouts")
+      .select("*")
+      .eq("activity_owner_id", providerId)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching activity owner payouts:", error);
+      return [];
+    }
+
+    return data || [];
+  },
+
+  // New method to get payout summary for partners
+  async getPartnerPayouts(partnerId: string): Promise<any[]> {
+    const { data, error } = await supabase
+      .from("stripe_payouts")
+      .select("*")
+      .eq("partner_id", partnerId)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching partner payouts:", error);
+      return [];
+    }
+
+    return data || [];
+  },
+
+  // New method to get all payouts for admin dashboard
+  async getAllPayouts(): Promise<any[]> {
+    const { data, error } = await supabase
+      .from("stripe_payouts")
+      .select(`
+        *,
+        activity_owners:activity_owner_id(business_name, owner_name),
+        partner_registrations:partner_id(business_name, owner_name)
+      `)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching all payouts:", error);
+      return [];
+    }
+
+    return data || [];
   },
 };
 
