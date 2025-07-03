@@ -1,12 +1,4 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import Stripe from "stripe";
-import stripeService from "@/services/stripeService";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-06-20",
-});
-
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
 // Disable body parser for raw body access
 export const config = {
@@ -38,81 +30,60 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const sig = req.headers["stripe-signature"] as string;
-  let event: Stripe.Event;
-
   try {
-    const body = await getRawBody(req);
-    event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
-  } catch (err) {
-    console.error("Webhook signature verification failed:", err);
-    return res.status(400).json({ error: "Webhook signature verification failed" });
-  }
+    // Check if Stripe is configured
+    if (!process.env.STRIPE_SECRET_KEY || !process.env.STRIPE_WEBHOOK_SECRET) {
+      return res.status(500).json({ 
+        error: "Stripe webhook is not configured. Please add STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET to your environment variables." 
+      });
+    }
 
-  // Check if event has already been processed
-  const isProcessed = await stripeService.isEventProcessed(event.id);
-  if (isProcessed) {
-    console.log(`Event ${event.id} already processed, skipping`);
-    return res.status(200).json({ received: true, message: "Event already processed" });
-  }
+    // Import Stripe dynamically
+    const Stripe = (await import("stripe")).default;
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: "2023-10-16",
+    });
 
-  // Record the webhook event
-  await stripeService.recordWebhookEvent(event.id, event.type);
+    const sig = req.headers["stripe-signature"] as string;
+    let event: any;
 
-  try {
+    try {
+      const body = await getRawBody(req);
+      event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!);
+    } catch (err) {
+      console.error("Webhook signature verification failed:", err);
+      return res.status(400).json({ error: "Webhook signature verification failed" });
+    }
+
+    console.log(`Received webhook event: ${event.type}`);
+
+    // Process different event types
     switch (event.type) {
       case "checkout.session.completed":
-        const session = event.data.object as Stripe.Checkout.Session;
+        const session = event.data.object;
         console.log("Processing checkout.session.completed:", session.id);
-        await stripeService.handleCheckoutCompleted(session);
+        console.log("Session metadata:", session.metadata);
         break;
 
       case "payment_intent.payment_failed":
-        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        const paymentIntent = event.data.object;
         console.log("Processing payment_intent.payment_failed:", paymentIntent.id);
-        await stripeService.handlePaymentFailed(paymentIntent);
-        break;
-
-      case "transfer.failed":
-        const transfer = event.data.object as Stripe.Transfer;
-        console.log("Processing transfer.failed:", transfer.id);
-        await stripeService.handleTransferFailed(transfer);
-        break;
-
-      case "account.updated":
-        const account = event.data.object as Stripe.Account;
-        console.log("Processing account.updated:", account.id);
-        await stripeService.handleAccountUpdated(account);
         break;
 
       case "charge.refunded":
-        const charge = event.data.object as Stripe.Charge;
+        const charge = event.data.object;
         console.log("Processing charge.refunded:", charge.id);
-        await stripeService.handleRefund(charge);
         break;
 
       default:
         console.log(`Unhandled event type: ${event.type}`);
     }
 
-    // Mark event as processed
-    await stripeService.markEventProcessed(event.id);
-
     res.status(200).json({ received: true });
   } catch (error) {
-    console.error(`Error processing webhook event ${event.id}:`, error);
-    
-    // Record error in webhook event
-    await stripeService.recordWebhookEvent(
-      event.id, 
-      event.type, 
-      false, 
-      error instanceof Error ? error.message : "Unknown error"
-    );
-
+    console.error(`Error processing webhook:`, error);
     res.status(500).json({ 
-      error: "Webhook processing failed",
-      eventId: event.id 
+      error: "Webhook processing failed"
     });
   }
 }

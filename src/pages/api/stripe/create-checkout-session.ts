@@ -1,5 +1,5 @@
+
 import { NextApiRequest, NextApiResponse } from "next";
-import stripeService from "@/services/stripeService";
 import { CheckoutSessionData } from "@/types/stripe";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -8,6 +8,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
+    // Check if Stripe is configured
+    if (!process.env.STRIPE_SECRET_KEY) {
+      return res.status(500).json({ 
+        error: "Stripe is not configured. Please add STRIPE_SECRET_KEY to your environment variables." 
+      });
+    }
+
     const {
       activityId,
       providerId,
@@ -15,7 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       customerId,
       amount,
       participants,
-      commissionPercent,
+      commissionPercent = 20,
       successUrl,
       cancelUrl,
     }: CheckoutSessionData = req.body;
@@ -27,17 +34,58 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
+    // Import Stripe dynamically to avoid issues
+    const Stripe = (await import("stripe")).default;
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: "2023-10-16",
+    });
+
+    // Calculate Stripe fees: 2.9% + $0.30 for US cards
+    const stripeFeePercent = 0.029; // 2.9%
+    const stripeFeeFixed = 0.30; // $0.30
+    const stripeFee = (amount * stripeFeePercent) + stripeFeeFixed;
+    const totalAmount = amount + stripeFee;
+
+    // Convert to cents for Stripe
+    const totalAmountCents = Math.round(totalAmount * 100);
+
+    const metadata = {
+      activity_id: activityId.toString(),
+      provider_id: providerId,
+      commission_percent: commissionPercent.toString(),
+      participants: participants.toString(),
+      base_amount: amount.toString(),
+      stripe_fee: stripeFee.toString(),
+    };
+
+    if (establishmentId) {
+      metadata.establishment_id = establishmentId;
+    }
+
+    if (customerId) {
+      metadata.customer_id = customerId;
+    }
+
     // Create checkout session
-    const session = await stripeService.createCheckoutSession({
-      activityId,
-      providerId,
-      establishmentId,
-      customerId,
-      amount,
-      participants,
-      commissionPercent,
-      successUrl,
-      cancelUrl,
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      line_items: [
+        {
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: `Activity Booking - ${participants} participant(s)`,
+              description: `Base amount: $${amount.toFixed(2)} + Processing fee: $${stripeFee.toFixed(2)}`,
+            },
+            unit_amount: totalAmountCents,
+          },
+          quantity: 1,
+        },
+      ],
+      mode: "payment",
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+      metadata,
     });
 
     res.status(200).json({ 
