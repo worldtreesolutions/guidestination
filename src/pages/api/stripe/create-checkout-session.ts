@@ -1,4 +1,3 @@
-
 import { NextApiRequest, NextApiResponse } from "next";
 import { CheckoutSessionData } from "@/types/stripe";
 
@@ -49,7 +48,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Convert to cents for Stripe
     const totalAmountCents = Math.round(totalAmount * 100);
 
-    const metadata = {
+    // Create metadata object with proper typing
+    const metadata: Record<string, string> = {
       activity_id: activityId.toString(),
       provider_id: providerId,
       commission_percent: commissionPercent.toString(),
