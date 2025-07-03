@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import CheckoutButton from "@/components/stripe/CheckoutButton";
-import { Calculator, CreditCard, Users, Building } from "lucide-react";
+import { Calculator, CreditCard, Users, Building, AlertCircle } from "lucide-react";
 
 export default function StripeCheckoutTestPage() {
   const [testData, setTestData] = useState({
@@ -20,6 +20,8 @@ export default function StripeCheckoutTestPage() {
   });
 
   const [commissionBreakdown, setCommissionBreakdown] = useState({
+    baseAmount: 0,
+    stripeFee: 0,
     totalAmount: 0,
     platformCommission: 0,
     providerAmount: 0,
@@ -27,10 +29,20 @@ export default function StripeCheckoutTestPage() {
     guidestinationCommission: 0,
   });
 
+  const calculateStripeFees = (baseAmount: number) => {
+    const stripeFeePercent = 0.029; // 2.9%
+    const stripeFeeFixed = 0.30; // $0.30
+    return (baseAmount * stripeFeePercent) + stripeFeeFixed;
+  };
+
   const calculateCommissions = () => {
-    const total = testData.amount;
-    const platformCommission = (total * testData.commissionPercent) / 100;
-    const providerAmount = total - platformCommission;
+    const baseAmount = testData.amount;
+    const stripeFee = calculateStripeFees(baseAmount);
+    const totalAmount = baseAmount + stripeFee;
+    
+    // Commission calculated on base amount (before fees)
+    const platformCommission = (baseAmount * testData.commissionPercent) / 100;
+    const providerAmount = baseAmount - platformCommission;
     
     let partnerCommission = 0;
     let guidestinationCommission = platformCommission;
@@ -41,7 +53,9 @@ export default function StripeCheckoutTestPage() {
     }
 
     setCommissionBreakdown({
-      totalAmount: total,
+      baseAmount,
+      stripeFee,
+      totalAmount,
       platformCommission,
       providerAmount,
       partnerCommission,
@@ -112,7 +126,7 @@ export default function StripeCheckoutTestPage() {
       <div className="max-w-6xl mx-auto px-4">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Stripe Checkout Testing</h1>
-          <p className="text-gray-600">Test your Stripe implementation and commission splitting</p>
+          <p className="text-gray-600">Test your Stripe implementation with transaction fees and commission splitting</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -177,7 +191,7 @@ export default function StripeCheckoutTestPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="amount">Amount ($)</Label>
+                    <Label htmlFor="amount">Base Amount ($)</Label>
                     <Input
                       id="amount"
                       type="number"
@@ -185,6 +199,7 @@ export default function StripeCheckoutTestPage() {
                       value={testData.amount}
                       onChange={(e) => setTestData({...testData, amount: parseFloat(e.target.value)})}
                     />
+                    <p className="text-xs text-gray-500 mt-1">Activity price before fees</p>
                   </div>
                   <div>
                     <Label htmlFor="commission">Commission (%)</Label>
@@ -199,7 +214,7 @@ export default function StripeCheckoutTestPage() {
 
                 <Button onClick={calculateCommissions} className="w-full">
                   <Calculator className="w-4 h-4 mr-2" />
-                  Calculate Commission Breakdown
+                  Calculate Fees & Commission Breakdown
                 </Button>
               </CardContent>
             </Card>
@@ -238,22 +253,37 @@ export default function StripeCheckoutTestPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Calculator className="w-5 h-5" />
-                  Commission Breakdown
+                  Fees & Commission Breakdown
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 {commissionBreakdown.totalAmount > 0 ? (
                   <div className="space-y-4">
+                    {/* Customer Payment Breakdown */}
                     <div className="bg-blue-50 p-4 rounded-lg">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="font-medium">Total Booking Amount</span>
-                        <span className="text-lg font-bold">${commissionBreakdown.totalAmount.toFixed(2)}</span>
+                      <h4 className="font-medium text-blue-900 mb-3">Customer Payment</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span>Base Activity Price:</span>
+                          <span>${commissionBreakdown.baseAmount.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Stripe Processing Fee (2.9% + $0.30):</span>
+                          <span>${commissionBreakdown.stripeFee.toFixed(2)}</span>
+                        </div>
+                        <Separator />
+                        <div className="flex justify-between font-bold">
+                          <span>Total Amount Charged:</span>
+                          <span className="text-lg">${commissionBreakdown.totalAmount.toFixed(2)}</span>
+                        </div>
                       </div>
                     </div>
 
                     <Separator />
 
+                    {/* Revenue Distribution */}
                     <div className="space-y-3">
+                      <h4 className="font-medium">Revenue Distribution (from base amount)</h4>
                       <div className="flex justify-between items-center">
                         <div className="flex items-center gap-2">
                           <Users className="w-4 h-4 text-green-600" />
@@ -300,18 +330,25 @@ export default function StripeCheckoutTestPage() {
 
                     <Separator />
 
-                    <div className="bg-gray-50 p-3 rounded-lg">
-                      <p className="text-sm text-gray-600">
-                        {testData.establishmentId 
-                          ? "QR Code booking: Commission split between partner and platform"
-                          : "Standard booking: Full commission to platform"
-                        }
-                      </p>
+                    <div className="bg-amber-50 p-3 rounded-lg">
+                      <div className="flex items-start gap-2">
+                        <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5" />
+                        <div className="text-sm text-amber-800">
+                          <p className="font-medium mb-1">Important:</p>
+                          <p>• Customer pays total amount including Stripe fees</p>
+                          <p>• Commission is calculated on base amount only</p>
+                          <p>• Provider receives base amount minus commission</p>
+                          <p>• {testData.establishmentId 
+                            ? "QR Code booking: Commission split between partner and platform"
+                            : "Standard booking: Full commission to platform"
+                          }</p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ) : (
                   <p className="text-gray-500 text-center py-8">
-                    Click "Calculate Commission Breakdown" to see the breakdown
+                    Click "Calculate Fees & Commission Breakdown" to see the breakdown
                   </p>
                 )}
               </CardContent>
@@ -342,11 +379,16 @@ export default function StripeCheckoutTestPage() {
                   commissionPercent={testData.commissionPercent}
                   className="w-full"
                 >
-                  Test Checkout - ${testData.amount.toFixed(2)}
+                  Test Checkout - ${commissionBreakdown.totalAmount > 0 
+                    ? commissionBreakdown.totalAmount.toFixed(2) 
+                    : (testData.amount + calculateStripeFees(testData.amount)).toFixed(2)
+                  }
                 </CheckoutButton>
 
                 <div className="text-sm text-gray-600 space-y-1">
                   <p><strong>Scenario:</strong> {testData.establishmentId ? "QR Code Booking" : "Standard Booking"}</p>
+                  <p><strong>Base Amount:</strong> ${testData.amount.toFixed(2)}</p>
+                  <p><strong>Processing Fee:</strong> ${calculateStripeFees(testData.amount).toFixed(2)}</p>
                   <p><strong>Provider:</strong> {testData.providerId}</p>
                   {testData.establishmentId && (
                     <p><strong>Establishment:</strong> {testData.establishmentId}</p>

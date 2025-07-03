@@ -1,19 +1,66 @@
 import Stripe from "stripe";
 import { supabase } from "@/integrations/supabase/client";
-import { CheckoutSessionData, StripeCheckoutMetadata } from "@/types/stripe";
+import { CheckoutSessionData, StripeCheckoutMetadata, StripeFeesCalculation } from "@/types/stripe";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-06-20",
 });
 
 export const stripeService = {
+  // Calculate Stripe fees: 2.9% + $0.30 for US cards
+  calculateStripeFees(baseAmount: number): StripeFeesCalculation {
+    const stripeFeePercent = 0.029; // 2.9%
+    const stripeFeeFixed = 0.30; // $0.30
+    
+    // Calculate fee on base amount
+    const stripeFee = (baseAmount * stripeFeePercent) + stripeFeeFixed;
+    const totalAmount = baseAmount + stripeFee;
+    
+    return {
+      baseAmount,
+      stripeFee,
+      totalAmount,
+      platformCommission: 0,
+      providerAmount: 0,
+      guidestinationCommission: 0,
+    };
+  },
+
+  calculateCommissionWithFees(
+    baseAmount: number, 
+    commissionPercent: number, 
+    hasEstablishment: boolean = false
+  ): StripeFeesCalculation {
+    const fees = this.calculateStripeFees(baseAmount);
+    
+    // Commission is calculated on base amount (before fees)
+    const platformCommission = (baseAmount * commissionPercent) / 100;
+    const providerAmount = baseAmount - platformCommission;
+    
+    let partnerCommission = 0;
+    let guidestinationCommission = platformCommission;
+    
+    if (hasEstablishment) {
+      partnerCommission = platformCommission * 0.5; // 50% of platform commission
+      guidestinationCommission = platformCommission * 0.5; // Remaining 50%
+    }
+    
+    return {
+      ...fees,
+      platformCommission,
+      providerAmount,
+      partnerCommission: hasEstablishment ? partnerCommission : undefined,
+      guidestinationCommission,
+    };
+  },
+
   async createCheckoutSession(data: CheckoutSessionData): Promise<Stripe.Checkout.Session> {
     const {
       activityId,
       providerId,
       establishmentId,
       customerId,
-      amount,
+      amount: baseAmount,
       participants,
       commissionPercent = 20,
       successUrl,
@@ -31,16 +78,24 @@ export const stripeService = {
       throw new Error("Provider Stripe account not configured or not enabled");
     }
 
-    // Calculate amounts
-    const totalAmount = Math.round(amount * 100); // Convert to cents
-    const platformCommission = Math.round((totalAmount * commissionPercent) / 100);
-    const providerAmount = totalAmount - platformCommission;
+    // Calculate fees and commissions
+    const calculation = this.calculateCommissionWithFees(
+      baseAmount, 
+      commissionPercent, 
+      !!establishmentId
+    );
+
+    // Convert to cents for Stripe
+    const totalAmountCents = Math.round(calculation.totalAmount * 100);
+    const platformCommissionCents = Math.round(calculation.platformCommission * 100);
 
     const metadata: StripeCheckoutMetadata = {
       activity_id: activityId.toString(),
       provider_id: providerId,
       commission_percent: commissionPercent.toString(),
       participants: participants.toString(),
+      base_amount: baseAmount.toString(),
+      stripe_fee: calculation.stripeFee.toString(),
     };
 
     if (establishmentId) {
@@ -60,8 +115,9 @@ export const stripeService = {
             currency: "usd",
             product_data: {
               name: `Activity Booking - ${participants} participant(s)`,
+              description: `Base amount: $${baseAmount.toFixed(2)} + Processing fee: $${calculation.stripeFee.toFixed(2)}`,
             },
-            unit_amount: totalAmount,
+            unit_amount: totalAmountCents,
           },
           quantity: 1,
         },
@@ -71,21 +127,21 @@ export const stripeService = {
       cancel_url: cancelUrl,
       metadata,
       payment_intent_data: {
-        application_fee_amount: platformCommission,
+        application_fee_amount: platformCommissionCents,
         transfer_data: {
           destination: provider.stripe_account_id,
         },
       },
     });
 
-    // Store session in database
+    // Store session in database with total amount (including fees)
     await supabase.from("stripe_checkout_sessions").insert({
       stripe_session_id: session.id,
       activity_id: activityId,
       provider_id: providerId,
       establishment_id: establishmentId,
       customer_id: customerId,
-      amount: amount,
+      amount: calculation.totalAmount, // Store total amount including fees
       commission_percent: commissionPercent,
       status: "pending",
       metadata,
@@ -126,7 +182,7 @@ export const stripeService = {
       customer_email: session.customer_details?.email || "",
       customer_phone: session.customer_details?.phone || null,
       participants: parseInt(metadata.participants),
-      total_amount: session.amount_total! / 100,
+      total_amount: session.amount_total! / 100, // Total amount paid by customer (including fees)
       status: "confirmed",
       booking_source: metadata.establishment_id ? "qr_code" : "direct",
       establishment_id: metadata.establishment_id || null,
@@ -140,9 +196,9 @@ export const stripeService = {
   },
 
   async handleCommissionSplit(session: Stripe.Checkout.Session, metadata: StripeCheckoutMetadata): Promise<void> {
-    const totalAmount = session.amount_total! / 100;
+    const baseAmount = parseFloat(metadata.base_amount);
     const commissionPercent = parseFloat(metadata.commission_percent);
-    const platformCommission = (totalAmount * commissionPercent) / 100;
+    const platformCommission = (baseAmount * commissionPercent) / 100;
 
     // If establishment_id is present, split commission with partner
     if (metadata.establishment_id) {
@@ -176,7 +232,7 @@ export const stripeService = {
       // Record establishment commission
       await supabase.from("establishment_commissions").insert({
         establishment_id: metadata.establishment_id,
-        booking_amount: totalAmount,
+        booking_amount: baseAmount, // Record base amount for commission tracking
         commission_amount: partnerCommission,
         commission_status: "pending",
         booking_source: "qr_code",

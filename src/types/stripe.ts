@@ -5,6 +5,8 @@ export interface StripeCheckoutMetadata {
   commission_percent: string;
   customer_id?: string;
   participants: string;
+  base_amount: string;
+  stripe_fee: string;
 }
 
 export interface CheckoutSessionData {
@@ -56,4 +58,14 @@ export interface WebhookEventData {
   metadata: Record<string, any>;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface StripeFeesCalculation {
+  baseAmount: number;
+  stripeFee: number;
+  totalAmount: number;
+  platformCommission: number;
+  providerAmount: number;
+  partnerCommission?: number;
+  guidestinationCommission: number;
 }
