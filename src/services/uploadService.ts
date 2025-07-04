@@ -8,17 +8,27 @@ export interface UploadResult {
 }
 
 export const uploadService = {
-  // Upload file to Supabase Storage with CDN
+  /**
+   * Core upload function with CDN support
+   * @param file - The file to upload
+   * @param bucket - The storage bucket name
+   * @param folder - Folder path within the bucket
+   * @param userId - Optional user ID for organization
+   * @returns Promise with upload result including CDN URL
+   */
   async uploadFile(
     file: File,
     bucket: string,
     folder: string,
     userId?: string
-  ): Promise<UploadResult | null> {
+  ): Promise<UploadResult> {
     try {
       const fileExt = file.name.split(".").pop()
       const timestamp = Date.now()
-      const fileName = `${folder}/${userId || "anonymous"}/${timestamp}.${fileExt}`
+      const randomId = Math.random().toString(36).substring(2)
+      const fileName = userId 
+        ? `${folder}/${userId}/${timestamp}-${randomId}.${fileExt}`
+        : `${folder}/${timestamp}-${randomId}.${fileExt}`
 
       // Upload file to Supabase Storage
       const { data, error } = await supabase.storage
@@ -33,28 +43,56 @@ export const uploadService = {
         return { url: "", path: "", error: error.message }
       }
 
-      // Get public URL (served via CDN)
+      // Get public CDN URL
       const { data: { publicUrl } } = supabase.storage
         .from(bucket)
-        .getPublicUrl(fileName)
+        .getPublicUrl(data.path)
 
       return {
         url: publicUrl,
-        path: fileName,
+        path: data.path,
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Upload service error:", error)
-      return { url: "", path: "", error: "Upload failed" }
+      return { url: "", path: "", error: error.message || "Upload failed" }
     }
   },
 
-  // Upload activity media (images/videos)
+  /**
+   * Upload multiple files with CDN support
+   * @param files - Array of files to upload
+   * @param bucket - The storage bucket name
+   * @param folder - Folder path within the bucket
+   * @param userId - Optional user ID for organization
+   * @returns Promise with array of upload results
+   */
+  async uploadMultipleFiles(
+    files: File[], 
+    bucket: string, 
+    folder: string,
+    userId?: string
+  ): Promise<UploadResult[]> {
+    const uploadPromises = files.map(file => 
+      this.uploadFile(file, bucket, folder, userId)
+    )
+    
+    return Promise.all(uploadPromises)
+  },
+
+  /**
+   * Upload activity media (images/videos) with CDN
+   * @param file - Media file to upload
+   * @param activityId - Activity identifier
+   * @param mediaType - Type of media (image or video)
+   * @param userId - Optional user ID
+   * @returns Promise with upload result including CDN URL
+   */
   async uploadActivityMedia(
     file: File,
     activityId: string,
     mediaType: "image" | "video",
     userId?: string
-  ): Promise<UploadResult | null> {
+  ): Promise<UploadResult> {
     return this.uploadFile(
       file,
       "activity-media",
@@ -63,11 +101,32 @@ export const uploadService = {
     )
   },
 
-  // Upload profile images
+  /**
+   * Upload activity images with CDN
+   * @param files - Array of image files to upload
+   * @param activityId - Activity identifier
+   * @param userId - Optional user ID
+   * @returns Promise with array of CDN URLs
+   */
+  async uploadActivityImages(files: File[], activityId?: string, userId?: string): Promise<string[]> {
+    const folder = activityId ? `activities/${activityId}` : 'activities'
+    const results = await this.uploadMultipleFiles(files, 'activity-media', folder, userId)
+    
+    return results
+      .filter(result => !result.error && result.url)
+      .map(result => result.url)
+  },
+
+  /**
+   * Upload profile images with CDN
+   * @param file - Profile image file
+   * @param userId - User identifier
+   * @returns Promise with upload result including CDN URL
+   */
   async uploadProfileImage(
     file: File,
     userId: string
-  ): Promise<UploadResult | null> {
+  ): Promise<UploadResult> {
     return this.uploadFile(
       file,
       "profiles",
@@ -76,13 +135,20 @@ export const uploadService = {
     )
   },
 
-  // Upload business documents
+  /**
+   * Upload business documents with CDN
+   * @param file - Document file to upload
+   * @param businessId - Business identifier
+   * @param documentType - Type of document
+   * @param userId - Optional user ID
+   * @returns Promise with upload result including CDN URL
+   */
   async uploadBusinessDocument(
     file: File,
     businessId: string,
     documentType: string,
     userId?: string
-  ): Promise<UploadResult | null> {
+  ): Promise<UploadResult> {
     return this.uploadFile(
       file,
       "business-documents",
@@ -91,7 +157,44 @@ export const uploadService = {
     )
   },
 
-  // Delete file from storage
+  /**
+   * Upload partner registration documents with CDN
+   * @param files - Array of document files to upload
+   * @param partnerId - Partner identifier
+   * @param userId - Optional user ID
+   * @returns Promise with array of CDN URLs
+   */
+  async uploadPartnerDocuments(files: File[], partnerId?: string, userId?: string): Promise<string[]> {
+    const folder = partnerId ? `partner-registrations/${partnerId}` : 'partner-registrations'
+    const results = await this.uploadMultipleFiles(files, 'documents', folder, userId)
+    
+    return results
+      .filter(result => !result.error && result.url)
+      .map(result => result.url)
+  },
+
+  /**
+   * Upload activity owner registration documents with CDN
+   * @param files - Array of document files to upload
+   * @param ownerId - Activity owner identifier
+   * @param userId - Optional user ID
+   * @returns Promise with array of CDN URLs
+   */
+  async uploadActivityOwnerDocuments(files: File[], ownerId?: string, userId?: string): Promise<string[]> {
+    const folder = ownerId ? `activity-owner-registrations/${ownerId}` : 'activity-owner-registrations'
+    const results = await this.uploadMultipleFiles(files, 'documents', folder, userId)
+    
+    return results
+      .filter(result => !result.error && result.url)
+      .map(result => result.url)
+  },
+
+  /**
+   * Delete file from storage
+   * @param bucket - Storage bucket name
+   * @param path - File path in storage
+   * @returns Promise with deletion result
+   */
   async deleteFile(bucket: string, path: string): Promise<boolean> {
     try {
       const { error } = await supabase.storage
@@ -110,12 +213,29 @@ export const uploadService = {
     }
   },
 
-  // Get file URL from path
+  /**
+   * Get CDN URL for existing file
+   * @param bucket - Storage bucket name
+   * @param path - File path in storage
+   * @returns CDN URL string
+   */
   getFileUrl(bucket: string, path: string): string {
     const { data: { publicUrl } } = supabase.storage
       .from(bucket)
       .getPublicUrl(path)
 
     return publicUrl
+  },
+
+  /**
+   * Get public CDN URL for a file (alias for getFileUrl)
+   * @param path - The file path in storage
+   * @param bucket - The storage bucket name
+   * @returns CDN URL string
+   */
+  getPublicUrl(path: string, bucket: string = 'documents'): string {
+    return this.getFileUrl(bucket, path)
   }
 }
+
+export default uploadService

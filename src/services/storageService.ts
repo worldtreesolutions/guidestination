@@ -1,5 +1,5 @@
-
 import { supabase } from "@/integrations/supabase/client"
+import { uploadService } from "./uploadService"
 
 export interface UploadResult {
   url: string
@@ -9,150 +9,62 @@ export interface UploadResult {
 
 export const storageService = {
   /**
-   * Upload a file to Supabase storage
-   * @param file - The file to upload
-   * @param bucket - The storage bucket name (default: 'documents')
-   * @param folder - Optional folder path within the bucket
-   * @returns Promise with upload result
+   * Upload a file to Supabase storage with CDN
+   * @deprecated Use uploadService.uploadFile instead
    */
   async uploadFile(
     file: File, 
     bucket: string = 'documents', 
     folder?: string
   ): Promise<UploadResult> {
-    try {
-      // Generate unique filename
-      const fileExt = file.name.split('.').pop()
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`
-      const filePath = folder ? `${folder}/${fileName}` : fileName
-
-      // Upload file to Supabase storage
-      const { data, error } = await supabase.storage
-        .from(bucket)
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false
-        })
-
-      if (error) {
-        throw error
-      }
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from(bucket)
-        .getPublicUrl(data.path)
-
-      return {
-        url: publicUrl,
-        path: data.path
-      }
-    } catch (error: any) {
-      console.error('Error uploading file:', error)
-      return {
-        url: '',
-        path: '',
-        error: error.message || 'Failed to upload file'
-      }
-    }
+    return uploadService.uploadFile(file, bucket, folder || '')
   },
 
   /**
-   * Upload multiple files to Supabase storage
-   * @param files - Array of files to upload
-   * @param bucket - The storage bucket name
-   * @param folder - Optional folder path within the bucket
-   * @returns Promise with array of upload results
+   * Upload multiple files to Supabase storage with CDN
+   * @deprecated Use uploadService.uploadMultipleFiles instead
    */
   async uploadMultipleFiles(
     files: File[], 
     bucket: string = 'documents', 
     folder?: string
   ): Promise<UploadResult[]> {
-    const uploadPromises = files.map(file => 
-      this.uploadFile(file, bucket, folder)
-    )
-    
-    return Promise.all(uploadPromises)
+    return uploadService.uploadMultipleFiles(files, bucket, folder || '')
   },
 
   /**
    * Delete a file from Supabase storage
-   * @param path - The file path in storage
-   * @param bucket - The storage bucket name
-   * @returns Promise with deletion result
    */
   async deleteFile(path: string, bucket: string = 'documents'): Promise<boolean> {
-    try {
-      const { error } = await supabase.storage
-        .from(bucket)
-        .remove([path])
-
-      if (error) {
-        throw error
-      }
-
-      return true
-    } catch (error) {
-      console.error('Error deleting file:', error)
-      return false
-    }
+    return uploadService.deleteFile(bucket, path)
   },
 
   /**
-   * Get public URL for a file
-   * @param path - The file path in storage
-   * @param bucket - The storage bucket name
-   * @returns Public URL string
+   * Get public CDN URL for a file
    */
   getPublicUrl(path: string, bucket: string = 'documents'): string {
-    const { data: { publicUrl } } = supabase.storage
-      .from(bucket)
-      .getPublicUrl(path)
-    
-    return publicUrl
+    return uploadService.getFileUrl(bucket, path)
   },
 
   /**
-   * Upload partner registration documents
-   * @param files - Array of files to upload
-   * @returns Promise with array of upload URLs
+   * Upload partner registration documents with CDN
    */
-  async uploadPartnerDocuments(files: File[]): Promise<string[]> {
-    const results = await this.uploadMultipleFiles(files, 'documents', 'partner-registrations')
-    
-    // Filter out failed uploads and return only successful URLs
-    return results
-      .filter(result => !result.error && result.url)
-      .map(result => result.url)
+  async uploadPartnerDocuments(files: File[], partnerId?: string, userId?: string): Promise<string[]> {
+    return uploadService.uploadPartnerDocuments(files, partnerId, userId)
   },
 
   /**
-   * Upload activity owner registration documents
-   * @param files - Array of files to upload
-   * @returns Promise with array of upload URLs
+   * Upload activity owner registration documents with CDN
    */
-  async uploadActivityOwnerDocuments(files: File[]): Promise<string[]> {
-    const results = await this.uploadMultipleFiles(files, 'documents', 'activity-owner-registrations')
-    
-    // Filter out failed uploads and return only successful URLs
-    return results
-      .filter(result => !result.error && result.url)
-      .map(result => result.url)
+  async uploadActivityOwnerDocuments(files: File[], ownerId?: string, userId?: string): Promise<string[]> {
+    return uploadService.uploadActivityOwnerDocuments(files, ownerId, userId)
   },
 
   /**
-   * Upload activity images
-   * @param files - Array of image files to upload
-   * @returns Promise with array of upload URLs
+   * Upload activity images with CDN
    */
-  async uploadActivityImages(files: File[]): Promise<string[]> {
-    const results = await this.uploadMultipleFiles(files, 'images', 'activities')
-    
-    // Filter out failed uploads and return only successful URLs
-    return results
-      .filter(result => !result.error && result.url)
-      .map(result => result.url)
+  async uploadActivityImages(files: File[], activityId?: string, userId?: string): Promise<string[]> {
+    return uploadService.uploadActivityImages(files, activityId, userId)
   }
 }
 
