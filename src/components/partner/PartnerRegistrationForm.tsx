@@ -23,7 +23,7 @@ import { PlacesAutocomplete } from "@/components/ui/places-autocomplete"
 import { Check, FileText } from "lucide-react"
 import { useLanguage } from "@/contexts/LanguageContext"
 import partnerService from "@/services/partnerService"
-import storageService from "@/services/storageService"
+import uploadService from "@/services/uploadService"
 
 const createFormSchema = (t: (key: string) => string) => z.object({
   businessName: z.string().min(2, t('form.validation.businessName')),
@@ -71,21 +71,35 @@ export const PartnerRegistrationForm = () => {
         // Convert UploadedFile objects to File objects for upload
         const filesToUpload: File[] = []
         for (const uploadedFile of uploadedFiles) {
-          // Create a File object from the UploadedFile data
-          const response = await fetch(uploadedFile.url || uploadedFile.name)
-          const blob = await response.blob()
-          const file = new File([blob], uploadedFile.name, { type: uploadedFile.type })
-          filesToUpload.push(file)
+          // If the file is already a File object, use it directly
+          if (uploadedFile.file) {
+            filesToUpload.push(uploadedFile.file)
+          } else {
+            // Create a File object from the UploadedFile data
+            try {
+              const response = await fetch(uploadedFile.url || uploadedFile.name)
+              const blob = await response.blob()
+              const file = new File([blob], uploadedFile.name, { type: uploadedFile.type })
+              filesToUpload.push(file)
+            } catch (error) {
+              console.error(`Failed to process file ${uploadedFile.name}:`, error)
+              throw new Error(`Failed to process file: ${uploadedFile.name}`)
+            }
+          }
         }
         
-        // Upload to Supabase storage
-        documentUrls = await storageService.uploadPartnerDocuments(filesToUpload)
+        // Generate unique partner ID for document organization
+        const partnerId = `partner_${Date.now()}_${Math.random().toString(36).substring(2)}`
+        
+        // Upload to Supabase storage with CDN URLs
+        documentUrls = await uploadService.uploadPartnerDocuments(filesToUpload, partnerId)
         
         if (documentUrls.length !== filesToUpload.length) {
-          throw new Error("Some documents failed to upload. Please try again.")
+          const failedCount = filesToUpload.length - documentUrls.length
+          throw new Error(`${failedCount} document(s) failed to upload. Please try again.`)
         }
         
-        setUploadProgress("Documents uploaded successfully!")
+        setUploadProgress("Documents uploaded successfully to Supabase CDN!")
       }
 
       setUploadProgress("Creating partner registration...")
@@ -114,7 +128,8 @@ export const PartnerRegistrationForm = () => {
 
 ${result.message}
 
-Documents uploaded to Supabase CDN: ${documentUrls.length} files`)
+Documents uploaded to Supabase CDN: ${documentUrls.length} files
+CDN URLs generated for secure access and fast delivery.`)
       
       // Reset form
       form.reset()
@@ -130,7 +145,7 @@ Documents uploaded to Supabase CDN: ${documentUrls.length} files`)
         alert(t('form.error.accountExists'))
       } else if (error.message?.includes('Invalid email')) {
         alert(t('form.validation.email'))
-      } else if (error.message?.includes('upload')) {
+      } else if (error.message?.includes('upload') || error.message?.includes('Failed to process file')) {
         alert(`Upload Error: ${error.message}`)
       } else {
         alert(t('partner.form.error.message'))
@@ -306,13 +321,14 @@ Documents uploaded to Supabase CDN: ${documentUrls.length} files`)
               {t('partner.form.documents.title')}
             </h4>
             <p className="text-sm text-green-700 mb-2">
-              Files will be securely uploaded to Supabase CDN. {t('partner.form.documents.description')}
+              Files will be securely uploaded to Supabase CDN with fast global delivery. {t('partner.form.documents.description')}
             </p>
             <ul className="text-sm text-green-700 space-y-1">
               <li>• {t('partner.form.documents.item1')}</li>
               <li>• {t('partner.form.documents.item2')}</li>
               <li>• {t('partner.form.documents.item3')}</li>
               <li>• {t('partner.form.documents.item4')}</li>
+              <li>• CDN-enabled for fast, secure access worldwide</li>
             </ul>
           </div>
         </div>
