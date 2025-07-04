@@ -30,7 +30,8 @@ import { PlacesAutocomplete, PlaceData } from "@/components/ui/places-autocomple
 import { useLanguage } from "@/contexts/LanguageContext"
 import FileUploader, { UploadedFile } from "@/components/ui/file-uploader"
 import { TermsOfServiceModal } from "./TermsOfServiceModal"
-import storageService from "@/services/storageService"
+import uploadService from "@/services/uploadService"
+import { useAuth } from "@/contexts/AuthContext"
 
 const createFormSchema = (t: (key: string) => string) => z.object({
   businessName: z.string().min(2, t('form.validation.businessName')),
@@ -111,18 +112,32 @@ export const ActivityOwnerRegistrationForm = () => {
         // Convert UploadedFile objects to File objects for upload
         const filesToUpload: File[] = []
         for (const uploadedFile of uploadedFiles) {
-          // Create a File object from the UploadedFile data
-          const response = await fetch(uploadedFile.url || uploadedFile.name)
-          const blob = await response.blob()
-          const file = new File([blob], uploadedFile.name, { type: uploadedFile.type })
-          filesToUpload.push(file)
+          // If the file is already a File object, use it directly
+          if (uploadedFile.file) {
+            filesToUpload.push(uploadedFile.file)
+          } else {
+            // Create a File object from the UploadedFile data
+            try {
+              const response = await fetch(uploadedFile.url || uploadedFile.name)
+              const blob = await response.blob()
+              const file = new File([blob], uploadedFile.name, { type: uploadedFile.type })
+              filesToUpload.push(file)
+            } catch (error) {
+              console.error(`Failed to process file ${uploadedFile.name}:`, error)
+              throw new Error(`Failed to process file: ${uploadedFile.name}`)
+            }
+          }
         }
         
-        // Upload to Supabase storage
-        documentUrls = await storageService.uploadActivityOwnerDocuments(filesToUpload)
+        // Generate unique owner ID for document organization
+        const ownerId = `owner_${Date.now()}_${Math.random().toString(36).substring(2)}`
+        
+        // Upload to Supabase storage with CDN URLs
+        documentUrls = await uploadService.uploadActivityOwnerDocuments(filesToUpload, ownerId)
         
         if (documentUrls.length !== filesToUpload.length) {
-          throw new Error("Some documents failed to upload. Please try again.")
+          const failedCount = filesToUpload.length - documentUrls.length
+          throw new Error(`${failedCount} document(s) failed to upload. Please try again.`)
         }
         
         toast({
@@ -131,20 +146,33 @@ export const ActivityOwnerRegistrationForm = () => {
         });
       }
 
-      // For now, show success message with uploaded document info
+      // Create registration data with CDN URLs
+      const registrationData = {
+        ...values,
+        locationData,
+        documentUrls,
+        submittedAt: new Date().toISOString(),
+        status: 'pending_review'
+      }
+
+      // Log the registration data for debugging (remove in production)
+      console.log('Activity Owner Registration Data:', registrationData)
+
+      // Show success message with uploaded document info
       setRegistrationStatus({
         type: 'success',
-        message: `Registration form completed successfully! ${documentUrls.length > 0 ? `Documents uploaded to Supabase CDN: ${documentUrls.length} files` : 'No documents were uploaded.'}`
+        message: `Registration form completed successfully! ${documentUrls.length > 0 ? `${documentUrls.length} documents uploaded to Supabase CDN with secure URLs` : 'No documents were uploaded.'}`
       });
       
       toast({
         title: t('form.success.title') || 'Success',
-        description: `Registration completed! ${documentUrls.length > 0 ? `${documentUrls.length} documents uploaded to Supabase CDN` : ''}`,
+        description: `Registration completed! ${documentUrls.length > 0 ? `${documentUrls.length} documents uploaded to CDN` : ''}`,
       });
       
       // Reset form
       form.reset()
       setUploadedFiles([])
+      setLocationData(null)
       
     } catch (error) {
       let errorMessage = t('form.error.unexpected');
