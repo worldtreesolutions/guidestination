@@ -1,3 +1,4 @@
+
 {
   "nav.aiPlanning": "Planification IA",
   "nav.listActivities": "Activités",
@@ -433,81 +434,6 @@
   "login.signUp": "S'inscrire",
   "login.activityOwner": "Propriétaire d'activité ?",
   "login.registerHere": "S'inscrire ici",
-  "form.validation.businessName": "Le nom de l'entreprise doit contenir au moins 2 caractères",
-  "form.validation.ownerName": "Le nom du propriétaire doit contenir au moins 2 caractères",
-  "form.validation.email": "Veuillez entrer une adresse email valide",
-  "form.validation.phone": "Le numéro de téléphone doit contenir au moins 10 chiffres",
-  "form.validation.businessType": "Veuillez sélectionner un type d'entreprise",
-  "form.validation.taxId": "L'ID fiscal doit contenir au moins 13 caractères",
-  "form.validation.address": "L'adresse doit contenir au moins 10 caractères",
-  "form.validation.description": "La description doit contenir au moins 50 caractères",
-  "form.validation.tourismLicense": "Veuillez entrer le numéro de licence touristique",
-  "form.validation.insurancePolicy": "Veuillez entrer le numéro de police d'assurance",
-  "form.validation.insuranceAmount": "Veuillez entrer le montant de l'assurance",
-  "form.validation.terms": "Vous devez accepter les conditions générales",
-  "form.legal.title": "Exigences Légales",
-  "form.legal.requirement1": "Licence d'entreprise touristique valide",
-  "form.legal.requirement2": "Police d'assurance complète",
-  "form.legal.requirement3": "Conformité avec les lois et réglementations locales",
-  "form.legal.requirement4": "Certification de qualité et de sécurité",
-  "form.section.business": "Informations Entreprise",
-  "form.section.contact": "Informations de Contact",
-  "form.section.legal": "Légal et Conformité",
-  "form.field.businessName": "Nom de l'Entreprise",
-  "form.field.ownerName": "Nom du Propriétaire",
-  "form.field.email": "Email",
-  "form.field.phone": "Numéro de Téléphone",
-  "form.field.businessType": "Type d'Entreprise",
-  "form.field.taxId": "ID Fiscal",
-  "form.field.address": "Adresse",
-  "form.field.description": "Description de l'Entreprise",
-  "form.field.tourismLicense": "Numéro de Licence Touristique",
-  "form.field.tatLicense": "Numéro de Licence TAT",
-  "form.field.guideCard": "Numéro de Carte Guide",
-  "form.field.insurancePolicy": "Numéro de Police d'Assurance",
-  "form.field.insuranceAmount": "Montant de l'Assurance",
-  "form.field.supportingDocuments": "Documents Justificatifs",
-  "form.field.terms": "J'accepte les conditions générales",
-  "form.placeholder.businessName": "ex. Chiang Mai Tours Ltd.",
-  "form.placeholder.ownerName": "ex. Jean Dupont",
-  "form.placeholder.email": "exemple@email.com",
-  "form.placeholder.phone": "01-23-45-67-89",
-  "form.placeholder.businessType": "Sélectionner le type d'entreprise",
-  "form.placeholder.taxId": "1234567890123",
-  "form.placeholder.address": "Entrez l'adresse de l'entreprise",
-  "form.placeholder.description": "Décrivez votre entreprise et vos services...",
-  "form.placeholder.tourismLicense": "TL-12345",
-  "form.placeholder.tatLicense": "TAT-67890",
-  "form.placeholder.guideCard": "GC-11111",
-  "form.placeholder.insurancePolicy": "INS-22222",
-  "form.placeholder.insuranceAmount": "1000000",
-  "form.businessType.tourOperator": "Opérateur de Tours",
-  "form.businessType.activityProvider": "Fournisseur d'Activités",
-  "form.businessType.experienceHost": "Hôte d'Expériences",
-  "form.description.tourismLicense": "Requis pour les opérations de tourisme commercial",
-  "form.description.tatLicense": "Optionnel - Pour les opérateurs certifiés TAT",
-  "form.description.guideCard": "Optionnel - Pour les guides licenciés",
-  "form.description.insurancePolicy": "Police d'assurance couvrant les activités",
-  "form.description.insuranceAmount": "Montant minimum d'assurance 1,000,000 THB",
-  "form.description.coordinates": "Coordonnées",
-  "form.description.terms": "Vous devez accepter les conditions générales pour continuer",
-  "form.description.supportingDocuments": "Téléchargez les documents d'assurance, licences, certifications et autres documents requis (PDF, JPG, PNG, DOC, DOCX - Max 15MB chacun)",
-  "form.compliance.title": "Conformité",
-  "form.compliance.description": "Tous les documents seront vérifiés par notre équipe pour assurer la conformité aux exigences légales et aux normes de qualité",
-  "form.field.supportingDocuments": "Documents Justificatifs",
-  "form.description.supportingDocuments": "Téléchargez les documents d'assurance, licences, certifications et autres documents requis (PDF, JPG, PNG, DOC, DOCX - Max 15MB chacun)",
-  "form.terms.agreeToThe": "J'accepte les",
-  "form.terms.termsOfService": "Conditions Générales",
-  "form.description.terms": "Vous devez accepter les conditions générales pour continuer",
-  "form.button.submit": "Soumettre la Candidature",
-  "form.button.submitting": "Soumission en cours...",
-  "form.success.title": "Succès",
-  "form.error.title": "Erreur",
-  "form.error.unexpected": "Une erreur inattendue s'est produite. Veuillez réessayer",
-  "form.info.title": "Information",
-  "form.info.providerDashboardSeparated": "L'inscription des fournisseurs a été déplacée vers un tableau de bord séparé. Veuillez contacter le support pour l'inscription des fournisseurs",
-  "form.terms.agreeToThe": "J'accepte les",
-  "form.terms.termsOfService": "Conditions Générales",
   "partner.meta.title": "Devenir Partenaire - Guidestination",
   "partner.meta.description": "Partenariat avec Guidestination pour offrir des expériences locales incroyables à vos clients",
   "partner.hero.title": "Partenariat avec Guidestination",
@@ -582,43 +508,34 @@
   "partner.form.commission.tracking": "Suivi des commissions en temps réel via le tableau de bord partenaire",
   "partner.form.terms.description": "En vous inscrivant, vous acceptez nos conditions générales de partenariat",
   "form": {
-    "section": {
-      "business": "Informations sur l'établissement"
-    },
-    "field": {
-      "establishmentName": "Nom de l'établissement",
-      "establishmentType": "Type d'établissement",
-      "businessName": "Nom de l'établissement",
-      "businessType": "Type d'établissement",
-      "ownerName": "Nom du propriétaire",
-      "email": "Adresse e-mail",
-      "phone": "Numéro de téléphone",
-      "address": "Adresse de l'établissement",
-      "taxId": "Numéro fiscal",
-      "tourismLicense": "Licence de Tourisme",
-      "terms": "J'accepte les termes et conditions"
-    },
-    "placeholder": {
-      "establishmentName": "Entrez le nom de votre établissement",
-      "establishmentType": "Sélectionnez le type d'établissement",
-      "businessName": "Entrez le nom de votre établissement",
-      "businessType": "Sélectionnez le type d'établissement",
-      "ownerName": "Entrez le nom complet du propriétaire",
-      "email": "Entrez l'adresse e-mail",
-      "phone": "Entrez le numéro de téléphone",
-      "address": "Entrez l'adresse de l'établissement",
-      "taxId": "Entrez votre numéro d'identification fiscale",
-      "tourismLicense": "Entrez votre numéro de licence de tourisme"
-    },
     "validation": {
+      "businessName": "Le nom de l'entreprise doit contenir au moins 2 caractères",
       "establishmentName": "Le nom de l'établissement doit contenir au moins 2 caractères",
-      "businessName": "Le nom de l'établissement doit contenir au moins 2 caractères",
       "ownerName": "Le nom du propriétaire doit contenir au moins 2 caractères",
-      "email": "Veuillez entrer une adresse e-mail valide",
+      "email": "Veuillez entrer une adresse email valide",
       "phone": "Le numéro de téléphone doit contenir au moins 10 chiffres",
+      "businessType": "Veuillez sélectionner un type d'entreprise",
+      "taxId": "L'ID fiscal doit contenir au moins 13 caractères",
       "address": "L'adresse de l'établissement doit contenir au moins 10 caractères",
-      "taxId": "Le numéro fiscal doit contenir au moins 13 caractères",
-      "terms": "Vous devez accepter les termes et conditions"
+      "description": "La description doit contenir au moins 50 caractères",
+      "tourismLicense": "Veuillez entrer le numéro de licence touristique",
+      "insurancePolicy": "Veuillez entrer le numéro de police d'assurance",
+      "insuranceAmount": "Veuillez entrer le montant de l'assurance",
+      "terms": "Vous devez accepter les conditions générales"
+    },
+    "success": {
+      "title": "Succès",
+      "newUser": "Votre inscription a été soumise avec succès. Nous examinerons votre candidature et vous contacterons bientôt.",
+      "existingUser": "Vos informations ont été mises à jour avec succès."
+    },
+    "error": {
+      "title": "Erreur",
+      "accountExists": "Un compte avec cet email existe déjà. Veuillez utiliser une autre adresse email.",
+      "unexpected": "Une erreur inattendue s'est produite. Veuillez réessayer"
+    },
+    "info": {
+      "title": "Information",
+      "providerDashboardSeparated": "L'inscription des fournisseurs a été déplacée vers un tableau de bord séparé. Veuillez contacter le support pour l'inscription des fournisseurs"
     },
     "legal": {
       "title": "Exigences Légales",
@@ -627,48 +544,74 @@
       "requirement3": "Conformité avec les lois et réglementations locales",
       "requirement4": "Certification de qualité et de sécurité"
     },
+    "section": {
+      "business": "Informations sur l'établissement",
+      "contact": "Informations de Contact",
+      "legal": "Légal et Conformité"
+    },
+    "field": {
+      "businessName": "Nom de l'établissement",
+      "establishmentName": "Nom de l'établissement",
+      "businessType": "Type d'établissement",
+      "establishmentType": "Type d'établissement",
+      "taxId": "Numéro fiscal",
+      "tourismLicense": "Numéro de Licence Touristique",
+      "tatLicense": "Numéro de Licence TAT",
+      "description": "Description de l'Entreprise",
+      "ownerName": "Nom du propriétaire",
+      "email": "Adresse e-mail",
+      "phone": "Numéro de téléphone",
+      "address": "Adresse de l'établissement",
+      "insurancePolicy": "Numéro de Police d'Assurance",
+      "insuranceAmount": "Montant de l'Assurance",
+      "guideCard": "Numéro de Carte Guide",
+      "supportingDocuments": "Documents Justificatifs",
+      "terms": "J'accepte les conditions générales"
+    },
+    "placeholder": {
+      "businessName": "Entrez le nom de votre établissement",
+      "establishmentName": "Entrez le nom de votre établissement",
+      "businessType": "Sélectionner le type d'entreprise",
+      "establishmentType": "Sélectionnez le type d'établissement",
+      "taxId": "1234567890123",
+      "tourismLicense": "TL-12345",
+      "tatLicense": "TAT-67890",
+      "description": "Décrivez votre entreprise et vos services...",
+      "ownerName": "Entrez le nom complet du propriétaire",
+      "email": "exemple@email.com",
+      "phone": "01-23-45-67-89",
+      "address": "Entrez l'adresse de l'établissement",
+      "insurancePolicy": "INS-22222",
+      "insuranceAmount": "1000000",
+      "guideCard": "GC-11111"
+    },
     "description": {
-      "tourismLicense": "Numéro de licence officielle délivrée par les autorités touristiques locales"
-    }
-  },
-  "partner": {
-    "form": {
-      "placeholder": {
-        "establishmentName": "Entrez le nom de votre établissement",
-        "businessName": "Entrez le nom de votre établissement",
-        "address": "Entrez l'adresse de l'établissement"
-      },
-      "description": {
-        "address": "Veuillez fournir l'adresse complète de votre établissement"
-      }
-    }
-  },
-  "activityOwner": {
-    "hero": {
-      "title": "Devenez Partenaire Fournisseur d'Activités",
-      "subtitle": "Rejoignez notre plateforme et développez votre entreprise d'activités touristiques avec notre support complet et nos outils professionnels."
+      "tourismLicense": "Requis pour les opérations de tourisme commercial",
+      "tatLicense": "Optionnel - Pour les opérateurs certifiés TAT",
+      "coordinates": "Coordonnées",
+      "insurancePolicy": "Police d'assurance couvrant les activités",
+      "insuranceAmount": "Montant minimum d'assurance 1,000,000 THB",
+      "guideCard": "Optionnel - Pour les guides licenciés",
+      "terms": "Vous devez accepter les conditions générales pour continuer",
+      "address": "Veuillez fournir l'adresse complète de votre établissement",
+      "supportingDocuments": "Téléchargez les documents d'assurance, licences, certifications et autres documents requis (PDF, JPG, PNG, DOC, DOCX - Max 15MB chacun)"
     },
-    "benefits": {
-      "legalProtection": {
-        "title": "Protection Juridique",
-        "description": "Bénéficiez d'une couverture d'assurance complète et d'un support juridique pour votre entreprise d'activités."
-      },
-      "businessGrowth": {
-        "title": "Croissance d'Entreprise",
-        "description": "Accédez à notre réseau de partenaires et à nos outils marketing pour développer votre clientèle."
-      },
-      "qualityStandards": {
-        "title": "Standards de Qualité",
-        "description": "Maintenez l'excellence avec nos directives de qualité et notre système de retours clients."
-      },
-      "flexibleSchedule": {
-        "title": "Horaires Flexibles",
-        "description": "Gérez vos disponibilités et vos prix selon vos besoins avec notre système de réservation flexible."
-      }
+    "businessType": {
+      "tourOperator": "Opérateur de Tours",
+      "activityProvider": "Fournisseur d'Activités",
+      "experienceHost": "Hôte d'Expériences"
     },
-    "registration": {
-      "title": "Inscription Fournisseur d'Activités",
-      "description": "Rejoignez notre plateforme en tant que fournisseur d'activités certifié et commencez à développer votre entreprise dès aujourd'hui."
+    "compliance": {
+      "title": "Conformité",
+      "description": "Tous les documents seront vérifiés par notre équipe pour assurer la conformité aux exigences légales et aux normes de qualité"
+    },
+    "button": {
+      "submit": "Soumettre la Candidature",
+      "submitting": "Soumission en cours..."
+    },
+    "terms": {
+      "agreeToThe": "J'accepte les",
+      "termsOfService": "Conditions Générales"
     }
   }
 }
