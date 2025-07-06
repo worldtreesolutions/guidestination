@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 
 export interface PlaceData {
@@ -32,6 +32,7 @@ const PlacesAutocompleteComponent: React.FC<PlacesAutocompleteProps> = ({
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const placeChangedListener = useRef<google.maps.MapsEventListener | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isPlaceSelected, setIsPlaceSelected] = useState(false);
 
   const onPlaceSelectRef = useRef(onPlaceSelect);
   useEffect(() => {
@@ -54,14 +55,21 @@ const PlacesAutocompleteComponent: React.FC<PlacesAutocompleteProps> = ({
       return () => clearInterval(intervalId);
     }
 
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+    if (!apiKey) {
+      console.error("Google Maps API key is missing. Please add NEXT_PUBLIC_GOOGLE_MAPS_API_KEY to your environment variables.");
+      return;
+    }
+
     const script = document.createElement("script");
     script.id = GOOGLE_MAPS_SCRIPT_ID;
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
     script.async = true;
     script.defer = true;
     script.onload = () => setIsLoaded(true);
-    script.onerror = () =>
-      console.error("Google Maps script could not be loaded.");
+    script.onerror = () => {
+      console.error("Google Maps script could not be loaded. Please check your API key and internet connection.");
+    };
     document.head.appendChild(script);
   }, []);
 
@@ -71,7 +79,7 @@ const PlacesAutocompleteComponent: React.FC<PlacesAutocompleteProps> = ({
       return;
     }
 
-    if (!autocompleteRef.current) { // Only initialize if no instance exists
+    if (!autocompleteRef.current) {
       const instance = new google.maps.places.Autocomplete(inputRef.current, {
         types: ["establishment", "geocode"],
         fields: [
@@ -84,40 +92,53 @@ const PlacesAutocompleteComponent: React.FC<PlacesAutocompleteProps> = ({
       });
       autocompleteRef.current = instance;
 
-      // Remove any old listener before adding a new one (defensive)
+      // Remove any old listener before adding a new one
       if (placeChangedListener.current) {
         placeChangedListener.current.remove();
       }
+      
       placeChangedListener.current = instance.addListener(
         "place_changed",
         () => {
           const place = autocompleteRef.current?.getPlace();
           if (!place || !place.geometry || !place.geometry.location) {
-            console.warn(
-              "Autocomplete place_changed event: Invalid place object or missing geometry.",
-              place
-            );
+            console.warn("Autocomplete place_changed event: Invalid place object or missing geometry.", place);
             return;
           }
+          
           const placeData: PlaceData = {
             address: place.formatted_address || place.name || "",
             lat: place.geometry.location.lat(),
             lng: place.geometry.location.lng(),
             placeId: place.place_id || "",
           };
+          
+          setIsPlaceSelected(true);
           onPlaceSelectRef.current(placeData);
+          
+          // Reset the flag after a short delay to allow normal typing again
+          setTimeout(() => {
+            setIsPlaceSelected(false);
+          }, 100);
         }
       );
     }
-    // No cleanup in this effect that removes the listener or nulls the autocompleteRef
-    // We want the instance and listener to persist as long as isLoaded is true.
-  }, [isLoaded]); // Runs when isLoaded changes
+  }, [isLoaded]);
+
+  // Handle input changes
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    
+    // Only update if we're not in the middle of a place selection
+    if (!isPlaceSelected) {
+      onChange(newValue);
+    }
+  }, [onChange, isPlaceSelected]);
 
   // Effect 3: Cleanup on unmount
   useEffect(() => {
-    const currentInputNode = inputRef.current; // Capture for cleanup
-    const currentAutocompleteInstance = autocompleteRef.current; // Capture
-    const currentListener = placeChangedListener.current; // Capture
+    const currentInputNode = inputRef.current;
+    const currentListener = placeChangedListener.current;
 
     return () => {
       if (currentListener) {
@@ -126,27 +147,27 @@ const PlacesAutocompleteComponent: React.FC<PlacesAutocompleteProps> = ({
       if (currentInputNode && window.google?.maps?.event) {
         google.maps.event.clearInstanceListeners(currentInputNode);
       }
-      // While the Autocomplete class doesn't have a public 'dispose' method,
-      // clearing listeners and nullifying the ref is the standard way to clean up.
-      // If currentAutocompleteInstance is used, ensure it's the captured one.
-      if (currentAutocompleteInstance && window.google?.maps?.event) {
-         // Clear listeners from the autocomplete instance itself if any were directly attached
-         // For 'place_changed', we handled it via placeChangedListener.current
-      }
       autocompleteRef.current = null;
       placeChangedListener.current = null;
     };
-  }, []); // Empty dependency array: cleanup runs only on unmount
+  }, []);
+
+  // Show loading state or API key missing state
+  if (!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY) {
+    return (
+      <div className="p-2 border border-red-300 rounded bg-red-50 text-red-700 text-sm">
+        Google Maps API key is missing. Please add NEXT_PUBLIC_GOOGLE_MAPS_API_KEY to your environment variables.
+      </div>
+    );
+  }
 
   return (
     <Input
       ref={inputRef}
       type="text"
       value={value}
-      onChange={(e) => {
-        onChange(e.target.value);
-      }}
-      placeholder={placeholder}
+      onChange={handleInputChange}
+      placeholder={isLoaded ? placeholder : "Loading Google Places..."}
       className={className}
       disabled={disabled || !isLoaded}
     />
