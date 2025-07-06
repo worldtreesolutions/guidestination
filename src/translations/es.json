@@ -379,6 +379,8 @@
   "form.businessType.experienceHost": "Anfitrión de Experiencias",
   "form.compliance.title": "Aviso de Cumplimiento",
   "form.compliance.description": "Toda la información proporcionada será verificada. La información falsa puede resultar en el rechazo de la aplicación.",
+  "form.field.supportingDocuments": "Documentos de Apoyo",
+  "form.description.supportingDocuments": "Sube documentos de seguro, licencias, certificaciones y otros documentos requeridos (PDF, JPG, PNG, DOC, DOCX - Máx 15MB cada uno)",
   "form.button.submit": "Enviar Registro",
   "form.button.submitting": "Enviando...",
   "form.terms.agreeToThe": "Acepto los",
