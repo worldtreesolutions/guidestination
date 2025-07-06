@@ -1,7 +1,8 @@
-import { createContext, useContext, useState, useCallback } from "react"
-import { Activity } from "@/types/activity"
+import { createContext, useContext, useState, useCallback, ReactNode } from "react"
 import { SupabaseActivity } from "@/services/supabaseActivityService";
 import { ScheduledActivity } from "@/components/activities/ExcursionPlanner";
+
+type Activity = SupabaseActivity;
 
 interface PlanningContextType {
   selectedActivities: Activity[];
@@ -24,7 +25,7 @@ export function usePlanning() {
   return context
 }
 
-export function PlanningProvider({ children }: { children: React.ReactNode }) {
+export function PlanningProvider({ children }: { children: ReactNode }) {
   const [selectedActivities, setSelectedActivities] = useState<Activity[]>([]);
   const [scheduledActivities, setScheduledActivities] = useState<ScheduledActivity[]>([]);
 
@@ -87,7 +88,8 @@ export function PlanningProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const isActivitySelected = (activityId: string) => {
-    return selectedActivities.some((activity) => activity.activity_id.toString() === activityId)
+    return selectedActivities.some((activity) => activity.id.toString() === activityId) ||
+           scheduledActivities.some((activity) => activity.id === activityId)
   }
 
   const value = {
