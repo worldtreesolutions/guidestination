@@ -15,6 +15,9 @@ export interface PreferencesFormData {
     from: Date | undefined;
     to: Date | undefined;
   };
+  interests: string[];
+  preferredTime: string[];
+  additionalNotes: string;
 }
 
 interface PreferencesFormProps {
@@ -30,6 +33,9 @@ export function PreferencesForm({ onSubmit }: PreferencesFormProps) {
       from: undefined,
       to: undefined,
     },
+    interests: [],
+    preferredTime: [],
+    additionalNotes: "",
   })
 
   const interests = [

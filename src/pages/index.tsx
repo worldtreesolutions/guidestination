@@ -101,6 +101,10 @@ export default function HomePage() {
     return mockActivities
   }
 
+  const featuredActivities = mockActivities.slice(0, 4)
+  const categories = mockCategories
+  const categoryActivities = categories.map(category => getActivitiesByCategory(category.name))
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -145,8 +149,6 @@ export default function HomePage() {
             <ActivityRow
               title="Recommended by Us"
               activities={getRecommendedActivities()}
-              showViewAll={true}
-              viewAllHref="/activities"
             />
 
             {/* Featured Activities */}
