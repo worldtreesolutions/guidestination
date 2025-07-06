@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -9,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { SupabaseActivity } from "@/services/supabaseActivityService"
+import Image from "next/image"
 
 interface ActivityListProps {
   activities: SupabaseActivity[];
@@ -62,9 +64,11 @@ export function ActivityList({ activities, onEdit, onView }: ActivityListProps) 
               className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
             >
               <div className="flex items-center space-x-4">
-                <img
+                <Image
                   src={activity.image_urls?.[0] || "/placeholder.jpg"}
                   alt={activity.title}
+                  width={48}
+                  height={48}
                   className="w-12 h-12 rounded-lg object-cover"
                 />
                 <div>

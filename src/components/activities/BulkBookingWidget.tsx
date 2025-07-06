@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { ScheduledActivity } from "./ExcursionPlanner"
@@ -6,46 +7,26 @@ import { ShoppingCart, Trash2, CreditCard, Calendar } from "lucide-react"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { motion } from "framer-motion"
-import { Activity } from "@/types/activity"
+import { SupabaseActivity } from "@/services/supabaseActivityService"
+import Image from "next/image"
+
+type ActivityItem = SupabaseActivity | ScheduledActivity;
 
 interface BulkBookingWidgetProps {
-  activities: SupabaseActivity[];
-  onBookingComplete: (bookingData: any) => void;
+  activities: ActivityItem[];
+  onClearSelection: () => void;
 }
 
-// Function to convert Activity to ScheduledActivity format
-const convertToScheduledActivity = (activity: Activity): ScheduledActivity => {
-  return {
-    id: activity.activity_id?.toString() || "",
-    title: activity.title,
-    imageUrl: typeof activity.image_url === 'string' ? activity.image_url : "",
-    day: "",
-    hour: 0,
-    duration: 2, // Default duration
-    price: activity.final_price || activity.b_price || 0,
-    participants: 1 // Default participants
-  }
-}
+const isScheduledActivity = (activity: ActivityItem): activity is ScheduledActivity => {
+    return "day" in activity && typeof activity.day === "string";
+};
 
-// Function to check if an activity is a ScheduledActivity
-const isScheduledActivity = (activity: any): activity is ScheduledActivity => {
-  return 'imageUrl' in activity && 'day' in activity && 'hour' in activity;
-}
-
-export function BulkBookingWidget({ activities, onBookingComplete }: BulkBookingWidgetProps) {
+export function BulkBookingWidget({ activities, onClearSelection }: BulkBookingWidgetProps) {
   const router = useRouter()
   const isMobile = useIsMobile()
   const { t } = useLanguage()
   
-  // Convert activities to ScheduledActivity format if needed
-  const formattedActivities: ScheduledActivity[] = activities.map(activity => {
-    if (isScheduledActivity(activity)) {
-      return activity as ScheduledActivity;
-    }
-    return convertToScheduledActivity(activity as Activity);
-  });
-  
-  const totalPrice = formattedActivities.reduce((sum, activity) => sum + activity.price, 0)
+  const totalPrice = activities.reduce((sum, activity) => sum + (activity.price || 0), 0)
 
   const formatPrice = (price: number) => {
     return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
@@ -55,7 +36,7 @@ export function BulkBookingWidget({ activities, onBookingComplete }: BulkBooking
     router.push("/checkout")
   }
 
-  const totalActivities = formattedActivities.length
+  const totalActivities = activities.length
   const hasActivities = totalActivities > 0
 
   return (
@@ -67,9 +48,11 @@ export function BulkBookingWidget({ activities, onBookingComplete }: BulkBooking
       <CardContent className="space-y-4">
         {activities.map((activity) => (
           <div key={activity.id} className="flex items-center space-x-3 p-3 border rounded-lg">
-            <img
-              src={activity.image_urls?.[0] || "/placeholder.jpg"}
+            <Image
+              src={isScheduledActivity(activity) ? activity.imageUrl : activity.image_urls?.[0] || "/placeholder.jpg"}
               alt={activity.title}
+              width={48}
+              height={48}
               className="w-12 h-12 rounded object-cover"
             />
             <div className="flex-1">

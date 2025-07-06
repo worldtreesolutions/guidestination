@@ -1,3 +1,4 @@
+
 import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -20,6 +21,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { SupabaseActivity } from "@/services/supabaseActivityService"
+import Image from "next/image"
 
 interface ActivityCardProps {
   activity: SupabaseActivity;
@@ -76,9 +78,11 @@ export function ActivityCard({ activity, onEdit, onDelete, onView }: ActivityCar
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow">
       <div className="aspect-video relative">
-        <img
+        <Image
           src={activity.image_urls?.[0] || "/placeholder.jpg"}
           alt={activity.title}
+          width={400}
+          height={225}
           className="w-full h-full object-cover"
         />
         <div className="absolute top-2 right-2">

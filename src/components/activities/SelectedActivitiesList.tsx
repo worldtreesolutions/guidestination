@@ -1,4 +1,4 @@
-import { useState } from "react"
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -7,6 +7,7 @@ import { CSS } from "@dnd-kit/utilities"
 import { Clock, MapPin, Users, X, Star } from "lucide-react"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { SupabaseActivity } from "@/services/supabaseActivityService"
+import Image from "next/image"
 
 interface SelectedActivitiesListProps {
   activities: SupabaseActivity[];
@@ -46,9 +47,11 @@ function DraggableActivityCard({ activity, onRemove }: { activity: SupabaseActiv
       <Card className="overflow-hidden border-2 border-dashed border-primary/30 hover:border-primary/60 transition-colors bg-gradient-to-br from-white to-primary/5">
         <div className="relative">
           <div className="aspect-video relative overflow-hidden">
-            <img
+            <Image
               src={activity.image_urls?.[0] || "/placeholder.jpg"}
               alt={activity.title}
+              width={200}
+              height={112}
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />

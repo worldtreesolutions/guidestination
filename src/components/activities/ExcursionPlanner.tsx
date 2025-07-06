@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { WeeklyActivitySchedule } from "@/components/activities/WeeklyActivitySchedule"
 import { MobileWeeklyActivitySchedule } from "@/components/activities/MobileWeeklyActivitySchedule"
@@ -11,7 +12,8 @@ import Image from "next/image"
 import { Calendar, Clock, MapPin, DollarSign, Menu } from "lucide-react"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Activity } from "@/types/activity"
+import { SupabaseActivity } from "@/services/supabaseActivityService"
+import { Button } from "@/components/ui/button"
 
 export interface ScheduledActivity {
   id: string
@@ -33,7 +35,7 @@ interface ExcursionPlannerProps {
 }
 
 export function ExcursionPlanner({ activities, onPlanComplete }: ExcursionPlannerProps) {
-  const { selectedActivities, scheduledActivities, updateActivity, removeActivity, clearActivities, scheduleActivity } = usePlanning()
+  const { selectedActivities, scheduledActivities, updateActivity, removeActivity, clearActivities, scheduleActivity, addActivity } = usePlanning()
   const { t } = useLanguage()
   const [draggedActivity, setDraggedActivity] = useState<ScheduledActivity | null>(null)
   const [isRemoving, setIsRemoving] = useState(false)
@@ -49,53 +51,27 @@ export function ExcursionPlanner({ activities, onPlanComplete }: ExcursionPlanne
   }))
 
   const handleDragStart = (event: DragStartEvent) => {
-    // Don't start drag if we're in the process of removing an activity
     if (isRemoving) return
     
-    // Find the activity in scheduledActivities first
-    const scheduledActivity = scheduledActivities.find(
-      a => a.id === event.active.id
-    )
-    
-    if (scheduledActivity) {
-      setDraggedActivity(scheduledActivity)
-      return
+    const scheduled = scheduledActivities.find(a => a.id === event.active.id);
+    if (scheduled) {
+      setDraggedActivity(scheduled);
+      return;
     }
     
-    // If not found in scheduledActivities, look in selectedActivities
-    // Convert the drag ID back to number for comparison with activity_id
-    const dragIdAsNumber = parseInt(event.active.id.toString())
-    const selectedActivity = selectedActivities.find(
-      a => a.activity_id === dragIdAsNumber || a.activity_id?.toString() === event.active.id.toString()
-    )
-    
-    if (selectedActivity) {
-      // Convert Activity to ScheduledActivity format
-      // Ensure all values are of the correct type
-      const activityId = selectedActivity.activity_id ? String(selectedActivity.activity_id) : ""
-      
-      // Convert image_url to string safely
-      let imageUrl = ""
-      if (selectedActivity.image_url) {
-        imageUrl = typeof selectedActivity.image_url === 'string' 
-          ? selectedActivity.image_url 
-          : String(selectedActivity.image_url)
-      }
-      
-      // Use b_price or final_price instead of price (which doesn't exist on Activity type)
-      const price = selectedActivity.final_price || selectedActivity.b_price || 0
-      
+    const selected = selectedActivities.find(a => a.id.toString() === event.active.id);
+    if (selected) {
       const activity: ScheduledActivity = {
-        id: activityId,
-        title: selectedActivity.title,
-        imageUrl: imageUrl,
+        id: selected.id.toString(),
+        title: selected.title,
+        imageUrl: selected.image_urls?.[0] || "",
         day: "",
         hour: 0,
-        duration: 2, // Default duration
-        price: price,
-        participants: 1 // Default participants
-      }
-      setDraggedActivity(activity)
+        duration: selected.duration || 2,
+        price: selected.price || 0,
+        participants: 1
+      };
+      setDraggedActivity(activity);
     }
   }
 
@@ -103,15 +79,10 @@ export function ExcursionPlanner({ activities, onPlanComplete }: ExcursionPlanne
     const dragged = draggedActivity
     setDraggedActivity(null)
     
-    // Don't process drag end if we're removing an activity
     if (isRemoving || !dragged || !event.over) return
 
     if (event.over.id === "selected-list") {
-      // Move activity back to selected list
-      const activity = scheduledActivities.find(a => a.id === dragged.id)
-      if (activity) {
-        scheduleActivity(dragged.id, "", 0)
-      }
+      scheduleActivity(dragged.id, "", 0)
       return
     }
 
@@ -119,16 +90,12 @@ export function ExcursionPlanner({ activities, onPlanComplete }: ExcursionPlanne
     const hourNum = parseInt(hour)
     const endHour = hourNum + dragged.duration
 
-    // Only schedule if within time limits and no conflicts
     if (endHour <= 17) {
       scheduleActivity(dragged.id, day, hourNum)
-      
-      // On mobile, switch to calendar view after dropping an activity
       if (isMobile) {
         setActiveTab("calendar")
       }
     } else {
-      // If invalid placement, ensure activity stays in its original list
       const activity = scheduledActivities.find(a => a.id === dragged.id)
       if (activity) {
         scheduleActivity(dragged.id, activity.day, activity.hour)
@@ -136,37 +103,19 @@ export function ExcursionPlanner({ activities, onPlanComplete }: ExcursionPlanne
     }
   }
 
-  // Enhanced removal handler that prevents drag operations during removal
   const handleActivityRemove = useCallback((activityId: string) => {
-    // Set removing state to prevent drag operations
     setIsRemoving(true)
-    
-    // Remove the activity
     removeActivity(activityId)
-    
-    // Reset the removing state after a short delay
     setTimeout(() => {
       setIsRemoving(false)
     }, 100)
   }, [removeActivity])
 
-  // Wrapper for updateActivity to match the expected signature
   const handleActivitySelect = useCallback((activityId: string, updatedActivity: ScheduledActivity) => {
     updateActivity(activityId, updatedActivity)
   }, [updateActivity])
 
-  // Calculate total activities
-  const totalActivities = selectedActivities.length + scheduledActivities.length
-
-  const addActivity = (activity: SupabaseActivity) => {
-    if (!selectedActivities.find(a => a.id === activity.id)) {
-      setSelectedActivities([...selectedActivities, activity])
-    }
-  }
-
-  const removeActivity = (activityId: number) => {
-    setSelectedActivities(selectedActivities.filter(a => a.id !== activityId))
-  }
+  const totalActivitiesCount = selectedActivities.length + scheduledActivities.length
 
   return (
     <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8'>
@@ -183,9 +132,7 @@ export function ExcursionPlanner({ activities, onPlanComplete }: ExcursionPlanne
         </div>
 
         {isMobile ? (
-          // Mobile Layout
           <div className='space-y-4'>
-            {/* Mobile Navigation Tabs */}
             <div className='flex border-b border-gray-200 rounded-t-lg overflow-hidden'>
               <button
                 className={`flex-1 py-3 text-center font-medium transition-colors ${
@@ -210,12 +157,11 @@ export function ExcursionPlanner({ activities, onPlanComplete }: ExcursionPlanne
               >
                 <div className='flex items-center justify-center'>
                   <MapPin className='h-4 w-4 mr-2' />
-                  {t("planner.activities")} ({totalActivities})
+                  {t("planner.activities")} ({totalActivitiesCount})
                 </div>
               </button>
             </div>
 
-            {/* Mobile Calendar View */}
             {activeTab === 'calendar' && (
               <Card className='border-primary/20 shadow-lg'>
                 <CardHeader className='pb-2 bg-primary/5 rounded-t-lg'>
@@ -238,7 +184,6 @@ export function ExcursionPlanner({ activities, onPlanComplete }: ExcursionPlanne
               </Card>
             )}
 
-            {/* Mobile Activities View */}
             {activeTab === 'activities' && (
               <div className='space-y-4'>
                 <Card className='border-primary/20 shadow-lg'>
@@ -248,7 +193,7 @@ export function ExcursionPlanner({ activities, onPlanComplete }: ExcursionPlanne
                       <CardTitle className='text-lg font-bold'>{t("planner.selectedActivities")}</CardTitle>
                     </div>
                     <CardDescription className='text-xs'>
-                      {totalActivities} {totalActivities !== 1 ? t("planner.activitiesSelected") : t("planner.activitySelected")}
+                      {totalActivitiesCount} {totalActivitiesCount !== 1 ? t("planner.activitiesSelected") : t("planner.activitySelected")}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className='pt-4 pb-6'>
@@ -280,7 +225,6 @@ export function ExcursionPlanner({ activities, onPlanComplete }: ExcursionPlanne
             )}
           </div>
         ) : (
-          // Desktop Layout
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
               <Card className="border-primary/20 shadow-lg">
@@ -312,7 +256,7 @@ export function ExcursionPlanner({ activities, onPlanComplete }: ExcursionPlanne
                     <CardTitle className="text-xl font-bold">{t("planner.selectedActivities")}</CardTitle>
                   </div>
                   <CardDescription>
-                    {totalActivities} {totalActivities !== 1 ? t("planner.activitiesSelected") : t("planner.activitySelected")}
+                    {totalActivitiesCount} {totalActivitiesCount !== 1 ? t("planner.activitiesSelected") : t("planner.activitySelected")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="pt-4">
