@@ -589,6 +589,7 @@
       "phone": "电话号码",
       "address": "机构地址",
       "taxId": "税务编号",
+      "tourismLicense": "旅游许可证号码",
       "terms": "我同意条款和条件"
     },
     "placeholder": {
@@ -599,7 +600,9 @@
       "ownerName": "请输入业主全名",
       "email": "请输入电子邮箱",
       "phone": "请输入电话号码",
-      "address": "请输入机构地址"
+      "address": "请输入机构地址",
+      "taxId": "输入您的税务识别号",
+      "tourismLicense": "输入您的旅游许可证号码"
     },
     "validation": {
       "establishmentName": "机构名称至少需要2个字符",
@@ -617,15 +620,6 @@
       "requirement2": "综合保险单",
       "requirement3": "遵守当地法律法规",
       "requirement4": "质量和安全认证"
-    },
-    "placeholder": {
-      "taxId": "输入您的税务识别号"
-    },
-    "field": {
-      "tourismLicense": "旅游许可证号码"
-    },
-    "placeholder": {
-      "tourismLicense": "输入您的旅游许可证号码"
     },
     "description": {
       "tourismLicense": "当地旅游部门颁发的官方许可证号码"

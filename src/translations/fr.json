@@ -590,6 +590,7 @@
       "phone": "Numéro de téléphone",
       "address": "Adresse de l'établissement",
       "taxId": "Numéro fiscal",
+      "tourismLicense": "Licence de Tourisme",
       "terms": "J'accepte les termes et conditions"
     },
     "placeholder": {
@@ -600,7 +601,9 @@
       "ownerName": "Entrez le nom complet du propriétaire",
       "email": "Entrez l'adresse e-mail",
       "phone": "Entrez le numéro de téléphone",
-      "address": "Entrez l'adresse de l'établissement"
+      "address": "Entrez l'adresse de l'établissement",
+      "taxId": "Entrez votre numéro d'identification fiscale",
+      "tourismLicense": "Entrez votre numéro de licence de tourisme"
     },
     "validation": {
       "establishmentName": "Le nom de l'établissement doit contenir au moins 2 caractères",
@@ -618,15 +621,6 @@
       "requirement2": "Police d'assurance complète",
       "requirement3": "Conformité avec les lois et réglementations locales",
       "requirement4": "Certification de qualité et de sécurité"
-    },
-    "placeholder": {
-      "taxId": "Entrez votre numéro d'identification fiscale"
-    },
-    "field": {
-      "tourismLicense": "Licence de Tourisme"
-    },
-    "placeholder": {
-      "tourismLicense": "Entrez votre numéro de licence de tourisme"
     },
     "description": {
       "tourismLicense": "Numéro de licence officielle délivrée par les autorités touristiques locales"
