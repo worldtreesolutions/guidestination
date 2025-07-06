@@ -378,12 +378,7 @@ export default function StripeCheckoutTestPage() {
                   participants={testData.participants}
                   commissionPercent={testData.commissionPercent}
                   className="w-full"
-                >
-                  Test Checkout - ${commissionBreakdown.totalAmount > 0 
-                    ? commissionBreakdown.totalAmount.toFixed(2) 
-                    : (testData.amount + calculateStripeFees(testData.amount)).toFixed(2)
-                  }
-                </CheckoutButton>
+                />
 
                 <div className="text-sm text-gray-600 space-y-1">
                   <p><strong>Scenario:</strong> {testData.establishmentId ? "QR Code Booking" : "Standard Booking"}</p>

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { Activity } from "@/types/activity";
@@ -87,7 +86,7 @@ export default function ActivityBookingPage() {
 
   const checkoutData = {
     activityId: activity.id,
-    providerId: activity.provider_id,
+    providerId: activity.provider_id || "",
     amount: activity.price_per_person * participants,
     participants: participants,
     customerId: user?.id,

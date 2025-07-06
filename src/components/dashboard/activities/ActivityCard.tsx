@@ -85,7 +85,7 @@ export default function ActivityCard({
           variant="default"
           className={`absolute top-2 right-2 text-xs sm:text-sm ${getStatusColor(activity.status || null)}`}
         >
-          {getStatusText(activity.status)}
+          {getStatusText(activity.status || 'draft')}
         </Badge>
       </div>
 
