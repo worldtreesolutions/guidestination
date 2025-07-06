@@ -34,7 +34,6 @@ const createFormSchema = (t: (key: string) => string) => z.object({
   latitude: z.number().optional(),
   longitude: z.number().optional(),
   placeId: z.string().optional(),
-  roomCount: z.string().min(1, t('partner.form.validation.roomCount')),
   supportingDocuments: z.array(z.any()).optional(),
   termsAccepted: z.boolean().refine((val) => val === true, {
     message: t('form.validation.terms'),
@@ -117,7 +116,6 @@ export const PartnerRegistrationForm = () => {
         latitude: values.latitude,
         longitude: values.longitude,
         place_id: values.placeId,
-        room_count: parseInt(values.roomCount),
         commission_package: values.commissionPackage,
         supporting_documents: documentUrls,
       }
@@ -164,12 +162,12 @@ CDN URLs generated for secure access and fast delivery.`)
     form.setValue('supportingDocuments', files)
   }
 
-  const handlePlaceSelect = (place: any) => {
-    if (place) {
-      form.setValue('address', place.formatted_address || place.description)
-      form.setValue('latitude', place.geometry?.location?.lat())
-      form.setValue('longitude', place.geometry?.location?.lng())
-      form.setValue('placeId', place.place_id)
+  const handlePlaceSelect = (placeData: PlaceData) => {
+    if (placeData) {
+      form.setValue('address', placeData.address)
+      form.setValue('latitude', placeData.lat)
+      form.setValue('longitude', placeData.lng)
+      form.setValue('placeId', placeData.placeId)
     }
   }
 
@@ -238,7 +236,7 @@ CDN URLs generated for secure access and fast delivery.`)
             />
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid md:grid-cols-1 gap-4">
             <FormField
               control={form.control}
               name="phone"
@@ -247,20 +245,6 @@ CDN URLs generated for secure access and fast delivery.`)
                   <FormLabel>{t('form.field.phone')}</FormLabel>
                   <FormControl>
                     <Input placeholder={t('form.placeholder.phone')} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="roomCount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('partner.form.field.roomCount')}</FormLabel>
-                  <FormControl>
-                    <Input placeholder={t('partner.form.placeholder.roomCount')} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
