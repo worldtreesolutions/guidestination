@@ -26,7 +26,7 @@ export default function ActivitiesPage() {
       setLoading(true);
 
       try {
-        const {  ownerData, error: ownerError } = await supabase
+        const { data: ownerData, error: ownerError } = await supabase
           .from("activity_owners")
           .select("id")
           .eq("user_id", user.id)

@@ -28,7 +28,7 @@ const authService = {
       let provider_id = undefined;
       if (data.user) {
         // Check if user is an activity owner
-        const {  ownerData, error: ownerError } = await supabase
+        const { data: ownerData, error: ownerError } = await supabase
           .from('activity_owners')
           .select('id')
           .eq('user_id', data.user.id)
