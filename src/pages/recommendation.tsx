@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -8,6 +9,7 @@ import { ActivityCard } from "@/components/home/ActivityCard";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
+import { recommendationService } from "@/services/recommendationService";
 
 export default function RecommendationPage() {
   const { t } = useLanguage();
@@ -29,7 +31,7 @@ export default function RecommendationPage() {
     fetchCategories();
   }, []);
 
-  const handlePreferencesSubmit = async (data: PreferencesFormData) => {
+  const handlePreferencesSubmit = async ( PreferencesFormData) => {
     setLoading(true);
     setError(null);
 
@@ -41,13 +43,13 @@ export default function RecommendationPage() {
     setPreferences(newPreferences);
 
     try {
-      const recommendations = await recommendationService.getRecommendations({
+      const recommendationsResult = await recommendationService.getRecommendations({
         categories: (data as any).categories,
         price_range: (data as any).priceRange,
         duration_range: (data as any).duration,
       });
 
-      setRecommendations(recommendations);
+      setRecommendations(recommendationsResult as Activity[]);
     } catch (err: any) {
       setError("Failed to fetch recommendations. Please try again.");
       console.error(err);

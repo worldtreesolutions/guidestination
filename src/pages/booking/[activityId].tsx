@@ -1,6 +1,6 @@
+
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { supabase } from "@/integrations/supabase/client";
 import { Activity } from "@/types/activity";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { CheckoutButton } from "@/components/stripe/CheckoutButton";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import Image from "next/image";
+import { supabaseActivityService } from "@/services/supabaseActivityService";
 
 export default function ActivityBookingPage() {
   const router = useRouter();
@@ -30,9 +31,9 @@ export default function ActivityBookingPage() {
 
       setLoading(true);
       try {
-        const activity = (await supabaseActivityService.getActivityById(activityId)) as unknown as Activity;
-        setActivity(activity);
-        const imageUrl = (activity as any).image_url || (activity.images && activity.images.length > 0 ? activity.images[0].url : "/placeholder.svg");
+        const fetchedActivity = (await supabaseActivityService.getActivityById(activityId)) as unknown as Activity;
+        setActivity(fetchedActivity);
+        const imageUrl = fetchedActivity.image_url || (fetchedActivity.images && fetchedActivity.images.length > 0 ? fetchedActivity.images[0].url : "/placeholder.svg");
         setSelectedImage(imageUrl);
       } catch (err) {
         setError("Failed to load activity details.");
@@ -56,8 +57,8 @@ export default function ActivityBookingPage() {
     });
   };
 
-  const handleThumbnailClick = (image: string) => {
-    setSelectedImage(image);
+  const handleThumbnailClick = (imageUrl: string) => {
+    setSelectedImage(imageUrl);
   };
 
   if (loading) {
@@ -112,14 +113,14 @@ export default function ActivityBookingPage() {
               </div>
             )}
             <div className="flex space-x-2 overflow-x-auto pb-2">
-              {activity.images?.map((image: string, index: number) => (
-                <div key={index} className="flex-shrink-0 cursor-pointer" onClick={() => handleThumbnailClick(image)}>
+              {activity.images?.map((image, index) => (
+                <div key={index} className="flex-shrink-0 cursor-pointer" onClick={() => handleThumbnailClick(image.url)}>
                   <Image
-                    src={image}
+                    src={image.url}
                     alt={`${activity.title} thumbnail ${index + 1}`}
                     width={100}
                     height={75}
-                    className={`w-24 h-18 object-cover rounded-md border-2 ${selectedImage === image ? "border-primary" : "border-transparent"}`}
+                    className={`w-24 h-18 object-cover rounded-md border-2 ${selectedImage === image.url ? "border-primary" : "border-transparent"}`}
                   />
                 </div>
               ))}
@@ -142,7 +143,7 @@ export default function ActivityBookingPage() {
               <div className="mt-6">
                 <h2 className="text-2xl font-semibold">Highlights</h2>
                 <ul className="list-disc list-inside mt-2 space-y-1">
-                  {activity.highlights?.map((highlight: string, i: number) => (
+                  {activity.highlights?.map((highlight, i) => (
                     <li key={i}>{highlight}</li>
                   ))}
                 </ul>
@@ -153,7 +154,7 @@ export default function ActivityBookingPage() {
               <div className="mt-6">
                 <h2 className="text-2xl font-semibold">What's Included</h2>
                 <ul className="list-disc list-inside mt-2 space-y-1">
-                  {activity.included?.map((item: string, i: number) => (
+                  {activity.included?.map((item, i) => (
                     <li key={i}>{item}</li>
                   ))}
                 </ul>

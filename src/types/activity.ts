@@ -1,5 +1,52 @@
 
-    {
-      "file_contents": "export interface Activity {\n  id: number;\n  activity_id?: number;\n  title: string;\n  name?: string;\n  description: string;\n  price_per_person: number;\n  duration_hours: number;\n  duration?: string;\n  availability: string;\n  location: string;\n  category: string;\n  images: { url: string }[];\n  image_url?: string;\n  inclusions: string[];\n  exclusions: string[];\n  reviews: {\n    rating: number;\n    comment: string;\n  }[];\n  provider_id?: string;\n  created_at?: string;\n  updated_at?: string;\n  is_active?: boolean;\n  booking_count?: number;\n  total_revenue?: number;\n  final_price?: number;\n  b_price?: number;\n  price?: number;\n  status?: 'active' | 'inactive' | 'pending' | 'approved' | 'rejected';\n  video_url?: string;\n  video_duration?: string;\n  quantity?: number; // For cart/planning\n  date?: Date; // For cart/planning\n}\n\nexport interface Category {\n  id: number;\n  name: string;\n}\n"
-    }
-  
+export interface Activity {
+  id: number;
+  activity_id?: number;
+  title: string;
+  name?: string;
+  description: string;
+  price_per_person: number;
+  duration_hours: number;
+  duration?: string;
+  availability: string;
+  location: string;
+  category: string;
+  category_id?: number;
+  images: { url: string }[];
+  image_url?: string;
+  inclusions: string[];
+  exclusions: string[];
+  reviews: {
+    rating: number;
+    comment: string;
+  }[];
+  provider_id?: string;
+  created_at?: string;
+  updated_at?: string;
+  is_active?: boolean;
+  booking_count?: number;
+  total_revenue?: number;
+  final_price?: number;
+  b_price?: number;
+  price?: number;
+  status?: 'active' | 'inactive' | 'pending' | 'approved' | 'rejected' | 'draft' | 'published' | 'archived' | number;
+  video_url?: string;
+  video_duration?: string;
+  quantity?: number; // For cart/planning
+  date?: Date; // For cart/planning
+  max_participants?: number;
+  rating?: number;
+  highlights?: string[];
+  included?: string[];
+}
+
+export interface Category {
+  id: number;
+  name: string;
+}
+
+export enum ActivityStatus {
+  Archived = 0,
+  Draft = 1,
+  Published = 2,
+}
