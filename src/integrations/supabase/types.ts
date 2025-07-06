@@ -613,7 +613,7 @@ export interface Database {
           user_agent: string | null
           referrer_url: string | null
           visited_at: string
-          meta Json | null
+          meta: Json | null
         }
         Insert: {
           id?: string
@@ -624,7 +624,7 @@ export interface Database {
           user_agent?: string | null
           referrer_url?: string | null
           visited_at?: string
-          metadata?: Json | null
+          meta?: Json | null
         }
         Update: {
           id?: string
@@ -635,7 +635,7 @@ export interface Database {
           user_agent?: string | null
           referrer_url?: string | null
           visited_at?: string
-          metadata?: Json | null
+          meta?: Json | null
         }
         Relationships: [
           {
@@ -703,7 +703,7 @@ export interface Database {
           amount: number
           commission_percent: number
           status: string
-          meta Json | null
+          meta: Json | null
           created_at: string
         }
         Insert: {
@@ -716,7 +716,7 @@ export interface Database {
           amount: number
           commission_percent: number
           status: string
-          metadata?: Json | null
+          meta?: Json | null
           created_at?: string
         }
         Update: {
@@ -729,7 +729,7 @@ export interface Database {
           amount?: number
           commission_percent?: number
           status?: string
-          metadata?: Json | null
+          meta?: Json | null
           created_at?: string
         }
         Relationships: []

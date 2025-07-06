@@ -118,7 +118,7 @@ export const stripeService = {
       amount: calculation.totalAmount,
       commission_percent: commissionPercent,
       status: "pending",
-      meta metadata as unknown as Json,
+      meta: metadata as unknown as Json,
     });
 
     return session;
@@ -172,7 +172,7 @@ export const stripeService = {
         .single();
 
       if (establishment?.partner_id) {
-        const {  partner } = await supabase
+        const { data: partner } = await supabase
           .from("partner_registrations")
           .select("stripe_account_id, stripe_charges_enabled")
           .eq("id", establishment.partner_id)
@@ -215,7 +215,7 @@ export const stripeService = {
         description: `Commission payment for booking ${sessionId}`,
       });
 
-      const {  checkoutSession } = await supabase.from("stripe_checkout_sessions").select("id").eq("stripe_session_id", sessionId).single();
+      const { data: checkoutSession } = await supabase.from("stripe_checkout_sessions").select("id").eq("stripe_session_id", sessionId).single();
       if (checkoutSession) {
         await supabase.from("stripe_transfers").insert({
           checkout_session_id: checkoutSession.id,
@@ -237,7 +237,7 @@ export const stripeService = {
       }
     } catch (error) {
       console.error("Failed to transfer to partner:", error);
-      const { data: checkoutSession } = await supabase.from("stripe_checkout_sessions").select("id").eq("stripe_session_id", sessionId).single();
+      const {  checkoutSession } = await supabase.from("stripe_checkout_sessions").select("id").eq("stripe_session_id", sessionId).single();
       if (checkoutSession) {
         await supabase.from("stripe_transfers").insert({
           checkout_session_id: checkoutSession.id,
