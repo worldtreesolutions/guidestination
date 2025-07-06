@@ -8,6 +8,7 @@ import { useIsMobile } from "@/hooks/use-mobile"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { Badge } from "@/components/ui/badge"
 import { Star, MapPin, Clock, Users } from "lucide-react"
+import { SupabaseActivity } from "@/services/supabaseActivityService"
 
 interface ActivityCardProps {
   activity: SupabaseActivity;

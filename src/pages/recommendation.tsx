@@ -57,17 +57,30 @@ const mockActivities = [
 ];
 
 export default function RecommendationPage() {
+  const [preferences, setPreferences] = useState<UserPreferences>({
+    budget: 1000,
+    duration: 4,
+    groupSize: 2,
+    interests: [],
+    location: "",
+    travelDates: {
+      start: new Date(),
+      end: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+    }
+  })
+  const [recommendations, setRecommendations] = useState<SupabaseActivity[]>([])
   const [loading, setLoading] = useState(false)
-  const [recommendations, setRecommendations] = useState<RecommendedPlan | null>(null)
-  const { addActivity } = usePlanning() // Corrected: remove addActivityToPlanning
-  const isMobile = useIsMobile()
-  const { toast } = useToast(); // Initialize useToast
+  const [showResults, setShowResults] = useState(false)
+  const { addActivity } = usePlanning()
 
-  const handleSubmit = async (data: PreferencesFormData) => {
+  const handlePreferencesSubmit = async (newPreferences: UserPreferences) => {
+    setPreferences(newPreferences)
     setLoading(true)
+    
     try {
-      const result = await recommendActivities(data)
-      setRecommendations(result)
+      const results = await recommendationService.getRecommendations(newPreferences)
+      setRecommendations(results)
+      setShowResults(true)
     } catch (error) {
       console.error("Error getting recommendations:", error)
     } finally {
@@ -75,49 +88,137 @@ export default function RecommendationPage() {
     }
   }
 
-  const handleAddAllToPlanning = () => {
-    if (recommendations) {
-      recommendations.activities.forEach((activity) => {
-        addActivity({
-          activity_id: activity.id, // Map id to activity_id
-          title: activity.title,
-          image_url: activity.image, // Map image to image_url
-          b_price: activity.price,   // Map price to b_price
-          duration: parseDuration(activity.duration), // Ensure duration is number
-          // Add other necessary fields for PartialActivity if any, or ensure they are optional
-          name: activity.title, // Assuming name is required or useful
-        });
-      })
-    }
+  const handleActivitySelect = (activity: SupabaseActivity) => {
+    addActivity({
+      ...activity,
+      id: activity.id || 0,
+    })
   }
 
-  const handleAddToPlanner = (activity: typeof mockActivities[0]) => {
-    addActivity({ // Use addActivity
-      activity_id: parseInt(activity.id),
-      title: activity.title,
-      image_url: activity.imageUrl,
-      b_price: activity.price,
-      final_price: activity.price,
-      duration: activity.duration,
-      description: `An exciting ${activity.title} experience.`,
-      category_id: null, 
-      max_participants: activity.participants,
-      pickup_location: null,
-      dropoff_location: null,
-      meeting_point: null,
-      languages: null,
-      highlights: null,
-      included: null,
-      not_included: null,
-      is_active: true,
-      status: 1, 
-      discounts: null,
-      name: activity.title, 
-    });
-    toast({
-      title: "Activity Added",
-      description: `Added ${activity.title} to your planner.`,
-    });
+  const handleBackToForm = () => {
+    setShowResults(false)
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <main className="flex-1 flex items-center justify-center py-20">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-lg">Finding perfect activities for you...</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    )
+  }
+
+  if (showResults) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Head>
+          <title>Your Recommendations - Guidestination</title>
+          <meta name="description" content="Personalized activity recommendations based on your preferences" />
+        </Head>
+        
+        <Navbar />
+        
+        <main className="container mx-auto px-4 py-8 max-w-6xl">
+          <div className="mb-8">
+            <Button 
+              variant="ghost" 
+              onClick={handleBackToForm}
+              className="mb-4"
+            >
+              ← Back to Preferences
+            </Button>
+            <h1 className="text-3xl font-bold mb-2">Your Personalized Recommendations</h1>
+            <p className="text-muted-foreground">
+              Based on your preferences, we found {recommendations.length} perfect activities for you
+            </p>
+          </div>
+
+          {recommendations.length === 0 ? (
+            <Card className="text-center py-12">
+              <CardContent>
+                <MapPin className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-xl font-semibold mb-2">No recommendations found</h3>
+                <p className="text-muted-foreground mb-4">
+                  Try adjusting your preferences to find more activities
+                </p>
+                <Button onClick={handleBackToForm}>
+                  Update Preferences
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {recommendations.map((activity) => (
+                <Card key={activity.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                  <div className="aspect-video relative">
+                    <Image
+                      src={activity.image_urls?.[0] || "/placeholder.jpg"}
+                      alt={activity.title}
+                      fill
+                      className="object-cover"
+                    />
+                    <div className="absolute top-2 right-2">
+                      <Badge variant="secondary" className="bg-white/90 text-black">
+                        ฿{activity.price?.toLocaleString()}
+                      </Badge>
+                    </div>
+                  </div>
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold mb-2 line-clamp-2">{activity.title}</h3>
+                    <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                      {activity.description}
+                    </p>
+                    <div className="flex items-center justify-between text-sm text-muted-foreground mb-3">
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-4 w-4" />
+                        <span>{activity.duration}h</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Users className="h-4 w-4" />
+                        <span>Max {activity.max_participants || 10}</span>
+                      </div>
+                      {activity.rating && (
+                        <div className="flex items-center gap-1">
+                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                          <span>{activity.rating}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      <Button 
+                        size="sm" 
+                        className="flex-1"
+                        onClick={() => handleActivitySelect({
+                          ...activity,
+                          id: activity.id,
+                        })}
+                      >
+                        Add to Plan
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => router.push(`/activities/${activity.id}`)}
+                      >
+                        View Details
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </main>
+        
+        <Footer />
+      </div>
+    )
   }
 
   return (
