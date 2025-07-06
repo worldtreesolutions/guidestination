@@ -1,4 +1,3 @@
-
 {
   "nav": {
     "aiPlanning": "AI 规划",
@@ -565,15 +564,15 @@
     },
     "legal": {
       "title": "法律要求",
-      "requirement1": "所有活动提供商都需要有效的旅游许可证",
-      "requirement2": "必须有全面的保险",
-      "requirement3": "建议旅游经营者持有 TAT 许可证",
-      "requirement4": "有导游的活动需要导游认证"
+      "requirement1": "有效的商业许可证",
+      "requirement2": "保险覆盖",
+      "requirement3": "税务合规",
+      "requirement4": "安全认证"
     },
     "section": {
       "business": "场所信息",
       "contact": "联系信息",
-      "legal": "法律与合规"
+      "legal": "法律信息"
     },
     "field": {
       "businessName": "场所名称",
@@ -581,46 +580,45 @@
       "businessType": "场所类型",
       "establishmentType": "场所类型",
       "taxId": "税号",
-      "tourismLicense": "旅游许可证号",
-      "tatLicense": "TAT 许可证号",
+      "tourismLicense": "旅游许可证",
+      "tatLicense": "TAT 许可证",
       "description": "业务描述",
       "ownerName": "所有者姓名",
       "email": "电子邮件地址",
       "phone": "电话号码",
       "address": "场所地址",
-      "insurancePolicy": "保险单号",
-      "insuranceAmount": "保险金额 (THB)",
-      "guideCard": "导游证号",
-      "terms": "我接受条款和条件",
-      "supportingDocuments": "证明文件"
+      "insurancePolicy": "保险单",
+      "insuranceAmount": "保险金额",
+      "guideCard": "导游证",
+      "supportingDocuments": "支持文件"
     },
     "placeholder": {
       "businessName": "输入您的场所名称",
       "establishmentName": "输入您的场所名称",
       "businessType": "选择场所类型",
       "establishmentType": "选择场所类型",
-      "taxId": "输入您的税务识别号",
-      "tourismLicense": "输入旅游许可证号",
-      "tatLicense": "输入 TAT 许可证号（可选）",
+      "taxId": "税务识别号",
+      "tourismLicense": "旅游许可证号码",
+      "tatLicense": "TAT 许可证号码（可选）",
       "description": "描述您的业务和服务...",
       "ownerName": "输入所有者全名",
       "email": "输入电子邮件地址",
       "phone": "输入电话号码",
       "address": "输入场所地址",
-      "insurancePolicy": "输入保险单号",
-      "insuranceAmount": "输入保险金额",
-      "guideCard": "输入导游证号（可选）"
+      "insurancePolicy": "保险单号码",
+      "insuranceAmount": "承保金额",
+      "guideCard": "导游证号码"
     },
     "description": {
-      "tourismLicense": "所有与旅游相关的活动都需要",
+      "tourismLicense": "当地政府颁发的官方旅游许可证",
       "tatLicense": "泰国旅游局许可证（推荐）",
       "coordinates": "位置坐标",
-      "insurancePolicy": "涵盖您活动的责任保险单",
-      "insuranceAmount": "最低保险金额（泰铢）",
-      "guideCard": "专业导游认证（如适用）",
-      "terms": "选中此框即表示您同意我们的服务条款和隐私政策。",
+      "insurancePolicy": "有效的责任保险单",
+      "insuranceAmount": "最低保险承保金额",
+      "guideCard": "官方旅游导游证",
+      "terms": "注册即表示您接受我们的使用条款",
       "address": "请提供您场所的完整地址",
-      "supportingDocuments": "上传营业执照、税务文件、银行对账单和其他相关文件（PDF、DOC 或图片，每个文件最大 10MB）"
+      "supportingDocuments": "上传所有必需的文件"
     },
     "businessType": {
       "tourOperator": "旅游经营者",
@@ -628,17 +626,17 @@
       "experienceHost": "体验主持人"
     },
     "compliance": {
-      "title": "合规声明",
-      "description": "所有提供的信息都将经过验证。虚假信息可能导致申请被拒。"
-    },
-    "button": {
-      "submit": "提交注册",
-      "submitting": "提交中..."
+      "title": "法规合规",
+      "description": "确保所有必需的文件都有效且是最新的"
     },
     "terms": {
       "agreeToThe": "我同意",
       "termsOfService": "服务条款"
-    }
+    },
+    "button": {
+      "submit": "提交"
+    },
+    "submitting": "提交中..."
   },
   "loading": "正在加载仪表板数据...",
   "login": {

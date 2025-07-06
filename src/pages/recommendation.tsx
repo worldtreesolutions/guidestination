@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -30,7 +29,7 @@ export default function RecommendationPage() {
     fetchCategories();
   }, []);
 
-  const handlePreferencesSubmit = async ( PreferencesFormData) => {
+  const handlePreferencesSubmit = async (data: PreferencesFormData) => {
     setLoading(true);
     setError(null);
 
@@ -42,7 +41,7 @@ export default function RecommendationPage() {
     setPreferences(newPreferences);
 
     try {
-      const {  recommendedData, error: rpcError } = await supabase.rpc("get_personalized_recommendations", {
+      const { data: recommendedData, error: rpcError } = await supabase.rpc("get_personalized_recommendations", {
         p_categories: newPreferences.categories,
         p_min_price: newPreferences.priceRange[0],
         p_max_price: newPreferences.priceRange[1],

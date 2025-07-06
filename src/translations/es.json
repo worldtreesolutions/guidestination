@@ -1,4 +1,3 @@
-
 {
   "nav.aiPlanning": "Planificación IA",
   "nav.listActivities": "Lista tus Actividades",
@@ -610,6 +609,34 @@
     "terms": {
       "agreeToThe": "Acepto los",
       "termsOfService": "Términos de Servicio"
+    }
+  },
+  "activityOwner": {
+    "hero": {
+      "title": "Haz crecer tu negocio turístico",
+      "subtitle": "Únete a nuestra plataforma y alcanza más clientes con nuestras herramientas profesionales"
+    },
+    "benefits": {
+      "legalProtection": {
+        "title": "Protección legal",
+        "description": "Benefíciate de cobertura de seguro completa y protección jurídica"
+      },
+      "businessGrowth": {
+        "title": "Crecimiento empresarial",
+        "description": "Accede a nuevos mercados y aumenta tus ingresos"
+      },
+      "qualityStandards": {
+        "title": "Estándares de calidad",
+        "description": "Mantén altos estándares con nuestras herramientas de gestión"
+      },
+      "flexibleSchedule": {
+        "title": "Horarios flexibles",
+        "description": "Gestiona tu horario según tu disponibilidad"
+      }
+    },
+    "registration": {
+      "title": "Registro de propietarios de actividades",
+      "description": "Únete a nuestra red de socios profesionales"
     }
   }
 }
