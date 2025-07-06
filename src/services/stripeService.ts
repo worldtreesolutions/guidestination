@@ -4,7 +4,8 @@ import { CheckoutSessionData, StripeCheckoutMetadata, StripeFeesCalculation } fr
 import { Database, Json } from "@/integrations/supabase/types";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-12-18.acacia",
+  // https://github.com/stripe/stripe-node#configuration
+  apiVersion: "2024-06-20",
 });
 
 export const stripeService = {

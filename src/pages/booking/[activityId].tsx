@@ -1,385 +1,299 @@
-import { useState, useEffect } from "react"
-import { useRouter } from "next/router"
-import Head from "next/head"
-import Image from "next/image"
-import { Navbar } from "@/components/layout/Navbar"
-import { Footer } from "@/components/layout/Footer"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import { 
-  Heart, 
-  Share2, 
-  Clock, 
-  Users, 
-  Globe, 
-  MapPin, 
-  Star, 
-  CheckCircle, 
-  XCircle,
-  Calendar,
-  Play,
-  ArrowLeft
-} from "lucide-react"
-import { ActivityGallery } from "@/components/activities/ActivityGallery"
-import { AvailabilityCalendar } from "@/components/activities/AvailabilityCalendar"
-import { BookingForm } from "@/components/activities/BookingForm"
-import { ActivityReviews } from "@/components/activities/ActivityReviews"
-import { useIsMobile } from "@/hooks/use-mobile"
-import { supabaseActivityService, SupabaseActivity } from "@/services/supabaseActivityService"
-import { useAuth } from "@/contexts/AuthContext"
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/router";
+import { supabase } from "@/integrations/supabase/client";
+import { SupabaseActivity } from "@/types/activity";
+import {
+  Calendar as CalendarIcon,
+  Clock,
+  Users,
+  MapPin,
+  ChevronLeft,
+  ChevronRight,
+  Check,
+  Plus,
+  Minus,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { Skeleton } from "@/components/ui/skeleton";
+import Head from "next/head";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import { CheckoutButton } from "@/components/stripe/CheckoutButton";
 
 export default function ActivityBookingPage() {
   const router = useRouter();
-  const { slug: activityId } = router.query;
-  const { user } = useAuth();
+  const { activityId } = router.query;
   const [activity, setActivity] = useState<SupabaseActivity | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [images, setImages] = useState<string[]>([]);
-  const [videos, setVideos] = useState<{ url: string; thumbnail?: string | null; duration?: number | null }[]>([]);
-  const [selectedDate, setSelectedDate] = useState<Date>()
-  const [selectedParticipants, setSelectedParticipants] = useState(1)
-  const isMobile = useIsMobile()
+  const [participants, setParticipants] = useState(1);
+  const { language } = useLanguage();
+  const { user } = useAuth();
 
   useEffect(() => {
-    async function fetchActivity() {
-      if (typeof activityId !== "string") return
-      
-      try {
-        const fetchedActivity = await supabaseActivityService.getActivityById(activityId);
-        if (fetchedActivity) {
-          setActivity(fetchedActivity);
-          setImages(fetchedActivity.images || []);
-          setVideos(fetchedActivity.videos || []);
-        } else {
-          setError("Activity not found.");
-        }
-      } catch (e) {
-        console.error("Error fetching activity:", e)
-      } finally {
-        setLoading(false)
-      }
-    }
+    if (activityId) {
+      const fetchActivity = async () => {
+        setLoading(true);
+        try {
+          const { data, error } = await supabase
+            .from("activities")
+            .select(
+              `
+              *,
+              category:categories(name),
+              activity_images:activity_images(id, url, thumbnail, duration),
+              activity_schedules:activity_schedules(*),
+              activity_providers:activity_providers(
+                id,
+                business_name,
+                owner_name,
+                business_address,
+                profile_picture_url
+              )
+            `
+            )
+            .eq("id", activityId)
+            .single();
 
-    fetchActivity()
-  }, [activityId])
+          if (error) {
+            throw error;
+          }
+          setActivity(data as SupabaseActivity);
+        } catch (err: any) {
+          setError(err.message);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchActivity();
+    }
+  }, [activityId]);
+
+  const handleParticipantChange = (amount: number) => {
+    setParticipants((prev) => {
+      const newCount = prev + amount;
+      if (newCount < 1) return 1;
+      if (activity && activity.max_participants && newCount > activity.max_participants) {
+        return activity.max_participants;
+      }
+      return newCount;
+    });
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
-        <main className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p>Loading activity details...</p>
+      <div className="container mx-auto px-4 py-8">
+        <Skeleton className="h-8 w-3/4 mb-4" />
+        <Skeleton className="h-4 w-1/2 mb-8" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="md:col-span-2">
+            <Skeleton className="w-full h-96 rounded-lg" />
           </div>
-        </main>
-        <Footer />
+          <div>
+            <Skeleton className="h-64 w-full" />
+          </div>
+        </div>
       </div>
-    )
+    );
   }
 
   if (error) {
-    return (
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
-        <main className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold mb-4">Activity Not Found</h1>
-            <p className="text-muted-foreground mb-4">The activity you're looking for doesn't exist.</p>
-            <Button onClick={() => router.push("/")}>Back to Home</Button>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    )
+    return <div className="text-center py-10">Error: {error}</div>;
   }
 
-  const formatPrice = (price: number | null) => {
-    if (!price) return "Free"
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "THB",
-      minimumFractionDigits: 0,
-    }).format(price)
+  if (!activity) {
+    return <div className="text-center py-10">Activity not found.</div>;
   }
 
-  const formatDuration = (duration: string) => {
-    const durationMap: { [key: string]: string } = {
-      "2_hours": "2 hours",
-      "half_day": "Half day (4-5 hours)",
-      "full_day": "Full day (8-9 hours)",
-      "multi_day": "Multiple days"
-    }
-    return durationMap[duration] || duration
-  }
+  const provider = activity.activity_providers;
+  const categoryName =
+    activity.category && "name" in activity.category
+      ? activity.category.name
+      : "N/A";
+
+  const images = activity.activity_images?.map(img => ({
+    url: img.url,
+    thumbnail: img.thumbnail ?? undefined,
+    duration: img.duration ?? undefined,
+  })) || [];
 
   return (
     <>
       <Head>
-        <title>Book {activity.title} - Guidestination</title>
-        <meta name="description" content={`Book ${activity.title} - ${activity.description}`} />
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+        <title>{`${activity?.title} - Booking`}</title>
+        <meta name="description" content={`Book your spot for ${activity?.title}. ${activity?.description?.substring(0, 150)}...`} />
       </Head>
+      <div className="bg-gray-50 dark:bg-gray-900">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
+            <div className="lg:col-span-2">
+              <div className="mb-6">
+                <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-gray-900 dark:text-white">
+                  {activity.title}
+                </h1>
+                <div className="mt-2 flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                  <Badge variant="outline">{categoryName}</Badge>
+                  <span>{activity.location_text}</span>
+                </div>
+              </div>
 
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
-        
-        <main className="flex-1">
-          <div className="container py-4 sm:py-8 px-4 sm:px-6 max-w-7xl">
-            {/* Back Button */}
-            <div className="mb-6">
-              <Button 
-                variant="ghost" 
-                onClick={() => router.back()}
-                className="flex items-center gap-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back to Activity
-              </Button>
-            </div>
-
-            {/* Header Section */}
-            <div className="mb-8">
-              <div className="flex items-center gap-2 mb-4">
-                <Badge variant="secondary" className="capitalize">
-                  {activity.category}
-                </Badge>
-                {activity.average_rating && (
-                  <div className="flex items-center gap-1">
-                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    <span className="font-medium">{activity.average_rating}</span>
-                    <span className="text-muted-foreground">
-                      ({activity.review_count} reviews)
-                    </span>
-                  </div>
+              <Carousel className="w-full mb-8">
+                <CarouselContent>
+                  {images.map((image, index) => (
+                    <CarouselItem key={index}>
+                      <img
+                        src={image.url}
+                        alt={`${activity.title} image ${index + 1}`}
+                        className="w-full h-auto max-h-[500px] object-cover rounded-lg shadow-lg"
+                      />
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                {images.length > 1 && (
+                  <>
+                    <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2" />
+                    <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2" />
+                  </>
                 )}
-              </div>
+              </Carousel>
 
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4">
-                Book: {activity.title || activity.name}
-              </h1>
-
-              <div className="flex flex-wrap items-center gap-4 mb-4">
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-primary" />
-                  <span className="text-sm sm:text-base">{activity.location || "Location TBD"}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4" />
-                  <span className="text-sm sm:text-base">{formatDuration(activity.duration || "")}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4" />
-                  <span className="text-sm sm:text-base">Max {activity.max_participants || 10} people</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Globe className="h-4 w-4" />
-                  <span className="text-sm sm:text-base">{(activity.languages || []).join(", ") || "English"}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Main Content */}
-              <div className="lg:col-span-2 space-y-8">
-                {/* Image Gallery */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Activity Gallery</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ActivityGallery 
-                      images={images}
-                      videos={videos}
-                      title={activity.title}
-                    />
-                  </CardContent>
-                </Card>
-
-                {/* Activity Overview */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>About This Experience</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground leading-relaxed mb-6">
-                      {activity.description}
-                    </p>
-
-                    {activity.highlights && activity.highlights.length > 0 && (
-                      <div>
-                        <h3 className="font-semibold mb-3">Highlights</h3>
-                        <ul className="space-y-2">
-                          {activity.highlights.map((highlight: string, index: number) => (
-                            <li key={index} className="flex items-start gap-2">
-                              <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                              <span>{highlight}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* What's Included/Not Included */}
-                <div className="grid md:grid-cols-2 gap-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-green-600">What's Included</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <ul className="space-y-2">
-                        {(activity.included || []).map((item: string, index: number) => (
-                          <li key={index} className="flex items-start gap-2">
-                            <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                            <span className="text-sm">{item}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-red-600">What's Not Included</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <ul className="space-y-2">
-                        {(activity.not_included || []).map((item: string, index: number) => (
-                          <li key={index} className="flex items-start gap-2">
-                            <XCircle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
-                            <span className="text-sm">{item}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
+              <div className="space-y-8">
+                <div>
+                  <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
+                    About this activity
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-300 whitespace-pre-wrap">
+                    {activity.description}
+                  </p>
                 </div>
 
-                {/* Meeting Point */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Meeting Point & Details</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-start gap-2">
-                      <MapPin className="h-5 w-5 text-primary mt-0.5" />
-                      <div>
-                        <p className="font-medium">Meeting Point</p>
-                        <p className="text-muted-foreground">{activity.meeting_point || "Meeting point TBD"}</p>
+                <Separator />
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div>
+                    <h3 className="font-semibold text-lg mb-2">Highlights</h3>
+                    <ul className="list-disc list-inside space-y-1 text-gray-600 dark:text-gray-300">
+                      {activity.highlights?.map((highlight, i) => (
+                        <li key={i}>{highlight}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg mb-2">What's Included</h3>
+                    <ul className="list-disc list-inside space-y-1 text-gray-600 dark:text-gray-300">
+                      {activity.included?.map((item, i) => (
+                        <li key={i}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                {provider && (
+                  <>
+                    <Separator />
+                    <div>
+                      <h3 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
+                        Your Host
+                      </h3>
+                      <div className="flex items-center gap-4">
+                        <Avatar className="h-16 w-16">
+                          <AvatarImage src={provider.profile_picture_url || undefined} alt={provider.business_name} />
+                          <AvatarFallback>{provider.business_name?.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-bold text-lg">{provider.business_name}</p>
+                          <p className="text-sm text-gray-500">{provider.business_address}</p>
+                        </div>
                       </div>
                     </div>
-
-                    {activity.includes_pickup && (
-                      <div className="flex items-start gap-2">
-                        <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
-                        <div>
-                          <p className="font-medium">Hotel pickup included</p>
-                          <p className="text-muted-foreground text-sm">
-                            {activity.pickup_locations || "Pickup details TBD"}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    {activity.includes_meal && (
-                      <div className="flex items-start gap-2">
-                        <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
-                        <div>
-                          <p className="font-medium">Meal included</p>
-                          <p className="text-muted-foreground text-sm">
-                            {activity.meal_description || "Meal details TBD"}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Reviews Section */}
-                <ActivityReviews 
-                  activityId={activity.id.toString()}
-                  rating={activity.average_rating || 0}
-                  reviewCount={activity.review_count || 0}
-                />
-              </div>
-
-              {/* Booking Sidebar */}
-              <div className="lg:col-span-1">
-                <div className={isMobile ? "mt-6" : "sticky top-20"}>
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Calendar className="h-5 w-5" />
-                        Complete Your Booking
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-primary">
-                          {formatPrice(activity.final_price)}
-                        </div>
-                        <div className="text-sm text-muted-foreground">per person</div>
-                      </div>
-
-                      <Separator />
-
-                      <div>
-                        <h3 className="font-semibold mb-3">Select Date</h3>
-                        <AvailabilityCalendar
-                          availableDates={activity.schedule?.availableDates || []}
-                          selectedDate={selectedDate}
-                          onDateSelect={setSelectedDate}
-                        />
-                      </div>
-
-                      <Separator />
-
-                      <BookingForm
-                        activity={activity}
-                        selectedDate={selectedDate}
-                        participants={selectedParticipants}
-                        onParticipantsChange={setSelectedParticipants}
-                      />
-                    </CardContent>
-                  </Card>
-
-                  {/* Trust & Safety */}
-                  <Card className="mt-6">
-                    <CardHeader>
-                      <CardTitle className="text-sm">Trust & Safety</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <div className="flex items-center gap-2 text-sm">
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                        <span>Verified activity provider</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                        <span>Secure payment processing</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                        <span>24/7 customer support</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                        <span>Free cancellation available</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
+                  </>
+                )}
               </div>
             </div>
-          </div>
-        </main>
 
-        <Footer />
+            <div className="lg:col-span-1">
+              <Card className="sticky top-24">
+                <CardHeader>
+                  <CardTitle className="text-2xl">Book your spot</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <span className="text-3xl font-bold">
+                      ฿{activity.price_per_person}
+                    </span>
+                    <span className="text-gray-500 dark:text-gray-400">
+                      per person
+                    </span>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="font-medium">Select participants</p>
+                    <div className="flex items-center justify-between border rounded-lg p-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleParticipantChange(-1)}
+                        disabled={participants <= 1}
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                      <span className="text-lg font-semibold">{participants}</span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleParticipantChange(1)}
+                        disabled={!!(activity.max_participants && participants >= activity.max_participants)}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    {activity.max_participants && (
+                      <p className="text-xs text-gray-500">
+                        Maximum of {activity.max_participants} participants.
+                      </p>
+                    )}
+                  </div>
+
+                  <Separator />
+
+                  <div className="flex justify-between items-center font-semibold text-lg">
+                    <span>Total</span>
+                    <span>฿{activity.price_per_person * participants}</span>
+                  </div>
+
+                  {user ? (
+                    <CheckoutButton
+                      activity={activity}
+                      participants={participants}
+                      userId={user.id}
+                    />
+                  ) : (
+                    <Button className="w-full" onClick={() => router.push("/auth/login")}>
+                      Login to Book
+                    </Button>
+                  )}
+
+                  <div className="text-xs text-center text-gray-500">
+                    Free cancellation up to 24 hours before the activity.
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
       </div>
     </>
-  )
+  );
 }
