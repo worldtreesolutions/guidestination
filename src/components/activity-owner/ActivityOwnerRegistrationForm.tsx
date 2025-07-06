@@ -112,11 +112,13 @@ export const ActivityOwnerRegistrationForm = () => {
         // Convert UploadedFile objects to File objects for upload
         const filesToUpload: File[] = []
         for (const uploadedFile of uploadedFiles) {
-          // If the file is already a File object, use it directly
-          if (uploadedFile.file) {
+          // Check if the uploadedFile has the actual File object
+          if (uploadedFile instanceof File) {
+            filesToUpload.push(uploadedFile)
+          } else if ('file' in uploadedFile && uploadedFile.file instanceof File) {
             filesToUpload.push(uploadedFile.file)
           } else {
-            // Create a File object from the UploadedFile data
+            // Create a File object from the UploadedFile data if needed
             try {
               const response = await fetch(uploadedFile.url || uploadedFile.name)
               const blob = await response.blob()
