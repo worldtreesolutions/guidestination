@@ -46,7 +46,7 @@ export const stripeService = {
     };
   },
 
-  async createCheckoutSession( CheckoutSessionData): Promise<Stripe.Checkout.Session> {
+  async createCheckoutSession(data: CheckoutSessionData): Promise<Stripe.Checkout.Session> {
     const {
       activityId,
       providerId,
@@ -59,7 +59,7 @@ export const stripeService = {
       cancelUrl,
     } = data;
 
-    const {  provider, error: providerError } = await supabase
+    const { data: provider, error: providerError } = await supabase
       .from("activity_owners")
       .select("stripe_account_id, stripe_charges_enabled")
       .eq("provider_id", providerId)
@@ -73,7 +73,7 @@ export const stripeService = {
     const totalAmountCents = Math.round(calculation.totalAmount * 100);
     const platformCommissionCents = Math.round(calculation.platformCommission * 100);
 
-    const meta StripeCheckoutMetadata = {
+    const metadata: StripeCheckoutMetadata = {
       activity_id: activityId.toString(),
       provider_id: providerId,
       commission_percent: commissionPercent.toString(),
@@ -87,9 +87,9 @@ export const stripeService = {
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: [{
-        price_ {
+        price_data: {
           currency: "usd",
-          product_ {
+          product_data: {
             name: `Activity Booking - ${participants} participant(s)`,
             description: `Base amount: $${baseAmount.toFixed(2)} + Processing fee: $${calculation.stripeFee.toFixed(2)}`,
           },
@@ -101,9 +101,9 @@ export const stripeService = {
       success_url: successUrl,
       cancel_url: cancelUrl,
       metadata,
-      payment_intent_ {
+      payment_intent_data: {
         application_fee_amount: platformCommissionCents,
-        transfer_ {
+        transfer_data: {
           destination: provider.stripe_account_id,
         },
       },
@@ -137,7 +137,7 @@ export const stripeService = {
     await this.handleCommissionSplit(session, metadata);
   },
 
-  async createBooking(session: Stripe.Checkout.Session, meta StripeCheckoutMetadata): Promise<void> {
+  async createBooking(session: Stripe.Checkout.Session, metadata: StripeCheckoutMetadata): Promise<void> {
     const bookingData: Database['public']['Tables']['bookings']['Insert'] = {
       activity_id: parseInt(metadata.activity_id),
       customer_id: metadata.customer_id || null,
@@ -155,7 +155,7 @@ export const stripeService = {
     if (error) throw new Error(`Failed to create booking: ${error.message}`);
   },
 
-  async handleCommissionSplit(session: Stripe.Checkout.Session, meta StripeCheckoutMetadata): Promise<void> {
+  async handleCommissionSplit(session: Stripe.Checkout.Session, metadata: StripeCheckoutMetadata): Promise<void> {
     const baseAmount = parseFloat(metadata.base_amount);
     const commissionPercent = parseFloat(metadata.commission_percent);
     const platformCommission = (baseAmount * commissionPercent) / 100;
@@ -165,14 +165,14 @@ export const stripeService = {
 
     if (metadata.establishment_id) {
       const partnerCommission = platformCommission * 0.5;
-      const {  establishment } = await supabase
+      const { data: establishment } = await supabase
         .from("establishments")
         .select("partner_id")
         .eq("id", metadata.establishment_id)
         .single();
 
       if (establishment?.partner_id) {
-        const {  partner } = await supabase
+        const { data: partner } = await supabase
           .from("partner_registrations")
           .select("stripe_account_id, stripe_charges_enabled")
           .eq("id", establishment.partner_id)
@@ -215,7 +215,7 @@ export const stripeService = {
         description: `Commission payment for booking ${sessionId}`,
       });
 
-      const {  checkoutSession } = await supabase.from("stripe_checkout_sessions").select("id").eq("stripe_session_id", sessionId).single();
+      const { data: checkoutSession } = await supabase.from("stripe_checkout_sessions").select("id").eq("stripe_session_id", sessionId).single();
       if (checkoutSession) {
         await supabase.from("stripe_transfers").insert({
           checkout_session_id: checkoutSession.id,
@@ -237,7 +237,7 @@ export const stripeService = {
       }
     } catch (error) {
       console.error("Failed to transfer to partner:", error);
-      const {  checkoutSession } = await supabase.from("stripe_checkout_sessions").select("id").eq("stripe_session_id", sessionId).single();
+      const { data: checkoutSession } = await supabase.from("stripe_checkout_sessions").select("id").eq("stripe_session_id", sessionId).single();
       if (checkoutSession) {
         await supabase.from("stripe_transfers").insert({
           checkout_session_id: checkoutSession.id,

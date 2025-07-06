@@ -230,7 +230,7 @@ export const supabaseActivityService = {
         return null
       }
 
-      const {  { publicUrl } } = supabase.storage
+      const { data: { publicUrl } } = supabase.storage
         .from("activity-media")
         .getPublicUrl(fileName)
 
