@@ -19,7 +19,18 @@
     },
     "popular": {
       "title": "ประสบการณ์ยอดนิยมในเชียงใหม่"
-    }
+    },
+    "categories": {
+      "title": "สำรวจตามหมวดหมู่",
+      "foodCuisine": "อาหารและเครื่องดื่ม",
+      "landmarks": "แลนด์มาร์ค",
+      "wellness": "สุขภาพ",
+      "workshop": "เวิร์คช็อป"
+    },
+    "recommended": {
+      "title": "แนะนำสำหรับคุณ"
+    },
+    "loading": "กำลังโหลด..."
   },
   "language": {
     "english": "อังกฤษ",
@@ -92,17 +103,19 @@
     "title": "เครื่องมือวางแผนการเดินทาง"
   },
   "planner": {
-    "title": "เครื่องมือวางแผนการเดินทางของฉัน",
-    "description": "จัดระเบียบการเดินทางของคุณโดยการลากและวางกิจกรรมลงในปฏิทิน",
+    "title": "แพลนเนอร์การเดินทางของฉัน",
+    "description": "จัดทริปของคุณโดยการลากและวางกิจกรรมลงในปฏิทิน",
     "calendar": "ปฏิทิน",
     "activities": "กิจกรรม",
     "activityCalendar": "ปฏิทินกิจกรรม",
     "calendarDescription": "ลากและวางกิจกรรมของคุณเพื่อวางแผนสัปดาห์ของคุณ",
     "selectedActivities": "กิจกรรมที่เลือก",
-    "activitiesSelected": "กิจกรรมที่เลือกแล้ว",
-    "activitySelected": "กิจกรรมที่เลือกแล้ว",
+    "activitiesSelected": "กิจกรรมที่เลือก",
+    "activitySelected": "กิจกรรมที่เลือก",
     "booking": "การจอง",
-    "bookingDescription": "จองกิจกรรมทั้งหมดของคุณในคลิกเดียว"
+    "bookingDescription": "จองกิจกรรมทั้งหมดของคุณได้ในคลิกเดียว",
+    "noActivitiesSelected": "ไม่มีกิจกรรมที่เลือก",
+    "browseActivities": "เรียกดูกิจกรรมและเพิ่มลงในแพลนเนอร์ของคุณ"
   },
   "booking": {
     "title": "จองกิจกรรมของฉัน",
@@ -111,7 +124,11 @@
     "bookActivities": "จองกิจกรรม",
     "bookActivity": "จองกิจกรรม",
     "clearSelection": "ล้างรายการที่เลือก",
-    "addActivities": "เพิ่มกิจกรรมลงในแผนการเดินทางของคุณเพื่อทำการจอง"
+    "addActivities": "เพิ่มกิจกรรมลงในแพลนเนอร์ของคุณเพื่อจอง"
+  },
+  "checkout": {
+    "processing": "กำลังดำเนินการ...",
+    "bookNow": "จองเลย"
   },
   "calendar": {
     "monday": "วันจันทร์",

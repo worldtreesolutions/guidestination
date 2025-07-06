@@ -25,7 +25,45 @@ const getRecommendations = async (params: {
     .limit(20);
 
   if (error) throw error;
-  return data as Activity[];
+
+  // Manually map Supabase data to Activity type
+  const mappedData: Activity[] = data.map((item: any) => ({
+    id: item.id,
+    activity_id: item.activity_id,
+    title: item.title,
+    name: item.name,
+    description: item.description,
+    price_per_person: item.b_price || 0,
+    duration_hours: item.duration ? parseInt(item.duration, 10) : 2,
+    duration: item.duration,
+    availability: item.availability || "",
+    location: item.location || "",
+    category: item.category || "",
+    category_id: item.category_id,
+    images: item.image_url ? [{ url: item.image_url }] : [],
+    image_url: item.image_url,
+    inclusions: item.included || [],
+    exclusions: item.not_included || [],
+    reviews: [],
+    provider_id: item.provider_id,
+    created_at: item.created_at,
+    updated_at: item.updated_at,
+    is_active: item.is_active,
+    booking_count: item.booking_count,
+    total_revenue: item.total_revenue,
+    final_price: item.final_price,
+    b_price: item.b_price,
+    price: item.price,
+    status: item.status,
+    video_url: item.video_url,
+    video_duration: item.video_duration,
+    max_participants: item.max_participants,
+    rating: item.average_rating,
+    highlights: item.highlights,
+    included: item.included,
+  }));
+
+  return mappedData;
 };
 
 export default function RecommendationPage() {
@@ -48,7 +86,7 @@ export default function RecommendationPage() {
     fetchCategories();
   }, []);
 
-  const handlePreferencesSubmit = async (data: PreferencesFormData) => {
+  const handlePreferencesSubmit = async ( PreferencesFormData) => {
     setLoading(true);
     setError(null);
 

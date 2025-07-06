@@ -55,7 +55,9 @@
   "planner.activitiesSelected": "actividades seleccionadas",
   "planner.activitySelected": "actividad seleccionada",
   "planner.booking": "Reserva",
-  "planner.bookingDescription": "Reserva todas tus actividades con un clic",
+  "planner.bookingDescription": "Reserva todas tus actividades con un solo clic",
+  "planner.noActivitiesSelected": "No hay actividades seleccionadas",
+  "planner.browseActivities": "Busca actividades y añádelas a tu planificador",
   "booking.title": "Reservar Mis Actividades",
   "booking.description": "Reserva todas tus actividades con un clic",
   "booking.total": "Total",
@@ -63,6 +65,10 @@
   "booking.bookActivity": "Reservar Actividad",
   "booking.clearSelection": "Limpiar Selección",
   "booking.addActivities": "Añade actividades a tu planificador para reservarlas",
+  "checkout": {
+    "processing": "Procesando...",
+    "bookNow": "Reservar Ahora"
+  },
   "calendar.monday": "Lunes",
   "calendar.tuesday": "Martes",
   "calendar.wednesday": "Miércoles",
@@ -638,5 +644,28 @@
       "title": "Registro de propietarios de actividades",
       "description": "Únete a nuestra red de socios profesionales"
     }
+  },
+  "home": {
+    "hero": {
+      "title": "Descubre la Magia de Chiang Mai"
+    },
+    "search": {
+      "placeholder": "Buscar actividades...",
+      "button": "Buscar"
+    },
+    "popular": {
+      "title": "Experiencias Populares en Chiang Mai"
+    },
+    "categories": {
+      "title": "Explorar por Categoría",
+      "foodCuisine": "Comida y Cocina",
+      "landmarks": "Lugares de Interés",
+      "wellness": "Bienestar",
+      "workshop": "Taller"
+    },
+    "recommended": {
+      "title": "Recomendado para Ti"
+    },
+    "loading": "Cargando..."
   }
 }

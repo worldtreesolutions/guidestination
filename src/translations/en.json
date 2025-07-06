@@ -1,4 +1,3 @@
-
 {
   "nav": {
     "aiPlanning": "AI Planning",
@@ -12,7 +11,8 @@
   },
   "home": {
     "hero": {
-      "title": "Discover the Magic of Chiang Mai"
+      "title": "Discover the Magic of Chiang Mai",
+      "subtitle": "Your guide to unforgettable experiences, powered by local experts."
     },
     "search": {
       "placeholder": "Search for activities...",
@@ -20,7 +20,18 @@
     },
     "popular": {
       "title": "Popular Experiences in Chiang Mai"
-    }
+    },
+    "categories": {
+      "title": "Explore by Category",
+      "foodCuisine": "Food & Cuisine",
+      "landmarks": "Landmarks",
+      "wellness": "Wellness",
+      "workshop": "Workshop"
+    },
+    "recommended": {
+      "title": "Recommended for You"
+    },
+    "loading": "Loading..."
   },
   "language": {
     "english": "English",
@@ -103,7 +114,9 @@
     "activitiesSelected": "activities selected",
     "activitySelected": "activity selected",
     "booking": "Booking",
-    "bookingDescription": "Book all your activities with one click"
+    "bookingDescription": "Book all your activities with one click",
+    "noActivitiesSelected": "No activities selected",
+    "browseActivities": "Browse activities and add them to your planner"
   },
   "booking": {
     "title": "Book My Activities",
@@ -113,6 +126,10 @@
     "bookActivity": "Book Activity",
     "clearSelection": "Clear Selection",
     "addActivities": "Add activities to your planner to book them"
+  },
+  "checkout": {
+    "processing": "Processing...",
+    "bookNow": "Book Now"
   },
   "calendar": {
     "monday": "Monday",

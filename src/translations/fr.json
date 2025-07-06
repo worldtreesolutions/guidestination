@@ -639,5 +639,71 @@
       "agreeToThe": "J'accepte les",
       "termsOfService": "conditions d'utilisation"
     }
+  },
+  "home": {
+    "hero": {
+      "title": "Découvrez la Magie de Chiang Mai"
+    },
+    "search": {
+      "placeholder": "Rechercher des activités...",
+      "button": "Rechercher"
+    },
+    "popular": {
+      "title": "Expériences Populaires à Chiang Mai"
+    },
+    "categories": {
+      "title": "Explorer par Catégorie",
+      "foodCuisine": "Nourriture et Cuisine",
+      "landmarks": "Sites d'intérêt",
+      "wellness": "Bien-être",
+      "workshop": "Atelier"
+    },
+    "recommended": {
+      "title": "Recommandé pour Vous"
+    },
+    "loading": "Chargement..."
+  },
+  "planner": {
+    "title": "Mon Planificateur de Voyage",
+    "description": "Organisez votre voyage en glissant et déposant des activités sur le calendrier",
+    "calendar": "Calendrier",
+    "activities": "Activités",
+    "activityCalendar": "Calendrier des Activités",
+    "calendarDescription": "Glissez et déposez vos activités pour planifier votre semaine",
+    "selectedActivities": "Activités Sélectionnées",
+    "activitiesSelected": "activités sélectionnées",
+    "activitySelected": "activité sélectionnée",
+    "booking": "Réservation",
+    "bookingDescription": "Réservez toutes vos activités en un clic",
+    "noActivitiesSelected": "Aucune activité sélectionnée",
+    "browseActivities": "Parcourez les activités et ajoutez-les à votre planificateur"
+  },
+  "booking": {
+    "title": "Réserver Mes Activités",
+    "description": "Finalisez votre réservation",
+    "total": "Total",
+    "bookActivities": "Tout Réserver",
+    "bookActivity": "Réserver l'Activité",
+    "clearSelection": "Effacer la Sélection",
+    "addActivities": "Ajoutez des activités à votre planificateur pour les réserver"
+  },
+  "checkout": {
+    "processing": "En cours de traitement...",
+    "bookNow": "Réserver Maintenant"
+  },
+  "calendar": {
+    "monday": "Lundi",
+    "tuesday": "Mardi",
+    "wednesday": "Mercredi",
+    "thursday": "Jeudi",
+    "friday": "Vendredi",
+    "saturday": "Samedi",
+    "sunday": "Dimanche",
+    "time": "Heure",
+    "day": "Jour",
+    "unavailable": "Indisponible",
+    "dropHere": "Déposer ici",
+    "previousDay": "Précédent",
+    "nextDay": "Suivant"
   }
 }

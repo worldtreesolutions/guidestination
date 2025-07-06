@@ -11,15 +11,26 @@
   },
   "home": {
     "hero": {
-      "title": "发现清迈的魅力"
+      "title": "发现清迈的魔力"
     },
     "search": {
       "placeholder": "搜索活动...",
       "button": "搜索"
     },
     "popular": {
-      "title": "清迈热门体验"
-    }
+      "title": "清迈的热门体验"
+    },
+    "categories": {
+      "title": "按类别浏览",
+      "foodCuisine": "美食与烹饪",
+      "landmarks": "地标",
+      "wellness": "健康",
+      "workshop": "工作坊"
+    },
+    "recommended": {
+      "title": "为您推荐"
+    },
+    "loading": "加载中..."
   },
   "language": {
     "english": "英语",
@@ -92,17 +103,19 @@
     "title": "短途旅行规划器"
   },
   "planner": {
-    "title": "我的旅行规划器",
-    "description": "通过将活动拖放到日历中来组织您的行程。",
+    "title": "我的旅行计划",
+    "description": "通过将活动拖放到日历上来组织您的行程",
     "calendar": "日历",
     "activities": "活动",
     "activityCalendar": "活动日历",
-    "calendarDescription": "拖放您的活动以规划您的一周。",
+    "calendarDescription": "拖放您的活动以计划您的一周",
     "selectedActivities": "已选活动",
-    "activitiesSelected": "个活动已选",
-    "activitySelected": "个活动已选",
+    "activitiesSelected": "已选活动",
+    "activitySelected": "已选活动",
     "booking": "预订",
-    "bookingDescription": "一键预订您的所有活动。"
+    "bookingDescription": "一键预订所有活动",
+    "noActivitiesSelected": "未选择任何活动",
+    "browseActivities": "浏览活动并将其添加到您的计划中"
   },
   "booking": {
     "title": "预订我的活动",
@@ -111,7 +124,11 @@
     "bookActivities": "预订活动",
     "bookActivity": "预订活动",
     "clearSelection": "清除选择",
-    "addActivities": "将活动添加到您的规划器以进行预订。"
+    "addActivities": "将活动添加到您的计划中以进行预订"
+  },
+  "checkout": {
+    "processing": "处理中...",
+    "bookNow": "立即预订"
   },
   "calendar": {
     "monday": "星期一",
