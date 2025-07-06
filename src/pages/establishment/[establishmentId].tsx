@@ -12,37 +12,41 @@ import { establishmentService } from "@/services/establishmentService"
 import { referralService } from "@/services/referralService"
 import Link from "next/link"
 import Image from "next/image"
-import { supabase } from "@/services/supabase"
+import { supabase } from "@/integrations/supabase/client"
 
 interface Establishment {
   id: string
   name: string
-  type: string
+  address: string
+  created_at: string
+  updated_at: string
+  type?: string
   description?: string
-  address?: string
   phone?: string
   email?: string
   location_lat?: number
   location_lng?: number
   place_id?: string
-  verification_status: string
+  verification_status?: string
 }
 
 interface EstablishmentActivity {
   id: string
+  establishment_id: string
   activity_id: number
-  commission_rate: number
-  is_active: boolean
-  created_at: string
-  updated_at: string
-  establishment_id: number
-  activity_id: number
-  activities?: {
-    title: string
-    image_url: string
-    b_price: number
-    description: string
-  }
+  title?: string
+  description?: string
+  price?: number
+  location?: string
+  image_urls?: string[]
+  rating?: number
+  review_count?: number
+  duration?: number
+  max_participants?: number
+  category_name?: string
+  is_active?: boolean
+  created_at?: string
+  updated_at?: string
 }
 
 export default function EstablishmentProfilePage() {
@@ -63,28 +67,77 @@ export default function EstablishmentProfilePage() {
   const loadEstablishmentData = async (id: string) => {
     try {
       setLoading(true)
-      const [establishmentData, activitiesData] = await Promise.all([
-        establishmentService.getEstablishment(id),
-        establishmentService.getEstablishmentActivities(id)
-      ])
       
-      // Map the database fields to our interface - handle the actual database structure
+      // Fetch establishment data
+      const { data: establishmentData, error: establishmentError } = await supabase
+        .from("establishments")
+        .select("*")
+        .eq("id", id)
+        .single()
+
+      if (establishmentError || !establishmentData) {
+        throw new Error("Establishment not found")
+      }
+
+      // Fetch activities data
+      const { data: activitiesData, error: activitiesError } = await supabase
+        .from("establishment_activities")
+        .select(`
+          establishment_id,
+          activity_id,
+          activities (
+            id,
+            title,
+            description,
+            price,
+            location,
+            image_urls,
+            rating,
+            review_count,
+            duration,
+            max_participants,
+            is_active
+          )
+        `)
+        .eq("establishment_id", id)
+
+      if (activitiesError) {
+        console.error("Error fetching activities:", activitiesError)
+      }
+
+      // Map the database fields to our interface
       const mappedEstablishment: Establishment = {
         id: establishmentData.id,
-        name: establishmentData.establishment_name || 'Unknown',
-        type: establishmentData.establishment_type || 'establishment',
-        description: `Establishment located at ${establishmentData.establishment_address}`,
-        address: establishmentData.establishment_address,
-        phone: undefined, // Not in current schema
-        email: undefined, // Not in current schema
-        location_lat: undefined, // Not in current schema
-        location_lng: undefined, // Not in current schema
-        place_id: undefined, // Not in current schema
-        verification_status: 'pending' // Default status
+        name: establishmentData.name || 'Unknown',
+        address: establishmentData.address || '',
+        created_at: establishmentData.created_at,
+        updated_at: establishmentData.updated_at,
+        type: 'establishment',
+        description: `Establishment located at ${establishmentData.address}`,
+        verification_status: 'pending'
       }
+
+      // Map activities data
+      const mappedActivities: EstablishmentActivity[] = activitiesData?.map(item => ({
+        id: item.activity_id.toString(),
+        establishment_id: item.establishment_id,
+        activity_id: item.activity_id,
+        title: item.activities?.title || "Activity",
+        description: item.activities?.description || "",
+        price: item.activities?.price || 0,
+        location: item.activities?.location || "Location TBD",
+        image_urls: item.activities?.image_urls || [],
+        rating: item.activities?.rating || 0,
+        review_count: item.activities?.review_count || 0,
+        duration: item.activities?.duration || 2,
+        max_participants: item.activities?.max_participants || 10,
+        is_active: item.activities?.is_active || true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })) || []
       
       setEstablishment(mappedEstablishment)
-      setActivities(activitiesData)
+      setActivities(mappedActivities)
     } catch (err) {
       console.error('Error loading establishment:', err)
       setError('Failed to load establishment information')
@@ -153,16 +206,9 @@ export default function EstablishmentProfilePage() {
                     </p>
                   </div>
                   
-                  <div className="flex items-center gap-3 mb-4">
-                    <h1 className="text-3xl font-bold text-gray-900">{establishment.name}</h1>
-                    <Badge variant={establishment.verification_status === 'verified' ? 'default' : 'secondary'}>
-                      {establishment.verification_status}
-                    </Badge>
-                  </div>
-                  
                   <div className="flex items-center gap-2 text-gray-600 mb-4">
                     <MapPin className="h-4 w-4" />
-                    <span className="capitalize">{establishment.type}</span>
+                    <span className="capitalize">{establishment.type || 'establishment'}</span>
                     {establishment.address && (
                       <>
                         <span>•</span>
@@ -203,12 +249,12 @@ export default function EstablishmentProfilePage() {
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-600">Establishment Type</span>
-                        <span className="font-semibold capitalize">{establishment.type}</span>
+                        <span className="font-semibold capitalize">{establishment.type || 'establishment'}</span>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-600">Status</span>
                         <Badge variant={establishment.verification_status === 'verified' ? 'default' : 'secondary'}>
-                          {establishment.verification_status}
+                          {establishment.verification_status || 'pending'}
                         </Badge>
                       </div>
                     </CardContent>
@@ -233,18 +279,35 @@ export default function EstablishmentProfilePage() {
               {activities.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {activities.map((activity) => {
-                    const activityData = {
+                    const mockSupabaseActivity = {
+                      id: activity.activity_id,
                       title: activity.title || "Activity",
-                      image: activity.image_urls?.[0] || "/placeholder.jpg",
+                      description: activity.description || "",
                       price: activity.price || 0,
                       location: activity.location || "Location TBD",
+                      image_urls: activity.image_urls || [],
+                      category_id: 1,
+                      owner_id: "mock_owner",
+                      created_at: activity.created_at || new Date().toISOString(),
+                      updated_at: activity.updated_at || new Date().toISOString(),
+                      is_active: activity.is_active || true,
+                      duration: activity.duration || 2,
+                      booking_type: "daily" as const,
+                      max_participants: activity.max_participants || 10,
                       rating: activity.rating || 0,
-                      href: `/activities/${activity.id}`
+                      review_count: activity.review_count || 0,
+                      languages: ["English"],
+                      highlights: ["Great experience"],
+                      meeting_point: "TBD",
+                      included: ["Guide"],
+                      not_included: ["Transport"],
+                      category_name: activity.category_name || "Activity"
                     };
+                    
                     return (
                       <ActivityCard
                         key={activity.id}
-                        activity={activity}
+                        activity={mockSupabaseActivity}
                       />
                     );
                   })}
