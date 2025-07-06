@@ -1,3 +1,4 @@
+
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -19,26 +20,26 @@ import { Label } from "@/components/ui/label"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import FileUploader, { UploadedFile } from "@/components/ui/file-uploader"
-import { PlacesAutocomplete } from "@/components/ui/places-autocomplete"
+import { PlacesAutocomplete, type PlaceData } from "@/components/ui/places-autocomplete"
 import { Check, FileText } from "lucide-react"
 import { useLanguage } from "@/contexts/LanguageContext"
 import partnerService from "@/services/partnerService"
 import uploadService from "@/services/uploadService"
 
 const createFormSchema = (t: (key: string) => string) => z.object({
-  businessName: z.string().min(2, t('form.validation.businessName')),
-  ownerName: z.string().min(2, t('form.validation.ownerName')),
-  email: z.string().email(t('form.validation.email')),
-  phone: z.string().min(10, t('form.validation.phone')),
-  address: z.string().min(10, t('form.validation.address')),
+  businessName: z.string().min(2, t("form.validation.businessName")),
+  ownerName: z.string().min(2, t("form.validation.ownerName")),
+  email: z.string().email(t("form.validation.email")),
+  phone: z.string().min(10, t("form.validation.phone")),
+  address: z.string().min(10, t("form.validation.address")),
   latitude: z.number().optional(),
   longitude: z.number().optional(),
   placeId: z.string().optional(),
   supportingDocuments: z.array(z.any()).optional(),
   termsAccepted: z.boolean().refine((val) => val === true, {
-    message: t('form.validation.terms'),
+    message: t("form.validation.terms"),
   }),
-  commissionPackage: z.enum(['basic', 'premium']),
+  commissionPackage: z.enum(["basic", "premium"]),
 })
 
 export const PartnerRegistrationForm = () => {
@@ -51,9 +52,14 @@ export const PartnerRegistrationForm = () => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      businessName: "",
+      ownerName: "",
+      email: "",
+      phone: "",
+      address: "",
       termsAccepted: false,
       supportingDocuments: [],
-      commissionPackage: 'premium',
+      commissionPackage: "premium",
     },
   })
 
@@ -74,7 +80,7 @@ export const PartnerRegistrationForm = () => {
           // Check if the uploadedFile has the actual File object
           if (uploadedFile instanceof File) {
             filesToUpload.push(uploadedFile)
-          } else if ('file' in uploadedFile && uploadedFile.file instanceof File) {
+          } else if ("file" in uploadedFile && uploadedFile.file instanceof File) {
             filesToUpload.push(uploadedFile.file)
           } else {
             // Create a File object from the UploadedFile data if needed
@@ -125,7 +131,7 @@ export const PartnerRegistrationForm = () => {
       setUploadProgress("Registration completed successfully!")
       
       // Show success message with email verification info
-      alert(`${t('partner.form.success.message')}
+      alert(`${t("partner.form.success.message")}
 
 ${result.message}
 
@@ -138,18 +144,18 @@ CDN URLs generated for secure access and fast delivery.`)
       setUploadProgress("")
       
     } catch (error: any) {
-      console.error('Error submitting partner registration:', error)
+      console.error("Error submitting partner registration:", error)
       setUploadProgress("")
       
       // Handle specific error cases
-      if (error.message?.includes('User already registered')) {
-        alert(t('form.error.accountExists'))
-      } else if (error.message?.includes('Invalid email')) {
-        alert(t('form.validation.email'))
-      } else if (error.message?.includes('upload') || error.message?.includes('Failed to process file')) {
+      if (error.message?.includes("User already registered")) {
+        alert(t("form.error.accountExists"))
+      } else if (error.message?.includes("Invalid email")) {
+        alert(t("form.validation.email"))
+      } else if (error.message?.includes("upload") || error.message?.includes("Failed to process file")) {
         alert(`Upload Error: ${error.message}`)
       } else {
-        alert(t('partner.form.error.message'))
+        alert(t("partner.form.error.message"))
       }
     } finally {
       setIsSubmitting(false)
@@ -159,15 +165,15 @@ CDN URLs generated for secure access and fast delivery.`)
 
   const handleFileUpload = (files: UploadedFile[]) => {
     setUploadedFiles(files)
-    form.setValue('supportingDocuments', files)
+    form.setValue("supportingDocuments", files)
   }
 
   const handlePlaceSelect = (placeData: PlaceData) => {
     if (placeData) {
-      form.setValue('address', placeData.address)
-      form.setValue('latitude', placeData.lat)
-      form.setValue('longitude', placeData.lng)
-      form.setValue('placeId', placeData.placeId)
+      form.setValue("address", placeData.address)
+      form.setValue("latitude", placeData.lat)
+      form.setValue("longitude", placeData.lng)
+      form.setValue("placeId", placeData.placeId)
     }
   }
 
@@ -182,16 +188,16 @@ CDN URLs generated for secure access and fast delivery.`)
         
         <div className="space-y-4">
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-            <h4 className="font-medium text-yellow-800 mb-2">{t('partner.form.legal.title')}</h4>
+            <h4 className="font-medium text-yellow-800 mb-2">{t("partner.form.legal.title")}</h4>
             <ul className="text-sm text-yellow-700 space-y-1">
-              <li>• {t('partner.form.legal.requirement1')}</li>
-              <li>• {t('partner.form.legal.requirement2')}</li>
-              <li>• {t('partner.form.legal.requirement3')}</li>
-              <li>• {t('partner.form.legal.requirement4')}</li>
+              <li>• {t("partner.form.legal.requirement1")}</li>
+              <li>• {t("partner.form.legal.requirement2")}</li>
+              <li>• {t("partner.form.legal.requirement3")}</li>
+              <li>• {t("partner.form.legal.requirement4")}</li>
             </ul>
           </div>
 
-          <h3 className="text-lg font-medium">{t('form.section.business')}</h3>
+          <h3 className="text-lg font-medium">{t("form.section.business")}</h3>
           <FormField
             control={form.control}
             name="businessName"
@@ -212,9 +218,9 @@ CDN URLs generated for secure access and fast delivery.`)
               name="ownerName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('form.field.ownerName')}</FormLabel>
+                  <FormLabel>{t("form.field.ownerName")}</FormLabel>
                   <FormControl>
-                    <Input placeholder={t('form.placeholder.ownerName')} {...field} />
+                    <Input placeholder={t("form.placeholder.ownerName")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -226,9 +232,9 @@ CDN URLs generated for secure access and fast delivery.`)
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('form.field.email')}</FormLabel>
+                  <FormLabel>{t("form.field.email")}</FormLabel>
                   <FormControl>
-                    <Input placeholder={t('form.placeholder.email')} {...field} />
+                    <Input placeholder={t("form.placeholder.email")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -242,9 +248,9 @@ CDN URLs generated for secure access and fast delivery.`)
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('form.field.phone')}</FormLabel>
+                  <FormLabel>{t("form.field.phone")}</FormLabel>
                   <FormControl>
-                    <Input placeholder={t('form.placeholder.phone')} {...field} />
+                    <Input placeholder={t("form.placeholder.phone")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -278,21 +284,21 @@ CDN URLs generated for secure access and fast delivery.`)
         <Separator />
 
         <div className="space-y-4">
-          <h3 className="text-lg font-medium">{t('partner.form.section.documents')}</h3>
+          <h3 className="text-lg font-medium">{t("partner.form.section.documents")}</h3>
           
           <FormField
             control={form.control}
             name="supportingDocuments"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('partner.form.field.supportingDocuments')}</FormLabel>
+                <FormLabel>{t("partner.form.field.supportingDocuments")}</FormLabel>
                 <FormControl>
                   <FileUploader
                     onFilesChange={handleFileUpload}
                     maxFiles={5}
                     maxSize={10 * 1024 * 1024}
-                    acceptedFileTypes={['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx']}
-                    label={t('partner.form.field.supportingDocuments')}
+                    acceptedFileTypes={[".pdf", ".jpg", ".jpeg", ".png", ".doc", ".docx"]}
+                    label={t("partner.form.field.supportingDocuments")}
                     description="Upload documents - Business license, tax registration, hotel registration, etc. (PDF, JPG, PNG, DOC, DOCX - Max 10MB each)"
                     disabled={isSubmitting}
                   />
@@ -305,16 +311,16 @@ CDN URLs generated for secure access and fast delivery.`)
           <div className="bg-green-50 border border-green-200 rounded-lg p-4">
             <h4 className="font-medium text-green-800 mb-2 flex items-center gap-2">
               <FileText className="h-4 w-4" />
-              {t('partner.form.documents.title')}
+              {t("partner.form.documents.title")}
             </h4>
             <p className="text-sm text-green-700 mb-2">
-              Files will be securely uploaded to Supabase CDN with fast global delivery. {t('partner.form.documents.description')}
+              Files will be securely uploaded to Supabase CDN with fast global delivery. {t("partner.form.documents.description")}
             </p>
             <ul className="text-sm text-green-700 space-y-1">
-              <li>• {t('partner.form.documents.item1')}</li>
-              <li>• {t('partner.form.documents.item2')}</li>
-              <li>• {t('partner.form.documents.item3')}</li>
-              <li>• {t('partner.form.documents.item4')}</li>
+              <li>• {t("partner.form.documents.item1")}</li>
+              <li>• {t("partner.form.documents.item2")}</li>
+              <li>• {t("partner.form.documents.item3")}</li>
+              <li>• {t("partner.form.documents.item4")}</li>
               <li>• CDN-enabled for fast, secure access worldwide</li>
             </ul>
           </div>
@@ -323,43 +329,43 @@ CDN URLs generated for secure access and fast delivery.`)
         <Separator />
 
         <div className="space-y-4">
-          <h3 className="text-lg font-medium">{t('partner.form.section.commission')}</h3>
+          <h3 className="text-lg font-medium">{t("partner.form.section.commission")}</h3>
           
-          <div className='grid md:grid-cols-2 gap-6'>
+          <div className="grid md:grid-cols-2 gap-6">
             {/* 
             <Card 
-              className={`relative cursor-pointer transition-colors ${form.watch('commissionPackage') === 'basic' ? 'border-primary' : 'hover:border-primary/50'}`}
-              onClick={() => form.setValue('commissionPackage', 'basic')}
+              className={`relative cursor-pointer transition-colors ${form.watch("commissionPackage") === "basic" ? "border-primary" : "hover:border-primary/50"}`}
+              onClick={() => form.setValue("commissionPackage", "basic")}
             >
               <CardHeader>
-                <CardTitle>{t('partner.form.package.basic.title')}</CardTitle>
+                <CardTitle>{t("partner.form.package.basic.title")}</CardTitle>
                 <CardDescription>
-                  {t('partner.form.package.basic.description')}
+                  {t("partner.form.package.basic.description")}
                 </CardDescription>
               </CardHeader>
-              <CardContent className='space-y-4'>
-                <ul className='space-y-2 text-sm mb-12'>
-                  <li className='flex items-center gap-2'>
-                    <Check className='h-4 w-4 text-primary' />
-                    {t('partner.form.package.basic.feature1')}
+              <CardContent className="space-y-4">
+                <ul className="space-y-2 text-sm mb-12">
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-primary" />
+                    {t("partner.form.package.basic.feature1")}
                   </li>
-                  <li className='flex items-center gap-2'>
-                    <Check className='h-4 w-4 text-primary' />
-                    {t('partner.form.package.basic.feature2')}
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-primary" />
+                    {t("partner.form.package.basic.feature2")}
                   </li>
-                  <li className='flex items-center gap-2'>
-                    <Check className='h-4 w-4 text-primary' />
-                    {t('partner.form.package.basic.feature3')}
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-primary" />
+                    {t("partner.form.package.basic.feature3")}
                   </li>
-                  <li className='flex items-center gap-2'>
-                    <Check className='h-4 w-4 text-primary' />
-                    {t('partner.form.package.basic.feature4')}
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-primary" />
+                    {t("partner.form.package.basic.feature4")}
                   </li>
                 </ul>
-                <div className='absolute bottom-4 left-4'>
+                <div className="absolute bottom-4 left-4">
                   <FormField
                     control={form.control}
-                    name='commissionPackage'
+                    name="commissionPackage"
                     render={({ field }) => (
                       <FormItem>
                         <FormControl>
@@ -368,9 +374,9 @@ CDN URLs generated for secure access and fast delivery.`)
                             defaultValue={field.value}
                             value={field.value}
                           >
-                            <div className='flex items-center space-x-2'>
-                              <RadioGroupItem value='basic' id='basic' />
-                              <Label htmlFor='basic'>{t('partner.form.package.basic.select')}</Label>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="basic" id="basic" />
+                              <Label htmlFor="basic">{t("partner.form.package.basic.select")}</Label>
                             </div>
                           </RadioGroup>
                         </FormControl>
@@ -383,41 +389,41 @@ CDN URLs generated for secure access and fast delivery.`)
             */}
 
             <Card 
-              className={`relative cursor-pointer transition-colors ${form.watch('commissionPackage') === 'premium' ? 'border-primary' : 'hover:border-primary/50'}`}
-              onClick={() => form.setValue('commissionPackage', 'premium')}
+              className={`relative cursor-pointer transition-colors ${form.watch("commissionPackage") === "premium" ? "border-primary" : "hover:border-primary/50"}`}
+              onClick={() => form.setValue("commissionPackage", "premium")}
             >
-              <div className='absolute -top-3 right-4 px-3 py-1 bg-primary text-primary-foreground text-sm rounded-full'>
-                {t('partner.form.package.recommended')}
+              <div className="absolute -top-3 right-4 px-3 py-1 bg-primary text-primary-foreground text-sm rounded-full">
+                {t("partner.form.package.recommended")}
               </div>
               <CardHeader>
-                <CardTitle>{t('partner.form.package.premium.title')}</CardTitle>
+                <CardTitle>{t("partner.form.package.premium.title")}</CardTitle>
                 <CardDescription>
-                  {t('partner.form.package.premium.description')}
+                  {t("partner.form.package.premium.description")}
                 </CardDescription>
               </CardHeader>
-              <CardContent className='space-y-4'>
-                <ul className='space-y-2 text-sm mb-12'>
-                  <li className='flex items-center gap-2'>
-                    <Check className='h-4 w-4 text-primary' />
-                    {t('partner.form.package.premium.feature1')}
+              <CardContent className="space-y-4">
+                <ul className="space-y-2 text-sm mb-12">
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-primary" />
+                    {t("partner.form.package.premium.feature1")}
                   </li>
-                  <li className='flex items-center gap-2'>
-                    <Check className='h-4 w-4 text-primary' />
-                    {t('partner.form.package.premium.feature2')}
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-primary" />
+                    {t("partner.form.package.premium.feature2")}
                   </li>
-                  <li className='flex items-center gap-2'>
-                    <Check className='h-4 w-4 text-primary' />
-                    {t('partner.form.package.premium.feature3')}
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-primary" />
+                    {t("partner.form.package.premium.feature3")}
                   </li>
-                  <li className='flex items-center gap-2'>
-                    <Check className='h-4 w-4 text-primary' />
-                    {t('partner.form.package.premium.feature4')}
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-primary" />
+                    {t("partner.form.package.premium.feature4")}
                   </li>
                 </ul>
-                <div className='absolute bottom-4 left-4'>
+                <div className="absolute bottom-4 left-4">
                   <FormField
                     control={form.control}
-                    name='commissionPackage'
+                    name="commissionPackage"
                     render={({ field }) => (
                       <FormItem>
                         <FormControl>
@@ -426,9 +432,9 @@ CDN URLs generated for secure access and fast delivery.`)
                             defaultValue={field.value}
                             value={field.value}
                           >
-                            <div className='flex items-center space-x-2'>
-                              <RadioGroupItem value='premium' id='premium' />
-                              <Label htmlFor='premium'>{t('partner.form.package.premium.select')}</Label>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="premium" id="premium" />
+                              <Label htmlFor="premium">{t("partner.form.package.premium.select")}</Label>
                             </div>
                           </RadioGroup>
                         </FormControl>
@@ -441,15 +447,15 @@ CDN URLs generated for secure access and fast delivery.`)
           </div>
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
-            <h4 className="font-medium text-blue-800 mb-2">{t('partner.form.materials.title')}</h4>
+            <h4 className="font-medium text-blue-800 mb-2">{t("partner.form.materials.title")}</h4>
             <p className="text-sm text-blue-700 mb-2">
-              {t('partner.form.materials.description')}
+              {t("partner.form.materials.description")}
             </p>
             <ul className="text-sm text-blue-700 space-y-1">
-              <li>• {t('partner.form.materials.item1')}</li>
-              <li>• {t('partner.form.materials.item2')}</li>
-              <li>• {t('partner.form.materials.item3')}</li>
-              <li>• {t('partner.form.materials.item4')}</li>
+              <li>• {t("partner.form.materials.item1")}</li>
+              <li>• {t("partner.form.materials.item2")}</li>
+              <li>• {t("partner.form.materials.item3")}</li>
+              <li>• {t("partner.form.materials.item4")}</li>
             </ul>
           </div>
 
@@ -466,10 +472,10 @@ CDN URLs generated for secure access and fast delivery.`)
                 </FormControl>
                 <div className="space-y-1 leading-none">
                   <FormLabel>
-                    {t('form.field.terms')}
+                    {t("form.field.terms")}
                   </FormLabel>
                   <FormDescription>
-                    {t('partner.form.terms.description')}
+                    {t("partner.form.terms.description")}
                   </FormDescription>
                 </div>
                 <FormMessage />
@@ -479,7 +485,7 @@ CDN URLs generated for secure access and fast delivery.`)
         </div>
 
         <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {isSubmitting ? (uploadProgress || t('form.button.submitting')) : t('form.button.submit')}
+          {isSubmitting ? (uploadProgress || t("form.button.submitting")) : t("form.button.submit")}
         </Button>
       </form>
     </Form>
