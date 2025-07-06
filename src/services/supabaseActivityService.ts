@@ -1,271 +1,204 @@
-import { supabase } from "@/integrations/supabase/client"
-import type { Database } from "@/integrations/supabase/types"
 
-type ActivityRow = Database["public"]["Tables"]["activities"]["Row"]
+import { supabase } from "@/integrations/supabase/client";
+import { Database, Tables } from "@/integrations/supabase/types";
 
-export interface SupabaseActivity extends ActivityRow {
-  // Add computed properties for compatibility
-  images: string[]
-  videos?: { url: string; thumbnail?: string; duration?: number }[]
-  schedule?: {
-    availableDates: string[]
-    startTime?: string
-    endTime?: string
-  }
-  // Add missing properties that might not be in the database schema yet
-  category?: string
-  location?: string
-  average_rating?: number
-  review_count?: number
-  includes_pickup?: boolean
-  pickup_locations?: string
-  includes_meal?: boolean
-  meal_description?: string
-  name?: string
-}
-
-export interface ActivityBooking {
-  id: string
-  activity_id: number
-  customer_id: string
-  booking_date: string
-  participants: number
-  total_amount: number
-  status: "pending" | "confirmed" | "completed" | "cancelled"
-  created_at: string
-}
+export type SupabaseActivity = Tables<"activities"> & {
+  category_name?: string;
+  owner_email?: string;
+  media?: { url: string; type: "image" | "video" }[];
+  schedules?: { day_of_week: string; start_time: string; end_time: string }[];
+};
 
 export const supabaseActivityService = {
-  // Get activity by ID with media and schedule
-  async getActivityById(activityId: string): Promise<SupabaseActivity | null> {
-    try {
-      const { data: activity, error } = await supabase
+  async getActivityBySlug(slug: string): Promise<SupabaseActivity | null> {
+    // Assuming slug is derived from title, e.g., "my-activity-title" -> id
+    // This is not robust. A real implementation should use a unique slug field.
+    // For now, we'll just fetch by ID if the slug is a number.
+    const activityId = parseInt(slug, 10);
+    if (isNaN(activityId)) {
+      // Try to find by title match if not a numeric slug
+      const { data, error } = await supabase
         .from("activities")
-        .select(`
-          *,
-          activity_media (
-            id,
-            media_url,
-            media_type,
-            thumbnail_url,
-            duration,
-            file_size
-          ),
-          activity_schedules (
-            id,
-            start_time,
-            end_time,
-            availability_start_date,
-            availability_end_date,
-            capacity,
-            is_active
-          )
-        `)
-        .eq("id", activityId)
-        .eq("is_active", true)
-        .single()
-
+        .select(`*, categories (name)`)
+        .ilike("title", slug.replace(/-/g, " "))
+        .limit(1)
+        .single();
+      
       if (error) {
-        console.error("Error fetching activity:", error)
-        return null
+        console.error("Error fetching activity by title:", error);
+        return null;
       }
+      return data as any;
+    }
 
-      if (!activity) return null
+    const { data, error } = await supabase
+      .from("activities")
+      .select(`*, categories (name)`)
+      .eq("id", activityId)
+      .single();
 
-      // Transform the data to match our interface
-      const transformedActivity: SupabaseActivity = {
-        ...activity,
-        images: activity.activity_media
-          ?.filter((media: any) => media.media_type === "image")
-          .map((media: any) => media.media_url) || [],
-        videos: activity.activity_media
-          ?.filter((media: any) => media.media_type === "video")
-          .map((media: any) => ({
-            url: media.media_url,
-            thumbnail: media.thumbnail_url,
-            duration: media.duration
-          })) || [],
-        schedule: {
-          availableDates: activity.activity_schedules
-            ?.filter((schedule: any) => schedule.is_active)
-            .map((schedule: any) => schedule.availability_start_date)
-            .filter(Boolean) || [],
-          startTime: activity.activity_schedules?.[0]?.start_time,
-          endTime: activity.activity_schedules?.[0]?.end_time
+    if (error) {
+      console.error("Error fetching activity by ID:", error);
+      return null;
+    }
+    
+    // This is a workaround because Supabase types don't easily support nested selects
+    const activity = data as any;
+    if (activity && activity.categories) {
+        activity.category_name = activity.categories.name;
+        delete activity.categories;
+    }
+
+    return activity as SupabaseActivity;
+  },
+
+  async getActivityMedia(activityId: number) {
+    // This assumes a table `activity_media` exists.
+    // It's not in the provided types, so this is a placeholder.
+    // Example:
+    // const { data, error } = await supabase
+    //   .from("activity_media")
+    //   .select("url, type")
+    //   .eq("activity_id", activityId);
+    // if (error) return [];
+    // return data;
+    return []; // Returning empty array as table doesn't exist
+  },
+
+  async getActivitySchedules(activityId: number) {
+    // This assumes a table `activity_schedules` exists.
+    // It's not in the provided types, so this is a placeholder.
+    // Example:
+    // const { data, error } = await supabase
+    //   .from("activity_schedules")
+    //   .select("day_of_week, start_time, end_time")
+    //   .eq("activity_id", activityId);
+    // if (error) return [];
+    // return data;
+    return []; // Returning empty array as table doesn't exist
+  },
+
+  async getFeaturedActivities(): Promise<SupabaseActivity[]> {
+    const { data, error } = await supabase
+      .from("activities")
+      .select("*, categories(name)")
+      .eq("is_active", true)
+      .limit(6);
+
+    if (error) {
+      console.error("Error fetching featured activities:", error);
+      return [];
+    }
+    
+    const activities = data.map((d: any) => {
+        if (d.categories) {
+            d.category_name = d.categories.name;
+            delete d.categories;
         }
-      }
+        return d;
+    });
 
-      return transformedActivity
-    } catch (error) {
-      console.error("Error in getActivityById:", error)
-      return null
-    }
+    return activities as SupabaseActivity[];
   },
 
-  // Get all published activities with pagination
-  async getPublishedActivities(
-    page: number = 1,
-    limit: number = 12,
-    filters?: {
-      category?: string
-      minPrice?: number
-      maxPrice?: number
-      location?: string
+  async getActivitiesByCategory(categoryId: number): Promise<SupabaseActivity[]> {
+    const { data, error } = await supabase
+      .from("activities")
+      .select("*, categories(name)")
+      .eq("category_id", categoryId)
+      .eq("is_active", true);
+
+    if (error) {
+      console.error("Error fetching activities by category:", error);
+      return [];
     }
-  ): Promise<{ activities: SupabaseActivity[]; total: number }> {
-    try {
-      let query = supabase
-        .from("activities")
-        .select(`
-          *,
-          activity_media (
-            id,
-            media_url,
-            media_type,
-            thumbnail_url
-          )
-        `, { count: "exact" })
-        .eq("is_active", true)
+    
+    const activities = data.map((d: any) => {
+        if (d.categories) {
+            d.category_name = d.categories.name;
+            delete d.categories;
+        }
+        return d;
+    });
 
-      // Apply filters
-      if (filters?.category) {
-        query = query.eq("category", filters.category)
-      }
-      if (filters?.minPrice) {
-        query = query.gte("final_price", filters.minPrice)
-      }
-      if (filters?.maxPrice) {
-        query = query.lte("final_price", filters.maxPrice)
-      }
-      if (filters?.location) {
-        query = query.ilike("location", `%${filters.location}%`)
-      }
-
-      // Add pagination
-      const from = (page - 1) * limit
-      const to = from + limit - 1
-      query = query.range(from, to)
-
-      const { data: activities, error, count } = await query
-
-      if (error) {
-        console.error("Error fetching activities:", error)
-        return { activities: [], total: 0 }
-      }
-
-      const transformedActivities: SupabaseActivity[] = activities?.map(activity => ({
-        ...activity,
-        images: activity.activity_media
-          ?.filter((media: any) => media.media_type === "image")
-          .map((media: any) => media.media_url) || [],
-        videos: activity.activity_media
-          ?.filter((media: any) => media.media_type === "video")
-          .map((media: any) => ({
-            url: media.media_url,
-            thumbnail: media.thumbnail_url
-          })) || []
-      })) || []
-
-      return {
-        activities: transformedActivities,
-        total: count || 0
-      }
-    } catch (error) {
-      console.error("Error in getPublishedActivities:", error)
-      return { activities: [], total: 0 }
-    }
+    return activities as SupabaseActivity[];
   },
 
-  // Create a booking
+  async searchActivities(query: string): Promise<SupabaseActivity[]> {
+    const { data, error } = await supabase
+      .from("activities")
+      .select("*, categories(name)")
+      .textSearch("title", query, { type: "websearch" })
+      .eq("is_active", true);
+
+    if (error) {
+      console.error("Error searching activities:", error);
+      return [];
+    }
+    
+    const activities = data.map((d: any) => {
+        if (d.categories) {
+            d.category_name = d.categories.name;
+            delete d.categories;
+        }
+        return d;
+    });
+
+    return activities as SupabaseActivity[];
+  },
+
   async createBooking(bookingData: {
-    activityId: number
-    customerId: string
-    bookingDate: string
-    participants: number
-    totalAmount: number
-  }): Promise<ActivityBooking | null> {
-    try {
-      const { data, error } = await supabase
-        .from("bookings")
-        .insert({
-          activity_id: bookingData.activityId,
-          customer_id: bookingData.customerId,
-          booking_date: bookingData.bookingDate,
-          participants: bookingData.participants,
-          total_amount: bookingData.totalAmount,
-          status: "pending"
-        })
-        .select()
-        .single()
+    activity_id: number;
+    customer_id: string;
+    booking_date: string;
+    participants: number;
+    total_amount: number;
+  }) {
+    const { data, error } = await supabase
+      .from("bookings")
+      .insert({ ...bookingData, status: "pending" })
+      .select()
+      .single();
 
-      if (error) {
-        console.error("Error creating booking:", error)
-        return null
-      }
-
-      return data as ActivityBooking
-    } catch (error) {
-      console.error("Error in createBooking:", error)
-      return null
+    if (error) {
+      console.error("Error creating booking:", error);
+      throw new Error("Could not create booking.");
     }
+    return data;
   },
 
-  // Get activity reviews
-  async getActivityReviews(activityId: string): Promise<any[]> {
-    try {
-      const { data, error } = await supabase
-        .from("reviews")
-        .select(`
-          *,
-          customers (
-            full_name,
-            email
-          )
-        `)
-        .eq("activity_id", activityId)
-        .eq("is_active", true)
-        .order("created_at", { ascending: false })
+  async getActivityReviews(activityId: number) {
+    const { data, error } = await supabase
+      .from("reviews")
+      .select(`
+        *,
+        customer_profiles ( name )
+      `)
+      .eq("activity_id", activityId);
 
-      if (error) {
-        console.error("Error fetching reviews:", error)
-        return []
-      }
-
-      return data || []
-    } catch (error) {
-      console.error("Error in getActivityReviews:", error)
-      return []
+    if (error) {
+      console.error("Error fetching reviews:", error);
+      return [];
     }
+    return data;
   },
 
-  // Upload activity media to Supabase Storage
-  async uploadActivityMedia(
-    file: File,
-    activityId: string,
-    mediaType: "image" | "video"
-  ): Promise<string | null> {
-    try {
-      const fileExt = file.name.split(".").pop()
-      const fileName = `${activityId}/${mediaType}s/${Date.now()}.${fileExt}`
+  async addReview(reviewData: {
+    activity_id: number;
+    user_id: string;
+    rating: number;
+    comment: string;
+  }) {
+    const { data, error } = await supabase
+      .from("reviews")
+      .insert(reviewData)
+      .select()
+      .single();
 
-      const { data, error } = await supabase.storage
-        .from("activity-media")
-        .upload(fileName, file)
-
-      if (error) {
-        console.error("Error uploading file:", error)
-        return null
-      }
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from("activity-media")
-        .getPublicUrl(fileName)
-
-      return publicUrl
-    } catch (error) {
-      console.error("Error in uploadActivityMedia:", error)
-      return null
+    if (error) {
+      console.error("Error adding review:", error);
+      throw new Error("Could not add review.");
     }
-  }
-}
+    return data;
+  },
+};

@@ -1,5 +1,9 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { CheckoutSessionData } from "@/types/stripe";
+import { stripe } from "@/services/stripeService";
+import { supabase } from "@/integrations/supabase/client";
+
+const stripeApiVersion = "2024-06-20"; // Ensure this matches your Stripe account's API version
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
@@ -36,7 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Import Stripe dynamically to avoid issues
     const Stripe = (await import("stripe")).default;
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-      apiVersion: "2024-06-20",
+      apiVersion: stripeApiVersion,
     });
 
     // Calculate Stripe fees: 2.9% + $0.30 for US cards

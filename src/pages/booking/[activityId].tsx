@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react"
 import { useRouter } from "next/router"
 import Head from "next/head"
@@ -368,6 +367,45 @@ export default function ActivityBookingPage() {
             </div>
           </div>
         </main>
+
+        <div className="mt-8">
+          <h2 className="text-2xl font-bold mb-4">Activity Details</h2>
+          {activity.highlights && activity.highlights.length > 0 && (
+            <div className="mb-6">
+              <h3 className="text-xl font-semibold mb-2">Highlights</h3>
+              <ul className="list-disc list-inside space-y-1">
+                {activity.highlights.map((highlight: string, index: number) => (
+                  <li key={index}>{highlight}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <div className="mb-6">
+            <h3 className="text-xl font-semibold mb-2">What's Included</h3>
+            <ul className="list-disc list-inside space-y-1">
+              {activity.included?.map((item: string, index: number) => (
+                <li key={index}>{item}</li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="mb-6">
+            <h3 className="text-xl font-semibold mb-2">What's Not Included</h3>
+            <ul className="list-disc list-inside space-y-1">
+              {activity.not_included?.map((item: string, index: number) => (
+                <li key={index}>{item}</li>
+              ))}
+            </ul>
+          </div>
+
+          {activity.meeting_point && (
+            <div className="mb-6">
+              <h3 className="text-xl font-semibold mb-2">Meeting Point</h3>
+              <p>{activity.meeting_point}</p>
+            </div>
+          )}
+        </div>
 
         <Footer />
       </div>
