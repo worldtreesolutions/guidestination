@@ -1,49 +1,77 @@
+
 import { supabase } from "@/integrations/supabase/client";
-import { Database, Tables } from "@/integrations/supabase/types";
+import { Database, Tables, TablesInsert } from "@/integrations/supabase/types";
 
 export type SupabaseActivity = Tables<"activities"> & {
   category_name?: string;
   owner_email?: string;
   media?: { url: string; type: "image" | "video" }[];
-  schedules?: { day_of_week: string; start_time: string; end_time: string }[];
+  schedules?: any;
+  final_price?: number;
+  category?: string;
+  reviewCount?: number;
+  images?: string[];
+  includes_pickup?: boolean;
+  pickup_locations?: string;
+  includes_meal?: boolean;
+  meal_description?: string;
+  average_rating?: number;
+  videos?: string[];
 };
+
+const mapActivityData = (activity: any): SupabaseActivity | null => {
+    if (!activity) return null;
+
+    const newActivity = { ...activity };
+
+    if (newActivity.categories) {
+        newActivity.category_name = newActivity.categories.name;
+        newActivity.category = newActivity.categories.name;
+        delete newActivity.categories;
+    }
+    
+    newActivity.final_price = newActivity.price;
+    newActivity.reviewCount = newActivity.review_count;
+    newActivity.images = newActivity.image_urls;
+    newActivity.average_rating = newActivity.rating;
+    
+    newActivity.videos = newActivity.videos || [];
+    newActivity.includes_pickup = newActivity.includes_pickup || false;
+    newActivity.pickup_locations = newActivity.pickup_locations || "";
+    newActivity.includes_meal = newActivity.includes_meal || false;
+    newActivity.meal_description = newActivity.meal_description || "";
+    newActivity.schedules = newActivity.schedules || { availableDates: [] };
+
+    return newActivity as SupabaseActivity;
+}
 
 export const supabaseActivityService = {
   async getActivityById(id: string): Promise<SupabaseActivity | null> {
     const activityId = parseInt(id, 10);
+    let query;
     if (isNaN(activityId)) {
-      const { data, error } = await supabase
+      query = supabase
         .from("activities")
         .select(`*, categories (name)`)
         .ilike("title", id.replace(/-/g, " "))
         .limit(1)
         .single();
-      
-      if (error) {
-        console.error("Error fetching activity by title:", error);
-        return null;
-      }
-      return data as any;
+    } else {
+      query = supabase
+        .from("activities")
+        .select(`*, categories (name)`)
+        .eq("id", activityId)
+        .single();
     }
 
-    const { data, error } = await supabase
-      .from("activities")
-      .select(`*, categories (name)`)
-      .eq("id", activityId)
-      .single();
+    const { data, error } = await query;
 
     if (error) {
-      console.error("Error fetching activity by ID:", error);
+      console.error("Error fetching activity:", error);
       return null;
     }
     
-    const activity = data as any;
-    if (activity && activity.categories) {
-        activity.category_name = activity.categories.name;
-        delete activity.categories;
-    }
-
-    return activity as SupabaseActivity;
+    return mapActivityData(data);
   },
 
   async getActivityBySlug(slug: string): Promise<SupabaseActivity | null> {
@@ -51,29 +79,11 @@ export const supabaseActivityService = {
   },
 
   async getActivityMedia(activityId: number) {
-    // This assumes a table `activity_media` exists.
-    // It's not in the provided types, so this is a placeholder.
-    // Example:
-    // const { data, error } = await supabase
-    //   .from("activity_media")
-    //   .select("url, type")
-    //   .eq("activity_id", activityId);
-    // if (error) return [];
-    // return data;
-    return []; // Returning empty array as table doesn't exist
+    return []; 
   },
 
   async getActivitySchedules(activityId: number) {
-    // This assumes a table `activity_schedules` exists.
-    // It's not in the provided types, so this is a placeholder.
-    // Example:
-    // const { data, error } = await supabase
-    //   .from("activity_schedules")
-    //   .select("day_of_week, start_time, end_time")
-    //   .eq("activity_id", activityId);
-    // if (error) return [];
-    // return data;
-    return []; // Returning empty array as table doesn't exist
+    return [];
   },
 
   async getFeaturedActivities(): Promise<SupabaseActivity[]> {
@@ -88,15 +98,7 @@ export const supabaseActivityService = {
       return [];
     }
     
-    const activities = data.map((d: any) => {
-        if (d.categories) {
-            d.category_name = d.categories.name;
-            delete d.categories;
-        }
-        return d;
-    });
-
-    return activities as SupabaseActivity[];
+    return data.map(d => mapActivityData(d)!).filter(d => d !== null);
   },
 
   async getActivitiesByCategory(categoryId: number): Promise<SupabaseActivity[]> {
@@ -111,15 +113,7 @@ export const supabaseActivityService = {
       return [];
     }
     
-    const activities = data.map((d: any) => {
-        if (d.categories) {
-            d.category_name = d.categories.name;
-            delete d.categories;
-        }
-        return d;
-    });
-
-    return activities as SupabaseActivity[];
+    return data.map(d => mapActivityData(d)!).filter(d => d !== null);
   },
 
   async searchActivities(query: string): Promise<SupabaseActivity[]> {
@@ -134,27 +128,13 @@ export const supabaseActivityService = {
       return [];
     }
     
-    const activities = data.map((d: any) => {
-        if (d.categories) {
-            d.category_name = d.categories.name;
-            delete d.categories;
-        }
-        return d;
-    });
-
-    return activities as SupabaseActivity[];
+    return data.map(d => mapActivityData(d)!).filter(d => d !== null);
   },
 
-  async createBooking(bookingData: {
-    activity_id: number;
-    customer_id: string;
-    booking_date: string;
-    participants: number;
-    total_amount: number;
-  }) {
+  async createBooking(bookingData: TablesInsert<'bookings'>) {
     const { data, error } = await supabase
       .from("bookings")
-      .insert({ ...bookingData, status: "pending" })
+      .insert(bookingData)
       .select()
       .single();
 
@@ -200,3 +180,4 @@ export const supabaseActivityService = {
     return data;
   },
 };
+  

@@ -1,6 +1,5 @@
-
 import Stripe from "stripe";
-import { supabase } from "@/integrations/supabase/admin";
+import supabase from "@/integrations/supabase/admin";
 import type { Database, Tables, TablesInsert } from "@/integrations/supabase/types";
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -222,7 +221,7 @@ export const stripeService = {
       .from("stripe_transfers")
       .update({ 
         status: "failed",
-        failure_message: transfer.failure_message || null
+        failure_message: (transfer as any).failure_message || null
       })
       .eq("id", transfer.id);
   },

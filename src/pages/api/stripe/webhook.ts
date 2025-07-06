@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import stripeService from "@/services/stripeService";
 import { stripe } from "@/services/stripeService";
-import { supabase } from "@/integrations/supabase/admin";
+import supabase from "@/integrations/supabase/admin";
 
 // Disable body parser for raw body access
 export const config = {
