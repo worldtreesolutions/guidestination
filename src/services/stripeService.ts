@@ -1,8 +1,7 @@
-
 import Stripe from "stripe";
 import { supabase } from "@/integrations/supabase/client";
 import { CheckoutSessionData, StripeCheckoutMetadata, StripeFeesCalculation } from "@/types/stripe";
-import { Database } from "@/integrations/supabase/types";
+import { Database, Json } from "@/integrations/supabase/types";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-06-20",
@@ -90,7 +89,7 @@ export const stripeService = {
       line_items: [{
         price_ {
           currency: "usd",
-          product_ {
+          product_data: {
             name: `Activity Booking - ${participants} participant(s)`,
             description: `Base amount: $${baseAmount.toFixed(2)} + Processing fee: $${calculation.stripeFee.toFixed(2)}`,
           },
@@ -238,7 +237,7 @@ export const stripeService = {
       }
     } catch (error) {
       console.error("Failed to transfer to partner:", error);
-      const {  checkoutSession } = await supabase.from("stripe_checkout_sessions").select("id").eq("stripe_session_id", sessionId).single();
+      const { data: checkoutSession } = await supabase.from("stripe_checkout_sessions").select("id").eq("stripe_session_id", sessionId).single();
       if (checkoutSession) {
         await supabase.from("stripe_transfers").insert({
           checkout_session_id: checkoutSession.id,

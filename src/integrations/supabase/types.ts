@@ -1,4 +1,3 @@
-
 export type Json =
   | string
   | number
@@ -150,7 +149,7 @@ export interface Database {
             isOneToOne: false
             referencedRelation: "activities"
             referencedColumns: ["id"]
-          }
+          },
         ]
       }
       activity_owners: {
@@ -236,7 +235,7 @@ export interface Database {
             isOneToOne: false
             referencedRelation: "activities"
             referencedColumns: ["id"]
-          }
+          },
         ]
       }
       bookings: {
@@ -295,7 +294,7 @@ export interface Database {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
-          }
+          },
         ]
       }
       categories: {
@@ -366,7 +365,7 @@ export interface Database {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
-          }
+          },
         ]
       }
       establishment_activities: {
@@ -411,7 +410,7 @@ export interface Database {
             isOneToOne: false
             referencedRelation: "establishments"
             referencedColumns: ["id"]
-          }
+          },
         ]
       }
       establishment_commissions: {
@@ -474,7 +473,7 @@ export interface Database {
             isOneToOne: false
             referencedRelation: "establishments"
             referencedColumns: ["id"]
-          }
+          },
         ]
       }
       establishments: {
@@ -524,7 +523,7 @@ export interface Database {
             isOneToOne: false
             referencedRelation: "partner_registrations"
             referencedColumns: ["id"]
-          }
+          },
         ]
       }
       partner_registrations: {
@@ -601,7 +600,7 @@ export interface Database {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
-          }
+          },
         ]
       }
       referral_visits: {
@@ -614,7 +613,7 @@ export interface Database {
           user_agent: string | null
           referrer_url: string | null
           visited_at: string
-          meta Json
+          meta Json | null
         }
         Insert: {
           id?: string
@@ -625,7 +624,7 @@ export interface Database {
           user_agent?: string | null
           referrer_url?: string | null
           visited_at?: string
-          metadata?: Json
+          metadata?: Json | null
         }
         Update: {
           id?: string
@@ -636,7 +635,7 @@ export interface Database {
           user_agent?: string | null
           referrer_url?: string | null
           visited_at?: string
-          metadata?: Json
+          metadata?: Json | null
         }
         Relationships: [
           {
@@ -645,7 +644,7 @@ export interface Database {
             isOneToOne: false
             referencedRelation: "establishments"
             referencedColumns: ["id"]
-          }
+          },
         ]
       }
       reviews: {
@@ -690,7 +689,7 @@ export interface Database {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
-          }
+          },
         ]
       }
       stripe_checkout_sessions: {
@@ -870,7 +869,7 @@ export interface Database {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
-          }
+          },
         ]
       }
     }
