@@ -1,4 +1,3 @@
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,6 +14,9 @@ export interface PreferencesFormData {
   unavailableDays: string[]
   additionalNotes: string
   preferredTime: string[]
+  categories: number[]
+  priceRange: [number, number]
+  duration: [number, number]
 }
 
 interface PreferencesFormProps {
@@ -28,7 +30,10 @@ export function PreferencesForm({ onSubmit }: PreferencesFormProps) {
     budget: "medium",
     unavailableDays: [],
     additionalNotes: "",
-    preferredTime: []
+    preferredTime: [],
+    categories: [],
+    priceRange: [0, 0],
+    duration: [0, 0]
   })
 
   const interests = [

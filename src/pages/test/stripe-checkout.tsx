@@ -378,8 +378,9 @@ export default function StripeCheckoutTestPage() {
                     amount: testData.amount,
                     participants: testData.participants,
                     commissionPercent: testData.commissionPercent,
+                    successUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/booking/success?session_id={CHECKOUT_SESSION_ID}`,
+                    cancelUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/booking/cancelled`,
                   }}
-                  className="w-full"
                 />
 
                 <div className="text-sm text-gray-600 space-y-1">
