@@ -3,7 +3,7 @@ import { CheckoutSessionData } from "@/types/stripe";
 import { stripe } from "@/services/stripeService";
 import { supabase } from "@/integrations/supabase/client";
 
-const stripeApiVersion = "2024-06-20"; // Ensure this matches your Stripe account's API version
+const stripeApiVersion = "2025-02-24.acacia"; // Ensure this matches your Stripe account's API version
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {

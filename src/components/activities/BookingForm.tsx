@@ -15,18 +15,13 @@ import { SupabaseActivity } from "@/services/supabaseActivityService"
 import { Users, Minus, Plus } from "lucide-react"
 
 interface BookingFormProps {
-  activity: SupabaseActivity
-  selectedDate: Date | undefined
-  participants: number
-  onParticipantsChange: (count: number) => void
+  activity: SupabaseActivity;
+  selectedDate?: Date;
+  participants: number;
+  onParticipantsChange: (participants: number) => void;
 }
 
-export function BookingForm({
-  activity,
-  selectedDate,
-  participants,
-  onParticipantsChange,
-}: BookingFormProps) {
+export function BookingForm({ activity, selectedDate, participants, onParticipantsChange }: BookingFormProps) {
   const { toast } = useToast()
 
   const handleBooking = () => {
@@ -59,7 +54,7 @@ export function BookingForm({
     }
   }
 
-  const totalPrice = (activity.final_price || 0) * participants
+  const totalPrice = (activity.price || 0) * participants
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -111,9 +106,9 @@ export function BookingForm({
           </span>
           <span className="font-medium">{formatPrice(totalPrice)}</span>
         </div>
-        <div className="flex justify-between items-center font-bold text-lg">
+        <div className="flex items-center justify-between text-lg font-semibold">
           <span>Total</span>
-          <span>{formatPrice(totalPrice)}</span>
+          <span>{formatPrice((activity.price || 0) * participants)}</span>
         </div>
       </div>
 

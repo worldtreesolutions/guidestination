@@ -135,12 +135,12 @@ export default function ActivityBookingPage() {
             <div className="mb-8">
               <div className="flex items-center gap-2 mb-4">
                 <Badge variant="secondary" className="capitalize">
-                  {activity.category}
+                  {activity.category_name}
                 </Badge>
-                {activity.average_rating && (
+                {activity.rating && (
                   <div className="flex items-center gap-1">
                     <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    <span className="font-medium">{activity.average_rating}</span>
+                    <span className="font-medium">{activity.rating}</span>
                     <span className="text-muted-foreground">
                       ({activity.review_count} reviews)
                     </span>
@@ -182,8 +182,8 @@ export default function ActivityBookingPage() {
                   </CardHeader>
                   <CardContent>
                     <ActivityGallery 
-                      images={activity.images}
-                      videos={activity.videos || []}
+                      images={activity.image_urls || []}
+                      videos={[]}
                       title={activity.title}
                     />
                   </CardContent>
@@ -293,7 +293,7 @@ export default function ActivityBookingPage() {
                 {/* Reviews Section */}
                 <ActivityReviews 
                   activityId={activity.id.toString()}
-                  rating={activity.average_rating || 0}
+                  rating={activity.rating || 0}
                   reviewCount={activity.review_count || 0}
                 />
               </div>
@@ -311,7 +311,7 @@ export default function ActivityBookingPage() {
                     <CardContent className="space-y-6">
                       <div className="text-center">
                         <div className="text-2xl font-bold text-primary">
-                          {formatPrice(activity.final_price)}
+                          {formatPrice(activity.price)}
                         </div>
                         <div className="text-sm text-muted-foreground">per person</div>
                       </div>
@@ -321,7 +321,7 @@ export default function ActivityBookingPage() {
                       <div>
                         <h3 className="font-semibold mb-3">Select Date</h3>
                         <AvailabilityCalendar
-                          availableDates={activity.schedule?.availableDates || []}
+                          availableDates={activity.schedules?.availableDates || []}
                           selectedDate={selectedDate}
                           onDateSelect={setSelectedDate}
                         />

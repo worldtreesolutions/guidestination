@@ -47,7 +47,6 @@ export default function ActivityPage() {
       
       try {
         setLoading(true)
-        // Use Supabase service instead of mock data
         const activityData = await supabaseActivityService.getActivityById(slug)
         setActivity(activityData)
       } catch (error) {
@@ -166,7 +165,7 @@ export default function ActivityPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="text-2xl sm:text-3xl font-bold text-primary">
-                    {formatPrice(activity.final_price)}
+                    {formatPrice(activity.price)}
                   </span>
                   <span className="text-muted-foreground">per person</span>
                 </div>
@@ -186,7 +185,7 @@ export default function ActivityPage() {
               <div className="lg:col-span-2 space-y-8">
                 {/* Image Gallery */}
                 <ActivityGallery 
-                  images={activity.images}
+                  images={activity.image_urls || []}
                   videos={[]} // Add video support later
                   title={activity.title}
                 />
@@ -320,7 +319,7 @@ export default function ActivityPage() {
                   <TabsContent value="reviews">
                     <ActivityReviews 
                       activityId={activity.id.toString()}
-                      rating={activity.average_rating || 0}
+                      rating={activity.rating || 0}
                       reviewCount={activity.review_count || 0}
                     />
                   </TabsContent>
@@ -340,7 +339,7 @@ export default function ActivityPage() {
                     <CardContent className="space-y-6">
                       <div className="text-center">
                         <div className="text-2xl font-bold text-primary">
-                          {formatPrice(activity.final_price)}
+                          {formatPrice(activity.price)}
                         </div>
                         <div className="text-sm text-muted-foreground">per person</div>
                       </div>
@@ -348,7 +347,7 @@ export default function ActivityPage() {
                       <Separator />
 
                       <AvailabilityCalendar
-                        availableDates={activity.schedule?.availableDates || []}
+                        availableDates={activity.schedules?.availableDates || []}
                         selectedDate={selectedDate}
                         onDateSelect={setSelectedDate}
                       />

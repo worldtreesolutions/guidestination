@@ -3,7 +3,7 @@ import supabase from "@/integrations/supabase/admin";
 import type { Database, Tables, TablesInsert } from "@/integrations/supabase/types";
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-06-20",
+  apiVersion: "2025-02-24.acacia",
   typescript: true,
 });
 
