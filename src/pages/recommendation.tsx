@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -86,7 +85,7 @@ export default function RecommendationPage() {
     fetchCategories();
   }, []);
 
-  const handlePreferencesSubmit = async ( PreferencesFormData) => {
+  const handlePreferencesSubmit = async (data: PreferencesFormData) => {
     setLoading(true);
     setError(null);
 
@@ -99,7 +98,7 @@ export default function RecommendationPage() {
 
     try {
       const recommendationsResult = await getRecommendations({
-        categories: data.categories,
+        categories: data.categories.map(Number),
         price_range: data.priceRange,
         duration_range: data.duration,
       });

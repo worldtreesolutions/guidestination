@@ -116,7 +116,7 @@ export const stripeService = {
 
     await supabase.from("stripe_checkout_sessions").insert({
       stripe_session_id: session.id,
-      activity_id: activityId,
+      activity_id: Number(activityId),
       provider_id: providerId,
       establishment_id: establishmentId,
       customer_id: customerId,
