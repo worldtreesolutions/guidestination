@@ -5,11 +5,28 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Activity } from "@/types/activity";
 import { Category, Preferences } from "@/types/general";
 import { PreferencesForm, PreferencesFormData } from "@/components/recommendation/PreferencesForm";
-import { ActivityCard } from "@/components/home/ActivityCard";
+import ActivityCard from "@/components/dashboard/activities/ActivityCard";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
-import { recommendationService } from "@/services/recommendationService";
+
+// Create a simple recommendation service function
+const getRecommendations = async (params: {
+  categories: number[];
+  price_range: [number, number];
+  duration_range: [number, number];
+}): Promise<Activity[]> => {
+  const { data, error } = await supabase
+    .from("activities")
+    .select("*")
+    .in("category_id", params.categories)
+    .gte("b_price", params.price_range[0])
+    .lte("b_price", params.price_range[1])
+    .limit(20);
+
+  if (error) throw error;
+  return data as Activity[];
+};
 
 export default function RecommendationPage() {
   const { t } = useLanguage();
@@ -31,7 +48,7 @@ export default function RecommendationPage() {
     fetchCategories();
   }, []);
 
-  const handlePreferencesSubmit = async ( PreferencesFormData) => {
+  const handlePreferencesSubmit = async (data: PreferencesFormData) => {
     setLoading(true);
     setError(null);
 
@@ -43,13 +60,13 @@ export default function RecommendationPage() {
     setPreferences(newPreferences);
 
     try {
-      const recommendationsResult = await recommendationService.getRecommendations({
-        categories: (data as any).categories,
-        price_range: (data as any).priceRange,
-        duration_range: (data as any).duration,
+      const recommendationsResult = await getRecommendations({
+        categories: data.categories,
+        price_range: data.priceRange,
+        duration_range: data.duration,
       });
 
-      setRecommendations(recommendationsResult as Activity[]);
+      setRecommendations(recommendationsResult);
     } catch (err: any) {
       setError("Failed to fetch recommendations. Please try again.");
       console.error(err);
@@ -77,7 +94,7 @@ export default function RecommendationPage() {
 
         {!preferences ? (
           <div className="max-w-2xl mx-auto">
-            <PreferencesForm onSubmit={handlePreferencesSubmit} categories={categories} />
+            <PreferencesForm onSubmit={handlePreferencesSubmit} />
           </div>
         ) : (
           <div>
@@ -90,17 +107,9 @@ export default function RecommendationPage() {
               <div>
                 {recommendations.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {recommendations.map((activity) => {
-                      const cardActivity = {
-                        id: activity.id.toString(),
-                        name: activity.title,
-                        image: activity.image_url || (activity.images && activity.images[0]?.url) || '',
-                        price: activity.final_price || activity.price_per_person,
-                        rating: activity.reviews?.reduce((acc, r) => acc + r.rating, 0) / (activity.reviews?.length || 1) || 5,
-                        reviewCount: activity.reviews?.length || 0,
-                      };
-                      return <ActivityCard key={activity.id} activity={cardActivity} />;
-                    })}
+                    {recommendations.map((activity) => (
+                      <ActivityCard key={activity.id} activity={activity} showActions={false} />
+                    ))}
                   </div>
                 ) : (
                   <div className="text-center py-12">

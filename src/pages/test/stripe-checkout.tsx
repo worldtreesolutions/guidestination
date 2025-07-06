@@ -370,13 +370,15 @@ export default function StripeCheckoutTestPage() {
                 </div>
 
                 <CheckoutButton
-                  activityId={testData.activityId}
-                  providerId={testData.providerId}
-                  establishmentId={testData.establishmentId || undefined}
-                  customerId={testData.customerId || undefined}
-                  amount={testData.amount}
-                  participants={testData.participants}
-                  commissionPercent={testData.commissionPercent}
+                  checkoutData={{
+                    activityId: testData.activityId,
+                    providerId: testData.providerId,
+                    establishmentId: testData.establishmentId || undefined,
+                    customerId: testData.customerId || undefined,
+                    amount: testData.amount,
+                    participants: testData.participants,
+                    commissionPercent: testData.commissionPercent,
+                  }}
                   className="w-full"
                 />
 
