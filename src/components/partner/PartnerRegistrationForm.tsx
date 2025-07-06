@@ -54,6 +54,7 @@ export const PartnerRegistrationForm = () => {
     defaultValues: {
       termsAccepted: false,
       supportingDocuments: [],
+      commissionPackage: 'premium',
     },
   })
 
@@ -66,7 +67,7 @@ export const PartnerRegistrationForm = () => {
       
       // Upload supporting documents to Supabase CDN if any files are selected
       if (uploadedFiles.length > 0) {
-        setUploadProgress("Uploading documents to Supabase CDN...")
+        setUploadProgress("Uploading documents...")
         
         // Convert UploadedFile objects to File objects for upload
         const filesToUpload: File[] = []
@@ -308,7 +309,7 @@ CDN URLs generated for secure access and fast delivery.`)
                     maxSize={10 * 1024 * 1024}
                     acceptedFileTypes={['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx']}
                     label={t('partner.form.field.supportingDocuments')}
-                    description="Upload documents to Supabase CDN - Business license, tax registration, hotel registration, etc. (PDF, JPG, PNG, DOC, DOCX - Max 10MB each)"
+                    description="Upload documents - Business license, tax registration, hotel registration, etc. (PDF, JPG, PNG, DOC, DOCX - Max 10MB each)"
                     disabled={isSubmitting}
                   />
                 </FormControl>
@@ -341,6 +342,7 @@ CDN URLs generated for secure access and fast delivery.`)
           <h3 className="text-lg font-medium">{t('partner.form.section.commission')}</h3>
           
           <div className='grid md:grid-cols-2 gap-6'>
+            {/* 
             <Card 
               className={`relative cursor-pointer transition-colors ${form.watch('commissionPackage') === 'basic' ? 'border-primary' : 'hover:border-primary/50'}`}
               onClick={() => form.setValue('commissionPackage', 'basic')}
@@ -394,6 +396,7 @@ CDN URLs generated for secure access and fast delivery.`)
                 </div>
               </CardContent>
             </Card>
+            */}
 
             <Card 
               className={`relative cursor-pointer transition-colors ${form.watch('commissionPackage') === 'premium' ? 'border-primary' : 'hover:border-primary/50'}`}
