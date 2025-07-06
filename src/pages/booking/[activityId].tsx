@@ -6,11 +6,11 @@ import { Activity } from "@/types/activity";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Clock, Users, MapPin, Star, ChevronLeft, ChevronRight } from "lucide-react";
+import { Star, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import CheckoutButton from "@/components/stripe/CheckoutButton";
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
+import { CheckoutButton } from "@/components/stripe/CheckoutButton";
+import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
 import Image from "next/image";
 
 export default function ActivityBookingPage() {
@@ -27,14 +27,14 @@ export default function ActivityBookingPage() {
 
   useEffect(() => {
     const fetchActivity = async () => {
-      if (!activityId) return;
+      if (!activityId || typeof activityId !== "string") return;
 
       setLoading(true);
       try {
         const { data, error } = await supabase
           .from("activities")
           .select("*")
-          .eq("id", activityId)
+          .eq("id", parseInt(activityId))
           .single();
 
         if (error) throw error;
@@ -57,7 +57,9 @@ export default function ActivityBookingPage() {
     setParticipants((prev) => {
       const newCount = increment ? prev + 1 : prev - 1;
       if (newCount < 1) return 1;
-      if (activity && newCount > activity.max_participants) return activity.max_participants;
+      if (activity && activity.max_participants && newCount > activity.max_participants) {
+        return activity.max_participants;
+      }
       return newCount;
     });
   };
@@ -132,31 +134,39 @@ export default function ActivityBookingPage() {
             </div>
             <h1 className="text-3xl font-bold mt-4">{activity.title}</h1>
             <div className="flex items-center mt-2 text-gray-600">
-              <Star className="w-5 h-5 text-yellow-500 mr-1" />
-              <span>{activity.rating}</span>
-              <span className="mx-2">|</span>
+              {activity.rating && (
+                <>
+                  <Star className="w-5 h-5 text-yellow-500 mr-1" />
+                  <span>{activity.rating}</span>
+                  <span className="mx-2">|</span>
+                </>
+              )}
               <MapPin className="w-5 h-5 mr-1" />
               <span>{activity.location}</span>
             </div>
             <p className="mt-4 text-lg">{activity.description}</p>
 
-            <div className="mt-6">
-              <h2 className="text-2xl font-semibold">Highlights</h2>
-              <ul className="list-disc list-inside mt-2 space-y-1">
-                {activity.highlights?.map((highlight: string, i: number) => (
-                  <li key={i}>{highlight}</li>
-                ))}
-              </ul>
-            </div>
+            {activity.highlights && activity.highlights.length > 0 && (
+              <div className="mt-6">
+                <h2 className="text-2xl font-semibold">Highlights</h2>
+                <ul className="list-disc list-inside mt-2 space-y-1">
+                  {activity.highlights?.map((highlight: string, i: number) => (
+                    <li key={i}>{highlight}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
-            <div className="mt-6">
-              <h2 className="text-2xl font-semibold">What's Included</h2>
-              <ul className="list-disc list-inside mt-2 space-y-1">
-                {activity.included?.map((item: string, i: number) => (
-                  <li key={i}>{item}</li>
-                ))}
-              </ul>
-            </div>
+            {activity.included && activity.included.length > 0 && (
+              <div className="mt-6">
+                <h2 className="text-2xl font-semibold">What's Included</h2>
+                <ul className="list-disc list-inside mt-2 space-y-1">
+                  {activity.included?.map((item: string, i: number) => (
+                    <li key={i}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
 
           <div>

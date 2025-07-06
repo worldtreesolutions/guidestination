@@ -2,11 +2,12 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Activity, Category, Preferences } from "@/types/activity";
+import { Activity } from "@/types/activity";
+import { Category, Preferences } from "@/types/general";
 import { PreferencesForm, PreferencesFormData } from "@/components/recommendation/PreferencesForm";
 import { ActivityCard } from "@/components/home/ActivityCard";
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
+import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 
 export default function RecommendationPage() {
@@ -34,7 +35,6 @@ export default function RecommendationPage() {
     setError(null);
 
     const newPreferences: Preferences = {
-      ...data,
       categories: data.categories.map(Number),
       priceRange: data.priceRange,
       duration: data.duration,

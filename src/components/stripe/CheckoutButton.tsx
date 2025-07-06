@@ -1,48 +1,38 @@
+
 import { useState } from "react";
+import { loadStripe } from "@stripe/stripe-js";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { CheckoutSessionData } from "@/types/stripe";
+import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "next/router";
+
+const stripePromise = loadStripe(
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
+);
 
 interface CheckoutButtonProps {
-  activityId: number;
-  providerId: string;
-  amount: number;
-  participants: number;
-  establishmentId?: string;
-  customerId?: string;
-  commissionPercent?: number;
-  children?: React.ReactNode;
-  className?: string;
+  checkoutData: CheckoutSessionData;
+  disabled?: boolean;
 }
 
-export default function CheckoutButton({
-  activityId,
-  providerId,
-  amount,
-  participants,
-  establishmentId,
-  customerId,
-  commissionPercent = 20,
-  children = "Book Now",
-  className,
-}: CheckoutButtonProps) {
+export function CheckoutButton({ checkoutData, disabled = false }: CheckoutButtonProps) {
+  const { t } = useLanguage();
+  const { user } = useAuth();
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleCheckout = async () => {
+    if (!user) {
+      router.push(`/auth/login?redirect=/booking/${checkoutData.activityId}`);
+      return;
+    }
+
     setLoading(true);
+    setError(null);
 
     try {
-      const checkoutData: CheckoutSessionData = {
-        activityId,
-        providerId,
-        establishmentId,
-        customerId,
-        amount,
-        participants,
-        commissionPercent,
-        successUrl: `${window.location.origin}/booking/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancelUrl: `${window.location.origin}/booking/cancelled`,
-      };
-
       const response = await fetch("/api/stripe/create-checkout-session", {
         method: "POST",
         headers: {
@@ -51,33 +41,43 @@ export default function CheckoutButton({
         body: JSON.stringify(checkoutData),
       });
 
-      const data = await response.json();
+      const session = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to create checkout session");
+        throw new Error(session.error || "Failed to create checkout session.");
       }
 
-      // Redirect to Stripe Checkout
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        throw new Error("No checkout URL received");
+      const stripe = await stripePromise;
+      if (!stripe) {
+        throw new Error("Stripe.js has not loaded yet.");
       }
-    } catch (error) {
-      console.error("Checkout error:", error);
-      alert(error instanceof Error ? error.message : "Failed to start checkout");
+
+      const { error } = await stripe.redirectToCheckout({
+        sessionId: session.sessionId,
+      });
+
+      if (error) {
+        console.error("Stripe redirect error:", error);
+        setError(error.message || "An unexpected error occurred.");
+      }
+    } catch (err: any) {
+      console.error("Checkout failed:", err);
+      setError(err.message || "An unexpected error occurred.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Button
-      onClick={handleCheckout}
-      disabled={loading}
-      className={className}
-    >
-      {loading ? "Processing..." : children}
-    </Button>
+    <div className="w-full">
+      <Button
+        onClick={handleCheckout}
+        disabled={loading || disabled}
+        className="w-full"
+      >
+        {loading ? t("checkout.processing") : t("checkout.bookNow")}
+      </Button>
+      {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+    </div>
   );
 }
