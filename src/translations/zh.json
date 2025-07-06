@@ -1,3 +1,4 @@
+
 {
   "nav": {
     "aiPlanning": "AI 规划",
@@ -11,7 +12,8 @@
   },
   "home": {
     "hero": {
-      "title": "发现清迈的魔力"
+      "title": "发现清迈的魔力",
+      "subtitle": "您的难忘体验指南，由本地专家提供支持。"
     },
     "search": {
       "placeholder": "搜索活动...",
