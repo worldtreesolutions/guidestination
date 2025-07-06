@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
@@ -22,7 +21,7 @@ export default function RecommendationPage() {
   const { addActivity } = usePlanning();
   const { toast } = useToast();
 
-  const handleSubmit = async ( PreferencesFormData) => {
+  const handleSubmit = async (data: PreferencesFormData) => {
     setLoading(true);
     setRecommendations(null);
     try {
@@ -66,7 +65,7 @@ export default function RecommendationPage() {
 
   const handleAddAllToPlanning = () => {
     if (recommendations) {
-      recommendations.activities.forEach(addActivity);
+      recommendations.activities.forEach(activity => addActivity(activity as SupabaseActivity));
       toast({
         title: "All activities added",
         description: "All recommended activities have been added to your plan.",
@@ -147,7 +146,7 @@ export default function RecommendationPage() {
                             </div>
                             <Button
                               className="w-full sm:w-auto"
-                              onClick={() => handleActivitySelect(activity)}
+                              onClick={() => handleActivitySelect(activity as SupabaseActivity)}
                             >
                               Add to Planning
                             </Button>
