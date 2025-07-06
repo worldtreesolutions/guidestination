@@ -62,13 +62,13 @@ export const ExcursionPlanner = () => {
     // Convert the drag ID back to number for comparison with activity_id
     const dragIdAsNumber = parseInt(event.active.id.toString())
     const selectedActivity = selectedActivities.find(
-      a => a.activity_id === dragIdAsNumber || a.activity_id?.toString() === event.active.id.toString()
+      a => a.id === dragIdAsNumber || a.id?.toString() === event.active.id.toString()
     )
     
     if (selectedActivity) {
       // Convert Activity to ScheduledActivity format
       // Ensure all values are of the correct type
-      const activityId = selectedActivity.activity_id ? String(selectedActivity.activity_id) : ""
+      const activityId = selectedActivity.id ? String(selectedActivity.id) : ""
       
       // Convert image_url to string safely
       let imageUrl = ""

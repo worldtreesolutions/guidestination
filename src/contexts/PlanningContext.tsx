@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState } from "react"
 import { Activity } from "@/types/activity"
 
@@ -81,6 +80,25 @@ const PlanningContext = createContext<PlanningContextType>(defaultContext)
 export function PlanningProvider({ children }: { children: React.ReactNode }) {
   const [selectedActivities, setSelectedActivities] = useState<Activity[]>([])
   const [scheduledActivities, setScheduledActivities] = useState<ScheduledActivity[]>([])
+  const [destination, setDestination] = useState<string | null>(null);
+  const [duration, setDuration] = useState<number | null>(7);
+  const [pax, setPax] = useState<number>(1);
+  const [selectedCategories, setSelectedCategories] = useState<string[] | undefined>();
+  const [excludedCategories, setExcludedCategories] = useState<string[] | undefined>();
+  const [startDate, setStartDate] = useState<string | null>(null);
+  const [endDate, setEndDate] = useState<string | null>(null);
+
+  useEffect(() => {
+    setDestination(localStorage.getItem("destination"));
+    setDuration(Number(localStorage.getItem("duration") || 7));
+    setPax(Number(localStorage.getItem("pax") || 1));
+    const storedSelected = localStorage.getItem("selectedCategories");
+    if (storedSelected) setSelectedCategories(JSON.parse(storedSelected));
+    const storedExcluded = localStorage.getItem("excludedCategories");
+    if (storedExcluded) setExcludedCategories(JSON.parse(storedExcluded));
+    setStartDate(localStorage.getItem("startDate"));
+    setEndDate(localStorage.getItem("endDate"));
+  }, []);
 
   // Modified to accept partial activity data
   const addActivity = (activityData: PartialActivity) => {

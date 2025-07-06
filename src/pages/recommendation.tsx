@@ -41,16 +41,13 @@ export default function RecommendationPage() {
     setPreferences(newPreferences);
 
     try {
-      const { data: recommendedData, error: rpcError } = await supabase.rpc("get_personalized_recommendations", {
-        p_categories: newPreferences.categories,
-        p_min_price: newPreferences.priceRange[0],
-        p_max_price: newPreferences.priceRange[1],
-        p_max_duration: newPreferences.duration,
+      const recommendations = await recommendationService.getRecommendations({
+        categories: (data as any).categories,
+        price_range: (data as any).priceRange,
+        duration_range: (data as any).duration,
       });
 
-      if (rpcError) throw rpcError;
-
-      setRecommendations(recommendedData as Activity[]);
+      setRecommendations(recommendations);
     } catch (err: any) {
       setError("Failed to fetch recommendations. Please try again.");
       console.error(err);
@@ -91,9 +88,17 @@ export default function RecommendationPage() {
               <div>
                 {recommendations.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {recommendations.map((activity) => (
-                      <ActivityCard key={activity.id} activity={activity} />
-                    ))}
+                    {recommendations.map((activity) => {
+                      const cardActivity = {
+                        id: activity.id.toString(),
+                        name: activity.title,
+                        image: activity.image_url || (activity.images && activity.images[0]?.url) || '',
+                        price: activity.final_price || activity.price_per_person,
+                        rating: activity.reviews?.reduce((acc, r) => acc + r.rating, 0) / (activity.reviews?.length || 1) || 5,
+                        reviewCount: activity.reviews?.length || 0,
+                      };
+                      return <ActivityCard key={activity.id} activity={cardActivity} />;
+                    })}
                   </div>
                 ) : (
                   <div className="text-center py-12">

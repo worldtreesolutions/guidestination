@@ -1,31 +1,5 @@
-export interface Activity {
-  id: number;
-  title: string;
-  description: string;
-  price_per_person: number;
-  location: string;
-  duration_hours: number;
-  max_participants: number;
-  provider_id: string;
-  category_id: number;
-  images?: string[];
-  rating?: number;
-  highlights?: string[];
-  included?: string[];
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
 
-export interface Booking {
-  id: number;
-  activity_id: number;
-  user_id: number;
-  booking_date: string;
-  booking_time: string;
-  booking_status: "pending" | "confirmed" | "cancelled";
-  created_at: string;
-  updated_at: string;
-}
-
-export type ActivityStatus = "draft" | "published" | "archived";
+    {
+      "file_contents": "export interface Activity {\n  id: number;\n  activity_id?: number;\n  title: string;\n  name?: string;\n  description: string;\n  price_per_person: number;\n  duration_hours: number;\n  duration?: string;\n  availability: string;\n  location: string;\n  category: string;\n  images: { url: string }[];\n  image_url?: string;\n  inclusions: string[];\n  exclusions: string[];\n  reviews: {\n    rating: number;\n    comment: string;\n  }[];\n  provider_id?: string;\n  created_at?: string;\n  updated_at?: string;\n  is_active?: boolean;\n  booking_count?: number;\n  total_revenue?: number;\n  final_price?: number;\n  b_price?: number;\n  price?: number;\n  status?: 'active' | 'inactive' | 'pending' | 'approved' | 'rejected';\n  video_url?: string;\n  video_duration?: string;\n  quantity?: number; // For cart/planning\n  date?: Date; // For cart/planning\n}\n\nexport interface Category {\n  id: number;\n  name: string;\n}\n"
+    }
+  

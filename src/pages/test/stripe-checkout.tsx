@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import CheckoutButton from "@/components/stripe/CheckoutButton";
+import { CheckoutButton } from "@/components/stripe/CheckoutButton";
 import { Calculator, CreditCard, Users, Building, AlertCircle } from "lucide-react";
 
 export default function StripeCheckoutTestPage() {

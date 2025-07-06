@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,17 +30,10 @@ export default function ActivityBookingPage() {
 
       setLoading(true);
       try {
-        const { data, error } = await supabase
-          .from("activities")
-          .select("*")
-          .eq("id", parseInt(activityId))
-          .single();
-
-        if (error) throw error;
-        setActivity(data as Activity);
-        if (data.images && data.images.length > 0) {
-          setSelectedImage(data.images[0]);
-        }
+        const activity = (await supabaseActivityService.getActivityById(activityId)) as unknown as Activity;
+        setActivity(activity);
+        const imageUrl = (activity as any).image_url || (activity.images && activity.images.length > 0 ? activity.images[0].url : "/placeholder.svg");
+        setSelectedImage(imageUrl);
       } catch (err) {
         setError("Failed to load activity details.");
         console.error(err);
