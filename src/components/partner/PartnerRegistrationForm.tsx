@@ -113,16 +113,16 @@ export const PartnerRegistrationForm = () => {
 
       // Create partner registration with user creation and email verification
       const registrationData = {
-        business_name: formData.businessName,
-        owner_name: formData.ownerName,
-        email: formData.email,
-        phone: formData.phone,
-        address: formData.address,
-        latitude: coordinates?.lat,
-        longitude: coordinates?.lng,
-        place_id: coordinates?.place_id,
-        commission_package: formData.commissionPackage as "basic" | "premium",
-        supporting_documents: uploadedDocuments,
+        business_name: values.businessName,
+        owner_name: values.ownerName,
+        email: values.email,
+        phone: values.phone,
+        address: values.address,
+        latitude: values.latitude,
+        longitude: values.longitude,
+        place_id: values.placeId,
+        commission_package: values.commissionPackage as "basic" | "premium",
+        supporting_documents: documentUrls,
         status: "pending" as const,
       }
 

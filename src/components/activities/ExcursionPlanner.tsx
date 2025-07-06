@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { WeeklyActivitySchedule } from "@/components/activities/WeeklyActivitySchedule"
 import { MobileWeeklyActivitySchedule } from "@/components/activities/MobileWeeklyActivitySchedule"
@@ -28,7 +27,12 @@ export interface ScheduledActivity {
   }
 }
 
-export const ExcursionPlanner = () => {
+interface ExcursionPlannerProps {
+  activities: SupabaseActivity[];
+  onPlanComplete: (plan: any) => void;
+}
+
+export function ExcursionPlanner({ activities, onPlanComplete }: ExcursionPlannerProps) {
   const { selectedActivities, scheduledActivities, updateActivity, removeActivity, clearActivities, scheduleActivity } = usePlanning()
   const { t } = useLanguage()
   const [draggedActivity, setDraggedActivity] = useState<ScheduledActivity | null>(null)
@@ -153,6 +157,16 @@ export const ExcursionPlanner = () => {
 
   // Calculate total activities
   const totalActivities = selectedActivities.length + scheduledActivities.length
+
+  const addActivity = (activity: SupabaseActivity) => {
+    if (!selectedActivities.find(a => a.id === activity.id)) {
+      setSelectedActivities([...selectedActivities, activity])
+    }
+  }
+
+  const removeActivity = (activityId: number) => {
+    setSelectedActivities(selectedActivities.filter(a => a.id !== activityId))
+  }
 
   return (
     <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8'>

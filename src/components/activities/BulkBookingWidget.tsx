@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { ScheduledActivity } from "./ExcursionPlanner"
@@ -10,8 +9,8 @@ import { motion } from "framer-motion"
 import { Activity } from "@/types/activity"
 
 interface BulkBookingWidgetProps {
-  activities: (Activity | ScheduledActivity)[]
-  onClearSelection: () => void
+  activities: SupabaseActivity[];
+  onBookingComplete: (bookingData: any) => void;
 }
 
 // Function to convert Activity to ScheduledActivity format
@@ -33,10 +32,7 @@ const isScheduledActivity = (activity: any): activity is ScheduledActivity => {
   return 'imageUrl' in activity && 'day' in activity && 'hour' in activity;
 }
 
-export const BulkBookingWidget = ({
-  activities,
-  onClearSelection
-}: BulkBookingWidgetProps) => {
+export function BulkBookingWidget({ activities, onBookingComplete }: BulkBookingWidgetProps) {
   const router = useRouter()
   const isMobile = useIsMobile()
   const { t } = useLanguage()
@@ -63,19 +59,27 @@ export const BulkBookingWidget = ({
   const hasActivities = totalActivities > 0
 
   return (
-    <Card className="border-primary/20 shadow-lg">
-      <CardHeader className="pb-2 bg-primary/5 rounded-t-lg">
-        <div className="flex items-center">
-          <CreditCard className="h-5 w-5 mr-2 text-primary" />
-          <CardTitle className={isMobile ? "text-lg" : "text-xl"}>{t("booking.title")}</CardTitle>
-        </div>
-        {isMobile && (
-          <CardDescription className="text-xs">
-            {t("booking.description")}
-          </CardDescription>
-        )}
+    <Card className="w-full max-w-md">
+      <CardHeader>
+        <CardTitle>Bulk Booking</CardTitle>
+        <CardDescription>Book multiple activities at once</CardDescription>
       </CardHeader>
-      <CardContent className="pt-4 pb-6">
+      <CardContent className="space-y-4">
+        {activities.map((activity) => (
+          <div key={activity.id} className="flex items-center space-x-3 p-3 border rounded-lg">
+            <img
+              src={activity.image_urls?.[0] || "/placeholder.jpg"}
+              alt={activity.title}
+              className="w-12 h-12 rounded object-cover"
+            />
+            <div className="flex-1">
+              <h4 className="font-medium">{activity.title}</h4>
+              <p className="text-sm text-muted-foreground">
+                {formatPrice(activity.price || 0)}
+              </p>
+            </div>
+          </div>
+        ))}
         <div className="space-y-4">
           <div className="flex justify-between items-center p-3 bg-primary/5 rounded-lg">
             <div className="flex items-center">
