@@ -610,6 +610,25 @@
       "address": "机构地址至少需要10个字符",
       "taxId": "税务编号至少需要13个字符",
       "terms": "您必须接受条款和条件"
+    },
+    "legal": {
+      "title": "法律要求",
+      "requirement1": "有效的旅游营业执照",
+      "requirement2": "综合保险单",
+      "requirement3": "遵守当地法律法规",
+      "requirement4": "质量和安全认证"
+    },
+    "placeholder": {
+      "taxId": "输入您的税务识别号"
+    },
+    "field": {
+      "tourismLicense": "旅游许可证号码"
+    },
+    "placeholder": {
+      "tourismLicense": "输入您的旅游许可证号码"
+    },
+    "description": {
+      "tourismLicense": "当地旅游部门颁发的官方许可证号码"
     }
   },
   "partner": {
@@ -622,6 +641,34 @@
       "description": {
         "address": "请提供您机构的完整地址"
       }
+    }
+  },
+  "activityOwner": {
+    "hero": {
+      "title": "成为活动供应商合作伙伴",
+      "subtitle": "加入我们的平台，通过我们全面的支持和专业工具发展您的旅游活动业务。"
+    },
+    "benefits": {
+      "legalProtection": {
+        "title": "法律保护",
+        "description": "为您的活动业务获得全面的保险覆盖和法律支持。"
+      },
+      "businessGrowth": {
+        "title": "业务增长",
+        "description": "访问我们的合作伙伴网络和营销工具来扩展您的客户群。"
+      },
+      "qualityStandards": {
+        "title": "质量标准",
+        "description": "通过我们的质量指导方针和客户反馈系统保持卓越。"
+      },
+      "flexibleSchedule": {
+        "title": "灵活时间表",
+        "description": "通过我们灵活的预订系统根据您的需求管理您的可用性和价格。"
+      }
+    },
+    "registration": {
+      "title": "活动供应商注册",
+      "description": "作为认证活动供应商加入我们的平台，今天就开始发展您的业务。"
     }
   }
 }

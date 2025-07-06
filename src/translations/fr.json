@@ -611,6 +611,25 @@
       "address": "L'adresse de l'établissement doit contenir au moins 10 caractères",
       "taxId": "Le numéro fiscal doit contenir au moins 13 caractères",
       "terms": "Vous devez accepter les termes et conditions"
+    },
+    "legal": {
+      "title": "Exigences Légales",
+      "requirement1": "Licence d'entreprise touristique valide",
+      "requirement2": "Police d'assurance complète",
+      "requirement3": "Conformité avec les lois et réglementations locales",
+      "requirement4": "Certification de qualité et de sécurité"
+    },
+    "placeholder": {
+      "taxId": "Entrez votre numéro d'identification fiscale"
+    },
+    "field": {
+      "tourismLicense": "Licence de Tourisme"
+    },
+    "placeholder": {
+      "tourismLicense": "Entrez votre numéro de licence de tourisme"
+    },
+    "description": {
+      "tourismLicense": "Numéro de licence officielle délivrée par les autorités touristiques locales"
     }
   },
   "partner": {
@@ -623,6 +642,34 @@
       "description": {
         "address": "Veuillez fournir l'adresse complète de votre établissement"
       }
+    }
+  },
+  "activityOwner": {
+    "hero": {
+      "title": "Devenez Partenaire Fournisseur d'Activités",
+      "subtitle": "Rejoignez notre plateforme et développez votre entreprise d'activités touristiques avec notre support complet et nos outils professionnels."
+    },
+    "benefits": {
+      "legalProtection": {
+        "title": "Protection Juridique",
+        "description": "Bénéficiez d'une couverture d'assurance complète et d'un support juridique pour votre entreprise d'activités."
+      },
+      "businessGrowth": {
+        "title": "Croissance d'Entreprise",
+        "description": "Accédez à notre réseau de partenaires et à nos outils marketing pour développer votre clientèle."
+      },
+      "qualityStandards": {
+        "title": "Standards de Qualité",
+        "description": "Maintenez l'excellence avec nos directives de qualité et notre système de retours clients."
+      },
+      "flexibleSchedule": {
+        "title": "Horaires Flexibles",
+        "description": "Gérez vos disponibilités et vos prix selon vos besoins avec notre système de réservation flexible."
+      }
+    },
+    "registration": {
+      "title": "Inscription Fournisseur d'Activités",
+      "description": "Rejoignez notre plateforme en tant que fournisseur d'activités certifié et commencez à développer votre entreprise dès aujourd'hui."
     }
   }
 }

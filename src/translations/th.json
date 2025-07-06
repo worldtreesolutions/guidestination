@@ -90,18 +90,18 @@
   "calendar.nextDay": "วันถัดไป",
   "activityOwner.meta.title": "ลงรายการกิจกรรมของคุณ - Guidestination",
   "activityOwner.meta.description": "เข้าร่วม Guidestination ในฐานะผู้ให้บริการกิจกรรมในเชียงใหม่",
-  "activityOwner.hero.title": "ลงกิจกรรมของคุณบน Guidestination",
-  "activityOwner.hero.subtitle": "เข้าร่วมแพลตฟอร์มชั้นนำสำหรับประสบการณ์ท้องถิ่นในเชียงใหม่และเชื่อมต่อกับนักเดินทางจากทั่วโลก",
+  "activityOwner.hero.title": "เป็นพาร์ทเนอร์ผู้ให้บริการกิจกรรม",
+  "activityOwner.hero.subtitle": "เข้าร่วมแพลตฟอร์มของเราและขยายธุรกิจกิจกรรมท่องเที่ยวของคุณด้วยการสนับสนุนที่ครอบคลุมและเครื่องมือระดับมืออาชีพ",
   "activityOwner.benefits.legalProtection.title": "การคุ้มครองทางกฎหมาย",
-  "activityOwner.benefits.legalProtection.description": "กิจกรรมทั้งหมดได้รับการคุ้มครองโดยกรมธรรม์ประกันภัยที่ครอบคลุมของเรา",
-  "activityOwner.benefits.businessGrowth.title": "การเติบโตทางธุรกิจ",
-  "activityOwner.benefits.businessGrowth.description": "เข้าถึงเครือข่ายโรงแรมและพันธมิตรการท่องเที่ยวที่กว้างขวาง",
+  "activityOwner.benefits.legalProtection.description": "รับความคุ้มครองประกันภัยที่ครอบคลุมและการสนับสนุนทางกฎหมายสำหรับธุรกิจกิจกรรมของคุณ",
+  "activityOwner.benefits.businessGrowth.title": "การเติบโตของธุรกิจ",
+  "activityOwner.benefits.businessGrowth.description": "เข้าถึงเครือข่ายพาร์ทเนอร์และเครื่องมือการตลาดของเราเพื่อขยายฐานลูกค้าของคุณ",
   "activityOwner.benefits.qualityStandards.title": "มาตรฐานคุณภาพ",
-  "activityOwner.benefits.qualityStandards.description": "รักษามาตรฐานการบริการระดับสูงด้วยโปรแกรมการรับรองของเรา",
+  "activityOwner.benefits.qualityStandards.description": "รักษาความเป็นเลิศด้วยแนวทางคุณภาพและระบบข้อเสนอแนะจากลูกค้าของเรา",
   "activityOwner.benefits.flexibleSchedule.title": "ตารางเวลาที่ยืดหยุ่น",
-  "activityOwner.benefits.flexibleSchedule.description": "กำหนดความพร้อมของคุณเองและจัดการการจองได้อย่างง่ายดาย",
-  "activityOwner.registration.title": "ลงทะเบียนเป็นผู้ให้บริการกิจกรรม",
-  "activityOwner.registration.description": "กรอกแบบฟอร์มด้านล่างเพื่อเริ่มลงรายการกิจกรรมของคุณ",
+  "activityOwner.benefits.flexibleSchedule.description": "จัดการความพร้อมและราคาของคุณตามความต้องการด้วยระบบการจองที่ยืดหยุ่นของเรา",
+  "activityOwner.registration.title": "การลงทะเบียนผู้ให้บริการกิจกรรม",
+  "activityOwner.registration.description": "เข้าร่วมแพลตฟอร์มของเราในฐานะผู้ให้บริการกิจกรรมที่ได้รับการรับรองและเริ่มขยายธุรกิจของคุณวันนี้",
   "dashboard.activities.createNew": "สร้างกิจกรรมใหม่ - แดชบอร์ดผู้ให้บริการ",
   "dashboard.activities.createDescription": "เพิ่มกิจกรรมใหม่ในรายการของคุณ",
   "dashboard.activities.createTitle": "สร้างกิจกรรมใหม่",
@@ -422,7 +422,7 @@
   "form.validation.insuranceAmount": "กรุณากรอกจำนวนเงินประกันภัย",
   "form.validation.terms": "กรุณายอมรับข้อกำหนดและเงื่อนไข",
   "form.legal.title": "ข้อกำหนดทางกฎหมาย",
-  "form.legal.requirement1": "ใบอนุญาตประกอบธุรกิจนำเที่ยวที่ถูกต้อง",
+  "form.legal.requirement1": "ใบอนุญาตประกอบธุรกิจที่ถูกต้อง",
   "form.legal.requirement2": "กรมธรรม์ประกันภัยที่ครอบคลุม",
   "form.legal.requirement3": "การปฏิบัติตามกฎหมายและข้อบังคับท้องถิ่น",
   "form.legal.requirement4": "การรับรองคุณภาพและความปลอดภัย",
@@ -563,6 +563,13 @@
   "partner.form.commission.tracking": "การติดตามค่าคอมมิชชั่นแบบเรียลไทม์ผ่านแดชบอร์ดพาร์ทเนอร์",
   "partner.form.terms.description": "การลงทะเบียนหมายความว่าคุณยอมรับข้อกำหนดและเงื่อนไขพาร์ทเนอร์ของเรา",
   "form": {
+    "legal": {
+      "title": "ข้อกำหนดทางกฎหมาย",
+      "requirement1": "ใบอนุญาตประกอบธุรกิจที่ถูกต้อง",
+      "requirement2": "กรมธรรม์ประกันภัยที่ครอบคลุม",
+      "requirement3": "การปฏิบัติตามกฎหมายและข้อบังคับท้องถิ่น",
+      "requirement4": "การรับรองคุณภาพและความปลอดภัย"
+    },
     "section": {
       "business": "ข้อมูลสถานประกอบการ"
     },
@@ -576,6 +583,7 @@
       "phone": "หมายเลขโทรศัพท์",
       "address": "ที่อยู่สถานประกอบการ",
       "taxId": "เลขประจำตัวผู้เสียภาษี",
+      "tourismLicense": "หมายเลขใบอนุญาตประกอบธุรกิจนำเที่ยว",
       "terms": "ฉันยอมรับข้อกำหนดและเงื่อนไข"
     },
     "placeholder": {
@@ -586,7 +594,9 @@
       "ownerName": "กรอกชื่อเต็มของเจ้าของ",
       "email": "กรอกที่อยู่อีเมล",
       "phone": "กรอกหมายเลขโทรศัพท์",
-      "address": "กรอกที่อยู่สถานประกอบการ"
+      "address": "กรอกที่อยู่สถานประกอบการ",
+      "taxId": "1234567890123",
+      "tourismLicense": "TL-12345"
     },
     "validation": {
       "establishmentName": "ชื่อสถานประกอบการต้องมีอย่างน้อย 2 ตัวอักษร",
@@ -609,6 +619,34 @@
       "description": {
         "address": "กรุณาระบุที่อยู่ที่สมบูรณ์ของสถานประกอบการของคุณ"
       }
+    }
+  },
+  "activityOwner": {
+    "hero": {
+      "title": "เป็นพาร์ทเนอร์ผู้ให้บริการกิจกรรม",
+      "subtitle": "เข้าร่วมแพลตฟอร์มของเราและขยายธุรกิจกิจกรรมท่องเที่ยวของคุณด้วยการสนับสนุนที่ครอบคลุมและเครื่องมือระดับมืออาชีพ"
+    },
+    "benefits": {
+      "legalProtection": {
+        "title": "การคุ้มครองทางกฎหมาย",
+        "description": "รับความคุ้มครองประกันภัยที่ครอบคลุมและการสนับสนุนทางกฎหมายสำหรับธุรกิจกิจกรรมของคุณ"
+      },
+      "businessGrowth": {
+        "title": "การเติบโตของธุรกิจ",
+        "description": "เข้าถึงเครือข่ายพาร์ทเนอร์และเครื่องมือการตลาดของเราเพื่อขยายฐานลูกค้าของคุณ"
+      },
+      "qualityStandards": {
+        "title": "มาตรฐานคุณภาพ",
+        "description": "รักษาความเป็นเลิศด้วยแนวทางคุณภาพและระบบข้อเสนอแนะจากลูกค้าของเรา"
+      },
+      "flexibleSchedule": {
+        "title": "ตารางเวลาที่ยืดหยุ่น",
+        "description": "จัดการความพร้อมและราคาของคุณตามความต้องการด้วยระบบการจองที่ยืดหยุ่นของเรา"
+      }
+    },
+    "registration": {
+      "title": "การลงทะเบียนผู้ให้บริการกิจกรรม",
+      "description": "เข้าร่วมแพลตฟอร์มของเราในฐานะผู้ให้บริการกิจกรรมที่ได้รับการรับรองและเริ่มขยายธุรกิจของคุณวันนี้"
     }
   }
 }

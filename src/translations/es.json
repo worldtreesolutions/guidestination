@@ -78,18 +78,18 @@
   "calendar.nextDay": "Día siguiente",
   "activityOwner.meta.title": "Lista tus Actividades - Guidestination",
   "activityOwner.meta.description": "Únete a Guidestination como proveedor de actividades en Chiang Mai",
-  "activityOwner.hero.title": "Publica tus Actividades en Guidestination",
-  "activityOwner.hero.subtitle": "Únete a la plataforma líder de experiencias locales en Chiang Mai y conecta con viajeros de todo el mundo",
+  "activityOwner.hero.title": "Conviértete en Socio Proveedor de Actividades",
+  "activityOwner.hero.subtitle": "Únete a nuestra plataforma y haz crecer tu negocio de actividades turísticas con nuestro soporte integral y herramientas profesionales.",
   "activityOwner.benefits.legalProtection.title": "Protección Legal",
-  "activityOwner.benefits.legalProtection.description": "Todas las actividades están cubiertas por nuestra póliza de seguro integral",
-  "activityOwner.benefits.businessGrowth.title": "Crecimiento del Negocio",
-  "activityOwner.benefits.businessGrowth.description": "Accede a una amplia red de hoteles y socios de viaje",
+  "activityOwner.benefits.legalProtection.description": "Obtén cobertura de seguro integral y soporte legal para tu negocio de actividades.",
+  "activityOwner.benefits.businessGrowth.title": "Crecimiento Empresarial",
+  "activityOwner.benefits.businessGrowth.description": "Accede a nuestra red de socios y herramientas de marketing para expandir tu base de clientes.",
   "activityOwner.benefits.qualityStandards.title": "Estándares de Calidad",
-  "activityOwner.benefits.qualityStandards.description": "Mantén altos estándares de servicio con nuestro programa de certificación",
-  "activityOwner.benefits.flexibleSchedule.title": "Horario Flexible",
-  "activityOwner.benefits.flexibleSchedule.description": "Establece tu propia disponibilidad y gestiona las reservas con facilidad",
-  "activityOwner.registration.title": "Regístrate como Proveedor de Actividades",
-  "activityOwner.registration.description": "Rellena el siguiente formulario para empezar a publicar tus actividades",
+  "activityOwner.benefits.qualityStandards.description": "Mantén la excelencia con nuestras pautas de calidad y sistema de retroalimentación de clientes.",
+  "activityOwner.benefits.flexibleSchedule.title": "Horarios Flexibles",
+  "activityOwner.benefits.flexibleSchedule.description": "Gestiona tu disponibilidad y precios según tus necesidades con nuestro sistema de reservas flexible.",
+  "activityOwner.registration.title": "Registro de Proveedor de Actividades",
+  "activityOwner.registration.description": "Únete a nuestra plataforma como proveedor de actividades certificado y comienza a hacer crecer tu negocio hoy.",
   "dashboard.activities.createNew": "Crear Nueva Actividad - Panel de Proveedor",
   "dashboard.activities.createDescription": "Añadir una nueva actividad a tus listados",
   "dashboard.activities.createTitle": "Crear Nueva Actividad",
@@ -610,18 +610,53 @@
       "address": "La dirección del establecimiento debe tener al menos 10 caracteres",
       "taxId": "El número de identificación fiscal debe tener al menos 13 caracteres",
       "terms": "Debe aceptar los términos y condiciones"
+    },
+    "legal": {
+      "title": "Requisitos Legales",
+      "requirement1": "Licencia de negocio turístico válida",
+      "requirement2": "Póliza de seguro a todo riesgo",
+      "requirement3": "Cumplimiento de las leyes y normativas locales",
+      "requirement4": "Certificación de calidad y seguridad"
+    },
+    "placeholder": {
+      "taxId": "Ingresa tu número de identificación fiscal"
+    },
+    "field": {
+      "tourismLicense": "Licencia de Turismo"
+    },
+    "placeholder": {
+      "tourismLicense": "Ingresa tu número de licencia de turismo"
+    },
+    "description": {
+      "tourismLicense": "Número de licencia oficial emitida por las autoridades turísticas locales"
     }
   },
-  "partner": {
-    "form": {
-      "placeholder": {
-        "establishmentName": "Ingrese el nombre de su establecimiento",
-        "businessName": "Ingrese el nombre de su establecimiento",
-        "address": "Ingrese la dirección del establecimiento"
+  "activityOwner": {
+    "hero": {
+      "title": "Conviértete en Socio Proveedor de Actividades",
+      "subtitle": "Únete a nuestra plataforma y haz crecer tu negocio de actividades turísticas con nuestro soporte integral y herramientas profesionales."
+    },
+    "benefits": {
+      "legalProtection": {
+        "title": "Protección Legal",
+        "description": "Obtén cobertura de seguro integral y soporte legal para tu negocio de actividades."
       },
-      "description": {
-        "address": "Por favor proporcione la dirección completa de su establecimiento"
+      "businessGrowth": {
+        "title": "Crecimiento Empresarial",
+        "description": "Accede a nuestra red de socios y herramientas de marketing para expandir tu base de clientes."
+      },
+      "qualityStandards": {
+        "title": "Estándares de Calidad",
+        "description": "Mantén la excelencia con nuestras pautas de calidad y sistema de retroalimentación de clientes."
+      },
+      "flexibleSchedule": {
+        "title": "Horarios Flexibles",
+        "description": "Gestiona tu disponibilidad y precios según tus necesidades con nuestro sistema de reservas flexible."
       }
+    },
+    "registration": {
+      "title": "Registro de Proveedor de Actividades",
+      "description": "Únete a nuestra plataforma como proveedor de actividades certificado y comienza a hacer crecer tu negocio hoy."
     }
   }
 }
