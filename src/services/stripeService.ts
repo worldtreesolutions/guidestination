@@ -167,7 +167,7 @@ export const stripeService = {
       .select()
       .single();
 
-    if (bookingError) {
+    if (bookingError || !booking) {
       console.error("Error creating booking:", bookingError);
       throw new Error("Failed to create booking.");
     }
