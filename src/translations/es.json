@@ -356,7 +356,7 @@
   "form.field.terms": "Acepto los términos y condiciones",
   "form.placeholder.businessName": "Ingresa el nombre de tu negocio",
   "form.placeholder.businessType": "Selecciona tipo de negocio",
-  "form.placeholder.taxId": "Ingresa tu número de identificación fiscal",
+  "form.placeholder.taxId": "1234567890123",
   "form.placeholder.tourismLicense": "Ingresa número de licencia turística",
   "form.placeholder.tatLicense": "Ingresa número de licencia TAT (opcional)",
   "form.placeholder.description": "Describe tu negocio y servicios...",

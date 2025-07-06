@@ -370,7 +370,7 @@
   "form.field.terms": "我接受条款和条件",
   "form.placeholder.businessName": "请输入您的机构名称",
   "form.placeholder.businessType": "选择机构类型",
-  "form.placeholder.taxId": "输入您的税务识别号码",
+  "form.placeholder.taxId": "1234567890123",
   "form.placeholder.tourismLicense": "输入旅游许可证号码",
   "form.placeholder.tatLicense": "输入TAT许可证号码（可选）",
   "form.placeholder.description": "描述您的业务和服务...",
