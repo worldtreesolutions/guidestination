@@ -8,7 +8,6 @@
   "nav.login": "Iniciar Sesión",
   "nav.logout": "Cerrar Sesión",
   "home.hero.title": "Descubre la Magia de Chiang Mai",
-  "home.hero.subtitle": "Tu guía para experiencias inolvidables, impulsada por expertos locales.",
   "home.search.placeholder": "Buscar actividades...",
   "home.search.button": "Buscar",
   "home.popular.title": "Experiencias Populares en Chiang Mai",
@@ -56,9 +55,7 @@
   "planner.activitiesSelected": "actividades seleccionadas",
   "planner.activitySelected": "actividad seleccionada",
   "planner.booking": "Reserva",
-  "planner.bookingDescription": "Reserva todas tus actividades con un solo clic",
-  "planner.noActivitiesSelected": "No hay actividades seleccionadas",
-  "planner.browseActivities": "Busca actividades y añádelas a tu planificador",
+  "planner.bookingDescription": "Reserva todas tus actividades con un clic",
   "booking.title": "Reservar Mis Actividades",
   "booking.description": "Reserva todas tus actividades con un clic",
   "booking.total": "Total",
@@ -66,10 +63,6 @@
   "booking.bookActivity": "Reservar Actividad",
   "booking.clearSelection": "Limpiar Selección",
   "booking.addActivities": "Añade actividades a tu planificador para reservarlas",
-  "checkout": {
-    "processing": "Procesando...",
-    "bookNow": "Reservar Ahora"
-  },
   "calendar.monday": "Lunes",
   "calendar.tuesday": "Martes",
   "calendar.wednesday": "Miércoles",
@@ -83,10 +76,10 @@
   "calendar.dropHere": "Soltar aquí",
   "calendar.previousDay": "Día anterior",
   "calendar.nextDay": "Día siguiente",
-  "activityOwner.meta.title": "Publica Tus Actividades - Guidestination",
+  "activityOwner.meta.title": "Lista tus Actividades - Guidestination",
   "activityOwner.meta.description": "Únete a Guidestination como proveedor de actividades en Chiang Mai",
-  "activityOwner.hero.title": "Publica Tus Actividades en Guidestination",
-  "activityOwner.hero.subtitle": "Únete a la plataforma líder de experiencias locales en Chiang Mai y conecta con viajeros de todo el mundo",
+  "activityOwner.hero.title": "Lista tus Actividades en Guidestination",
+  "activityOwner.hero.subtitle": "Únete a la plataforma líder para experiencias locales en Chiang Mai y conecta con viajeros de todo el mundo",
   "activityOwner.benefits.legalProtection.title": "Protección Legal",
   "activityOwner.benefits.legalProtection.description": "Todas las actividades están cubiertas por nuestra póliza de seguro integral",
   "activityOwner.benefits.businessGrowth.title": "Crecimiento del Negocio",
@@ -94,9 +87,9 @@
   "activityOwner.benefits.qualityStandards.title": "Estándares de Calidad",
   "activityOwner.benefits.qualityStandards.description": "Mantén altos estándares de servicio con nuestro programa de certificación",
   "activityOwner.benefits.flexibleSchedule.title": "Horario Flexible",
-  "activityOwner.benefits.flexibleSchedule.description": "Establece tu propia disponibilidad y gestiona las reservas fácilmente",
+  "activityOwner.benefits.flexibleSchedule.description": "Establece tu propia disponibilidad y gestiona reservas fácilmente",
   "activityOwner.registration.title": "Regístrate como Proveedor de Actividades",
-  "activityOwner.registration.description": "Rellena el siguiente formulario para empezar a publicar tus actividades",
+  "activityOwner.registration.description": "Completa el formulario a continuación para comenzar a listar tus actividades",
   "dashboard.activities.createNew": "Crear Nueva Actividad - Panel de Proveedor",
   "dashboard.activities.createDescription": "Añadir una nueva actividad a tus listados",
   "dashboard.activities.createTitle": "Crear Nueva Actividad",
@@ -319,6 +312,77 @@
   "dashboard.inbox.messages.cookingQuestion": "Tengo una pregunta sobre la clase de cocina que reservé",
   "dashboard.inbox.messages.howCanHelp": "Por supuesto, ¿cómo puedo ayudarte?",
   "dashboard.inbox.messages.thankYou": "¡Gracias! Espero con ansias la experiencia.",
+  "form.validation.businessName": "El nombre de la empresa debe tener al menos 2 caracteres",
+  "form.validation.ownerName": "El nombre del propietario debe tener al menos 2 caracteres",
+  "form.validation.email": "Por favor ingresa una dirección de email válida",
+  "form.validation.phone": "El número de teléfono debe tener al menos 10 caracteres",
+  "form.validation.businessType": "Por favor selecciona un tipo de negocio",
+  "form.validation.taxId": "El ID fiscal debe tener al menos 13 caracteres",
+  "form.validation.address": "La dirección debe tener al menos 10 caracteres",
+  "form.validation.description": "La descripción debe tener al menos 50 caracteres",
+  "form.validation.tourismLicense": "El número de licencia turística es requerido",
+  "form.validation.insurancePolicy": "El número de póliza de seguro es requerido",
+  "form.validation.insuranceAmount": "El monto del seguro es requerido",
+  "form.validation.terms": "Debes aceptar los términos y condiciones",
+  "form.success.title": "Registro Exitoso",
+  "form.success.newUser": "Tu registro ha sido enviado exitosamente. Revisaremos tu aplicación y te contactaremos pronto.",
+  "form.success.existingUser": "Tu información ha sido actualizada exitosamente.",
+  "form.error.title": "Error de Registro",
+  "form.error.accountExists": "Ya existe una cuenta con este email. Por favor usa una dirección de email diferente.",
+  "form.error.unexpected": "Ocurrió un error inesperado. Por favor intenta de nuevo más tarde.",
+  "form.info.title": "Información",
+  "form.info.providerDashboardSeparated": "El registro de proveedores se ha trasladado a un panel separado. Por favor contacta al soporte para el registro de proveedores",
+  "form.legal.title": "Requisitos Legales",
+  "form.legal.requirement1": "Licencia turística válida requerida para todos los proveedores de actividades",
+  "form.legal.requirement2": "Cobertura de seguro integral obligatoria",
+  "form.legal.requirement3": "Licencia TAT recomendada para operadores turísticos",
+  "form.legal.requirement4": "Certificación de guía requerida para actividades guiadas",
+  "form.section.business": "Información del Negocio",
+  "form.section.contact": "Información de Contacto",
+  "form.section.legal": "Legal y Cumplimiento",
+  "form.field.businessName": "Nombre del Negocio",
+  "form.field.businessType": "Tipo de Negocio",
+  "form.field.taxId": "ID Fiscal",
+  "form.field.tourismLicense": "Número de Licencia Turística",
+  "form.field.tatLicense": "Número de Licencia TAT",
+  "form.field.description": "Descripción del Negocio",
+  "form.field.ownerName": "Nombre del Propietario",
+  "form.field.email": "Dirección de Email",
+  "form.field.phone": "Número de Teléfono",
+  "form.field.address": "Dirección del Negocio",
+  "form.field.insurancePolicy": "Número de Póliza de Seguro",
+  "form.field.insuranceAmount": "Monto de Cobertura del Seguro (THB)",
+  "form.field.guideCard": "Número de Tarjeta de Guía",
+  "form.field.terms": "Acepto los términos y condiciones",
+  "form.placeholder.businessName": "Ingresa el nombre de tu negocio",
+  "form.placeholder.businessType": "Selecciona tipo de negocio",
+  "form.placeholder.taxId": "Ingresa tu número de identificación fiscal",
+  "form.placeholder.tourismLicense": "Ingresa número de licencia turística",
+  "form.placeholder.tatLicense": "Ingresa número de licencia TAT (opcional)",
+  "form.placeholder.description": "Describe tu negocio y servicios...",
+  "form.placeholder.ownerName": "Ingresa el nombre completo del propietario",
+  "form.placeholder.email": "Ingresa dirección de email",
+  "form.placeholder.phone": "Ingresa número de teléfono",
+  "form.placeholder.address": "Ingresa dirección del negocio",
+  "form.placeholder.insurancePolicy": "Ingresa número de póliza de seguro",
+  "form.placeholder.insuranceAmount": "Ingresa monto de cobertura",
+  "form.placeholder.guideCard": "Ingresa número de tarjeta de guía (opcional)",
+  "form.description.tourismLicense": "Requerido para todas las actividades relacionadas con turismo",
+  "form.description.tatLicense": "Licencia de la Autoridad de Turismo de Tailandia (recomendada)",
+  "form.description.coordinates": "Coordenadas de ubicación",
+  "form.description.insurancePolicy": "Póliza de seguro de responsabilidad que cubra tus actividades",
+  "form.description.insuranceAmount": "Monto mínimo de cobertura en Baht tailandés",
+  "form.description.guideCard": "Certificación profesional de guía (si aplica)",
+  "form.description.terms": "Al marcar esta casilla, aceptas nuestros términos de servicio y política de privacidad",
+  "form.businessType.tourOperator": "Operador Turístico",
+  "form.businessType.activityProvider": "Proveedor de Actividades",
+  "form.businessType.experienceHost": "Anfitrión de Experiencias",
+  "form.compliance.title": "Aviso de Cumplimiento",
+  "form.compliance.description": "Toda la información proporcionada será verificada. La información falsa puede resultar en el rechazo de la aplicación.",
+  "form.button.submit": "Enviar Registro",
+  "form.button.submitting": "Enviando...",
+  "form.terms.agreeToThe": "Acepto los",
+  "form.terms.termsOfService": "Términos de Servicio",
   "dashboard.settings.profile.title": "Información de Perfil",
   "dashboard.settings.profile.description": "Actualiza tu información personal y foto de perfil.",
   "dashboard.settings.profile.firstName": "Nombre",
@@ -512,161 +576,52 @@
   "partner.form.commission.tracking": "Seguimiento de comisiones en tiempo real a través del panel de socios",
   "partner.form.terms.description": "Al registrarte, aceptas nuestros términos y condiciones de socio",
   "form": {
-    "validation": {
-      "businessName": "El nombre de la empresa debe tener al menos 2 caracteres",
-      "establishmentName": "El nombre del establecimiento debe tener al menos 2 caracteres",
-      "ownerName": "El nombre del propietario debe tener al menos 2 caracteres",
-      "email": "Por favor ingresa una dirección de email válida",
-      "phone": "El número de teléfono debe tener al menos 10 caracteres",
-      "businessType": "Por favor selecciona un tipo de negocio",
-      "taxId": "El ID fiscal debe tener al menos 13 caracteres",
-      "address": "La dirección del establecimiento debe tener al menos 10 caracteres",
-      "description": "La descripción debe tener al menos 50 caracteres",
-      "tourismLicense": "El número de licencia turística es requerido",
-      "insurancePolicy": "El número de póliza de seguro es requerido",
-      "insuranceAmount": "El monto del seguro es requerido",
-      "terms": "Debes aceptar los términos y condiciones"
-    },
-    "success": {
-      "title": "Registro Exitoso",
-      "newUser": "Tu registro ha sido enviado exitosamente. Revisaremos tu aplicación y te contactaremos pronto.",
-      "existingUser": "Tu información ha sido actualizada exitosamente."
-    },
-    "error": {
-      "title": "Error de Registro",
-      "accountExists": "Ya existe una cuenta con este email. Por favor usa una dirección de email diferente.",
-      "unexpected": "Ocurrió un error inesperado. Por favor intenta de nuevo más tarde."
-    },
-    "info": {
-      "title": "Información",
-      "providerDashboardSeparated": "El registro de proveedores se ha trasladado a un panel separado. Por favor contacta al soporte para el registro de proveedores"
-    },
-    "legal": {
-      "title": "Requisitos Legales",
-      "requirement1": "Licencia de negocio turístico válida",
-      "requirement2": "Póliza de seguro a todo riesgo",
-      "requirement3": "Cumplimiento de las leyes y normativas locales",
-      "requirement4": "Certificación de calidad y seguridad"
-    },
     "section": {
-      "business": "Información del establecimiento",
-      "contact": "Información de Contacto",
-      "legal": "Legal y Cumplimiento"
+      "business": "Información del establecimiento"
     },
     "field": {
-      "businessName": "Nombre del establecimiento",
       "establishmentName": "Nombre del establecimiento",
-      "businessType": "Tipo de establecimiento",
       "establishmentType": "Tipo de establecimiento",
-      "taxId": "Número de identificación fiscal",
-      "tourismLicense": "Número de Licencia de Turismo",
-      "tatLicense": "Número de Licencia TAT",
-      "description": "Descripción del Negocio",
+      "businessName": "Nombre del establecimiento",
+      "businessType": "Tipo de establecimiento",
       "ownerName": "Nombre del propietario",
       "email": "Dirección de correo electrónico",
       "phone": "Número de teléfono",
       "address": "Dirección del establecimiento",
-      "insurancePolicy": "Número de Póliza de Seguro",
-      "insuranceAmount": "Monto de Cobertura del Seguro (THB)",
-      "guideCard": "Número de Tarjeta de Guía",
-      "supportingDocuments": "Documentos de Apoyo",
+      "taxId": "Número de identificación fiscal",
       "terms": "Acepto los términos y condiciones"
     },
     "placeholder": {
-      "businessName": "Ingresa el nombre de tu establecimiento",
       "establishmentName": "Ingrese el nombre de su establecimiento",
-      "businessType": "Selecciona tipo de negocio",
       "establishmentType": "Seleccione el tipo de establecimiento",
-      "taxId": "1234567890123",
-      "tourismLicense": "TL-12345",
-      "tatLicense": "Ingresa número de licencia TAT (opcional)",
-      "description": "Describe tu negocio y servicios...",
-      "ownerName": "Ingresa el nombre completo del propietario",
-      "email": "Ingresa dirección de email",
-      "phone": "Ingresa número de teléfono",
-      "address": "Ingrese la dirección del establecimiento",
-      "insurancePolicy": "Ingresa número de póliza de seguro",
-      "insuranceAmount": "Ingresa monto de cobertura",
-      "guideCard": "Ingresa número de tarjeta de guía (opcional)"
+      "businessName": "Ingrese el nombre de su establecimiento",
+      "businessType": "Seleccione el tipo de establecimiento",
+      "ownerName": "Ingrese el nombre completo del propietario",
+      "email": "Ingrese la dirección de correo electrónico",
+      "phone": "Ingrese el número de teléfono",
+      "address": "Ingrese la dirección del establecimiento"
     },
-    "description": {
-      "tourismLicense": "Requerido para operaciones de turismo comercial",
-      "tatLicense": "Licencia de la Autoridad de Turismo de Tailandia (recomendada)",
-      "coordinates": "Coordenadas de ubicación",
-      "insurancePolicy": "Póliza de seguro de responsabilidad que cubra tus actividades",
-      "insuranceAmount": "Monto mínimo de cobertura en Baht tailandés",
-      "guideCard": "Certificación profesional de guía (si aplica)",
-      "terms": "Al marcar esta casilla, aceptas nuestros términos de servicio y política de privacidad",
-      "address": "Por favor proporciona la dirección completa de tu establecimiento",
-      "supportingDocuments": "Sube documentos de seguro, licencias, certificaciones y otros documentos requeridos (PDF, JPG, PNG, DOC, DOCX - Máx 15MB cada uno)"
-    },
-    "businessType": {
-      "tourOperator": "Operador Turístico",
-      "activityProvider": "Proveedor de Actividades",
-      "experienceHost": "Anfitrión de Experiencias"
-    },
-    "compliance": {
-      "title": "Aviso de Cumplimiento",
-      "description": "Toda la información proporcionada será verificada. La información falsa puede resultar en el rechazo de la aplicación."
-    },
-    "button": {
-      "submit": "Enviar Registro",
-      "submitting": "Enviando..."
-    },
-    "terms": {
-      "agreeToThe": "Acepto los",
-      "termsOfService": "Términos de Servicio"
+    "validation": {
+      "establishmentName": "El nombre del establecimiento debe tener al menos 2 caracteres",
+      "businessName": "El nombre del establecimiento debe tener al menos 2 caracteres",
+      "ownerName": "El nombre del propietario debe tener al menos 2 caracteres",
+      "email": "Por favor ingrese una dirección de correo electrónico válida",
+      "phone": "El número de teléfono debe tener al menos 10 dígitos",
+      "address": "La dirección del establecimiento debe tener al menos 10 caracteres",
+      "taxId": "El número de identificación fiscal debe tener al menos 13 caracteres",
+      "terms": "Debe aceptar los términos y condiciones"
     }
   },
-  "activityOwner": {
-    "hero": {
-      "title": "Haz crecer tu negocio turístico",
-      "subtitle": "Únete a nuestra plataforma y alcanza más clientes con nuestras herramientas profesionales"
-    },
-    "benefits": {
-      "legalProtection": {
-        "title": "Protección legal",
-        "description": "Benefíciate de cobertura de seguro completa y protección jurídica"
+  "partner": {
+    "form": {
+      "placeholder": {
+        "establishmentName": "Ingrese el nombre de su establecimiento",
+        "businessName": "Ingrese el nombre de su establecimiento",
+        "address": "Ingrese la dirección del establecimiento"
       },
-      "businessGrowth": {
-        "title": "Crecimiento empresarial",
-        "description": "Accede a nuevos mercados y aumenta tus ingresos"
-      },
-      "qualityStandards": {
-        "title": "Estándares de calidad",
-        "description": "Mantén altos estándares con nuestras herramientas de gestión"
-      },
-      "flexibleSchedule": {
-        "title": "Horarios flexibles",
-        "description": "Gestiona tu horario según tu disponibilidad"
+      "description": {
+        "address": "Por favor proporcione la dirección completa de su establecimiento"
       }
-    },
-    "registration": {
-      "title": "Registro de propietarios de actividades",
-      "description": "Únete a nuestra red de socios profesionales"
     }
-  },
-  "home": {
-    "hero": {
-      "title": "Descubre la Magia de Chiang Mai"
-    },
-    "search": {
-      "placeholder": "Buscar actividades...",
-      "button": "Buscar"
-    },
-    "popular": {
-      "title": "Experiencias Populares en Chiang Mai"
-    },
-    "categories": {
-      "title": "Explorar por Categoría",
-      "foodCuisine": "Comida y Cocina",
-      "landmarks": "Lugares de Interés",
-      "wellness": "Bienestar",
-      "workshop": "Taller"
-    },
-    "recommended": {
-      "title": "Recomendado para Ti"
-    },
-    "loading": "Cargando..."
   }
 }

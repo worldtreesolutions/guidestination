@@ -10,7 +10,7 @@ export interface StripeCheckoutMetadata {
 }
 
 export interface CheckoutSessionData {
-  activityId: number | string;
+  activityId: number;
   providerId: string;
   establishmentId?: string;
   customerId?: string;

@@ -1,11 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { Readable } from "stream";
-import Stripe from "stripe";
-import { stripeService } from "@/services/stripeService";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-02-24.acacia",
-});
+import stripeService from "@/services/stripeService";
 
 // Disable body parser for raw body access
 export const config = {
@@ -44,6 +38,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         error: "Stripe webhook is not configured. Please add STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET to your environment variables." 
       });
     }
+
+    // Import Stripe dynamically
+    const Stripe = (await import("stripe")).default;
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: "2024-06-20",
+    });
 
     const sig = req.headers["stripe-signature"] as string;
     let event: any;

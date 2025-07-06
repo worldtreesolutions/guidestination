@@ -1,200 +1,376 @@
-import { useState, useEffect } from "react";
-import { useRouter } from "next/router";
-import { Activity } from "@/types/activity";
-import { useLanguage } from "@/contexts/LanguageContext";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Star, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
-import { CheckoutButton } from "@/components/stripe/CheckoutButton";
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
-import Image from "next/image";
-import { supabaseActivityService } from "@/services/supabaseActivityService";
+
+import { useState, useEffect } from "react"
+import { useRouter } from "next/router"
+import Head from "next/head"
+import Image from "next/image"
+import { Navbar } from "@/components/layout/Navbar"
+import { Footer } from "@/components/layout/Footer"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
+import { 
+  Heart, 
+  Share2, 
+  Clock, 
+  Users, 
+  Globe, 
+  MapPin, 
+  Star, 
+  CheckCircle, 
+  XCircle,
+  Calendar,
+  Play,
+  ArrowLeft
+} from "lucide-react"
+import { ActivityGallery } from "@/components/activities/ActivityGallery"
+import { AvailabilityCalendar } from "@/components/activities/AvailabilityCalendar"
+import { BookingForm } from "@/components/activities/BookingForm"
+import { ActivityReviews } from "@/components/activities/ActivityReviews"
+import { useIsMobile } from "@/hooks/use-mobile"
+import { supabaseActivityService, SupabaseActivity } from "@/services/supabaseActivityService"
 
 export default function ActivityBookingPage() {
-  const router = useRouter();
-  const { activityId } = router.query;
-  const { t } = useLanguage();
-  const { user } = useAuth();
-
-  const [activity, setActivity] = useState<Activity | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [participants, setParticipants] = useState(1);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const router = useRouter()
+  const { activityId } = router.query
+  const [activity, setActivity] = useState<SupabaseActivity | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [selectedDate, setSelectedDate] = useState<Date>()
+  const [selectedParticipants, setSelectedParticipants] = useState(1)
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     const fetchActivity = async () => {
-      if (!activityId || typeof activityId !== "string") return;
-
-      setLoading(true);
+      if (!activityId || typeof activityId !== "string") return
+      
       try {
-        const fetchedActivity = (await supabaseActivityService.getActivityById(activityId)) as unknown as Activity;
-        setActivity(fetchedActivity);
-        const imageUrl = fetchedActivity.image_url || (fetchedActivity.images && fetchedActivity.images.length > 0 ? fetchedActivity.images[0].url : "/placeholder.svg");
-        setSelectedImage(imageUrl);
-      } catch (err) {
-        setError("Failed to load activity details.");
-        console.error(err);
+        setLoading(true)
+        const activityData = await supabaseActivityService.getActivityById(activityId)
+        setActivity(activityData)
+      } catch (error) {
+        console.error("Error fetching activity:", error)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    fetchActivity();
-  }, [activityId]);
-
-  const handleParticipantChange = (increment: boolean) => {
-    setParticipants((prev) => {
-      const newCount = increment ? prev + 1 : prev - 1;
-      if (newCount < 1) return 1;
-      if (activity && activity.max_participants && newCount > activity.max_participants) {
-        return activity.max_participants;
-      }
-      return newCount;
-    });
-  };
-
-  const handleThumbnailClick = (imageUrl: string) => {
-    setSelectedImage(imageUrl);
-  };
+    fetchActivity()
+  }, [activityId])
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl font-semibold">{t("loading")}</div>
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p>Loading activity details...</p>
+          </div>
+        </main>
+        <Footer />
       </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-red-500 text-xl font-semibold">{error}</div>
-      </div>
-    );
+    )
   }
 
   if (!activity) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl font-semibold">Activity not found.</div>
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold mb-4">Activity Not Found</h1>
+            <p className="text-muted-foreground mb-4">The activity you're looking for doesn't exist.</p>
+            <Button onClick={() => router.push("/")}>Back to Home</Button>
+          </div>
+        </main>
+        <Footer />
       </div>
-    );
+    )
   }
 
-  const checkoutData = {
-    activityId: activity.id,
-    providerId: activity.provider_id || "",
-    amount: activity.price_per_person * participants,
-    participants: participants,
-    customerId: user?.id,
-    successUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/booking/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancelUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/booking/cancelled`,
-  };
+  const formatPrice = (price: number | null) => {
+    if (!price) return "Free"
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "THB",
+      minimumFractionDigits: 0,
+    }).format(price)
+  }
+
+  const formatDuration = (duration: string) => {
+    const durationMap: { [key: string]: string } = {
+      "2_hours": "2 hours",
+      "half_day": "Half day (4-5 hours)",
+      "full_day": "Full day (8-9 hours)",
+      "multi_day": "Multiple days"
+    }
+    return durationMap[duration] || duration
+  }
 
   return (
     <>
-      <Navbar />
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            {selectedImage && (
-              <div className="mb-4 relative">
-                <Image
-                  src={selectedImage}
-                  alt={activity.title}
-                  width={800}
-                  height={500}
-                  className="w-full h-auto object-cover rounded-lg shadow-lg"
+      <Head>
+        <title>Book {activity.title} - Guidestination</title>
+        <meta name="description" content={`Book ${activity.title} - ${activity.description}`} />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+      </Head>
+
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        
+        <main className="flex-1">
+          <div className="container py-4 sm:py-8 px-4 sm:px-6 max-w-7xl">
+            {/* Back Button */}
+            <div className="mb-6">
+              <Button 
+                variant="ghost" 
+                onClick={() => router.back()}
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to Activity
+              </Button>
+            </div>
+
+            {/* Header Section */}
+            <div className="mb-8">
+              <div className="flex items-center gap-2 mb-4">
+                <Badge variant="secondary" className="capitalize">
+                  {activity.category}
+                </Badge>
+                {activity.average_rating && (
+                  <div className="flex items-center gap-1">
+                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    <span className="font-medium">{activity.average_rating}</span>
+                    <span className="text-muted-foreground">
+                      ({activity.review_count} reviews)
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4">
+                Book: {activity.title || activity.name}
+              </h1>
+
+              <div className="flex flex-wrap items-center gap-4 mb-4">
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-primary" />
+                  <span className="text-sm sm:text-base">{activity.location || "Location TBD"}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  <span className="text-sm sm:text-base">{formatDuration(activity.duration || "")}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  <span className="text-sm sm:text-base">Max {activity.max_participants || 10} people</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Globe className="h-4 w-4" />
+                  <span className="text-sm sm:text-base">{activity.languages?.join(", ") || "English"}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Main Content */}
+              <div className="lg:col-span-2 space-y-8">
+                {/* Image Gallery */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Activity Gallery</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ActivityGallery 
+                      images={activity.images}
+                      videos={activity.videos || []}
+                      title={activity.title}
+                    />
+                  </CardContent>
+                </Card>
+
+                {/* Activity Overview */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>About This Experience</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground leading-relaxed mb-6">
+                      {activity.description}
+                    </p>
+
+                    {activity.highlights && activity.highlights.length > 0 && (
+                      <div>
+                        <h3 className="font-semibold mb-3">Highlights</h3>
+                        <ul className="space-y-2">
+                          {activity.highlights.map((highlight, index) => (
+                            <li key={index} className="flex items-start gap-2">
+                              <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                              <span>{highlight}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* What's Included/Not Included */}
+                <div className="grid md:grid-cols-2 gap-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-green-600">What's Included</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="space-y-2">
+                        {(activity.included || []).map((item, index) => (
+                          <li key={index} className="flex items-start gap-2">
+                            <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                            <span className="text-sm">{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-red-600">What's Not Included</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="space-y-2">
+                        {(activity.not_included || []).map((item, index) => (
+                          <li key={index} className="flex items-start gap-2">
+                            <XCircle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
+                            <span className="text-sm">{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Meeting Point */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Meeting Point & Details</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-start gap-2">
+                      <MapPin className="h-5 w-5 text-primary mt-0.5" />
+                      <div>
+                        <p className="font-medium">Meeting Point</p>
+                        <p className="text-muted-foreground">{activity.meeting_point || "Meeting point TBD"}</p>
+                      </div>
+                    </div>
+
+                    {activity.includes_pickup && (
+                      <div className="flex items-start gap-2">
+                        <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                        <div>
+                          <p className="font-medium">Hotel pickup included</p>
+                          <p className="text-muted-foreground text-sm">
+                            {activity.pickup_locations || "Pickup details TBD"}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {activity.includes_meal && (
+                      <div className="flex items-start gap-2">
+                        <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                        <div>
+                          <p className="font-medium">Meal included</p>
+                          <p className="text-muted-foreground text-sm">
+                            {activity.meal_description || "Meal details TBD"}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Reviews Section */}
+                <ActivityReviews 
+                  activityId={activity.id.toString()}
+                  rating={activity.average_rating || 0}
+                  reviewCount={activity.review_count || 0}
                 />
               </div>
-            )}
-            <div className="flex space-x-2 overflow-x-auto pb-2">
-              {activity.images?.map((image, index) => (
-                <div key={index} className="flex-shrink-0 cursor-pointer" onClick={() => handleThumbnailClick(image.url)}>
-                  <Image
-                    src={image.url}
-                    alt={`${activity.title} thumbnail ${index + 1}`}
-                    width={100}
-                    height={75}
-                    className={`w-24 h-18 object-cover rounded-md border-2 ${selectedImage === image.url ? "border-primary" : "border-transparent"}`}
-                  />
-                </div>
-              ))}
-            </div>
-            <h1 className="text-3xl font-bold mt-4">{activity.title}</h1>
-            <div className="flex items-center mt-2 text-gray-600">
-              {activity.rating && (
-                <>
-                  <Star className="w-5 h-5 text-yellow-500 mr-1" />
-                  <span>{activity.rating}</span>
-                  <span className="mx-2">|</span>
-                </>
-              )}
-              <MapPin className="w-5 h-5 mr-1" />
-              <span>{activity.location}</span>
-            </div>
-            <p className="mt-4 text-lg">{activity.description}</p>
 
-            {activity.highlights && activity.highlights.length > 0 && (
-              <div className="mt-6">
-                <h2 className="text-2xl font-semibold">Highlights</h2>
-                <ul className="list-disc list-inside mt-2 space-y-1">
-                  {activity.highlights?.map((highlight, i) => (
-                    <li key={i}>{highlight}</li>
-                  ))}
-                </ul>
+              {/* Booking Sidebar */}
+              <div className="lg:col-span-1">
+                <div className={isMobile ? "mt-6" : "sticky top-20"}>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Calendar className="h-5 w-5" />
+                        Complete Your Booking
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-primary">
+                          {formatPrice(activity.final_price)}
+                        </div>
+                        <div className="text-sm text-muted-foreground">per person</div>
+                      </div>
+
+                      <Separator />
+
+                      <div>
+                        <h3 className="font-semibold mb-3">Select Date</h3>
+                        <AvailabilityCalendar
+                          availableDates={activity.schedule?.availableDates || []}
+                          selectedDate={selectedDate}
+                          onDateSelect={setSelectedDate}
+                        />
+                      </div>
+
+                      <Separator />
+
+                      <BookingForm
+                        activity={activity}
+                        selectedDate={selectedDate}
+                        participants={selectedParticipants}
+                        onParticipantsChange={setSelectedParticipants}
+                      />
+                    </CardContent>
+                  </Card>
+
+                  {/* Trust & Safety */}
+                  <Card className="mt-6">
+                    <CardHeader>
+                      <CardTitle className="text-sm">Trust & Safety</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="flex items-center gap-2 text-sm">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>Verified activity provider</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>Secure payment processing</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>24/7 customer support</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>Free cancellation available</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
-            )}
-
-            {activity.included && activity.included.length > 0 && (
-              <div className="mt-6">
-                <h2 className="text-2xl font-semibold">What's Included</h2>
-                <ul className="list-disc list-inside mt-2 space-y-1">
-                  {activity.included?.map((item, i) => (
-                    <li key={i}>{item}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            </div>
           </div>
+        </main>
 
-          <div>
-            <Card className="sticky top-24">
-              <CardHeader>
-                <CardTitle className="text-2xl">Book Your Spot</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">
-                  ${activity.price_per_person} <span className="text-base font-normal">/ person</span>
-                </div>
-                <div className="flex items-center justify-between mt-4">
-                  <span className="font-semibold">Participants</span>
-                  <div className="flex items-center">
-                    <Button variant="outline" size="icon" onClick={() => handleParticipantChange(false)}>
-                      <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    <span className="w-12 text-center">{participants}</span>
-                    <Button variant="outline" size="icon" onClick={() => handleParticipantChange(true)}>
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-                <div className="flex justify-between items-center mt-4 font-bold text-xl">
-                  <span>Total</span>
-                  <span>${(activity.price_per_person * participants).toFixed(2)}</span>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <CheckoutButton checkoutData={checkoutData} />
-              </CardFooter>
-            </Card>
-          </div>
-        </div>
+        <Footer />
       </div>
-      <Footer />
     </>
-  );
+  )
 }

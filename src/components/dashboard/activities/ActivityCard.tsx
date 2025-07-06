@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -35,14 +36,14 @@ export default function ActivityCard({
   }
 
   const handleDelete = () => {
-    if (onDelete && activity.id) {
-      onDelete(activity.id);
+    if (onDelete && activity.activity_id) {
+      onDelete(activity.activity_id);
     }
   }
 
   const handleStatusChange = (newStatus: number | string) => {
-    if (onStatusChange && activity.id) {
-      onStatusChange(activity.id, newStatus);
+    if (onStatusChange && activity.activity_id) {
+      onStatusChange(activity.activity_id, newStatus);
     }
   }
 
@@ -85,7 +86,7 @@ export default function ActivityCard({
           variant="default"
           className={`absolute top-2 right-2 text-xs sm:text-sm ${getStatusColor(activity.status || null)}`}
         >
-          {getStatusText(activity.status || 'draft')}
+          {getStatusText(activity.status)}
         </Badge>
       </div>
 
@@ -127,13 +128,13 @@ export default function ActivityCard({
       {showActions && (
         <CardFooter className="p-2 xs:p-3 sm:p-4 md:p-5 pt-0 mt-auto">
           <div className="grid grid-cols-3 gap-1 xs:gap-2 w-full">
-            <Link href={`/dashboard/activities/${activity.id}`} className="col-span-1">
+            <Link href={`/dashboard/activities/${activity.activity_id}`} className="col-span-1">
               <Button variant="outline" size="sm" className="w-full h-8 xs:h-9 text-xs sm:text-sm">
                 <Eye className="h-3 w-3 xs:h-4 xs:w-4 sm:mr-1" />
                 <span className="hidden xs:inline-block sm:inline-block ml-1 sm:ml-0">View</span>
               </Button>
             </Link>
-            <Link href={`/dashboard/activities/${activity.id}`} className="col-span-1">
+            <Link href={`/dashboard/activities/${activity.activity_id}`} className="col-span-1">
               <Button variant="outline" size="sm" className="w-full h-8 xs:h-9 text-xs sm:text-sm">
                 <Edit className="h-3 w-3 xs:h-4 xs:w-4 sm:mr-1" />
                 <span className="hidden xs:inline-block sm:inline-block ml-1 sm:ml-0">Edit</span>

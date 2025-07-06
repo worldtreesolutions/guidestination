@@ -5,37 +5,86 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { RefreshCw, CheckCircle, XCircle, Clock, DollarSign } from "lucide-react";
-import { Database } from "@/integrations/supabase/types";
 
-type CheckoutSession = Database["public"]["Tables"]["stripe_checkout_sessions"]["Row"];
-type Transfer = Database["public"]["Tables"]["stripe_transfers"]["Row"];
-type WebhookEvent = Database["public"]["Tables"]["stripe_webhook_events"]["Row"];
+interface CheckoutSession {
+  id: string;
+  stripe_session_id: string;
+  activity_id: number;
+  provider_id: string;
+  establishment_id?: string;
+  amount: number;
+  commission_percent: number;
+  status: string;
+  created_at: string;
+}
 
-const TransactionMonitor = () => {
-  const [sessions, setSessions] = useState<any[]>([]);
-  const [transfers, setTransfers] = useState<any[]>([]);
-  const [webhooks, setWebhooks] = useState<any[]>([]);
+interface Transfer {
+  id: string;
+  stripe_transfer_id?: string;
+  recipient_type: string;
+  recipient_id: string;
+  amount: number;
+  status: string;
+  error_message?: string;
+  created_at: string;
+}
+
+interface WebhookEvent {
+  id: string;
+  stripe_event_id: string;
+  event_type: string;
+  processed: boolean;
+  error_message?: string;
+  created_at: string;
+}
+
+export default function TransactionMonitorPage() {
+  const [checkoutSessions, setCheckoutSessions] = useState<CheckoutSession[]>([]);
+  const [transfers, setTransfers] = useState<Transfer[]>([]);
+  const [webhookEvents, setWebhookEvents] = useState<WebhookEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      // Fetch checkout sessions
+      const { data: sessions } = await supabase
+        .from("stripe_checkout_sessions")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(20);
+
+      // Fetch transfers
+      const { data: transfersData } = await supabase
+        .from("stripe_transfers")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(20);
+
+      // Fetch webhook events
+      const { data: webhooks } = await supabase
+        .from("stripe_webhook_events")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(20);
+
+      setCheckoutSessions(sessions || []);
+      setTransfers(transfersData || []);
+      setWebhookEvents(webhooks || []);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchTransactions = async () => {
-      const { data: sessionsData, error: sessionsError } = await supabase.from("stripe_checkout_sessions").select("*");
-      const { data: transfersData, error: transfersError } = await supabase.from("stripe_transfers").select("*");
-      const { data: webhooksData, error: webhooksError } = await supabase.from("stripe_webhook_events").select("*");
-
-      if (sessionsData) setSessions(sessionsData);
-      if (transfersData) setTransfers(transfersData);
-      if (webhooksData) setWebhooks(webhooksData);
-    };
-
-    fetchTransactions();
-    const interval = setInterval(fetchTransactions, 5000); // Refresh every 5 seconds
-    return () => clearInterval(interval);
+    fetchData();
   }, []);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "completed":
-      case "paid":
         return <Badge className="bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1" />Completed</Badge>;
       case "failed":
         return <Badge className="bg-red-100 text-red-800"><XCircle className="w-3 h-3 mr-1" />Failed</Badge>;
@@ -72,8 +121,8 @@ const TransactionMonitor = () => {
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Transaction Monitor</h1>
             <p className="text-gray-600">Monitor Stripe transactions and commission splits</p>
           </div>
-          <Button onClick={() => {}} disabled={false}>
-            <RefreshCw className={`w-4 h-4 mr-2 ${false ? "animate-spin" : ""}`} />
+          <Button onClick={fetchData} disabled={loading}>
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
             Refresh
           </Button>
         </div>
@@ -91,9 +140,9 @@ const TransactionMonitor = () => {
                 <CardTitle>Recent Checkout Sessions</CardTitle>
               </CardHeader>
               <CardContent>
-                {sessions.length > 0 ? (
+                {checkoutSessions.length > 0 ? (
                   <div className="space-y-4">
-                    {sessions.map((session) => {
+                    {checkoutSessions.map((session) => {
                       const breakdown = calculateCommissionBreakdown(session);
                       return (
                         <div key={session.id} className="border rounded-lg p-4">
@@ -218,9 +267,9 @@ const TransactionMonitor = () => {
                 <CardTitle>Recent Webhook Events</CardTitle>
               </CardHeader>
               <CardContent>
-                {webhooks.length > 0 ? (
+                {webhookEvents.length > 0 ? (
                   <div className="space-y-4">
-                    {webhooks.map((webhook) => (
+                    {webhookEvents.map((webhook) => (
                       <div key={webhook.id} className="border rounded-lg p-4">
                         <div className="flex justify-between items-start mb-2">
                           <div>

@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { X, Clock, MapPin } from "lucide-react"
 import Image from "next/image"
@@ -158,10 +159,10 @@ export const SelectedActivitiesList = ({
         ) : (
           <div className="bg-gray-50 rounded-lg border border-dashed border-gray-300 p-6 text-center">
             <p className="text-muted-foreground text-sm">
-              {t("planner.noActivitiesSelected")}
+              {t("planner.noActivitiesSelected") || "No activities selected"}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              {t("planner.browseActivities")}
+              {t("planner.browseActivities") || "Browse activities and add them to your planner"}
             </p>
           </div>
         )}

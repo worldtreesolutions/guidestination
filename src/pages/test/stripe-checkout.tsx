@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { CheckoutButton } from "@/components/stripe/CheckoutButton";
+import CheckoutButton from "@/components/stripe/CheckoutButton";
 import { Calculator, CreditCard, Users, Building, AlertCircle } from "lucide-react";
 
 export default function StripeCheckoutTestPage() {
@@ -370,18 +370,20 @@ export default function StripeCheckoutTestPage() {
                 </div>
 
                 <CheckoutButton
-                  checkoutData={{
-                    activityId: testData.activityId,
-                    providerId: testData.providerId,
-                    establishmentId: testData.establishmentId || undefined,
-                    customerId: testData.customerId || undefined,
-                    amount: testData.amount,
-                    participants: testData.participants,
-                    commissionPercent: testData.commissionPercent,
-                    successUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/booking/success?session_id={CHECKOUT_SESSION_ID}`,
-                    cancelUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/booking/cancelled`,
-                  }}
-                />
+                  activityId={testData.activityId}
+                  providerId={testData.providerId}
+                  establishmentId={testData.establishmentId || undefined}
+                  customerId={testData.customerId || undefined}
+                  amount={testData.amount}
+                  participants={testData.participants}
+                  commissionPercent={testData.commissionPercent}
+                  className="w-full"
+                >
+                  Test Checkout - ${commissionBreakdown.totalAmount > 0 
+                    ? commissionBreakdown.totalAmount.toFixed(2) 
+                    : (testData.amount + calculateStripeFees(testData.amount)).toFixed(2)
+                  }
+                </CheckoutButton>
 
                 <div className="text-sm text-gray-600 space-y-1">
                   <p><strong>Scenario:</strong> {testData.establishmentId ? "QR Code Booking" : "Standard Booking"}</p>

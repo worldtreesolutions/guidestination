@@ -1,3 +1,4 @@
+
 import { Activity, ActivityStatus } from "@/types/activity"
 import { formatCurrency } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -33,7 +34,7 @@ export function ActivityList({ activities }: ActivityListProps) {
     <div className="space-y-4">
       {activities.map((activity) => (
         <div
-          key={activity.id}
+          key={activity.activity_id}
           className="flex items-center justify-between p-4 border rounded-lg bg-white"
         >
           <div className="flex-1">
@@ -64,13 +65,13 @@ export function ActivityList({ activities }: ActivityListProps) {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Link href={`/dashboard/activities/${activity.id}`}>
+            <Link href={`/dashboard/activities/${activity.activity_id}`}>
               <Button variant="outline" size="sm">
                 <Eye className="h-4 w-4 mr-1" />
                 View
               </Button>
             </Link>
-            <Link href={`/dashboard/activities/${activity.id}/edit`}>
+            <Link href={`/dashboard/activities/${activity.activity_id}/edit`}>
               <Button variant="outline" size="sm">
                 <Edit className="h-4 w-4 mr-1" />
                 Edit

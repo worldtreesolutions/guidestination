@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useLanguage, Language } from "@/contexts/LanguageContext";
@@ -66,7 +67,29 @@ export function LanguageSelector() {
 
   const handleLanguageChange = (newLanguage: Language) => {
     if (newLanguage === language) return;
-    setLanguage(newLanguage);
+    
+    console.log(`Language selector: changing from ${language} to ${newLanguage}`);
+    
+    if (typeof window !== 'undefined') {
+      try {
+        // Save the language preference to localStorage
+        localStorage.setItem("preferredLanguage", newLanguage);
+        console.log(`Saved language preference to localStorage: ${newLanguage}`);
+        
+        // Update the language context state - this will trigger a re-render
+        // of all components using the language context without losing auth state
+        setLanguage(newLanguage);
+        
+      } catch (error) {
+        console.error("Error during language change:", error);
+        
+        // If there's an error with localStorage, still try to update the language state
+        setLanguage(newLanguage);
+      }
+    } else {
+      // Fallback for non-browser environments
+      setLanguage(newLanguage);
+    }
   };
 
   if (!mounted || isLoading) {

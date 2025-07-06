@@ -1,3 +1,4 @@
+
 import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
@@ -9,13 +10,7 @@ import { useRouter } from "next/router"
 import React from "react"
 import { LanguageSelector } from "./LanguageSelector"
 
-interface MobileMenuProps {
-  isOpen: boolean
-  setIsOpen: (isOpen: boolean) => void
-  navLinks: { href: string; label: string }[]
-}
-
-export function MobileMenu({ isOpen, setIsOpen, navLinks }: MobileMenuProps) {
+export default function MobileMenu() {
   const [open, setOpen] = useState(false)
   const { user, signOut } = useAuth()
   const router = useRouter()
@@ -25,6 +20,15 @@ export function MobileMenu({ isOpen, setIsOpen, navLinks }: MobileMenuProps) {
     router.push("/")
     setOpen(false)
   }
+
+  const navLinks = [
+    { href: "/", label: "Home" },
+    { href: "/activities", label: "Activities" },
+    { href: "/planning", label: "My Planning" },
+    { href: "/activity-owner", label: "List Your Activities" },
+    { href: "/partner", label: "Become a Partner" },
+    { href: "/dashboard/login", label: "Provider Dashboard" },
+  ]
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>

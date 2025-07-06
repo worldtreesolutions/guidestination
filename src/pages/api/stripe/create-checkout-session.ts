@@ -1,11 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { CheckoutSessionData } from "@/types/stripe";
-import { stripeService } from "@/services/stripeService";
-import Stripe from "stripe";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-02-24.acacia",
-});
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
@@ -38,6 +32,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         error: "Missing required fields: activityId, providerId, amount, participants, successUrl, cancelUrl" 
       });
     }
+
+    // Import Stripe dynamically to avoid issues
+    const Stripe = (await import("stripe")).default;
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: "2024-06-20",
+    });
 
     // Calculate Stripe fees: 2.9% + $0.30 for US cards
     const stripeFeePercent = 0.029; // 2.9%
