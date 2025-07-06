@@ -1,4 +1,3 @@
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,12 +8,13 @@ import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 
 export interface PreferencesFormData {
-  interests: string[]
-  travelStyle: string
-  budget: string
-  unavailableDays: string[]
-  additionalNotes: string
-  preferredTime: string[]
+  travelStyle: string;
+  budget: string;
+  unavailableDays: string[];
+  travelDates: {
+    from: Date | undefined;
+    to: Date | undefined;
+  };
 }
 
 interface PreferencesFormProps {
@@ -23,12 +23,13 @@ interface PreferencesFormProps {
 
 export function PreferencesForm({ onSubmit }: PreferencesFormProps) {
   const [formData, setFormData] = useState<PreferencesFormData>({
-    interests: [],
     travelStyle: "balanced",
     budget: "medium",
     unavailableDays: [],
-    additionalNotes: "",
-    preferredTime: []
+    travelDates: {
+      from: undefined,
+      to: undefined,
+    },
   })
 
   const interests = [

@@ -149,21 +149,20 @@ export default function HomePage() {
               viewAllHref="/activities"
             />
 
-            {/* Category-based Activity Rows */}
-            {mockCategories.map((category) => {
-              const categoryActivities = getActivitiesByCategory(category.name)
-              if (categoryActivities.length === 0) return null
+            {/* Featured Activities */}
+            <ActivityRow
+              title="Featured Activities"
+              activities={featuredActivities}
+            />
 
-              return (
-                <ActivityRow
-                  key={category.id}
-                  title={category.name}
-                  activities={categoryActivities}
-                  showViewAll={true}
-                  viewAllHref={`/activities?category=${category.id}`}
-                />
-              )
-            })}
+            {/* Category-based Activity Rows */}
+            {categories.map((category, index) => (
+              <ActivityRow
+                key={category.id}
+                title={category.name}
+                activities={categoryActivities[index] || []}
+              />
+            ))}
           </div>
         </section>
 
