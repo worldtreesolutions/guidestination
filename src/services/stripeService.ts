@@ -27,7 +27,7 @@ export const stripeService = {
     const account = await stripe.accounts.create({
       type: "express",
       email: email,
-      meta {
+      metadata: {
         user_id: userId,
         user_type: isPartner ? "partner" : "activity_owner",
       },
@@ -79,7 +79,7 @@ export const stripeService = {
   // Checkout
   async createCheckoutSession(
     lineItems: Stripe.Checkout.SessionCreateParams.LineItem[],
-    meta StripeCheckoutMetadata,
+    metadata: StripeCheckoutMetadata,
     providerAccountId: string,
     commissionPercent: number
   ) {
@@ -89,10 +89,10 @@ export const stripeService = {
       mode: "payment",
       success_url: `${process.env.NEXT_PUBLIC_APP_URL}/booking/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/booking/cancelled`,
-      meta metadata,
-      payment_intent_ {
+      metadata: metadata,
+      payment_intent_data: {
         application_fee_amount: Math.round(lineItems[0].price_data!.unit_amount! * (commissionPercent / 100)),
-        transfer_ {
+        transfer_data: {
           destination: providerAccountId,
         },
       },
@@ -146,13 +146,13 @@ export const stripeService = {
     return stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET!);
   },
 
-  async handleSuccessfulCheckout(session: Stripe.Checkout.Session) {
+  async handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     const metadata = session.metadata as StripeCheckoutMetadata | null;
     if (!metadata) throw new Error("Missing metadata in checkout session");
 
     const bookingData: TablesInsert<"bookings"> = {
       activity_id: parseInt(metadata.activity_id),
-      customer_id: null, // Or link to a customer profile if one exists/is created
+      customer_id: null,
       customer_name: metadata.customer_name,
       customer_email: metadata.customer_email,
       booking_date: metadata.booking_date,
@@ -161,7 +161,7 @@ export const stripeService = {
       status: "confirmed",
     };
 
-    const {  booking, error: bookingError } = await supabase
+    const { data: booking, error: bookingError } = await supabase
       .from("bookings")
       .insert(bookingData)
       .select()
@@ -184,9 +184,6 @@ export const stripeService = {
       if (partner?.stripe_account_id && partner.stripe_charges_enabled) {
         const commissionAmount = (session.amount_total! / 100) * (partner.commission_rate / 100);
         
-        // This transfer is illustrative. In a real scenario, you might accumulate commissions
-        // and pay them out periodically. Direct transfers from charges are complex.
-        // For now, we'll log the commission.
         await supabase.from("establishment_commissions").insert({
             establishment_id: metadata.establishment_id,
             booking_id: booking.id,
@@ -220,18 +217,18 @@ export const stripeService = {
     };
   },
 
-  async handleTransfer(transfer: Stripe.Transfer, status: "succeeded" | "failed") {
-     await supabase
+  async handleTransferFailed(transfer: Stripe.Transfer) {
+    await supabase
       .from("stripe_transfers")
       .update({ 
-        status,
+        status: "failed",
         failure_message: transfer.failure_message || null
       })
-      .eq("id", transfer.id); // Assuming you store transfers with Stripe's transfer ID
+      .eq("id", transfer.id);
   },
 
-  async handleAccountUpdate(account: Stripe.Account) {
-    const isPartner = account.metadata.user_type === "partner";
+  async handleAccountUpdated(account: Stripe.Account) {
+    const isPartner = account.metadata?.user_type === "partner";
     const table = isPartner ? "partner_registrations" : "activity_owners";
     
     await supabase
@@ -242,26 +239,32 @@ export const stripeService = {
       .eq("stripe_account_id", account.id);
   },
 
-  async handlePayout(payout: Stripe.Payout, status: "paid" | "failed") {
+  async handlePayoutPaid(payout: Stripe.Payout) {
     await supabase
       .from("stripe_payouts")
-      .update({ status })
-      .eq("id", payout.id); // Assuming you store payouts with Stripe's payout ID
+      .update({ status: "paid" })
+      .eq("id", payout.id);
   },
 
-  // Webhook event logging
-  async logWebhookEvent(event: Stripe.Event) {
-    const { error } = await supabase.from("stripe_webhook_events").insert({
-      stripe_event_id: event.id,
-      event_type: event.type,
-      payload: event.data.object,
-    });
-    if (error) {
-      console.error(`Failed to log webhook event ${event.id}`, error);
-    }
+  async handlePayoutFailed(payout: Stripe.Payout) {
+    await supabase
+      .from("stripe_payouts")
+      .update({ status: "failed" })
+      .eq("id", payout.id);
   },
 
-  async hasWebhookEventBeenProcessed(eventId: string): Promise<boolean> {
+  async handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
+    console.log("Payment failed for payment intent:", paymentIntent.id);
+    // Add any specific handling for failed payments here
+  },
+
+  async handleRefund(charge: Stripe.Charge) {
+    console.log("Refund processed for charge:", charge.id);
+    // Add any specific handling for refunds here
+  },
+
+  // Event processing helpers
+  async isEventProcessed(eventId: string): Promise<boolean> {
     const { data, error } = await supabase
       .from("stripe_webhook_events")
       .select("processed")
@@ -271,14 +274,39 @@ export const stripeService = {
     return data?.processed || false;
   },
 
-  async markWebhookEventAsProcessed(eventId: string) {
+  async recordWebhookEvent(eventId: string, eventType: string, processed: boolean = false, errorMessage?: string) {
+    const { error } = await supabase.from("stripe_webhook_events").insert({
+      stripe_event_id: eventId,
+      event_type: eventType,
+      processed: processed,
+      payload: { error: errorMessage },
+    });
+    if (error) {
+      console.error(`Failed to record webhook event ${eventId}`, error);
+    }
+  },
+
+  async markEventProcessed(eventId: string) {
     await supabase
       .from("stripe_webhook_events")
       .update({ processed: true })
       .eq("stripe_event_id", eventId);
   },
 
-  // Payouts (Illustrative)
+  // Legacy methods for compatibility
+  async logWebhookEvent(event: Stripe.Event) {
+    return this.recordWebhookEvent(event.id, event.type, false);
+  },
+
+  async hasWebhookEventBeenProcessed(eventId: string): Promise<boolean> {
+    return this.isEventProcessed(eventId);
+  },
+
+  async markWebhookEventAsProcessed(eventId: string) {
+    return this.markEventProcessed(eventId);
+  },
+
+  // Payouts
   async getPendingPayoutsForOwner(ownerId: string) {
     return supabase
       .from("stripe_payouts")
@@ -304,3 +332,5 @@ export const stripeService = {
       .order("created_at", { ascending: false });
   },
 };
+
+export default stripeService;

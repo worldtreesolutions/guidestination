@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Database, Tables } from "@/integrations/supabase/types";
 
@@ -10,17 +9,13 @@ export type SupabaseActivity = Tables<"activities"> & {
 };
 
 export const supabaseActivityService = {
-  async getActivityBySlug(slug: string): Promise<SupabaseActivity | null> {
-    // Assuming slug is derived from title, e.g., "my-activity-title" -> id
-    // This is not robust. A real implementation should use a unique slug field.
-    // For now, we'll just fetch by ID if the slug is a number.
-    const activityId = parseInt(slug, 10);
+  async getActivityById(id: string): Promise<SupabaseActivity | null> {
+    const activityId = parseInt(id, 10);
     if (isNaN(activityId)) {
-      // Try to find by title match if not a numeric slug
       const { data, error } = await supabase
         .from("activities")
         .select(`*, categories (name)`)
-        .ilike("title", slug.replace(/-/g, " "))
+        .ilike("title", id.replace(/-/g, " "))
         .limit(1)
         .single();
       
@@ -42,7 +37,6 @@ export const supabaseActivityService = {
       return null;
     }
     
-    // This is a workaround because Supabase types don't easily support nested selects
     const activity = data as any;
     if (activity && activity.categories) {
         activity.category_name = activity.categories.name;
@@ -50,6 +44,10 @@ export const supabaseActivityService = {
     }
 
     return activity as SupabaseActivity;
+  },
+
+  async getActivityBySlug(slug: string): Promise<SupabaseActivity | null> {
+    return this.getActivityById(slug);
   },
 
   async getActivityMedia(activityId: number) {
