@@ -28,14 +28,14 @@ const authService = {
       let provider_id = undefined;
       if (data.user) {
         // Check if user is an activity owner
-        const { data: ownerData, error: ownerError } = await supabase
+        const {  ownerData, error: ownerError } = await supabase
           .from('activity_owners')
-          .select('provider_id') // Changed from 'id' to 'provider_id'
+          .select('id')
           .eq('user_id', data.user.id)
           .single();
 
         if (!ownerError && ownerData) {
-          provider_id = ownerData.provider_id; // Changed from ownerData.id to ownerData.provider_id
+          provider_id = ownerData.id;
           console.log("Found provider_id:", provider_id);
         }
       }
@@ -89,6 +89,34 @@ const authService = {
       password,
     })
     return { error: error ? error : null };
+  },
+
+  async getActivityOwnerId(userId: string): Promise<string | null> {
+    const { data, error } = await supabase
+      .from("activity_owners")
+      .select("id")
+      .eq("user_id", userId)
+      .single();
+
+    if (error) {
+      console.error("Error fetching activity owner id:", error);
+      return null;
+    }
+    return data.id;
+  },
+
+  async getPartnerId(userId: string): Promise<string | null> {
+    const { data, error } = await supabase
+      .from("partner_registrations")
+      .select("id")
+      .eq("user_id", userId)
+      .single();
+
+    if (error) {
+      console.error("Error fetching partner id:", error);
+      return null;
+    }
+    return data.id;
   },
 }
 
