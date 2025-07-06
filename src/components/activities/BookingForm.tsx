@@ -102,7 +102,7 @@ export function BookingForm({ activity, selectedDate, participants, onParticipan
       <div className="space-y-2">
         <div className="flex justify-between items-center">
           <span className="text-muted-foreground">
-            {formatPrice(activity.final_price || 0)} x {participants} person(s)
+            {formatPrice(activity.price || 0)} x {participants} person(s)
           </span>
           <span className="font-medium">{formatPrice(totalPrice)}</span>
         </div>

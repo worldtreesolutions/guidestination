@@ -99,14 +99,14 @@ export default function ActivityPage() {
     }).format(price)
   }
 
-  const formatDuration = (duration: string) => {
-    const durationMap: { [key: string]: string } = {
-      "2_hours": "2 hours",
-      "half_day": "Half day (4-5 hours)",
-      "full_day": "Full day (8-9 hours)",
-      "multi_day": "Multiple days"
+  const formatDuration = (duration: number | null) => {
+    if (duration === null) return "";
+    const durationMap: { [key: number]: string } = {
+      2: "2 hours",
+      4: "Half day (4-5 hours)",
+      8: "Full day (8-9 hours)",
     }
-    return durationMap[duration] || duration
+    return durationMap[duration] || `${duration} hours`
   }
 
   return (
@@ -150,7 +150,7 @@ export default function ActivityPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4" />
-                  <span className="text-sm sm:text-base">{formatDuration(activity.duration || "")}</span>
+                  <span className="text-sm sm:text-base">{formatDuration(activity.duration)}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4" />

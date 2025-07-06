@@ -124,9 +124,9 @@ export const PartnerRegistrationForm = () => {
         commission_package: values.commissionPackage as "basic" | "premium",
         supporting_documents: documentUrls,
         status: "pending" as const,
-      }
+      };
 
-      const result = await partnerService.createPartnerRegistration(registrationData)
+      const result = await partnerService.createPartnerRegistration(registrationData as any);
       
       setUploadProgress("Registration completed successfully!")
       
