@@ -4,8 +4,7 @@ import Stripe from "stripe";
 import { stripeService } from "@/services/stripeService";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  // https://github.com/stripe/stripe-node#configuration
-  apiVersion: "2024-06-20",
+  apiVersion: "2025-02-24.acacia",
 });
 
 // Disable body parser for raw body access
