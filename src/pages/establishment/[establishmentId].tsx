@@ -12,6 +12,7 @@ import { establishmentService } from "@/services/establishmentService"
 import { referralService } from "@/services/referralService"
 import Link from "next/link"
 import Image from "next/image"
+import { supabase } from "@/services/supabase"
 
 interface Establishment {
   id: string
@@ -34,6 +35,8 @@ interface EstablishmentActivity {
   is_active: boolean
   created_at: string
   updated_at: string
+  establishment_id: number
+  activity_id: number
   activities?: {
     title: string
     image_url: string
@@ -142,6 +145,14 @@ export default function EstablishmentProfilePage() {
             <div className="max-w-4xl mx-auto">
               <div className="flex flex-col md:flex-row gap-6">
                 <div className="flex-1">
+                  <div className="mb-6">
+                    <h1 className="text-3xl font-bold">{establishment.name}</h1>
+                    <p className="text-muted-foreground">{establishment.address}</p>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Partner since {new Date(establishment.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                  
                   <div className="flex items-center gap-3 mb-4">
                     <h1 className="text-3xl font-bold text-gray-900">{establishment.name}</h1>
                     <Badge variant={establishment.verification_status === 'verified' ? 'default' : 'secondary'}>
@@ -221,37 +232,22 @@ export default function EstablishmentProfilePage() {
 
               {activities.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {activities.map((activity) => (
-                    <div key={activity.id}>
-                      {activity.activities ? (
-                        <ActivityCard
-                          title={activity.activities.title}
-                          image={activity.activities.image_url || "/placeholder-activity.jpg"}
-                          price={activity.activities.b_price}
-                          location={establishment.address || establishment.name}
-                          rating={4.5}
-                          href={`/activities/${activity.activity_id}?ref=${establishment.id}`}
-                        />
-                      ) : (
-                        <Card className="h-full">
-                          <CardHeader>
-                            <CardTitle className="text-lg">Activity {activity.activity_id}</CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <p className="text-gray-600 mb-4">
-                              Activity details coming soon
-                            </p>
-                            <div className="flex items-center justify-between">
-                              <Badge variant="outline">Activity</Badge>
-                              <Link href={`/activities/${activity.activity_id}?ref=${establishment.id}`}>
-                                <Button size="sm">View Details</Button>
-                              </Link>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      )}
-                    </div>
-                  ))}
+                  {activities.map((activity) => {
+                    const activityData = {
+                      title: activity.title || "Activity",
+                      image: activity.image_urls?.[0] || "/placeholder.jpg",
+                      price: activity.price || 0,
+                      location: activity.location || "Location TBD",
+                      rating: activity.rating || 0,
+                      href: `/activities/${activity.id}`
+                    };
+                    return (
+                      <ActivityCard
+                        key={activity.id}
+                        activity={activity}
+                      />
+                    );
+                  })}
                 </div>
               ) : (
                 <Card>
