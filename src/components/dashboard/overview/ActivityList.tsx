@@ -1,85 +1,106 @@
-
-import { Activity, ActivityStatus } from "@/types/activity"
-import { formatCurrency } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import Link from "next/link"
-import { Edit, Eye } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Eye, Edit, MoreHorizontal } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { SupabaseActivity } from "@/services/supabaseActivityService"
 
 interface ActivityListProps {
-  activities: Activity[];
+  activities: SupabaseActivity[];
+  onEdit?: (activity: SupabaseActivity) => void;
+  onView?: (activity: SupabaseActivity) => void;
 }
 
-export function ActivityList({ activities }: ActivityListProps) {
-  // Updated to accept any type for status to handle both string and number
-  const getStatusVariant = (status: any): "default" | "secondary" | "outline" => {
-    // Convert numeric status to string representation if needed
-    let statusStr = typeof status === 'number' 
-      ? status === 2 ? "published" : status === 1 ? "draft" : "archived"
-      : String(status);
-      
-    switch (statusStr) {
-      case "published":
-      case "2":
-        return "default"
-      case "draft":
-      case "1":
-        return "secondary"
-      default:
-        return "outline"
-    }
+export function ActivityList({ activities, onEdit, onView }: ActivityListProps) {
+  const formatPrice = (price: number | null) => {
+    if (!price) return "Free"
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "THB",
+      minimumFractionDigits: 0,
+    }).format(price)
+  }
+
+  const getStatusColor = (isActive: boolean) => {
+    return isActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+  }
+
+  const getStatusText = (isActive: boolean) => {
+    return isActive ? "Active" : "Inactive"
+  }
+
+  if (activities.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Activities</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground text-center py-4">
+            No activities found. Create your first activity to get started.
+          </p>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
-    <div className="space-y-4">
-      {activities.map((activity) => (
-        <div
-          key={activity.activity_id}
-          className="flex items-center justify-between p-4 border rounded-lg bg-white"
-        >
-          <div className="flex-1">
-            <div className="flex items-center gap-4">
-              <div>
-                <h3 className="font-medium">{activity.name || activity.title}</h3>
-                <p className="text-sm text-muted-foreground">
-                  {activity.category_id ? `Category ID: ${activity.category_id}` : "Uncategorized"}
-                </p>
+    <Card>
+      <CardHeader>
+        <CardTitle>Recent Activities</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {activities.map((activity) => (
+            <div
+              key={activity.id}
+              className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+            >
+              <div className="flex items-center space-x-4">
+                <img
+                  src={activity.image_urls?.[0] || "/placeholder.jpg"}
+                  alt={activity.title}
+                  className="w-12 h-12 rounded-lg object-cover"
+                />
+                <div>
+                  <h3 className="font-medium">{activity.title}</h3>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Badge className={getStatusColor(activity.is_active)}>
+                      {getStatusText(activity.is_active)}
+                    </Badge>
+                    <span className="text-sm text-muted-foreground">
+                      {formatPrice(activity.price)}
+                    </span>
+                  </div>
+                </div>
               </div>
-              <Badge
-                variant={getStatusVariant(activity.status)}
-              >
-                {typeof activity.status === 'number'
-                  ? activity.status === 2 ? "published" : activity.status === 1 ? "draft" : "archived"
-                  : activity.status || "draft"}
-              </Badge>
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => onView?.(activity)}>
+                    <Eye className="h-4 w-4 mr-2" />
+                    View
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onEdit?.(activity)}>
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
-            <div className="mt-2 text-sm">
-              <span className="font-medium">
-                {formatCurrency(activity.b_price || 0)}
-              </span>
-              {activity.final_price && (
-                <span className="text-muted-foreground ml-2">
-                  Final: {formatCurrency(activity.final_price)}
-                </span>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Link href={`/dashboard/activities/${activity.activity_id}`}>
-              <Button variant="outline" size="sm">
-                <Eye className="h-4 w-4 mr-1" />
-                View
-              </Button>
-            </Link>
-            <Link href={`/dashboard/activities/${activity.activity_id}/edit`}>
-              <Button variant="outline" size="sm">
-                <Edit className="h-4 w-4 mr-1" />
-                Edit
-              </Button>
-            </Link>
-          </div>
+          ))}
         </div>
-      ))}
-    </div>
+      </CardContent>
+    </Card>
   )
 }

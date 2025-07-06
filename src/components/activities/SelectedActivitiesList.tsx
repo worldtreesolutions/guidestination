@@ -1,171 +1,142 @@
-
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { X, Clock, MapPin } from "lucide-react"
-import Image from "next/image"
-import { ScheduledActivity } from "./ExcursionPlanner"
-import { useDroppable, useDraggable } from "@dnd-kit/core"
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { useDraggable } from "@dnd-kit/core"
 import { CSS } from "@dnd-kit/utilities"
-import { useIsMobile } from "@/hooks/use-mobile"
-import { Activity } from "@/types/activity"
+import { Clock, MapPin, Users, X, Star } from "lucide-react"
 import { useLanguage } from "@/contexts/LanguageContext"
+import { SupabaseActivity } from "@/services/supabaseActivityService"
 
-interface ActivityItemProps {
-  activity: ScheduledActivity
-  originalActivity?: Activity
-  onRemove: (id: string) => void
+interface SelectedActivitiesListProps {
+  activities: SupabaseActivity[];
+  onActivityRemove: (activityId: string) => void;
 }
 
-const ActivityItem = ({ activity, originalActivity, onRemove }: ActivityItemProps) => {
-  // Use the original activity's activity_id for drag operations if available
-  const dragId = originalActivity ? originalActivity.activity_id?.toString() || activity.id : activity.id
-  
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-    id: dragId,
-    data: activity
+function DraggableActivityCard({ activity, onRemove }: { activity: SupabaseActivity; onRemove: (id: string) => void }) {
+  const { t } = useLanguage()
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    isDragging,
+  } = useDraggable({
+    id: activity.id.toString(),
   })
-  
-  const isMobile = useIsMobile()
 
-  const style = transform ? {
-    transform: CSS.Translate.toString(transform)
-  } : undefined
-
-  const handleRemove = (e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    // Use the original activity ID for removal if available
-    const removeId = originalActivity ? originalActivity.activity_id?.toString() || activity.id : activity.id
-    onRemove(removeId)
+  const style = {
+    transform: CSS.Translate.toString(transform),
   }
 
-  if (isDragging) {
-    return <div ref={setNodeRef} style={{ width: isMobile ? 120 : 150, height: isMobile ? 160 : 200, opacity: 0 }} />
+  const formatPrice = (price: number) => {
+    return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
   }
 
   return (
-    <div 
-      className="relative" 
-      style={{ 
-        width: isMobile ? 120 : 150, 
-        height: isMobile ? 160 : 200,
-        margin: isMobile ? "0 auto" : "0"
-      }}
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...listeners}
+      {...attributes}
+      className={`relative group cursor-grab active:cursor-grabbing ${
+        isDragging ? "opacity-50 z-50" : ""
+      }`}
     >
-      <div
-        ref={setNodeRef}
-        style={style}
-        {...listeners}
-        {...attributes}
-        className="absolute inset-0 rounded-lg overflow-hidden border-2 border-primary bg-white shadow-lg cursor-move touch-none group transition-all duration-150 hover:shadow-xl hover:border-primary/80"
-      >
-        <Image
-          src={activity.imageUrl}
-          alt={activity.title}
-          fill
-          className="object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/30">
-          <div className="p-2 sm:p-3 text-white h-full flex flex-col justify-between">
-            <div className="font-medium text-xs sm:text-sm line-clamp-2">{activity.title}</div>
-            <div className="flex flex-col gap-1 mt-1">
-              <div className="text-xs bg-primary/80 rounded-full px-2 py-1 inline-flex items-center gap-1 w-fit">
+      <Card className="overflow-hidden border-2 border-dashed border-primary/30 hover:border-primary/60 transition-colors bg-gradient-to-br from-white to-primary/5">
+        <div className="relative">
+          <div className="aspect-video relative overflow-hidden">
+            <img
+              src={activity.image_urls?.[0] || "/placeholder.jpg"}
+              alt={activity.title}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+            
+            <Button
+              size="icon"
+              variant="destructive"
+              className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={(e) => {
+                e.stopPropagation()
+                onRemove(activity.id.toString())
+              }}
+            >
+              <X className="h-3 w-3" />
+            </Button>
+
+            <div className="absolute bottom-2 left-2 right-2">
+              <div className="flex items-center gap-1 text-white text-xs">
                 <Clock className="h-3 w-3" />
-                {activity.duration}h
-              </div>
-              <div className="text-xs bg-primary/80 rounded-full px-2 py-1 inline-flex items-center gap-1 w-fit">
+                <span>{activity.duration}h</span>
+                <span className="mx-1">•</span>
                 <MapPin className="h-3 w-3" />
-                ฿{activity.price.toLocaleString()}
+                <span>฿{formatPrice(activity.price || 0)}</span>
               </div>
             </div>
           </div>
+
+          <CardContent className="p-3">
+            <div className="space-y-2">
+              <h3 className="font-medium text-sm line-clamp-2 leading-tight">
+                {activity.title}
+              </h3>
+              
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <div className="flex items-center gap-1">
+                  <Users className="h-3 w-3" />
+                  <span>Max {activity.max_participants || 10}</span>
+                </div>
+                {activity.rating && (
+                  <div className="flex items-center gap-1">
+                    <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                    <span>{activity.rating}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between">
+                <Badge variant="secondary" className="text-xs">
+                  {activity.category_name || "Activity"}
+                </Badge>
+                <div className="text-right">
+                  <div className="font-bold text-primary">
+                    ฿{formatPrice(activity.price || 0)}
+                  </div>
+                  <div className="text-xs text-muted-foreground">per person</div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
         </div>
-      </div>
-      <button
-        className="absolute top-2 right-2 z-[200] rounded-full bg-red-500 hover:bg-red-600 p-1.5 cursor-pointer shadow-md transition-transform duration-150 hover:scale-110"
-        onClick={handleRemove}
-        type="button"
-        aria-label="Remove activity"
-        onMouseDown={(e) => e.stopPropagation()}
-        onTouchStart={(e) => e.stopPropagation()}
-        onPointerDown={(e) => e.stopPropagation()}
-      >
-        <X className="h-3.5 w-3.5 text-white" />
-      </button>
+      </Card>
     </div>
   )
 }
 
-interface SelectedActivitiesListProps {
-  activities: Activity[] | ScheduledActivity[]
-  onActivityRemove: (activityId: string) => void
-}
-
-// Function to convert Activity to ScheduledActivity format
-const convertToScheduledActivity = (activity: Activity): ScheduledActivity => {
-  return {
-    id: activity.activity_id?.toString() || "",
-    title: activity.title,
-    imageUrl: typeof activity.image_url === 'string' ? activity.image_url : "",
-    day: "",
-    hour: 0,
-    duration: 2, // Default duration
-    price: activity.final_price || activity.b_price || 0,
-    participants: 1 // Default participants
-  }
-}
-
-// Function to check if an activity is a ScheduledActivity
-const isScheduledActivity = (activity: any): activity is ScheduledActivity => {
-  return 'imageUrl' in activity && 'day' in activity && 'hour' in activity;
-}
-
-export const SelectedActivitiesList = ({
-  activities,
-  onActivityRemove
-}: SelectedActivitiesListProps) => {
-  const { setNodeRef } = useDroppable({
-    id: "selected-list"
-  })
-  
+export function SelectedActivitiesList({ activities, onActivityRemove }: SelectedActivitiesListProps) {
   const { t } = useLanguage()
-  const isMobile = useIsMobile()
 
-  // Convert activities to ScheduledActivity format if needed, keeping reference to original
-  const formattedActivities: { scheduled: ScheduledActivity; original?: Activity }[] = activities.map(activity => {
-    if (isScheduledActivity(activity)) {
-      return { scheduled: activity as ScheduledActivity };
-    }
-    const originalActivity = activity as Activity;
-    return { 
-      scheduled: convertToScheduledActivity(originalActivity),
-      original: originalActivity
-    };
-  });
+  if (activities.length === 0) {
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        <MapPin className="h-12 w-12 mx-auto mb-4 opacity-50" />
+        <p className="text-sm">{t("planner.noActivitiesSelected")}</p>
+        <p className="text-xs mt-1">{t("planner.dragActivitiesHere")}</p>
+      </div>
+    )
+  }
 
   return (
-    <div className="w-full">
-      <div ref={setNodeRef} className="w-full">
-        {formattedActivities.length > 0 ? (
-          <div className={`flex flex-wrap ${isMobile ? 'justify-center' : 'justify-start'} gap-3 sm:gap-4`}>
-            {formattedActivities.map((item, index) => (
-              <ActivityItem
-                key={item.original?.activity_id?.toString() || item.scheduled.id || index}
-                activity={item.scheduled}
-                originalActivity={item.original}
-                onRemove={onActivityRemove}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="bg-gray-50 rounded-lg border border-dashed border-gray-300 p-6 text-center">
-            <p className="text-muted-foreground text-sm">
-              {t("planner.noActivitiesSelected") || "No activities selected"}
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              {t("planner.browseActivities") || "Browse activities and add them to your planner"}
-            </p>
-          </div>
-        )}
+    <div className="space-y-4">
+      <div className="grid gap-3">
+        {activities.map((activity) => (
+          <DraggableActivityCard
+            key={activity.id}
+            activity={activity}
+            onRemove={onActivityRemove}
+          />
+        ))}
       </div>
     </div>
   )
