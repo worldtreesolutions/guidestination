@@ -89,7 +89,7 @@ export const stripeService = {
       line_items: [{
         price_ {
           currency: "usd",
-          product_data: {
+          product_ {
             name: `Activity Booking - ${participants} participant(s)`,
             description: `Base amount: $${baseAmount.toFixed(2)} + Processing fee: $${calculation.stripeFee.toFixed(2)}`,
           },
@@ -118,7 +118,7 @@ export const stripeService = {
       amount: calculation.totalAmount,
       commission_percent: commissionPercent,
       status: "pending",
-      meta: metadata as unknown as Json,
+      meta: metadata as Json,
     });
 
     return session;
@@ -172,7 +172,7 @@ export const stripeService = {
         .single();
 
       if (establishment?.partner_id) {
-        const { data: partner } = await supabase
+        const {  partner } = await supabase
           .from("partner_registrations")
           .select("stripe_account_id, stripe_charges_enabled")
           .eq("id", establishment.partner_id)
@@ -215,7 +215,7 @@ export const stripeService = {
         description: `Commission payment for booking ${sessionId}`,
       });
 
-      const { data: checkoutSession } = await supabase.from("stripe_checkout_sessions").select("id").eq("stripe_session_id", sessionId).single();
+      const {  checkoutSession } = await supabase.from("stripe_checkout_sessions").select("id").eq("stripe_session_id", sessionId).single();
       if (checkoutSession) {
         await supabase.from("stripe_transfers").insert({
           checkout_session_id: checkoutSession.id,
