@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,48 +11,25 @@ type CheckoutSession = Database["public"]["Tables"]["stripe_checkout_sessions"][
 type Transfer = Database["public"]["Tables"]["stripe_transfers"]["Row"];
 type WebhookEvent = Database["public"]["Tables"]["stripe_webhook_events"]["Row"];
 
-export default function TransactionMonitorPage() {
-  const [checkoutSessions, setCheckoutSessions] = useState<CheckoutSession[]>([]);
-  const [transfers, setTransfers] = useState<Transfer[]>([]);
-  const [webhookEvents, setWebhookEvents] = useState<WebhookEvent[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const {  sessions, error: sessionsError } = await supabase
-        .from("stripe_checkout_sessions")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(20);
-      if (sessionsError) throw sessionsError;
-
-      const {  transfersData, error: transfersError } = await supabase
-        .from("stripe_transfers")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(20);
-      if (transfersError) throw transfersError;
-
-      const {  webhooks, error: webhooksError } = await supabase
-        .from("stripe_webhook_events")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(20);
-      if (webhooksError) throw webhooksError;
-
-      setCheckoutSessions(sessions || []);
-      setTransfers(transfersData || []);
-      setWebhookEvents(webhooks || []);
-    } catch (error) {
-      console.error("Error fetching ", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+const TransactionMonitor = () => {
+  const [sessions, setSessions] = useState<any[]>([]);
+  const [transfers, setTransfers] = useState<any[]>([]);
+  const [webhooks, setWebhooks] = useState<any[]>([]);
 
   useEffect(() => {
-    fetchData();
+    const fetchTransactions = async () => {
+      const { data: sessionsData, error: sessionsError } = await supabase.from("stripe_checkout_sessions").select("*");
+      const { data: transfersData, error: transfersError } = await supabase.from("stripe_transfers").select("*");
+      const { data: webhooksData, error: webhooksError } = await supabase.from("stripe_webhook_events").select("*");
+
+      if (sessionsData) setSessions(sessionsData);
+      if (transfersData) setTransfers(transfersData);
+      if (webhooksData) setWebhooks(webhooksData);
+    };
+
+    fetchTransactions();
+    const interval = setInterval(fetchTransactions, 5000); // Refresh every 5 seconds
+    return () => clearInterval(interval);
   }, []);
 
   const getStatusBadge = (status: string) => {
@@ -96,8 +72,8 @@ export default function TransactionMonitorPage() {
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Transaction Monitor</h1>
             <p className="text-gray-600">Monitor Stripe transactions and commission splits</p>
           </div>
-          <Button onClick={fetchData} disabled={loading}>
-            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
+          <Button onClick={() => {}} disabled={false}>
+            <RefreshCw className={`w-4 h-4 mr-2 ${false ? "animate-spin" : ""}`} />
             Refresh
           </Button>
         </div>
@@ -115,9 +91,9 @@ export default function TransactionMonitorPage() {
                 <CardTitle>Recent Checkout Sessions</CardTitle>
               </CardHeader>
               <CardContent>
-                {checkoutSessions.length > 0 ? (
+                {sessions.length > 0 ? (
                   <div className="space-y-4">
-                    {checkoutSessions.map((session) => {
+                    {sessions.map((session) => {
                       const breakdown = calculateCommissionBreakdown(session);
                       return (
                         <div key={session.id} className="border rounded-lg p-4">
@@ -242,9 +218,9 @@ export default function TransactionMonitorPage() {
                 <CardTitle>Recent Webhook Events</CardTitle>
               </CardHeader>
               <CardContent>
-                {webhookEvents.length > 0 ? (
+                {webhooks.length > 0 ? (
                   <div className="space-y-4">
-                    {webhookEvents.map((webhook) => (
+                    {webhooks.map((webhook) => (
                       <div key={webhook.id} className="border rounded-lg p-4">
                         <div className="flex justify-between items-start mb-2">
                           <div>

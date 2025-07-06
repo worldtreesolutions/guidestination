@@ -4,7 +4,7 @@ import { CheckoutSessionData, StripeCheckoutMetadata, StripeFeesCalculation } fr
 import { Database, Json } from "@/integrations/supabase/types";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-06-20",
+  apiVersion: "2024-04-10",
 });
 
 export const stripeService = {
@@ -73,16 +73,21 @@ export const stripeService = {
     const totalAmountCents = Math.round(calculation.totalAmount * 100);
     const platformCommissionCents = Math.round(calculation.platformCommission * 100);
 
-    const metadata: StripeCheckoutMetadata = {
+    const metadata: Stripe.MetadataParam = {
       activity_id: activityId.toString(),
       provider_id: providerId,
       commission_percent: commissionPercent.toString(),
       participants: participants.toString(),
       base_amount: baseAmount.toString(),
       stripe_fee: calculation.stripeFee.toString(),
-      ...(establishmentId && { establishment_id: establishmentId }),
-      ...(customerId && { customer_id: customerId }),
     };
+
+    if (establishmentId) {
+      metadata.establishment_id = establishmentId;
+    }
+    if (customerId) {
+      metadata.customer_id = customerId;
+    }
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -118,7 +123,7 @@ export const stripeService = {
       amount: calculation.totalAmount,
       commission_percent: commissionPercent,
       status: "pending",
-      meta: metadata as Json,
+      meta: metadata as unknown as Json,
     });
 
     return session;
@@ -263,7 +268,7 @@ export const stripeService = {
   async handleTransferFailed(transfer: Stripe.Transfer): Promise<void> {
     await supabase
       .from("stripe_transfers")
-      .update({ status: "failed", error_message: transfer.failure_message || "Transfer failed" })
+      .update({ status: "failed", error_message: "Transfer failed" })
       .eq("stripe_transfer_id", transfer.id);
   },
 

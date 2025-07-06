@@ -28,26 +28,36 @@ import { BookingForm } from "@/components/activities/BookingForm"
 import { ActivityReviews } from "@/components/activities/ActivityReviews"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { supabaseActivityService, SupabaseActivity } from "@/services/supabaseActivityService"
+import { useAuth } from "@/contexts/AuthContext"
 
 export default function ActivityBookingPage() {
-  const router = useRouter()
-  const { activityId } = router.query
-  const [activity, setActivity] = useState<SupabaseActivity | null>(null)
-  const [loading, setLoading] = useState(true)
+  const router = useRouter();
+  const { slug: activityId } = router.query;
+  const { user } = useAuth();
+  const [activity, setActivity] = useState<SupabaseActivity | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [images, setImages] = useState<string[]>([]);
+  const [videos, setVideos] = useState<{ url: string; thumbnail?: string | null; duration?: number | null }[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>()
   const [selectedParticipants, setSelectedParticipants] = useState(1)
   const isMobile = useIsMobile()
 
   useEffect(() => {
-    const fetchActivity = async () => {
-      if (!activityId || typeof activityId !== "string") return
+    async function fetchActivity() {
+      if (typeof activityId !== "string") return
       
       try {
-        setLoading(true)
-        const activityData = await supabaseActivityService.getActivityById(activityId)
-        setActivity(activityData)
-      } catch (error) {
-        console.error("Error fetching activity:", error)
+        const fetchedActivity = await supabaseActivityService.getActivityById(activityId);
+        if (fetchedActivity) {
+          setActivity(fetchedActivity);
+          setImages(fetchedActivity.images || []);
+          setVideos(fetchedActivity.videos || []);
+        } else {
+          setError("Activity not found.");
+        }
+      } catch (e) {
+        console.error("Error fetching activity:", e)
       } finally {
         setLoading(false)
       }
@@ -71,7 +81,7 @@ export default function ActivityBookingPage() {
     )
   }
 
-  if (!activity) {
+  if (error) {
     return (
       <div className="min-h-screen flex flex-col">
         <Navbar />
@@ -182,8 +192,8 @@ export default function ActivityBookingPage() {
                   </CardHeader>
                   <CardContent>
                     <ActivityGallery 
-                      images={activity.images}
-                      videos={activity.videos || []}
+                      images={images}
+                      videos={videos}
                       title={activity.title}
                     />
                   </CardContent>
