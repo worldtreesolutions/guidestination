@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react"
 import { useRouter } from "next/router"
 import Head from "next/head"
@@ -168,7 +167,7 @@ export default function ActivityBookingPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Globe className="h-4 w-4" />
-                  <span className="text-sm sm:text-base">{activity.languages?.join(", ") || "English"}</span>
+                  <span className="text-sm sm:text-base">{(activity.languages || []).join(", ") || "English"}</span>
                 </div>
               </div>
             </div>
@@ -204,7 +203,7 @@ export default function ActivityBookingPage() {
                       <div>
                         <h3 className="font-semibold mb-3">Highlights</h3>
                         <ul className="space-y-2">
-                          {activity.highlights.map((highlight, index) => (
+                          {activity.highlights.map((highlight: string, index: number) => (
                             <li key={index} className="flex items-start gap-2">
                               <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
                               <span>{highlight}</span>
@@ -224,7 +223,7 @@ export default function ActivityBookingPage() {
                     </CardHeader>
                     <CardContent>
                       <ul className="space-y-2">
-                        {(activity.included || []).map((item, index) => (
+                        {(activity.included || []).map((item: string, index: number) => (
                           <li key={index} className="flex items-start gap-2">
                             <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
                             <span className="text-sm">{item}</span>
@@ -240,7 +239,7 @@ export default function ActivityBookingPage() {
                     </CardHeader>
                     <CardContent>
                       <ul className="space-y-2">
-                        {(activity.not_included || []).map((item, index) => (
+                        {(activity.not_included || []).map((item: string, index: number) => (
                           <li key={index} className="flex items-start gap-2">
                             <XCircle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
                             <span className="text-sm">{item}</span>

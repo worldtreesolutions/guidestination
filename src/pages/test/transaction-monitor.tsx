@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -5,38 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { RefreshCw, CheckCircle, XCircle, Clock, DollarSign } from "lucide-react";
+import { Database } from "@/integrations/supabase/types";
 
-interface CheckoutSession {
-  id: string;
-  stripe_session_id: string;
-  activity_id: number;
-  provider_id: string;
-  establishment_id?: string;
-  amount: number;
-  commission_percent: number;
-  status: string;
-  created_at: string;
-}
-
-interface Transfer {
-  id: string;
-  stripe_transfer_id?: string;
-  recipient_type: string;
-  recipient_id: string;
-  amount: number;
-  status: string;
-  error_message?: string;
-  created_at: string;
-}
-
-interface WebhookEvent {
-  id: string;
-  stripe_event_id: string;
-  event_type: string;
-  processed: boolean;
-  error_message?: string;
-  created_at: string;
-}
+type CheckoutSession = Database["public"]["Tables"]["stripe_checkout_sessions"]["Row"];
+type Transfer = Database["public"]["Tables"]["stripe_transfers"]["Row"];
+type WebhookEvent = Database["public"]["Tables"]["stripe_webhook_events"]["Row"];
 
 export default function TransactionMonitorPage() {
   const [checkoutSessions, setCheckoutSessions] = useState<CheckoutSession[]>([]);
@@ -47,32 +21,32 @@ export default function TransactionMonitorPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Fetch checkout sessions
-      const { data: sessions } = await supabase
+      const {  sessions, error: sessionsError } = await supabase
         .from("stripe_checkout_sessions")
         .select("*")
         .order("created_at", { ascending: false })
         .limit(20);
+      if (sessionsError) throw sessionsError;
 
-      // Fetch transfers
-      const { data: transfersData } = await supabase
+      const {  transfersData, error: transfersError } = await supabase
         .from("stripe_transfers")
         .select("*")
         .order("created_at", { ascending: false })
         .limit(20);
+      if (transfersError) throw transfersError;
 
-      // Fetch webhook events
-      const { data: webhooks } = await supabase
+      const {  webhooks, error: webhooksError } = await supabase
         .from("stripe_webhook_events")
         .select("*")
         .order("created_at", { ascending: false })
         .limit(20);
+      if (webhooksError) throw webhooksError;
 
       setCheckoutSessions(sessions || []);
       setTransfers(transfersData || []);
       setWebhookEvents(webhooks || []);
     } catch (error) {
-      console.error("Error fetching data:", error);
+      console.error("Error fetching ", error);
     } finally {
       setLoading(false);
     }
@@ -85,6 +59,7 @@ export default function TransactionMonitorPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "completed":
+      case "paid":
         return <Badge className="bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1" />Completed</Badge>;
       case "failed":
         return <Badge className="bg-red-100 text-red-800"><XCircle className="w-3 h-3 mr-1" />Failed</Badge>;

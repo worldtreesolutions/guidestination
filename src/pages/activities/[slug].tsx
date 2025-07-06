@@ -129,12 +129,12 @@ export default function ActivityPage() {
                 <Badge variant="secondary" className="capitalize">
                   {activity.category}
                 </Badge>
-                {activity.rating && (
+                {activity.average_rating && (
                   <div className="flex items-center gap-1">
                     <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    <span className="font-medium">{activity.rating}</span>
+                    <span className="font-medium">{activity.average_rating}</span>
                     <span className="text-muted-foreground">
-                      ({activity.reviewCount} reviews)
+                      ({activity.review_count} reviews)
                     </span>
                   </div>
                 )}
@@ -218,7 +218,7 @@ export default function ActivityPage() {
                       </CardHeader>
                       <CardContent>
                         <ul className="space-y-2">
-                          {(activity.highlights || []).map((highlight, index) => (
+                          {(activity.highlights || []).map((highlight: string, index: number) => (
                             <li key={index} className="flex items-start gap-2">
                               <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
                               <span>{highlight}</span>
@@ -289,7 +289,7 @@ export default function ActivityPage() {
                         </CardHeader>
                         <CardContent>
                           <ul className="space-y-2">
-                            {(activity.included || []).map((item, index) => (
+                            {(activity.included || []).map((item: string, index: number) => (
                               <li key={index} className="flex items-start gap-2">
                                 <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
                                 <span className="text-sm">{item}</span>
@@ -305,7 +305,7 @@ export default function ActivityPage() {
                         </CardHeader>
                         <CardContent>
                           <ul className="space-y-2">
-                            {(activity.not_included || []).map((item, index) => (
+                            {(activity.not_included || []).map((item: string, index: number) => (
                               <li key={index} className="flex items-start gap-2">
                                 <XCircle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
                                 <span className="text-sm">{item}</span>

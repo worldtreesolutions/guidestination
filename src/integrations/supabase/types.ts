@@ -1,3 +1,4 @@
+
 export type Json =
   | string
   | number
@@ -9,172 +10,6 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
-      partner_registrations: {
-        Row: {
-          id: string
-          user_id: string | null
-          business_name: string
-          owner_name: string
-          email: string
-          phone: string
-          address: string
-          latitude: number | null
-          longitude: number | null
-          place_id: string | null
-          room_count: number
-          commission_package: "basic" | "premium"
-          supporting_documents: string[] | null
-          status: "pending" | "approved" | "rejected"
-          created_by: string | null
-          updated_by: string | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          user_id?: string | null
-          business_name: string
-          owner_name: string
-          email: string
-          phone: string
-          address: string
-          latitude?: number | null
-          longitude?: number | null
-          place_id?: string | null
-          room_count: number
-          commission_package: "basic" | "premium"
-          supporting_documents?: string[] | null
-          status?: "pending" | "approved" | "rejected"
-          created_by?: string | null
-          updated_by?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string | null
-          business_name?: string
-          owner_name?: string
-          email?: string
-          phone?: string
-          address?: string
-          latitude?: number | null
-          longitude?: number | null
-          place_id?: string | null
-          room_count?: number
-          commission_package?: "basic" | "premium"
-          supporting_documents?: string[] | null
-          status?: "pending" | "approved" | "rejected"
-          created_by?: string | null
-          updated_by?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "partner_registrations_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
-      establishments: {
-        Row: {
-          id: string
-          partner_id: string
-          establishment_type: string
-          establishment_name: string
-          establishment_address: string
-          room_count: number | null
-          supporting_docs: string[] | null
-          created_by: string | null
-          created_at: string
-          updated_at: string
-          updated_by: string | null
-        }
-        Insert: {
-          id?: string
-          partner_id: string
-          establishment_type: string
-          establishment_name: string
-          establishment_address: string
-          room_count?: number | null
-          supporting_docs?: string[] | null
-          created_by?: string | null
-          created_at?: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Update: {
-          id?: string
-          partner_id?: string
-          establishment_type?: string
-          establishment_name?: string
-          establishment_address?: string
-          room_count?: number | null
-          supporting_docs?: string[] | null
-          created_by?: string | null
-          created_at?: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "establishments_partner_id_fkey"
-            columns: ["partner_id"]
-            isOneToOne: false
-            referencedRelation: "partner_registrations"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
-      establishment_activities: {
-        Row: {
-          id: string
-          establishment_id: string
-          activity_id: number
-          commission_rate: number
-          is_active: boolean
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          establishment_id: string
-          activity_id: number
-          commission_rate?: number
-          is_active?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          establishment_id?: string
-          activity_id?: number
-          commission_rate?: number
-          is_active?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "establishment_activities_establishment_id_fkey"
-            columns: ["establishment_id"]
-            isOneToOne: false
-            referencedRelation: "establishments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "establishment_activities_activity_id_fkey"
-            columns: ["activity_id"]
-            isOneToOne: false
-            referencedRelation: "activities"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
       activities: {
         Row: {
           id: number
@@ -193,6 +28,21 @@ export interface Database {
           image_url: string
           created_at: string
           updated_at: string
+          location: string | null
+          max_participants: number | null
+          languages: string[] | null
+          highlights: string[] | null
+          included: string[] | null
+          not_included: string[] | null
+          meeting_point: string | null
+          average_rating: number | null
+          review_count: number | null
+          category: string | null
+          includes_pickup: boolean | null
+          pickup_locations: string | null
+          includes_meal: boolean | null
+          meal_description: string | null
+          provider_id: string | null
         }
         Insert: {
           id?: number
@@ -211,6 +61,21 @@ export interface Database {
           image_url?: string
           created_at?: string
           updated_at?: string
+          location?: string | null
+          max_participants?: number | null
+          languages?: string[] | null
+          highlights?: string[] | null
+          included?: string[] | null
+          not_included?: string[] | null
+          meeting_point?: string | null
+          average_rating?: number | null
+          review_count?: number | null
+          category?: string | null
+          includes_pickup?: boolean | null
+          pickup_locations?: string | null
+          includes_meal?: boolean | null
+          meal_description?: string | null
+          provider_id?: string | null
         }
         Update: {
           id?: number
@@ -229,8 +94,64 @@ export interface Database {
           image_url?: string
           created_at?: string
           updated_at?: string
+          location?: string | null
+          max_participants?: number | null
+          languages?: string[] | null
+          highlights?: string[] | null
+          included?: string[] | null
+          not_included?: string[] | null
+          meeting_point?: string | null
+          average_rating?: number | null
+          review_count?: number | null
+          category?: string | null
+          includes_pickup?: boolean | null
+          pickup_locations?: string | null
+          includes_meal?: boolean | null
+          meal_description?: string | null
+          provider_id?: string | null
         }
         Relationships: []
+      }
+      activity_media: {
+        Row: {
+          id: string
+          activity_id: number
+          media_url: string
+          media_type: "image" | "video"
+          thumbnail_url: string | null
+          duration: number | null
+          file_size: number | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          activity_id: number
+          media_url: string
+          media_type: "image" | "video"
+          thumbnail_url?: string | null
+          duration?: number | null
+          file_size?: number | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          activity_id?: number
+          media_url?: string
+          media_type?: "image" | "video"
+          thumbnail_url?: string | null
+          duration?: number | null
+          file_size?: number | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_media_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       activity_owners: {
         Row: {
@@ -240,6 +161,11 @@ export interface Database {
           email: string
           created_at: string
           updated_at: string
+          stripe_account_id: string | null
+          stripe_charges_enabled: boolean | null
+          stripe_payouts_enabled: boolean | null
+          business_name: string | null
+          owner_name: string | null
         }
         Insert: {
           id?: string
@@ -248,6 +174,11 @@ export interface Database {
           email: string
           created_at?: string
           updated_at?: string
+          stripe_account_id?: string | null
+          stripe_charges_enabled?: boolean | null
+          stripe_payouts_enabled?: boolean | null
+          business_name?: string | null
+          owner_name?: string | null
         }
         Update: {
           id?: string
@@ -256,8 +187,116 @@ export interface Database {
           email?: string
           created_at?: string
           updated_at?: string
+          stripe_account_id?: string | null
+          stripe_charges_enabled?: boolean | null
+          stripe_payouts_enabled?: boolean | null
+          business_name?: string | null
+          owner_name?: string | null
         }
         Relationships: []
+      }
+      activity_schedules: {
+        Row: {
+          id: number
+          activity_id: number
+          start_time: string
+          end_time: string
+          availability_start_date: string
+          availability_end_date: string
+          capacity: number
+          is_active: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          activity_id: number
+          start_time: string
+          end_time: string
+          availability_start_date: string
+          availability_end_date: string
+          capacity: number
+          is_active?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          activity_id?: number
+          start_time?: string
+          end_time?: string
+          availability_start_date?: string
+          availability_end_date?: string
+          capacity?: number
+          is_active?: boolean
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_schedules_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      bookings: {
+        Row: {
+          id: string
+          activity_id: number
+          customer_id: string | null
+          customer_name: string
+          customer_email: string
+          booking_date: string
+          participants: number
+          total_amount: number
+          status: "pending" | "confirmed" | "completed" | "cancelled"
+          created_at: string
+          updated_at: string
+          customer_phone: string | null
+          booking_source: string | null
+          establishment_id: string | null
+        }
+        Insert: {
+          id?: string
+          activity_id: number
+          customer_id?: string | null
+          customer_name: string
+          customer_email: string
+          booking_date: string
+          participants: number
+          total_amount: number
+          status?: "pending" | "confirmed" | "completed" | "cancelled"
+          created_at?: string
+          updated_at?: string
+          customer_phone?: string | null
+          booking_source?: string | null
+          establishment_id?: string | null
+        }
+        Update: {
+          id?: string
+          activity_id?: number
+          customer_id?: string | null
+          customer_name?: string
+          customer_email?: string
+          booking_date?: string
+          participants?: number
+          total_amount?: number
+          status?: "pending" | "confirmed" | "completed" | "cancelled"
+          created_at?: string
+          updated_at?: string
+          customer_phone?: string | null
+          booking_source?: string | null
+          establishment_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       categories: {
         Row: {
@@ -282,56 +321,6 @@ export interface Database {
           updated_at?: string
         }
         Relationships: []
-      }
-      bookings: {
-        Row: {
-          id: string
-          activity_id: number
-          customer_id: string | null
-          customer_name: string
-          customer_email: string
-          booking_date: string
-          participants: number
-          total_amount: number
-          status: "pending" | "confirmed" | "completed" | "cancelled"
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          activity_id: number
-          customer_id?: string | null
-          customer_name: string
-          customer_email: string
-          booking_date: string
-          participants: number
-          total_amount: number
-          status?: "pending" | "confirmed" | "completed" | "cancelled"
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          activity_id?: number
-          customer_id?: string | null
-          customer_name?: string
-          customer_email?: string
-          booking_date?: string
-          participants?: number
-          total_amount?: number
-          status?: "pending" | "confirmed" | "completed" | "cancelled"
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "bookings_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          }
-        ]
       }
       customer_profiles: {
         Row: {
@@ -380,79 +369,44 @@ export interface Database {
           }
         ]
       }
-      wishlist: {
+      establishment_activities: {
         Row: {
           id: string
-          customer_id: string
+          establishment_id: string
           activity_id: number
+          commission_rate: number
+          is_active: boolean
           created_at: string
+          updated_at: string
         }
         Insert: {
           id?: string
-          customer_id: string
+          establishment_id: string
           activity_id: number
+          commission_rate?: number
+          is_active?: boolean
           created_at?: string
-        }
-        Update: {
-          id?: string
-          customer_id?: string
-          activity_id?: number
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "wishlist_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "wishlist_activity_id_fkey"
-            columns: ["activity_id"]
-            isOneToOne: false
-            referencedRelation: "activities"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
-      referral_visits: {
-        Row: {
-          id: string
-          establishment_id: string
-          visitor_id: string | null
-          session_id: string | null
-          ip_address: string | null
-          user_agent: string | null
-          referrer_url: string | null
-          visited_at: string
-          metadata: any
-        }
-        Insert: {
-          id?: string
-          establishment_id: string
-          visitor_id?: string | null
-          session_id?: string | null
-          ip_address?: string | null
-          user_agent?: string | null
-          referrer_url?: string | null
-          visited_at?: string
-          metadata?: any
+          updated_at?: string
         }
         Update: {
           id?: string
           establishment_id?: string
-          visitor_id?: string | null
-          session_id?: string | null
-          ip_address?: string | null
-          user_agent?: string | null
-          referrer_url?: string | null
-          visited_at?: string
-          metadata?: any
+          activity_id?: number
+          commission_rate?: number
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "referral_visits_establishment_id_fkey"
+            foreignKeyName: "establishment_activities_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "establishment_activities_establishment_id_fkey"
             columns: ["establishment_id"]
             isOneToOne: false
             referencedRelation: "establishments"
@@ -508,17 +462,413 @@ export interface Database {
         }
         Relationships: [
           {
+            foreignKeyName: "establishment_commissions_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "establishment_commissions_establishment_id_fkey"
             columns: ["establishment_id"]
             isOneToOne: false
             referencedRelation: "establishments"
             referencedColumns: ["id"]
-          },
+          }
+        ]
+      }
+      establishments: {
+        Row: {
+          id: string
+          partner_id: string
+          establishment_type: string
+          establishment_name: string
+          establishment_address: string
+          room_count: number | null
+          supporting_docs: string[] | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          id?: string
+          partner_id: string
+          establishment_type: string
+          establishment_name: string
+          establishment_address: string
+          room_count?: number | null
+          supporting_docs?: string[] | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          id?: string
+          partner_id?: string
+          establishment_type?: string
+          establishment_name?: string
+          establishment_address?: string
+          room_count?: number | null
+          supporting_docs?: string[] | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
           {
-            foreignKeyName: "establishment_commissions_activity_id_fkey"
+            foreignKeyName: "establishments_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_registrations"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      partner_registrations: {
+        Row: {
+          id: string
+          user_id: string | null
+          business_name: string
+          owner_name: string
+          email: string
+          phone: string
+          address: string
+          latitude: number | null
+          longitude: number | null
+          place_id: string | null
+          room_count: number
+          commission_package: "basic" | "premium"
+          supporting_documents: string[] | null
+          status: "pending" | "approved" | "rejected"
+          created_by: string | null
+          updated_by: string | null
+          created_at: string
+          updated_at: string
+          stripe_account_id: string | null
+          stripe_charges_enabled: boolean | null
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          business_name: string
+          owner_name: string
+          email: string
+          phone: string
+          address: string
+          latitude?: number | null
+          longitude?: number | null
+          place_id?: string | null
+          room_count: number
+          commission_package?: "basic" | "premium"
+          supporting_documents?: string[] | null
+          status?: "pending" | "approved" | "rejected"
+          created_by?: string | null
+          updated_by?: string | null
+          created_at?: string
+          updated_at?: string
+          stripe_account_id?: string | null
+          stripe_charges_enabled?: boolean | null
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          business_name?: string
+          owner_name?: string
+          email?: string
+          phone?: string
+          address?: string
+          latitude?: number | null
+          longitude?: number | null
+          place_id?: string | null
+          room_count?: number
+          commission_package?: "basic" | "premium"
+          supporting_documents?: string[] | null
+          status?: "pending" | "approved" | "rejected"
+          created_by?: string | null
+          updated_by?: string | null
+          created_at?: string
+          updated_at?: string
+          stripe_account_id?: string | null
+          stripe_charges_enabled?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_registrations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      referral_visits: {
+        Row: {
+          id: string
+          establishment_id: string
+          visitor_id: string | null
+          session_id: string | null
+          ip_address: string | null
+          user_agent: string | null
+          referrer_url: string | null
+          visited_at: string
+          meta Json
+        }
+        Insert: {
+          id?: string
+          establishment_id: string
+          visitor_id?: string | null
+          session_id?: string | null
+          ip_address?: string | null
+          user_agent?: string | null
+          referrer_url?: string | null
+          visited_at?: string
+          metadata?: Json
+        }
+        Update: {
+          id?: string
+          establishment_id?: string
+          visitor_id?: string | null
+          session_id?: string | null
+          ip_address?: string | null
+          user_agent?: string | null
+          referrer_url?: string | null
+          visited_at?: string
+          metadata?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_visits_establishment_id_fkey"
+            columns: ["establishment_id"]
+            isOneToOne: false
+            referencedRelation: "establishments"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      reviews: {
+        Row: {
+          id: string
+          activity_id: number
+          customer_id: string
+          rating: number
+          comment: string | null
+          is_active: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          activity_id: number
+          customer_id: string
+          rating: number
+          comment?: string | null
+          is_active?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          activity_id?: number
+          customer_id?: string
+          rating?: number
+          comment?: string | null
+          is_active?: boolean
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_activity_id_fkey"
             columns: ["activity_id"]
             isOneToOne: false
             referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      stripe_checkout_sessions: {
+        Row: {
+          id: string
+          stripe_session_id: string
+          activity_id: number
+          provider_id: string
+          establishment_id: string | null
+          customer_id: string | null
+          amount: number
+          commission_percent: number
+          status: string
+          meta Json | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          stripe_session_id: string
+          activity_id: number
+          provider_id: string
+          establishment_id?: string | null
+          customer_id?: string | null
+          amount: number
+          commission_percent: number
+          status: string
+          metadata?: Json | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          stripe_session_id?: string
+          activity_id?: number
+          provider_id?: string
+          establishment_id?: string | null
+          customer_id?: string | null
+          amount?: number
+          commission_percent?: number
+          status?: string
+          metadata?: Json | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      stripe_payouts: {
+        Row: {
+          id: string
+          activity_owner_id: string | null
+          partner_id: string | null
+          recipient_type: string
+          stripe_payout_id: string
+          amount: number
+          currency: string
+          status: string
+          arrival_date: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          activity_owner_id?: string | null
+          partner_id?: string | null
+          recipient_type: string
+          stripe_payout_id: string
+          amount: number
+          currency?: string
+          status: string
+          arrival_date?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          activity_owner_id?: string | null
+          partner_id?: string | null
+          recipient_type?: string
+          stripe_payout_id?: string
+          amount?: number
+          currency?: string
+          status?: string
+          arrival_date?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      stripe_transfers: {
+        Row: {
+          id: string
+          checkout_session_id: string
+          stripe_transfer_id: string | null
+          recipient_type: string
+          recipient_id: string
+          amount: number
+          status: string
+          error_message: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          checkout_session_id: string
+          stripe_transfer_id?: string | null
+          recipient_type: string
+          recipient_id: string
+          amount: number
+          status: string
+          error_message?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          checkout_session_id?: string
+          stripe_transfer_id?: string | null
+          recipient_type?: string
+          recipient_id?: string
+          amount?: number
+          status?: string
+          error_message?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      stripe_webhook_events: {
+        Row: {
+          id: string
+          stripe_event_id: string
+          event_type: string
+          processed: boolean
+          error_message: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          stripe_event_id: string
+          event_type: string
+          processed?: boolean
+          error_message?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          stripe_event_id?: string
+          event_type?: string
+          processed?: boolean
+          error_message?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      wishlist: {
+        Row: {
+          id: string
+          customer_id: string
+          activity_id: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          customer_id: string
+          activity_id: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          customer_id?: string
+          activity_id?: number
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wishlist_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wishlist_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           }
         ]

@@ -1,97 +1,75 @@
+
 import { supabase } from "@/integrations/supabase/client"
 import type { Database } from "@/integrations/supabase/types"
 
 type ActivityRow = Database["public"]["Tables"]["activities"]["Row"]
+type ActivityMediaRow = Database["public"]["Tables"]["activity_media"]["Row"]
+type ActivityScheduleRow = Database["public"]["Tables"]["activity_schedules"]["Row"]
+
+// Define a more specific type for the joined data
+type ActivityWithRelations = ActivityRow & {
+  activity_media: ActivityMediaRow[]
+  activity_schedules: ActivityScheduleRow[]
+}
 
 export interface SupabaseActivity extends ActivityRow {
-  // Add computed properties for compatibility
   images: string[]
-  videos?: { url: string; thumbnail?: string; duration?: number }[]
-  schedule?: {
+  videos: { url: string; thumbnail?: string | null; duration?: number | null }[]
+  schedule: {
     availableDates: string[]
     startTime?: string
     endTime?: string
   }
-  // Add missing properties that might not be in the database schema yet
-  category?: string
-  location?: string
-  average_rating?: number
-  review_count?: number
-  includes_pickup?: boolean
-  pickup_locations?: string
-  includes_meal?: boolean
-  meal_description?: string
-  name?: string
 }
 
-export interface ActivityBooking {
-  id: string
-  activity_id: number
-  customer_id: string
-  booking_date: string
-  participants: number
-  total_amount: number
-  status: "pending" | "confirmed" | "completed" | "cancelled"
-  created_at: string
-}
+export type ActivityBooking = Database["public"]["Tables"]["bookings"]["Row"]
 
 export const supabaseActivityService = {
-  // Get activity by ID with media and schedule
   async getActivityById(activityId: string): Promise<SupabaseActivity | null> {
     try {
-      const { data: activity, error } = await supabase
+      const id = parseInt(activityId, 10);
+      if (isNaN(id)) {
+        console.error("Invalid activity ID provided.");
+        return null;
+      }
+
+      const { data, error } = await supabase
         .from("activities")
         .select(`
           *,
-          activity_media (
-            id,
-            media_url,
-            media_type,
-            thumbnail_url,
-            duration,
-            file_size
-          ),
-          activity_schedules (
-            id,
-            start_time,
-            end_time,
-            availability_start_date,
-            availability_end_date,
-            capacity,
-            is_active
-          )
+          activity_media (*),
+          activity_schedules (*)
         `)
-        .eq("id", activityId)
+        .eq("id", id)
         .eq("is_active", true)
-        .single()
+        .single<ActivityWithRelations>()
 
       if (error) {
         console.error("Error fetching activity:", error)
         return null
       }
 
-      if (!activity) return null
+      if (!data) return null
 
-      // Transform the data to match our interface
       const transformedActivity: SupabaseActivity = {
-        ...activity,
-        images: activity.activity_media
-          ?.filter((media: any) => media.media_type === "image")
-          .map((media: any) => media.media_url) || [],
-        videos: activity.activity_media
-          ?.filter((media: any) => media.media_type === "video")
-          .map((media: any) => ({
+        ...data,
+        images: data.activity_media
+          ?.filter(media => media.media_type === "image")
+          .map(media => media.media_url) || [],
+        videos: data.activity_media
+          ?.filter(media => media.media_type === "video")
+          .map(media => ({
             url: media.media_url,
             thumbnail: media.thumbnail_url,
             duration: media.duration
           })) || [],
         schedule: {
-          availableDates: activity.activity_schedules
-            ?.filter((schedule: any) => schedule.is_active)
-            .map((schedule: any) => schedule.availability_start_date)
-            .filter(Boolean) || [],
-          startTime: activity.activity_schedules?.[0]?.start_time,
-          endTime: activity.activity_schedules?.[0]?.end_time
+          availableDates: data.activity_schedules
+            ?.filter(schedule => schedule.is_active)
+            .map(schedule => schedule.availability_start_date)
+            .filter((date): date is string => !!date) || [],
+          startTime: data.activity_schedules?.[0]?.start_time,
+          endTime: data.activity_schedules?.[0]?.end_time
         }
       }
 
@@ -102,7 +80,6 @@ export const supabaseActivityService = {
     }
   },
 
-  // Get all published activities with pagination
   async getPublishedActivities(
     page: number = 1,
     limit: number = 12,
@@ -118,16 +95,11 @@ export const supabaseActivityService = {
         .from("activities")
         .select(`
           *,
-          activity_media (
-            id,
-            media_url,
-            media_type,
-            thumbnail_url
-          )
+          activity_media (*)
         `, { count: "exact" })
         .eq("is_active", true)
+        .eq("status", "published")
 
-      // Apply filters
       if (filters?.category) {
         query = query.eq("category", filters.category)
       }
@@ -141,19 +113,18 @@ export const supabaseActivityService = {
         query = query.ilike("location", `%${filters.location}%`)
       }
 
-      // Add pagination
       const from = (page - 1) * limit
       const to = from + limit - 1
       query = query.range(from, to)
 
-      const { data: activities, error, count } = await query
+      const { data, error, count } = await query
 
       if (error) {
         console.error("Error fetching activities:", error)
         return { activities: [], total: 0 }
       }
 
-      const transformedActivities: SupabaseActivity[] = activities?.map(activity => ({
+      const transformedActivities: SupabaseActivity[] = data?.map((activity: any) => ({
         ...activity,
         images: activity.activity_media
           ?.filter((media: any) => media.media_type === "image")
@@ -163,7 +134,8 @@ export const supabaseActivityService = {
           .map((media: any) => ({
             url: media.media_url,
             thumbnail: media.thumbnail_url
-          })) || []
+          })) || [],
+        schedule: { availableDates: [] } // Simplified for list view
       })) || []
 
       return {
@@ -176,10 +148,11 @@ export const supabaseActivityService = {
     }
   },
 
-  // Create a booking
   async createBooking(bookingData: {
     activityId: number
     customerId: string
+    customerName: string
+    customerEmail: string
     bookingDate: string
     participants: number
     totalAmount: number
@@ -190,6 +163,8 @@ export const supabaseActivityService = {
         .insert({
           activity_id: bookingData.activityId,
           customer_id: bookingData.customerId,
+          customer_name: bookingData.customerName,
+          customer_email: bookingData.customerEmail,
           booking_date: bookingData.bookingDate,
           participants: bookingData.participants,
           total_amount: bookingData.totalAmount,
@@ -203,26 +178,26 @@ export const supabaseActivityService = {
         return null
       }
 
-      return data as ActivityBooking
+      return data
     } catch (error) {
       console.error("Error in createBooking:", error)
       return null
     }
   },
 
-  // Get activity reviews
   async getActivityReviews(activityId: string): Promise<any[]> {
     try {
+      const id = parseInt(activityId, 10);
       const { data, error } = await supabase
         .from("reviews")
         .select(`
           *,
-          customers (
+          customer_profiles (
             full_name,
             email
           )
         `)
-        .eq("activity_id", activityId)
+        .eq("activity_id", id)
         .eq("is_active", true)
         .order("created_at", { ascending: false })
 
@@ -238,7 +213,6 @@ export const supabaseActivityService = {
     }
   },
 
-  // Upload activity media to Supabase Storage
   async uploadActivityMedia(
     file: File,
     activityId: string,
@@ -248,7 +222,7 @@ export const supabaseActivityService = {
       const fileExt = file.name.split(".").pop()
       const fileName = `${activityId}/${mediaType}s/${Date.now()}.${fileExt}`
 
-      const { data, error } = await supabase.storage
+      const { error } = await supabase.storage
         .from("activity-media")
         .upload(fileName, file)
 
@@ -257,8 +231,7 @@ export const supabaseActivityService = {
         return null
       }
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
+      const {  { publicUrl } } = supabase.storage
         .from("activity-media")
         .getPublicUrl(fileName)
 
