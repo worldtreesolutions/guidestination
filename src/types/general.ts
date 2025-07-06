@@ -8,5 +8,5 @@ export interface Category {
 export interface Preferences {
   categories: number[];
   priceRange: [number, number];
-  duration: number;
+  duration: [number, number];
 }
