@@ -38,7 +38,6 @@ const createFormSchema = (t: (key: string) => string) => z.object({
   ownerName: z.string().min(2, t('form.validation.ownerName')),
   email: z.string().email(t('form.validation.email')),
   phone: z.string().min(10, t('form.validation.phone')),
-  businessType: z.string().min(1, t('form.validation.businessType')),
   taxId: z.string().min(13, t('form.validation.taxId')),
   address: z.string().min(10, t('form.validation.address')),
   description: z.string().min(50, t('form.validation.description')),
@@ -73,7 +72,6 @@ export const ActivityOwnerRegistrationForm = () => {
       ownerName: '',
       email: '',
       phone: '',
-      businessType: '',
       taxId: '',
       address: '',
       description: '',
@@ -151,6 +149,7 @@ export const ActivityOwnerRegistrationForm = () => {
       // Create registration data with CDN URLs
       const registrationData = {
         ...values,
+        businessType: 'activity_provider', // Default value
         locationData,
         documentUrls,
         submittedAt: new Date().toISOString(),
@@ -229,39 +228,16 @@ export const ActivityOwnerRegistrationForm = () => {
             </ul>
           </div>
 
-          <h3 className='text-lg font-medium'>{t('form.section.business')}</h3>
+          <h3 className='text-lg font-medium'>Provider Information</h3>
           <FormField
             control={form.control}
             name='businessName'
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('form.field.businessName')}</FormLabel>
+                <FormLabel>Provider Name</FormLabel>
                 <FormControl>
-                  <Input placeholder={t('form.placeholder.businessName')} {...field} />
+                  <Input placeholder="Enter your provider name" {...field} />
                 </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name='businessType'
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('form.field.businessType')}</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t('form.placeholder.businessType')} />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value='tour_operator'>{t('form.businessType.tourOperator')}</SelectItem>
-                    <SelectItem value='activity_provider'>{t('form.businessType.activityProvider')}</SelectItem>
-                    <SelectItem value='experience_host'>{t('form.businessType.experienceHost')}</SelectItem>
-                  </SelectContent>
-                </Select>
                 <FormMessage />
               </FormItem>
             )}
