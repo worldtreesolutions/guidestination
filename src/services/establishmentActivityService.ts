@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -103,14 +102,14 @@ export const establishmentActivityService = {
   },
 
   async updateCommissionRate(establishmentId: string, activityId: number, commissionRate: number) {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {  { user } } = await supabase.auth.getUser();
     
     const { data, error } = await supabase
       .from("establishment_activities")
       .update({
         commission_rate: commissionRate,
         updated_by: user?.id
-      })
+      } as any)
       .eq("establishment_id", establishmentId)
       .eq("activity_id", activityId)
       .select()
@@ -121,14 +120,14 @@ export const establishmentActivityService = {
   },
 
   async toggleActivityStatus(establishmentId: string, activityId: number, isActive: boolean) {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {  { user } } = await supabase.auth.getUser();
     
     const { data, error } = await supabase
       .from("establishment_activities")
       .update({
         is_active: isActive,
         updated_by: user?.id
-      })
+      } as any)
       .eq("establishment_id", establishmentId)
       .eq("activity_id", activityId)
       .select()

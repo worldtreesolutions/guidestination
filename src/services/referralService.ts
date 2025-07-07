@@ -1,32 +1,32 @@
-
 import { supabase } from "@/integrations/supabase/client"
 
 export interface ReferralVisit {
-  id: string
-  establishment_id: string
-  visitor_id?: string
-  session_id?: string
-  ip_address?: string
-  user_agent?: string
-  referrer_url?: string
-  visited_at: string
-  metadata?: any
+  id: string;
+  establishment_id: string;
+  ip_address: string;
+  visit_date: string;
+  visitor_id?: string;
+  session_id?: string;
+  user_agent?: string;
+  referrer_url?: string;
+  metadata?: any;
+  visited_at?: string;
 }
 
 export interface EstablishmentCommission {
-  id: string
-  establishment_id: string
-  booking_id?: string
-  activity_id: number
-  customer_id: string
-  referral_visit_id?: string
-  commission_rate: number
-  booking_amount: number
-  commission_amount: number
-  commission_status: "pending" | "approved" | "paid" | "cancelled"
-  booking_source: "qr_code" | "direct" | "other"
-  created_at: string
-  updated_at: string
+  id: string;
+  establishment_id: string;
+  booking_id?: string;
+  activity_id: number;
+  customer_id: string;
+  referral_visit_id?: string;
+  commission_rate: number;
+  booking_amount: number;
+  commission_amount: number;
+  commission_status: "pending" | "approved" | "paid" | "cancelled";
+  booking_source: "qr_code" | "direct" | "other";
+  created_at: string;
+  updated_at: string;
 }
 
 export const referralService = {
@@ -36,19 +36,19 @@ export const referralService = {
     
     const visitData = {
       establishment_id: establishmentId,
-      visitor_id: user?.id || null,
+      visitor_id: user?.id || undefined,
       session_id: sessionId,
-      ip_address: await this.getClientIP(),
-      user_agent: navigator.userAgent,
-      referrer_url: document.referrer || null,
-      metadata
-    }
+      ip_address: (await this.getClientIP()) || "unknown",
+      user_agent: typeof navigator !== "undefined" ? navigator.userAgent : "unknown",
+      referrer_url: typeof document !== "undefined" ? document.referrer || undefined : undefined,
+      metadata,
+    };
 
     const { data, error } = await supabase
-      .from('referral_visits')
-      .insert([visitData])
+      .from("referral_visits")
+      .insert([visitData] as any)
       .select()
-      .single()
+      .single();
 
     if (error) throw error
     
@@ -94,10 +94,10 @@ export const referralService = {
     }
 
     const { data, error } = await supabase
-      .from('establishment_commissions')
+      .from("establishment_commissions")
       .insert([commissionData])
       .select()
-      .single()
+      .single();
 
     if (error) throw error
     return data as EstablishmentCommission
@@ -105,17 +105,10 @@ export const referralService = {
 
   async getEstablishmentCommissions(establishmentId: string) {
     const { data, error } = await supabase
-      .from('establishment_commissions')
-      .select(`
-        *,
-        activities (
-          title,
-          image_url,
-          b_price
-        )
-      `)
-      .eq('establishment_id', establishmentId)
-      .order('created_at', { ascending: false })
+      .from("establishment_commissions")
+      .select(`*`)
+      .eq("establishment_id", establishmentId)
+      .order("created_at", { ascending: false });
 
     if (error) throw error
     return data as EstablishmentCommission[]
@@ -123,10 +116,10 @@ export const referralService = {
 
   async getEstablishmentVisits(establishmentId: string) {
     const { data, error } = await supabase
-      .from('referral_visits')
-      .select('*')
-      .eq('establishment_id', establishmentId)
-      .order('visited_at', { ascending: false })
+      .from("referral_visits")
+      .select("*")
+      .eq("establishment_id", establishmentId)
+      .order("visited_at", { ascending: false });
 
     if (error) throw error
     return data as ReferralVisit[]
