@@ -100,7 +100,7 @@ export const referralService = {
       .single();
 
     if (error) throw error
-    return data as EstablishmentCommission
+    return data as unknown as EstablishmentCommission
   },
 
   async getEstablishmentCommissions(establishmentId: string) {
@@ -111,7 +111,7 @@ export const referralService = {
       .order("created_at", { ascending: false });
 
     if (error) throw error
-    return data as EstablishmentCommission[]
+    return data as unknown as EstablishmentCommission[]
   },
 
   async getEstablishmentVisits(establishmentId: string) {
