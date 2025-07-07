@@ -138,14 +138,17 @@ export const commissionService = {
   },
 
   // Get single commission invoice
-  async getCommissionInvoice(invoiceId: string): Promise<CommissionInvoice> {
+  async getCommissionInvoice(invoiceId: string): Promise<CommissionInvoice | null> {
     const { data, error } = await supabase
       .from("commission_invoices")
       .select("*")
       .eq("id", invoiceId)
       .single();
 
-    if (error) throw error;
+    if (error) {
+        console.error("Error fetching commission invoice:", error);
+        return null;
+    }
     return data;
   },
 
@@ -263,7 +266,7 @@ export const commissionService = {
       .filter(inv => inv.invoice_status === "paid")
       .reduce((sum, inv) => sum + Number(inv.platform_commission_amount), 0);
     const totalPendingAmount = invoices
-      .filter(inv => ["pending", "overdue"].includes(inv.invoice_status))
+      .filter(inv => ["pending", "overdue"].includes(inv.invoice_status || ""))
       .reduce((sum, inv) => sum + Number(inv.platform_commission_amount), 0);
 
     return {
