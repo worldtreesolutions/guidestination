@@ -25,9 +25,9 @@ export default async function handler(
     const paymentLink = await stripe.paymentLinks.create({
       line_items: [
         {
-          price_data: {
+          price_ {
             currency: currency.toLowerCase(),
-            product_data: {
+            product_ {
               name: "Platform Commission Payment",
               description: description,
             },
@@ -36,8 +36,8 @@ export default async function handler(
           quantity: 1,
         },
       ],
-      payment_intent_data: {
-        metadata: {
+      payment_intent_ {
+        meta {
           type: "commission_payment",
           invoice_id: invoiceId,
           ...metadata,
@@ -46,7 +46,7 @@ export default async function handler(
       after_completion: {
         type: "redirect",
         redirect: {
-          url: `${process.env.NEXT_PUBLIC_BASE_URL}/commission/payment-success?invoice_id=${invoiceId}`,
+          url: `${process.env.NEXT_PUBLIC_APP_URL}/commission/payment-success?invoice_id=${invoiceId}`,
         },
       },
     });

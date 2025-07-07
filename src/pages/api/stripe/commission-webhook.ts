@@ -61,7 +61,7 @@ export default async function handler(
       stripe_event_id: event.id,
       event_type: event.type,
       processed: true,
-      metadata: event.data.object,
+      payload: event.data.object,
     });
 
     res.status(200).json({ received: true });
@@ -74,7 +74,7 @@ export default async function handler(
       event_type: event.type,
       processed: false,
       error_message: error instanceof Error ? error.message : "Unknown error",
-      metadata: event.data.object,
+      payload: event.data.object,
     });
 
     res.status(500).json({ error: "Webhook processing failed" });

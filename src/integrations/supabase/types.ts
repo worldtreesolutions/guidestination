@@ -101,28 +101,34 @@ export type Database = {
           id: string
           user_id: string
           email: string
+          business_name: string | null
           created_at: string
           updated_at: string
           stripe_account_id: string | null
           stripe_charges_enabled: boolean | null
+          provider_id: string
         }
         Insert: {
           id?: string
           user_id: string
           email: string
+          business_name?: string | null
           created_at?: string
           updated_at?: string
           stripe_account_id?: string | null
           stripe_charges_enabled?: boolean | null
+          provider_id: string
         }
         Update: {
           id?: string
           user_id?: string
           email?: string
+          business_name?: string | null
           created_at?: string
           updated_at?: string
           stripe_account_id?: string | null
           stripe_charges_enabled?: boolean | null
+          provider_id?: string
         }
         Relationships: [
           {
@@ -135,43 +141,67 @@ export type Database = {
       }
       bookings: {
         Row: {
-          id: string
+          id: number
           activity_id: number
           customer_id: string | null
           customer_name: string
           customer_email: string
+          customer_phone: string | null
           booking_date: string
           participants: number
           total_amount: number
           status: "pending" | "confirmed" | "completed" | "cancelled"
           created_at: string
           updated_at: string
+          establishment_id: string | null
+          is_qr_booking: boolean
+          qr_establishment_id: string | null
+          referral_visit_id: string | null
+          booking_source: string | null
+          stripe_payment_intent_id: string | null
+          commission_invoice_generated: boolean
         }
         Insert: {
-          id?: string
+          id?: number
           activity_id: number
           customer_id?: string | null
           customer_name: string
           customer_email: string
+          customer_phone?: string | null
           booking_date: string
           participants: number
           total_amount: number
           status?: "pending" | "confirmed" | "completed" | "cancelled"
           created_at?: string
           updated_at?: string
+          establishment_id?: string | null
+          is_qr_booking?: boolean
+          qr_establishment_id?: string | null
+          referral_visit_id?: string | null
+          booking_source?: string | null
+          stripe_payment_intent_id?: string | null
+          commission_invoice_generated?: boolean
         }
         Update: {
-          id?: string
+          id?: number
           activity_id?: number
           customer_id?: string | null
           customer_name?: string
           customer_email?: string
+          customer_phone?: string | null
           booking_date?: string
           participants?: number
           total_amount?: number
           status?: "pending" | "confirmed" | "completed" | "cancelled"
           created_at?: string
           updated_at?: string
+          establishment_id?: string | null
+          is_qr_booking?: boolean
+          qr_establishment_id?: string | null
+          referral_visit_id?: string | null
+          booking_source?: string | null
+          stripe_payment_intent_id?: string | null
+          commission_invoice_generated?: boolean
         }
         Relationships: [
           {
@@ -184,6 +214,12 @@ export type Database = {
             foreignKeyName: "bookings_customer_id_fkey"
             columns: ["customer_id"]
             referencedRelation: "customer_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_establishment_id_fkey"
+            columns: ["establishment_id"]
+            referencedRelation: "establishments"
             referencedColumns: ["id"]
           }
         ]
@@ -205,6 +241,140 @@ export type Database = {
           description?: string | null
         }
         Relationships: []
+      }
+      commission_invoices: {
+        Row: {
+          id: string
+          booking_id: number
+          provider_id: string
+          invoice_number: string
+          total_booking_amount: number
+          platform_commission_rate: number
+          platform_commission_amount: number
+          partner_commission_rate: number | null
+          partner_commission_amount: number | null
+          establishment_id: string | null
+          is_qr_booking: boolean
+          invoice_status: "pending" | "paid" | "overdue" | "cancelled"
+          due_date: string
+          paid_at: string | null
+          payment_method: string | null
+          payment_reference: string | null
+          stripe_payment_link_id: string | null
+          stripe_payment_link_url: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          booking_id: number
+          provider_id: string
+          invoice_number: string
+          total_booking_amount: number
+          platform_commission_rate: number
+          platform_commission_amount: number
+          partner_commission_rate?: number | null
+          partner_commission_amount?: number | null
+          establishment_id?: string | null
+          is_qr_booking?: boolean
+          invoice_status?: "pending" | "paid" | "overdue" | "cancelled"
+          due_date: string
+          paid_at?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          stripe_payment_link_id?: string | null
+          stripe_payment_link_url?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          booking_id?: number
+          provider_id?: string
+          invoice_number?: string
+          total_booking_amount?: number
+          platform_commission_rate?: number
+          platform_commission_amount?: number
+          partner_commission_rate?: number | null
+          partner_commission_amount?: number | null
+          establishment_id?: string | null
+          is_qr_booking?: boolean
+          invoice_status?: "pending" | "paid" | "overdue" | "cancelled"
+          due_date?: string
+          paid_at?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          stripe_payment_link_id?: string | null
+          stripe_payment_link_url?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commission_invoices_booking_id_fkey"
+            columns: ["booking_id"]
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_invoices_establishment_id_fkey"
+            columns: ["establishment_id"]
+            referencedRelation: "establishments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_invoices_provider_id_fkey"
+            columns: ["provider_id"]
+            referencedRelation: "activity_owners"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      commission_payments: {
+        Row: {
+          id: string
+          invoice_id: string
+          payment_amount: number
+          payment_method: string
+          payment_status: "pending" | "completed" | "failed"
+          payment_reference: string | null
+          stripe_payment_intent_id: string | null
+          paid_at: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          invoice_id: string
+          payment_amount: number
+          payment_method: string
+          payment_status?: "pending" | "completed" | "failed"
+          payment_reference?: string | null
+          stripe_payment_intent_id?: string | null
+          paid_at: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          invoice_id?: string
+          payment_amount?: number
+          payment_method?: string
+          payment_status?: "pending" | "completed" | "failed"
+          payment_reference?: string | null
+          stripe_payment_intent_id?: string | null
+          paid_at?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commission_payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            referencedRelation: "commission_invoices"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       customer_profiles: {
         Row: {
@@ -272,28 +442,52 @@ export type Database = {
         Row: {
           id: string
           establishment_id: string
-          booking_id: string
+          booking_id: number
+          activity_id: number
+          referral_visit_id: string | null
+          commission_rate: number
+          booking_amount: number
           commission_amount: number
+          commission_status: "pending" | "paid" | "cancelled"
+          booking_source: string | null
           paid_at: string | null
           created_at: string
         }
         Insert: {
           id?: string
           establishment_id: string
-          booking_id: string
+          booking_id: number
+          activity_id: number
+          referral_visit_id?: string | null
+          commission_rate: number
+          booking_amount: number
           commission_amount: number
+          commission_status?: "pending" | "paid" | "cancelled"
+          booking_source?: string | null
           paid_at?: string | null
           created_at?: string
         }
         Update: {
           id?: string
           establishment_id?: string
-          booking_id?: string
+          booking_id?: number
+          activity_id?: number
+          referral_visit_id?: string | null
+          commission_rate?: number
+          booking_amount?: number
           commission_amount?: number
+          commission_status?: "pending" | "paid" | "cancelled"
+          booking_source?: string | null
           paid_at?: string | null
           created_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "establishment_commissions_activity_id_fkey"
+            columns: ["activity_id"]
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "establishment_commissions_booking_id_fkey"
             columns: ["booking_id"]
@@ -314,6 +508,7 @@ export type Database = {
           partner_id: string
           name: string
           address: string
+          verification_status: "pending" | "approved" | "rejected"
           created_at: string
           updated_at: string
         }
@@ -322,6 +517,7 @@ export type Database = {
           partner_id: string
           name: string
           address: string
+          verification_status?: "pending" | "approved" | "rejected"
           created_at?: string
           updated_at?: string
         }
@@ -330,6 +526,7 @@ export type Database = {
           partner_id?: string
           name?: string
           address?: string
+          verification_status?: "pending" | "approved" | "rejected"
           created_at?: string
           updated_at?: string
         }
@@ -409,23 +606,60 @@ export type Database = {
           }
         ]
       }
+      qr_scans: {
+        Row: {
+          id: string
+          establishment_id: string
+          user_agent: string | null
+          meta Json | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          establishment_id: string
+          user_agent?: string | null
+          metadata?: Json | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          establishment_id?: string
+          user_agent?: string | null
+          metadata?: Json | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qr_scans_establishment_id_fkey"
+            columns: ["establishment_id"]
+            referencedRelation: "establishments"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       referral_visits: {
         Row: {
           id: string
           establishment_id: string
-          ip_address: string
+          session_id: string
+          user_agent: string | null
+          meta Json | null
           visit_date: string
         }
         Insert: {
           id?: string
           establishment_id: string
-          ip_address: string
+          session_id: string
+          user_agent?: string | null
+          metadata?: Json | null
           visit_date?: string
         }
         Update: {
           id?: string
           establishment_id?: string
-          ip_address?: string
+          session_id?: string
+          user_agent?: string | null
+          metadata?: Json | null
           visit_date?: string
         }
         Relationships: [
@@ -602,6 +836,7 @@ export type Database = {
           processed: boolean
           payload: Json
           created_at: string
+          error_message: string | null
         }
         Insert: {
           id?: string
@@ -610,6 +845,7 @@ export type Database = {
           processed?: boolean
           payload: Json
           created_at?: string
+          error_message?: string | null
         }
         Update: {
           id?: string
@@ -618,6 +854,7 @@ export type Database = {
           processed?: boolean
           payload?: Json
           created_at?: string
+          error_message?: string | null
         }
         Relationships: []
       }
