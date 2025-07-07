@@ -74,7 +74,7 @@ export const establishmentActivityService = {
   },
 
   async updateEstablishmentActivity(id: string, updates: EstablishmentActivityUpdate) {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {  { user } } = await supabase.auth.getUser();
     
     const { data, error } = await supabase
       .from("establishment_activities")
