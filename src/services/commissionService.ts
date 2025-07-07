@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import supabase from "@/integrations/supabase/admin";
 import type { Database } from "@/integrations/supabase/types";
 
 export type CommissionInvoice = Database["public"]["Tables"]["commission_invoices"]["Row"];

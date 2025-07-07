@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import supabase from "@/integrations/supabase/admin";
 import commissionService, { CommissionInvoice } from "./commissionService";
 import type { Database } from "@/integrations/supabase/types";
 

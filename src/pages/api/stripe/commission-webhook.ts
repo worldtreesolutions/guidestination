@@ -1,8 +1,7 @@
-
 import { NextApiRequest, NextApiResponse } from "next";
 import { buffer } from "micro";
 import Stripe from "stripe";
-import { supabase } from "@/integrations/supabase/client";
+import supabase from "@/integrations/supabase/admin";
 import commissionService from "@/services/commissionService";
 import invoiceService from "@/services/invoiceService";
 
