@@ -201,7 +201,7 @@ export const invoiceService = {
       
       for (const invoice of overdueInvoices) {
         // Get provider details
-        const {  provider } = await supabase
+        const { data: provider } = await supabase
           .from("activity_owners")
           .select("business_name, email")
           .eq("id", invoice.provider_id)
