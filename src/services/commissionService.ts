@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -105,7 +104,7 @@ export const commissionService = {
     establishmentId?: string;
     limit?: number;
     offset?: number;
-  }): Promise<{  CommissionInvoice[]; count: number }> {
+  }): Promise<{ data: CommissionInvoice[]; count: number }> {
     let query = supabase
       .from("commission_invoices")
       .select("*", { count: "exact" })
@@ -134,7 +133,7 @@ export const commissionService = {
     const { data, error, count } = await query;
 
     if (error) throw error;
-    return {  data || [], count: count || 0 };
+    return { data: data || [], count: count || 0 };
   },
 
   // Get single commission invoice

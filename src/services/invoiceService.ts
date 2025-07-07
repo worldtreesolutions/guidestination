@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import commissionService, { CommissionInvoice } from "./commissionService";
 import type { Database } from "@/integrations/supabase/types";
@@ -77,7 +76,7 @@ export const invoiceService = {
           amount: invoice.platform_commission_amount,
           currency: "usd", // or "thb" for Thailand
           description: `Commission payment for invoice ${invoice.invoice_number}`,
-          meta {
+          metadata: {
             invoice_id: invoice.id,
             provider_id: invoice.provider_id,
             booking_id: invoice.booking_id.toString()
@@ -113,7 +112,7 @@ export const invoiceService = {
   },
 
   // Process successful commission payment
-  async processCommissionPayment( ProcessPaymentData): Promise<void> {
+  async processCommissionPayment(data: ProcessPaymentData): Promise<void> {
     try {
       // Create payment record
       await commissionService.createCommissionPayment(data);
@@ -137,7 +136,7 @@ export const invoiceService = {
       }
       
       // Get provider details for email
-      const {  provider } = await supabase
+      const { data: provider } = await supabase
         .from("activity_owners")
         .select("business_name, email")
         .eq("id", invoice.provider_id)
@@ -161,7 +160,7 @@ export const invoiceService = {
   },
 
   // Send payment confirmation email
-  async sendPaymentConfirmationEmail( PaymentConfirmationData): Promise<boolean> {
+  async sendPaymentConfirmationEmail(data: PaymentConfirmationData): Promise<boolean> {
     try {
       console.log("Sending payment confirmation email:", data);
       // This would integrate with your email service

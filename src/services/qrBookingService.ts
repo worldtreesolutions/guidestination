@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -26,7 +25,7 @@ export const qrBookingService = {
       .insert({
         establishment_id: establishmentId,
         user_agent: navigator.userAgent,
-        meta metadata || {}
+        metadata: metadata || {}
       })
       .select()
       .single();
@@ -43,7 +42,7 @@ export const qrBookingService = {
         establishment_id: establishmentId,
         session_id: sessionId || `qr_${Date.now()}`,
         user_agent: navigator.userAgent,
-        meta {
+        metadata: {
           source: "qr_code",
           timestamp: new Date().toISOString()
         }
@@ -59,7 +58,7 @@ export const qrBookingService = {
   async createQrBooking(qrBookingData: QrBookingData): Promise<number> {
     try {
       // Create the booking with QR establishment link
-      const {  booking, error: bookingError } = await supabase
+      const { data: booking, error: bookingError } = await supabase
         .from("bookings")
         .insert({
           activity_id: qrBookingData.activityId,
