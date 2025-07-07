@@ -5,9 +5,7 @@ import { getAdminClient } from "@/integrations/supabase/admin"
 import stripeService from "@/services/stripeService"
 import { Json } from "@/integrations/supabase/types"
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-06-20",
-})
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
 
