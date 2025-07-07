@@ -55,55 +55,59 @@ export const qrBookingService = {
   },
 
   // Create QR-linked booking
-  async createQrBooking(qrBookingData: QrBookingData): Promise<number> {
-    try {
-      // Create the booking with QR establishment link
-      const { data: booking, error: bookingError } = await supabase
-        .from("bookings")
-        .insert({
-          activity_id: qrBookingData.activityId,
-          customer_name: qrBookingData.customerData.name,
-          customer_email: qrBookingData.customerData.email,
-          customer_phone: qrBookingData.customerData.phone,
-          participants: qrBookingData.bookingData.participants,
-          total_amount: qrBookingData.bookingData.totalAmount,
-          establishment_id: qrBookingData.establishmentId,
-          is_qr_booking: true,
-          qr_establishment_id: qrBookingData.establishmentId,
-          referral_visit_id: qrBookingData.referralVisitId,
-          booking_source: "qr_code",
-          status: "pending"
-        })
-        .select()
-        .single();
+  async createQRBooking(bookingData: {
+    activityId: number
+    customerName: string
+    customerEmail: string
+    customerPhone?: string
+    participants: number
+    totalAmount: number
+    establishmentId: string
+    referralVisitId?: string
+  }) {
+    const { data: booking, error } = await supabase
+      .from("bookings")
+      .insert({
+        activity_id: bookingData.activityId,
+        customer_name: bookingData.customerName,
+        customer_email: bookingData.customerEmail,
+        customer_phone: bookingData.customerPhone || null,
+        participants: bookingData.participants,
+        total_amount: bookingData.totalAmount,
+        establishment_id: bookingData.establishmentId,
+        is_qr_booking: true,
+        qr_establishment_id: bookingData.establishmentId,
+        referral_visit_id: bookingData.referralVisitId || null,
+        booking_source: "qr_code",
+        status: "pending",
+        booking_date: new Date().toISOString(), // Add missing booking_date
+      })
+      .select()
+      .single();
 
-      if (bookingError) throw bookingError;
+    if (error) throw error;
 
-      // Create establishment commission record
-      const platformCommissionRate = 20; // 20% platform commission
-      const partnerCommissionRate = 10; // 10% partner commission (50% of platform commission)
-      const platformCommissionAmount = (qrBookingData.bookingData.totalAmount * platformCommissionRate) / 100;
-      const partnerCommissionAmount = (platformCommissionAmount * 50) / 100; // 50% of platform commission
+    // Create establishment commission record
+    const platformCommissionRate = 20; // 20% platform commission
+    const partnerCommissionRate = 10; // 10% partner commission (50% of platform commission)
+    const platformCommissionAmount = (bookingData.totalAmount * platformCommissionRate) / 100;
+    const partnerCommissionAmount = (platformCommissionAmount * 50) / 100; // 50% of platform commission
 
-      await supabase
-        .from("establishment_commissions")
-        .insert({
-          establishment_id: qrBookingData.establishmentId,
-          booking_id: booking.id,
-          activity_id: qrBookingData.activityId,
-          referral_visit_id: qrBookingData.referralVisitId,
-          commission_rate: partnerCommissionRate,
-          booking_amount: qrBookingData.bookingData.totalAmount,
-          commission_amount: partnerCommissionAmount,
-          commission_status: "pending",
-          booking_source: "qr_code"
-        });
+    await supabase
+      .from("establishment_commissions")
+      .insert({
+        establishment_id: bookingData.establishmentId,
+        booking_id: booking.id,
+        activity_id: bookingData.activityId,
+        referral_visit_id: bookingData.referralVisitId,
+        commission_rate: partnerCommissionRate,
+        booking_amount: bookingData.totalAmount,
+        commission_amount: partnerCommissionAmount,
+        commission_status: "pending",
+        booking_source: "qr_code"
+      });
 
-      return booking.id;
-    } catch (error) {
-      console.error("Failed to create QR booking:", error);
-      throw error;
-    }
+    return booking.id;
   },
 
   // Get establishment details for QR booking

@@ -1,335 +1,196 @@
-import Stripe from "stripe";
-import supabase from "@/integrations/supabase/admin";
-import type { Database, Tables, TablesInsert } from "@/integrations/supabase/types";
+import { supabase } from "@/integrations/supabase/client"
+import { createClient } from "@supabase/supabase-js"
+import type { Database } from "@/integrations/supabase/types"
+import Stripe from "stripe"
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-02-24.acacia",
-  typescript: true,
-});
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: "2024-06-20",
+})
 
-export type StripeCheckoutMetadata = {
-  activity_id: string;
-  provider_id: string;
-  commission_percent: string;
-  participants: string;
-  booking_date: string;
-  establishment_id?: string;
-  customer_name: string;
-  customer_email: string;
-  customer_phone?: string;
-  booking_source: string;
-};
+// Create a safe supabase client that handles null checks
+const getSupabaseClient = () => {
+  if (!supabase) {
+    console.error("Supabase client not initialized")
+    return null
+  }
+  return supabase
+}
 
 export const stripeService = {
-  // Onboarding
-  async createConnectAccount(userId: string, email: string, isPartner: boolean): Promise<string> {
-    const account = await stripe.accounts.create({
-      type: "express",
-      email: email,
-      metadata: {
-        user_id: userId,
-        user_type: isPartner ? "partner" : "activity_owner",
-      },
-    });
-
-    const table = isPartner ? "partner_registrations" : "activity_owners";
-    const { error } = await supabase
-      .from(table)
-      .update({ stripe_account_id: account.id })
-      .eq("user_id", userId);
-
-    if (error) {
-      console.error("Failed to save stripe_account_id", error);
-      throw new Error("Failed to save Stripe account ID.");
-    }
-
-    return account.id;
-  },
-
-  async createAccountLink(accountId: string, refreshUrl: string, returnUrl: string): Promise<string> {
-    const accountLink = await stripe.accountLinks.create({
-      account: accountId,
-      refresh_url: refreshUrl,
-      return_url: returnUrl,
-      type: "account_onboarding",
-    });
-    return accountLink.url;
-  },
-
-  async getAccountStatus(userId: string, isPartner: boolean): Promise<{ id: string; charges_enabled: boolean }> {
-    const table = isPartner ? "partner_registrations" : "activity_owners";
-    const { data, error } = await supabase
-      .from(table)
-      .select("stripe_account_id, stripe_charges_enabled")
-      .eq("user_id", userId)
-      .single();
-
-    if (error || !data) {
-      console.error("Stripe account not found for user", error);
-      throw new Error("Stripe account not found.");
-    }
-    
-    return {
-        id: data.stripe_account_id || "",
-        charges_enabled: data.stripe_charges_enabled || false,
-    };
-  },
-
-  // Checkout
   async createCheckoutSession(
-    lineItems: Stripe.Checkout.SessionCreateParams.LineItem[],
-    metadata: StripeCheckoutMetadata,
-    providerAccountId: string,
-    commissionPercent: number
+    activityId: number,
+    participants: number,
+    totalAmount: number,
+    customerEmail: string,
+    customerName: string,
+    establishmentId?: string
   ) {
+    const client = getSupabaseClient()
+    if (!client) throw new Error("Database connection not available")
+
+    const { data: activity, error } = await client
+      .from("activities")
+      .select("*")
+      .eq("id", activityId)
+      .single()
+
+    if (error || !activity) {
+      throw new Error("Activity not found")
+    }
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
-      line_items: lineItems,
+      line_items: [
+        {
+          price_data: {
+            currency: "thb",
+            product_data: {
+              name: activity.title,
+              description: activity.description,
+            },
+            unit_amount: Math.round(totalAmount * 100),
+          },
+          quantity: 1,
+        },
+      ],
       mode: "payment",
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/booking/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/booking/cancelled`,
-      metadata: metadata,
-      payment_intent_data: {
-        application_fee_amount: Math.round(lineItems[0].price_data!.unit_amount! * (commissionPercent / 100)),
-        transfer_data: {
-          destination: providerAccountId,
+      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/booking/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/booking/cancelled`,
+      customer_email: customerEmail,
+      metadata: {
+        activityId: activityId.toString(),
+        participants: participants.toString(),
+        customerName,
+        establishmentId: establishmentId || "",
+      },
+    })
+
+    return session
+  },
+
+  async createCommissionPaymentLink(
+    invoiceId: string,
+    amount: number,
+    providerEmail: string,
+    invoiceNumber: string
+  ) {
+    const client = getSupabaseClient()
+    if (!client) throw new Error("Database connection not available")
+
+    const paymentLink = await stripe.paymentLinks.create({
+      line_items: [
+        {
+          price_data: {
+            currency: "thb",
+            product_data: {
+              name: `Commission Payment - Invoice ${invoiceNumber}`,
+              description: `Payment for commission invoice ${invoiceNumber}`,
+            },
+            unit_amount: Math.round(amount * 100),
+          },
+          quantity: 1,
+        },
+      ],
+      metadata: {
+        invoiceId,
+        type: "commission_payment",
+      },
+      after_completion: {
+        type: "redirect",
+        redirect: {
+          url: `${process.env.NEXT_PUBLIC_BASE_URL}/commission/payment-success?invoice_id=${invoiceId}`,
         },
       },
-    });
+    })
 
-    const { error } = await supabase.from("stripe_checkout_sessions").insert({
-      stripe_session_id: session.id,
-      activity_id: parseInt(metadata.activity_id),
-      provider_id: metadata.provider_id,
-      amount: session.amount_total || 0,
-      commission_percent: commissionPercent,
-      status: "open",
-      participants: parseInt(metadata.participants),
-      booking_date: metadata.booking_date,
-      customer_email: metadata.customer_email,
-      customer_name: metadata.customer_name,
-      customer_phone: metadata.customer_phone,
-      establishment_id: metadata.establishment_id,
-      booking_source: metadata.booking_source,
-    });
-
-    if (error) {
-      console.error("Error inserting checkout session:", error);
-    }
-
-    return session;
+    return paymentLink
   },
 
-  async getCheckoutSession(sessionId: string) {
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
-    const metadata = session.metadata as StripeCheckoutMetadata | null;
-
-    if (!metadata) {
-      throw new Error("Session metadata not found");
+  async handleWebhookEvent(event: Stripe.Event) {
+    const client = getSupabaseClient()
+    if (!client) {
+      console.error("Supabase client not available for webhook processing")
+      return
     }
 
-    const { data, error } = await supabase
-      .from("stripe_checkout_sessions")
-      .update({ status: session.payment_status })
-      .eq("stripe_session_id", sessionId);
-
-    if (error) {
-      console.error("Error updating checkout session status:", error);
-    }
-
-    return { session, metadata };
-  },
-
-  // Webhooks & Post-payment processing
-  constructWebhookEvent(body: Buffer, signature: string): Stripe.Event {
-    return stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET!);
-  },
-
-  async handleCheckoutCompleted(session: Stripe.Checkout.Session) {
-    const metadata = session.metadata as StripeCheckoutMetadata | null;
-    if (!metadata) throw new Error("Missing metadata in checkout session");
-
-    const bookingData: TablesInsert<"bookings"> = {
-      activity_id: parseInt(metadata.activity_id),
-      customer_id: null,
-      customer_name: metadata.customer_name,
-      customer_email: metadata.customer_email,
-      booking_date: metadata.booking_date,
-      participants: parseInt(metadata.participants),
-      total_amount: session.amount_total! / 100,
-      status: "confirmed",
-    };
-
-    const { data: booking, error: bookingError } = await supabase
-      .from("bookings")
-      .insert(bookingData)
-      .select()
-      .single();
-
-    if (bookingError || !booking) {
-      console.error("Error creating booking:", bookingError);
-      throw new Error("Failed to create booking.");
-    }
-
-    // Update checkout session status
-    await supabase
-      .from("stripe_checkout_sessions")
-      .update({ status: "complete" })
-      .eq("stripe_session_id", session.id);
-
-    // Handle commission for partners if applicable
-    if (metadata.establishment_id) {
-      const partner = await this.getPartnerForEstablishment(metadata.establishment_id);
-      if (partner?.stripe_account_id && partner.stripe_charges_enabled) {
-        const commissionAmount = (session.amount_total! / 100) * (partner.commission_rate / 100);
-        
-        await supabase.from("establishment_commissions").insert({
-            establishment_id: metadata.establishment_id,
-            booking_id: booking.id,
-            commission_amount: commissionAmount,
-        });
+    try {
+      switch (event.type) {
+        case "checkout.session.completed":
+          await this.handleCheckoutSessionCompleted(event.data.object as Stripe.Checkout.Session)
+          break
+        case "payment_intent.succeeded":
+          await this.handlePaymentIntentSucceeded(event.data.object as Stripe.PaymentIntent)
+          break
+        default:
+          console.log(`Unhandled event type: ${event.type}`)
       }
+    } catch (error) {
+      console.error("Error handling webhook event:", error)
+      throw error
     }
   },
 
-  async getPartnerForEstablishment(establishmentId: string) {
-    const { data, error } = await supabase
-      .from("establishments")
-      .select(`
-        partner_registrations (
-          stripe_account_id,
-          stripe_charges_enabled,
-          commission_package
-        )
-      `)
-      .eq("id", establishmentId)
-      .single();
+  async handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
+    const client = getSupabaseClient()
+    if (!client) return
 
-    if (error || !data || !data.partner_registrations) return null;
+    const { activityId, participants, customerName, establishmentId } = session.metadata!
 
-    const commissionRate = data.partner_registrations.commission_package === "premium" ? 15 : 10;
+    try {
+      const { data: booking, error: bookingError } = await client
+        .from("bookings")
+        .insert({
+          activity_id: parseInt(activityId),
+          customer_name: customerName,
+          customer_email: session.customer_email!,
+          participants: parseInt(participants),
+          total_amount: session.amount_total! / 100,
+          status: "confirmed",
+          stripe_session_id: session.id,
+          establishment_id: establishmentId || null,
+          booking_date: new Date().toISOString(),
+        })
+        .select()
+        .single()
 
-    return {
-      stripe_account_id: data.partner_registrations.stripe_account_id,
-      stripe_charges_enabled: data.partner_registrations.stripe_charges_enabled,
-      commission_rate: commissionRate,
-    };
-  },
+      if (bookingError) {
+        console.error("Error creating booking:", bookingError)
+        return
+      }
 
-  async handleTransferFailed(transfer: Stripe.Transfer) {
-    await supabase
-      .from("stripe_transfers")
-      .update({ 
-        status: "failed",
-        failure_message: (transfer as any).failure_message || null
-      })
-      .eq("id", transfer.id);
-  },
-
-  async handleAccountUpdated(account: Stripe.Account) {
-    const isPartner = account.metadata?.user_type === "partner";
-    const table = isPartner ? "partner_registrations" : "activity_owners";
-    
-    await supabase
-      .from(table)
-      .update({
-        stripe_charges_enabled: account.charges_enabled,
-      })
-      .eq("stripe_account_id", account.id);
-  },
-
-  async handlePayoutPaid(payout: Stripe.Payout) {
-    await supabase
-      .from("stripe_payouts")
-      .update({ status: "paid" })
-      .eq("id", payout.id);
-  },
-
-  async handlePayoutFailed(payout: Stripe.Payout) {
-    await supabase
-      .from("stripe_payouts")
-      .update({ status: "failed" })
-      .eq("id", payout.id);
-  },
-
-  async handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
-    console.log("Payment failed for payment intent:", paymentIntent.id);
-    // Add any specific handling for failed payments here
-  },
-
-  async handleRefund(charge: Stripe.Charge) {
-    console.log("Refund processed for charge:", charge.id);
-    // Add any specific handling for refunds here
-  },
-
-  // Event processing helpers
-  async isEventProcessed(eventId: string): Promise<boolean> {
-    const { data, error } = await supabase
-      .from("stripe_webhook_events")
-      .select("processed")
-      .eq("stripe_event_id", eventId)
-      .single();
-      
-    return data?.processed || false;
-  },
-
-  async recordWebhookEvent(eventId: string, eventType: string, processed: boolean = false, errorMessage?: string) {
-    const { error } = await supabase.from("stripe_webhook_events").insert({
-      stripe_event_id: eventId,
-      event_type: eventType,
-      processed: processed,
-      payload: { error: errorMessage },
-    });
-    if (error) {
-      console.error(`Failed to record webhook event ${eventId}`, error);
+      console.log("Booking created successfully:", booking.id)
+    } catch (error) {
+      console.error("Error in handleCheckoutSessionCompleted:", error)
     }
   },
 
-  async markEventProcessed(eventId: string) {
-    await supabase
-      .from("stripe_webhook_events")
-      .update({ processed: true })
-      .eq("stripe_event_id", eventId);
+  async handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent) {
+    const client = getSupabaseClient()
+    if (!client) return
+
+    console.log("Payment succeeded:", paymentIntent.id)
   },
 
-  // Legacy methods for compatibility
-  async logWebhookEvent(event: Stripe.Event) {
-    return this.recordWebhookEvent(event.id, event.type, false);
+  async retrieveSession(sessionId: string) {
+    return await stripe.checkout.sessions.retrieve(sessionId)
   },
 
-  async hasWebhookEventBeenProcessed(eventId: string): Promise<boolean> {
-    return this.isEventProcessed(eventId);
+  async retrievePaymentIntent(paymentIntentId: string) {
+    const client = getSupabaseClient()
+    if (!client) throw new Error("Database connection not available")
+
+    return await stripe.paymentIntents.retrieve(paymentIntentId)
   },
 
-  async markWebhookEventAsProcessed(eventId: string) {
-    return this.markEventProcessed(eventId);
-  },
+  async createRefund(paymentIntentId: string, amount?: number) {
+    const client = getSupabaseClient()
+    if (!client) throw new Error("Database connection not available")
 
-  // Payouts
-  async getPendingPayoutsForOwner(ownerId: string) {
-    return supabase
-      .from("stripe_payouts")
-      .select("*")
-      .eq("activity_owner_id", ownerId)
-      .eq("status", "pending");
+    return await stripe.refunds.create({
+      payment_intent: paymentIntentId,
+      amount: amount ? Math.round(amount * 100) : undefined,
+    })
   },
+}
 
-  async getPendingPayoutsForPartner(partnerId: string) {
-    return supabase
-      .from("stripe_payouts")
-      .select("*")
-      .eq("partner_id", partnerId)
-      .eq("status", "pending");
-  },
-
-  async getPayoutHistory(userId: string, isPartner: boolean) {
-    const column = isPartner ? "partner_id" : "activity_owner_id";
-    return supabase
-      .from("stripe_payouts")
-      .select("*")
-      .eq(column, userId)
-      .order("created_at", { ascending: false });
-  },
-};
-
-export default stripeService;
+export default stripeService

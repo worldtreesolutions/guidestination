@@ -166,6 +166,52 @@ export const customerService = {
     if (error) throw error;
     return true;
   },
+
+  async getCustomerBookings(customerId: string): Promise<Booking[]> {
+    const { data, error } = await supabase
+      .from("bookings")
+      .select(`
+        *,
+        activities (
+          title,
+          description,
+          image_urls,
+          location
+        )
+      `)
+      .eq("customer_id", customerId)
+      .order("created_at", { ascending: false })
+
+    if (error) {
+      console.error("Error fetching customer bookings:", error)
+      throw error
+    }
+
+    // Convert the data to match Booking type with proper id conversion
+    return data.map(booking => ({
+      ...booking,
+      id: booking.id.toString(), // Convert number to string
+    })) as unknown as Booking[]
+  },
+
+  async getBookingById(bookingId: string): Promise<Booking | null> {
+    const { data, error } = await supabase
+      .from("bookings")
+      .select("*")
+      .eq("id", parseInt(bookingId)) // Convert string to number for query
+      .single()
+
+    if (error) {
+      console.error("Error fetching booking:", error)
+      return null
+    }
+
+    // Convert the data to match Booking type with proper id conversion
+    return {
+      ...data,
+      id: data.id.toString(), // Convert number to string
+    } as unknown as Booking
+  },
 }
 
 export default customerService
