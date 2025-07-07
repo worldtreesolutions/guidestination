@@ -1,7 +1,6 @@
 
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/router";
@@ -46,11 +45,12 @@ export default function AdminCommissionPage() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="invoices">All Invoices</TabsTrigger>
             <TabsTrigger value="pending">Pending</TabsTrigger>
             <TabsTrigger value="overdue">Overdue</TabsTrigger>
+            <TabsTrigger value="paid">Paid</TabsTrigger>
           </TabsList>
 
           <TabsContent value="dashboard">
@@ -63,7 +63,7 @@ export default function AdminCommissionPage() {
                 <CardTitle>All Commission Invoices</CardTitle>
               </CardHeader>
               <CardContent>
-                <CommissionInvoiceList />
+                <CommissionInvoiceList status="all" />
               </CardContent>
             </Card>
           </TabsContent>
@@ -74,7 +74,7 @@ export default function AdminCommissionPage() {
                 <CardTitle>Pending Commission Invoices</CardTitle>
               </CardHeader>
               <CardContent>
-                <CommissionInvoiceList />
+                <CommissionInvoiceList status="pending" />
               </CardContent>
             </Card>
           </TabsContent>
@@ -85,7 +85,18 @@ export default function AdminCommissionPage() {
                 <CardTitle>Overdue Commission Invoices</CardTitle>
               </CardHeader>
               <CardContent>
-                <CommissionInvoiceList />
+                <CommissionInvoiceList status="overdue" />
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="paid">
+            <Card>
+              <CardHeader>
+                <CardTitle>Paid Commission Invoices</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CommissionInvoiceList status="paid" />
               </CardContent>
             </Card>
           </TabsContent>

@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -7,25 +7,25 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Eye, Download, Send, CreditCard, CheckCircle } from "lucide-react";
+import { Eye, CreditCard, CheckCircle } from "lucide-react";
 import commissionService, { CommissionInvoice } from "@/services/commissionService";
 import invoiceService from "@/services/invoiceService";
 
-export default function CommissionInvoiceList() {
+interface CommissionInvoiceListProps {
+  status?: string;
+}
+
+export default function CommissionInvoiceList({ status }: CommissionInvoiceListProps) {
   const [invoices, setInvoices] = useState<CommissionInvoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedInvoice, setSelectedInvoice] = useState<CommissionInvoice | null>(null);
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>(status || "all");
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const itemsPerPage = 20;
 
-  useEffect(() => {
-    loadInvoices();
-  }, [currentPage, statusFilter, searchTerm]);
-
-  const loadInvoices = async () => {
+  const loadInvoices = useCallback(async () => {
     try {
       setLoading(true);
       const filters: any = {
@@ -36,16 +36,30 @@ export default function CommissionInvoiceList() {
       if (statusFilter !== "all") {
         filters.status = statusFilter;
       }
-
+      
+      // Note: Server-side search would be more efficient for large datasets
       const { data, count } = await commissionService.getCommissionInvoices(filters);
-      setInvoices(data);
+      
+      let filteredData = data;
+      if (searchTerm) {
+        filteredData = data.filter(invoice =>
+          invoice.invoice_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          invoice.provider_id.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      }
+
+      setInvoices(filteredData);
       setTotalCount(count);
     } catch (error) {
       console.error("Failed to load invoices:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, statusFilter, searchTerm]);
+
+  useEffect(() => {
+    loadInvoices();
+  }, [loadInvoices]);
 
   const handleMarkAsPaid = async (invoiceId: string) => {
     try {
@@ -82,11 +96,6 @@ export default function CommissionInvoiceList() {
       </Badge>
     );
   };
-
-  const filteredInvoices = invoices.filter(invoice =>
-    invoice.invoice_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    invoice.provider_id.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   return (
     <div className="space-y-6">
@@ -137,14 +146,14 @@ export default function CommissionInvoiceList() {
                       Loading invoices...
                     </TableCell>
                   </TableRow>
-                ) : filteredInvoices.length === 0 ? (
+                ) : invoices.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={8} className="text-center py-8">
                       No invoices found
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredInvoices.map((invoice) => (
+                  invoices.map((invoice) => (
                     <TableRow key={invoice.id}>
                       <TableCell className="font-medium">
                         {invoice.invoice_number}
@@ -268,7 +277,7 @@ function InvoiceDetails({ invoice }: { invoice: CommissionInvoice }) {
             ${invoice.platform_commission_amount.toFixed(2)} ({invoice.platform_commission_rate}%)
           </p>
         </div>
-        {invoice.is_qr_booking && (
+        {invoice.is_qr_booking && invoice.partner_commission_amount && (
           <div>
             <label className="text-sm font-medium">Partner Commission</label>
             <p className="text-sm text-gray-600">
