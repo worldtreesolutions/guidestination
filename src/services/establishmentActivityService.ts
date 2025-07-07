@@ -57,7 +57,7 @@ export const establishmentActivityService = {
   },
 
   async linkActivityToEstablishment(establishmentActivity: EstablishmentActivityInsert) {
-    const {  { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
     
     const { data, error } = await supabase
       .from("establishment_activities")
@@ -74,7 +74,7 @@ export const establishmentActivityService = {
   },
 
   async updateEstablishmentActivity(id: string, updates: EstablishmentActivityUpdate) {
-    const {  { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
     
     const { data, error } = await supabase
       .from("establishment_activities")
@@ -102,7 +102,7 @@ export const establishmentActivityService = {
   },
 
   async updateCommissionRate(establishmentId: string, activityId: number, commissionRate: number) {
-    const {  { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
     
     const { data, error } = await supabase
       .from("establishment_activities")
@@ -120,7 +120,7 @@ export const establishmentActivityService = {
   },
 
   async toggleActivityStatus(establishmentId: string, activityId: number, isActive: boolean) {
-    const {  { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
     
     const { data, error } = await supabase
       .from("establishment_activities")

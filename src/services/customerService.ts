@@ -128,7 +128,7 @@ export const customerService = {
     if (error) {
       // The relation might not exist or image_url might be missing.
       // Fallback to query without the join.
-      const {  wishlistData, error: wishlistError } = await supabase
+      const { data: wishlistData, error: wishlistError } = await supabase
         .from("wishlist")
         .select(`*`)
         .eq("user_id", userId)
