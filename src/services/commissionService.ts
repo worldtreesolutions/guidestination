@@ -204,8 +204,8 @@ export const commissionService = {
   },
 
   // Update commission invoice status
-  async updateInvoiceStatus(invoiceId: string, status: "pending" | "cancelled" | "paid" | "overdue") {
-    const validStatuses = ["pending", "cancelled", "paid", "overdue"] as const;
+  async updateInvoiceStatus(invoiceId: string, status: "pending" | "cancelled" | "paid" | "overdue"): Promise<CommissionInvoice> {
+    const validStatuses: ("pending" | "cancelled" | "paid" | "overdue")[] = ["pending", "cancelled", "paid", "overdue"];
     if (!validStatuses.includes(status)) {
       throw new Error(`Invalid status: ${status}`);
     }
