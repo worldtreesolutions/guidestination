@@ -15,6 +15,23 @@ export interface InvoiceEmailData {
   paymentLinkUrl?: string;
 }
 
+export interface PaymentConfirmationData {
+  invoiceNumber: string;
+  providerName: string;
+  providerEmail: string;
+  paymentAmount: number;
+  paymentMethod: string;
+  paymentReference?: string;
+}
+
+export interface ProcessPaymentData {
+  invoiceId: string;
+  paymentAmount: number;
+  paymentMethod: string;
+  paymentReference?: string;
+  stripePaymentIntentId?: string;
+}
+
 export const invoiceService = {
   // Generate invoice PDF (placeholder - would integrate with PDF generation service)
   async generateInvoicePDF(invoice: CommissionInvoice): Promise<string> {
@@ -60,7 +77,7 @@ export const invoiceService = {
           amount: invoice.platform_commission_amount,
           currency: "usd", // or "thb" for Thailand
           description: `Commission payment for invoice ${invoice.invoice_number}`,
-          meta {
+          metadata: {
             invoice_id: invoice.id,
             provider_id: invoice.provider_id,
             booking_id: invoice.booking_id.toString()
@@ -96,13 +113,7 @@ export const invoiceService = {
   },
 
   // Process successful commission payment
-  async processCommissionPayment( {
-    invoiceId: string;
-    paymentAmount: number;
-    paymentMethod: string;
-    paymentReference?: string;
-    stripePaymentIntentId?: string;
-  }): Promise<void> {
+  async processCommissionPayment(data: ProcessPaymentData): Promise<void> {
     try {
       // Create payment record
       await commissionService.createCommissionPayment(data);
@@ -126,7 +137,7 @@ export const invoiceService = {
       }
       
       // Get provider details for email
-      const {  provider } = await supabase
+      const { data: provider } = await supabase
         .from("activity_owners")
         .select("business_name, email")
         .eq("provider_id", invoice.provider_id)
@@ -150,14 +161,7 @@ export const invoiceService = {
   },
 
   // Send payment confirmation email
-  async sendPaymentConfirmationEmail( {
-    invoiceNumber: string;
-    providerName: string;
-    providerEmail: string;
-    paymentAmount: number;
-    paymentMethod: string;
-    paymentReference?: string;
-  }): Promise<boolean> {
+  async sendPaymentConfirmationEmail(data: PaymentConfirmationData): Promise<boolean> {
     try {
       console.log("Sending payment confirmation email:", data);
       // This would integrate with your email service
@@ -197,7 +201,7 @@ export const invoiceService = {
       
       for (const invoice of overdueInvoices) {
         // Get provider details
-        const {  provider } = await supabase
+        const { data: provider } = await supabase
           .from("activity_owners")
           .select("business_name, email")
           .eq("provider_id", invoice.provider_id)

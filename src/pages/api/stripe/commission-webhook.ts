@@ -61,7 +61,7 @@ export default async function handler(
       stripe_event_id: event.id,
       event_type: event.type,
       processed: true,
-      meta event.data.object,
+      metadata: event.data.object,
     });
 
     res.status(200).json({ received: true });
