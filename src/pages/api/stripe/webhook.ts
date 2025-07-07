@@ -1,6 +1,7 @@
+
 import { NextApiRequest, NextApiResponse } from "next";
+import type { Stripe } from "stripe";
 import stripeService from "@/services/stripeService";
-import { stripe } from "@/services/stripeService";
 import supabase from "@/integrations/supabase/admin";
 import commissionService from "@/services/commissionService";
 
@@ -99,13 +100,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     const sig = req.headers["stripe-signature"] as string;
-    let event: any;
+    let event: Stripe.Event;
 
     try {
       const body = await getRawBody(req);
       event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!);
     } catch (err) {
-      console.error("Webhook signature verification failed:", err);
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+      console.error(`Webhook signature verification failed: ${errorMessage}`);
       return res.status(400).json({ error: "Webhook signature verification failed" });
     }
 
@@ -119,50 +121,50 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Record the webhook event
-    await stripeService.recordWebhookEvent(event.id, event.type);
+    await stripeService.recordWebhookEvent(event.id, event.type, event.data.object);
 
     try {
       // Process different event types
       switch (event.type) {
         case "checkout.session.completed":
-          const session = event.data.object;
+          const session = event.data.object as Stripe.Checkout.Session;
           console.log("Processing checkout.session.completed:", session.id);
           await stripeService.handleCheckoutCompleted(session);
           await handleCheckoutSessionCompleted(session);
           break;
 
         case "payment_intent.payment_failed":
-          const paymentIntent = event.data.object;
+          const paymentIntent = event.data.object as Stripe.PaymentIntent;
           console.log("Processing payment_intent.payment_failed:", paymentIntent.id);
           await stripeService.handlePaymentFailed(paymentIntent);
           break;
 
         case "transfer.failed":
-          const transfer = event.data.object;
+          const transfer = event.data.object as Stripe.Transfer;
           console.log("Processing transfer.failed:", transfer.id);
           await stripeService.handleTransferFailed(transfer);
           break;
 
         case "account.updated":
-          const account = event.data.object;
+          const account = event.data.object as Stripe.Account;
           console.log("Processing account.updated:", account.id);
           await stripeService.handleAccountUpdated(account);
           break;
 
         case "payout.paid":
-          const paidPayout = event.data.object;
+          const paidPayout = event.data.object as Stripe.Payout;
           console.log("Processing payout.paid:", paidPayout.id);
           await stripeService.handlePayoutPaid(paidPayout);
           break;
 
         case "payout.failed":
-          const failedPayout = event.data.object;
+          const failedPayout = event.data.object as Stripe.Payout;
           console.log("Processing payout.failed:", failedPayout.id);
           await stripeService.handlePayoutFailed(failedPayout);
           break;
 
         case "charge.refunded":
-          const charge = event.data.object;
+          const charge = event.data.object as Stripe.Charge;
           console.log("Processing charge.refunded:", charge.id);
           await stripeService.handleRefund(charge);
           break;
@@ -175,15 +177,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       await stripeService.markEventProcessed(event.id);
 
     } catch (processingError) {
-      console.error(`Error processing event ${event.id}:`, processingError);
+      const errorMessage = processingError instanceof Error ? processingError.message : "Unknown processing error";
+      console.error(`Error processing event ${event.id}:`, errorMessage);
       
       // Record the error
-      await stripeService.recordWebhookEvent(
-        event.id, 
-        event.type, 
-        false, 
-        processingError instanceof Error ? processingError.message : "Unknown processing error"
-      );
+      await stripeService.recordWebhookError(event.id, errorMessage);
       
       return res.status(500).json({ 
         error: "Event processing failed",
@@ -193,7 +191,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     res.status(200).json({ received: true });
   } catch (error) {
-    console.error(`Error processing webhook:`, error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.error(`Error processing webhook:`, errorMessage);
     res.status(500).json({ 
       error: "Webhook processing failed"
     });

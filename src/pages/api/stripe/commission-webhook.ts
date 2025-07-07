@@ -7,7 +7,7 @@ import commissionService from "@/services/commissionService";
 import invoiceService from "@/services/invoiceService";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2023-10-16",
+  apiVersion: "2025-02-24.acacia",
 });
 
 const endpointSecret = process.env.STRIPE_COMMISSION_WEBHOOK_SECRET!;
@@ -44,10 +44,6 @@ export default async function handler(
         await handleCheckoutSessionCompleted(event.data.object as Stripe.Checkout.Session);
         break;
 
-      case "payment_link.payment_succeeded":
-        await handlePaymentLinkPaymentSucceeded(event.data.object as Stripe.PaymentLink);
-        break;
-
       case "payment_intent.succeeded":
         await handlePaymentIntentSucceeded(event.data.object as Stripe.PaymentIntent);
         break;
@@ -65,7 +61,7 @@ export default async function handler(
       stripe_event_id: event.id,
       event_type: event.type,
       processed: true,
-      metadata: event.data.object,
+      meta event.data.object,
     });
 
     res.status(200).json({ received: true });
@@ -88,9 +84,9 @@ export default async function handler(
 async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
   console.log("Processing checkout session completed:", session.id);
 
-  // Check if this is a booking payment (not commission payment)
+  // This handles booking payments, which in turn create commission invoices
   if (session.metadata?.type === "booking_payment") {
-    const bookingId = parseInt(session.metadata.booking_id);
+    const bookingId = session.metadata.booking_id;
     const providerId = session.metadata.provider_id;
     const establishmentId = session.metadata.establishment_id;
     const isQrBooking = session.metadata.is_qr_booking === "true";
@@ -104,11 +100,11 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
         is_qr_booking: isQrBooking,
         qr_establishment_id: establishmentId || null,
       })
-      .eq("id", bookingId);
+      .eq("id", parseInt(bookingId));
 
     // Create commission invoice
     await commissionService.createCommissionInvoice({
-      bookingId,
+      bookingId: parseInt(bookingId),
       providerId,
       totalAmount: (session.amount_total || 0) / 100, // Convert from cents
       isQrBooking,
@@ -116,43 +112,21 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
     });
 
     // Mark booking as having commission invoice generated
-    await commissionService.markBookingCommissionGenerated(bookingId);
-  }
-}
-
-async function handlePaymentLinkPaymentSucceeded(paymentLink: Stripe.PaymentLink) {
-  console.log("Processing payment link payment succeeded:", paymentLink.id);
-
-  // This handles commission payments via payment links
-  if (paymentLink.metadata?.type === "commission_payment") {
-    const invoiceId = paymentLink.metadata.invoice_id;
-    
-    // Get the latest payment intent for this payment link
-    const paymentIntents = await stripe.paymentIntents.list({
-      limit: 1,
-      metadata: { payment_link_id: paymentLink.id },
-    });
-
-    if (paymentIntents.data.length > 0) {
-      const paymentIntent = paymentIntents.data[0];
-      
-      await invoiceService.processCommissionPayment({
-        invoiceId,
-        paymentAmount: paymentIntent.amount / 100, // Convert from cents
-        paymentMethod: "stripe_payment_link",
-        stripePaymentIntentId: paymentIntent.id,
-        paymentReference: paymentIntent.id,
-      });
-    }
+    await commissionService.markBookingCommissionGenerated(parseInt(bookingId));
   }
 }
 
 async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent) {
   console.log("Processing payment intent succeeded:", paymentIntent.id);
 
-  // Handle commission payments
+  // This handles commission payments made via Stripe Payment Link
   if (paymentIntent.metadata?.type === "commission_payment") {
     const invoiceId = paymentIntent.metadata.invoice_id;
+
+    if (!invoiceId) {
+      console.error("Missing invoice_id in payment intent metadata");
+      return;
+    }
 
     await invoiceService.processCommissionPayment({
       invoiceId,
@@ -170,6 +144,11 @@ async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
   // Handle failed commission payments
   if (paymentIntent.metadata?.type === "commission_payment") {
     const invoiceId = paymentIntent.metadata.invoice_id;
+
+    if (!invoiceId) {
+      console.error("Missing invoice_id in payment intent metadata for failed payment");
+      return;
+    }
 
     // Log the failed payment attempt
     await supabase.from("commission_payments").insert({

@@ -3,7 +3,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import Stripe from "stripe";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2023-10-16",
+  apiVersion: "2025-02-24.acacia",
 });
 
 export default async function handler(
@@ -25,9 +25,9 @@ export default async function handler(
     const paymentLink = await stripe.paymentLinks.create({
       line_items: [
         {
-          price_data: {
+          price_ {
             currency: currency.toLowerCase(),
-            product_data: {
+            product_ {
               name: "Platform Commission Payment",
               description: description,
             },
@@ -36,10 +36,12 @@ export default async function handler(
           quantity: 1,
         },
       ],
-      metadata: {
-        type: "commission_payment",
-        invoice_id: invoiceId,
-        ...metadata,
+      payment_intent_ {
+        meta {
+          type: "commission_payment",
+          invoice_id: invoiceId,
+          ...metadata,
+        },
       },
       after_completion: {
         type: "redirect",
