@@ -4,7 +4,7 @@ import type { Database } from "@/integrations/supabase/types"
 import Stripe from "stripe"
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2023-10-16",
+  apiVersion: "2024-06-20",
 })
 
 // Create a safe supabase client that handles null checks
