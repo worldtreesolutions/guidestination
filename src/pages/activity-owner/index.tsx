@@ -6,47 +6,16 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ActivityOwnerRegistrationForm } from "@/components/activity-owner/ActivityOwnerRegistrationForm"
 import { Shield, Building2, Award, Clock } from "lucide-react"
-import { useLanguage } from "@/contexts/LanguageContext"
-import { uploadService } from "@/services/uploadService"
 import { useAuth } from "@/contexts/AuthContext"
 
 export default function ActivityOwnerDashboard() {
   const { user } = useAuth()
-  const { t } = useLanguage()
-
-  // Example of how to use the upload service
-  const handleFileUpload = async (file: File, type: "image" | "document") => {
-    if (!user) return
-
-    try {
-      let result
-      if (type === "image") {
-        result = await uploadService.uploadProfileImage(file, user.id)
-      } else {
-        result = await uploadService.uploadBusinessDocument(
-          file, 
-          user.id, 
-          "verification", 
-          user.id
-        )
-      }
-
-      if (result?.url) {
-        console.log("File uploaded successfully:", result.url)
-        // Update your state or database with the new URL
-      } else {
-        console.error("Upload failed:", result?.error)
-      }
-    } catch (error) {
-      console.error("Upload error:", error)
-    }
-  }
 
   return (
     <>
       <Head>
-        <title>{t("activityOwner.meta.title")}</title>
-        <meta name="description" content={t("activityOwner.meta.description")} />
+        <title>List Your Activities - Guidestination</title>
+        <meta name="description" content="Join Guidestination as an activity provider and grow your business" />
       </Head>
 
       <div className="min-h-screen flex flex-col w-full">
@@ -57,10 +26,10 @@ export default function ActivityOwnerDashboard() {
             <div className="w-full px-4 sm:px-6 lg:px-8">
               <div className="text-center mb-12">
                 <h1 className="text-4xl font-bold mb-4">
-                  {t("activityOwner.hero.title")}
+                  List Your Activities
                 </h1>
                 <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                  {t("activityOwner.hero.subtitle")}
+                  Join our platform and start earning by sharing your amazing activities with travelers
                 </p>
               </div>
 
@@ -68,9 +37,9 @@ export default function ActivityOwnerDashboard() {
                 <Card>
                   <CardHeader>
                     <Shield className="h-10 w-10 text-primary mb-4" />
-                    <CardTitle>{t("activityOwner.benefits.legalProtection.title")}</CardTitle>
+                    <CardTitle>Legal Protection</CardTitle>
                     <CardDescription>
-                      {t("activityOwner.benefits.legalProtection.description")}
+                      Get comprehensive insurance coverage and legal protection for your activities
                     </CardDescription>
                   </CardHeader>
                 </Card>
@@ -78,9 +47,9 @@ export default function ActivityOwnerDashboard() {
                 <Card>
                   <CardHeader>
                     <Building2 className="h-10 w-10 text-primary mb-4" />
-                    <CardTitle>{t("activityOwner.benefits.businessGrowth.title")}</CardTitle>
+                    <CardTitle>Business Growth</CardTitle>
                     <CardDescription>
-                      {t("activityOwner.benefits.businessGrowth.description")}
+                      Expand your reach and grow your business with our marketing support
                     </CardDescription>
                   </CardHeader>
                 </Card>
@@ -88,9 +57,9 @@ export default function ActivityOwnerDashboard() {
                 <Card>
                   <CardHeader>
                     <Award className="h-10 w-10 text-primary mb-4" />
-                    <CardTitle>{t("activityOwner.benefits.qualityStandards.title")}</CardTitle>
+                    <CardTitle>Quality Standards</CardTitle>
                     <CardDescription>
-                      {t("activityOwner.benefits.qualityStandards.description")}
+                      Maintain high quality standards with our verification and review system
                     </CardDescription>
                   </CardHeader>
                 </Card>
@@ -98,9 +67,9 @@ export default function ActivityOwnerDashboard() {
                 <Card>
                   <CardHeader>
                     <Clock className="h-10 w-10 text-primary mb-4" />
-                    <CardTitle>{t("activityOwner.benefits.flexibleSchedule.title")}</CardTitle>
+                    <CardTitle>Flexible Schedule</CardTitle>
                     <CardDescription>
-                      {t("activityOwner.benefits.flexibleSchedule.description")}
+                      Set your own schedule and manage bookings at your convenience
                     </CardDescription>
                   </CardHeader>
                 </Card>
@@ -108,9 +77,9 @@ export default function ActivityOwnerDashboard() {
 
               <Card className="max-w-3xl mx-auto">
                 <CardHeader>
-                  <CardTitle>{t("activityOwner.registration.title")}</CardTitle>
+                  <CardTitle>Activity Provider Registration</CardTitle>
                   <CardDescription>
-                    {t("activityOwner.registration.description")}
+                    Fill out the form below to start listing your activities on our platform
                   </CardDescription>
                 </CardHeader>
                 <CardContent>

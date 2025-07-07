@@ -1,4 +1,3 @@
-
 import { useState } from "react"
 import Head from "next/head"
 import { Navbar } from "@/components/layout/Navbar"
@@ -19,10 +18,8 @@ import {
   Mail,
   Globe
 } from "lucide-react"
-import { useLanguage } from "@/contexts/LanguageContext"
 
 export default function PartnerPage() {
-  const { t } = useLanguage()
   const [showForm, setShowForm] = useState(false)
 
   const benefits = [
