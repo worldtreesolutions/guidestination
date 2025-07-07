@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import stripeService from "@/services/stripeService";
 import { stripe } from "@/services/stripeService";
 import supabase from "@/integrations/supabase/admin";
+import commissionService from "@/services/commissionService";
 
 // Disable body parser for raw body access
 export const config = {
@@ -26,6 +27,56 @@ async function getRawBody(req: NextApiRequest): Promise<Buffer> {
       reject(err);
     });
   });
+}
+
+async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
+  console.log("Processing checkout session completed:", session.id);
+
+  try {
+    // Get booking details from metadata
+    const bookingId = session.metadata?.booking_id;
+    const activityId = session.metadata?.activity_id;
+    const providerId = session.metadata?.provider_id;
+    const establishmentId = session.metadata?.establishment_id;
+    const isQrBooking = session.metadata?.is_qr_booking === "true";
+
+    if (!bookingId || !activityId || !providerId) {
+      console.error("Missing required metadata in checkout session");
+      return;
+    }
+
+    // Update booking status
+    const { error: bookingError } = await supabase
+      .from("bookings")
+      .update({
+        status: "confirmed",
+        stripe_payment_intent_id: session.payment_intent as string,
+        is_qr_booking: isQrBooking,
+        qr_establishment_id: establishmentId || null,
+      })
+      .eq("id", parseInt(bookingId));
+
+    if (bookingError) {
+      console.error("Failed to update booking:", bookingError);
+      return;
+    }
+
+    // Create commission invoice automatically
+    await commissionService.createCommissionInvoice({
+      bookingId: parseInt(bookingId),
+      providerId,
+      totalAmount: (session.amount_total || 0) / 100, // Convert from cents
+      isQrBooking,
+      establishmentId,
+    });
+
+    // Mark booking as having commission invoice generated
+    await commissionService.markBookingCommissionGenerated(parseInt(bookingId));
+
+    console.log(`Commission invoice created for booking ${bookingId}`);
+  } catch (error) {
+    console.error("Error processing checkout session:", error);
+  }
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -77,6 +128,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           const session = event.data.object;
           console.log("Processing checkout.session.completed:", session.id);
           await stripeService.handleCheckoutCompleted(session);
+          await handleCheckoutSessionCompleted(session);
           break;
 
         case "payment_intent.payment_failed":
