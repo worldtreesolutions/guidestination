@@ -30,6 +30,16 @@ ADMIN_API_KEY=your-super-secret-admin-api-key-here
 
 ## Available API Endpoints
 
+### 0. Test Connection (Start Here)
+**Endpoint:** `GET /api/admin/test-connection`
+
+Use this endpoint first to verify your API key and connection:
+
+```bash
+curl -H "X-API-Key: your-secret-api-key" \
+  https://your-guidestination-domain.com/api/admin/test-connection
+```
+
 ### 1. Get Commission Invoices
 **Endpoint:** `GET /api/admin/commission/invoices`
 
@@ -144,7 +154,7 @@ const response = await fetch('https://your-guidestination-domain.com/api/admin/c
     "amount": 200,
     "method": "bank_transfer",
     "reference": "TXN123456789",
-    "stripe_payment_intent_id": "pi_xxx" // optional
+    "stripe_payment_intent_id": "pi_xxx"
   }
 }
 ```
@@ -202,24 +212,34 @@ const response = await fetch('https://your-guidestination-domain.com/api/admin/c
 Add these environment variables to your admin portal:
 
 ```env
-GUIDESTINATION_API_URL=https://your-guidestination-domain.com
+GUIDESTINATION_API_URL=https://3000-e31f2767-d3ac-4cb2-9894-aa7d0ebe87d2.h1097.daytona.work
 GUIDESTINATION_API_KEY=your-super-secret-admin-api-key-here
 ```
 
-### 2. Create API Service
+### 2. Set API Key in Guidestination System
+Add this to your Guidestination system's `.env.local` file:
+
+```env
+ADMIN_API_KEY=your-super-secret-admin-api-key-here
+```
+
+### 3. Create API Service in Your Admin Portal
 Create a service in your admin portal to handle API calls:
 
-```javascript
-// services/guidestinationApi.js
+```typescript
+// services/guidestinationApi.ts
 class GuidestinationAPI {
+  private baseURL: string;
+  private apiKey: string;
+
   constructor() {
-    this.baseURL = process.env.GUIDESTINATION_API_URL;
-    this.apiKey = process.env.GUIDESTINATION_API_KEY;
+    this.baseURL = process.env.GUIDESTINATION_API_URL || "";
+    this.apiKey = process.env.GUIDESTINATION_API_KEY || "";
   }
 
-  async request(endpoint, options = {}) {
+  async request(endpoint: string, options: RequestInit = {}) {
     const url = `${this.baseURL}${endpoint}`;
-    const config = {
+    const config: RequestInit = {
       headers: {
         'X-API-Key': this.apiKey,
         'Content-Type': 'application/json',
@@ -237,20 +257,25 @@ class GuidestinationAPI {
     return response.json();
   }
 
+  // Test connection
+  async testConnection() {
+    return this.request('/api/admin/test-connection');
+  }
+
   // Get commission invoices
-  async getCommissionInvoices(filters = {}) {
+  async getCommissionInvoices(filters: Record<string, string> = {}) {
     const params = new URLSearchParams(filters);
     return this.request(`/api/admin/commission/invoices?${params}`);
   }
 
   // Get commission statistics
-  async getCommissionStats(filters = {}) {
+  async getCommissionStats(filters: Record<string, string> = {}) {
     const params = new URLSearchParams(filters);
     return this.request(`/api/admin/commission/stats?${params}`);
   }
 
   // Update invoice status
-  async updateInvoiceStatus(invoiceId, status, paymentData = null) {
+  async updateInvoiceStatus(invoiceId: string, status: string, paymentData?: any) {
     return this.request('/api/admin/commission/update-status', {
       method: 'PUT',
       body: JSON.stringify({
@@ -270,16 +295,24 @@ class GuidestinationAPI {
 export default new GuidestinationAPI();
 ```
 
-### 3. Usage Examples in Your Admin Portal
+### 4. Usage Examples in Your Admin Portal
 
-```javascript
+```typescript
 // In your admin portal components
 import guidestinationAPI from './services/guidestinationApi';
+
+// Test connection first
+try {
+  const connectionTest = await guidestinationAPI.testConnection();
+  console.log('Connection successful:', connectionTest);
+} catch (error) {
+  console.error('Connection failed:', error);
+}
 
 // Get pending invoices
 const pendingInvoices = await guidestinationAPI.getCommissionInvoices({
   status: 'pending',
-  limit: 50
+  limit: '50'
 });
 
 // Mark invoice as paid
@@ -299,6 +332,29 @@ const stats = await guidestinationAPI.getCommissionStats({
   end_date: '2025-01-31'
 });
 ```
+
+## Quick Setup Checklist
+
+1. ✅ **Set API Key in Guidestination System**
+   ```env
+   ADMIN_API_KEY=your-super-secret-admin-api-key-here
+   ```
+
+2. ✅ **Set Environment Variables in Admin Portal**
+   ```env
+   GUIDESTINATION_API_URL=https://3000-e31f2767-d3ac-4cb2-9894-aa7d0ebe87d2.h1097.daytona.work
+   GUIDESTINATION_API_KEY=your-super-secret-admin-api-key-here
+   ```
+
+3. ✅ **Test Connection**
+   ```bash
+   curl -H "X-API-Key: your-secret-api-key" \
+     https://3000-e31f2767-d3ac-4cb2-9894-aa7d0ebe87d2.h1097.daytona.work/api/admin/test-connection
+   ```
+
+4. ✅ **Implement API Service in Admin Portal**
+
+5. ✅ **Build Admin Dashboard Components**
 
 ## Security Considerations
 
@@ -330,8 +386,9 @@ Common HTTP status codes:
 ## Testing the Integration
 
 1. Set up the API key in both systems
-2. Test each endpoint using curl or Postman
-3. Implement error handling in your admin portal
-4. Test the full workflow: fetch invoices → update status → verify changes
+2. Test the connection endpoint first
+3. Test each endpoint using curl or Postman
+4. Implement error handling in your admin portal
+5. Test the full workflow: fetch invoices → update status → verify changes
 
 This integration allows your external admin portal to have full control over the commission system while keeping the data synchronized with the main Guidestination platform.
