@@ -1,4 +1,3 @@
-
 import { NextApiRequest, NextApiResponse } from "next";
 import { commissionService } from "@/services/commissionService";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,10 +29,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       offset = "0"
     } = req.query;
 
+    // Validate and cast status to proper type
+    const validStatuses = ["pending", "cancelled", "paid", "overdue"] as const;
+    const statusFilter = status && validStatuses.includes(status as any) 
+      ? status as "pending" | "cancelled" | "paid" | "overdue"
+      : undefined;
+
     // Get commission invoices with filters
     const { data: invoices, count } = await commissionService.getCommissionInvoices({
       providerId: provider_id as string,
-      status: status as string,
+      status: statusFilter,
       establishmentId: establishment_id as string,
       limit: parseInt(limit as string),
       offset: parseInt(offset as string)

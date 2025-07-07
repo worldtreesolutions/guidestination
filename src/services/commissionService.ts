@@ -141,7 +141,7 @@ export const commissionService = {
   // Get all commission invoices with filters
   async getCommissionInvoices(filters?: {
     providerId?: string;
-    status?: string;
+    status?: "pending" | "cancelled" | "paid" | "overdue";
     establishmentId?: string;
     limit?: number;
     offset?: number;
@@ -214,10 +214,12 @@ export const commissionService = {
       throw new Error(`Invalid status: ${status}`);
     }
 
-    const { data, error } = await supabase
+    const client = isAdminAvailable() ? getAdminClient() : supabase;
+
+    const { data, error } = await client
       .from("commission_invoices")
       .update({ 
-        invoice_status: status as string,
+        invoice_status: status,
         updated_at: new Date().toISOString() 
       })
       .eq("id", invoiceId)
@@ -228,7 +230,7 @@ export const commissionService = {
     return {
       ...data,
       partner_commission_rate: data.partner_commission_rate || 0,
-      invoice_status: status,
+      invoice_status: data.invoice_status as "pending" | "cancelled" | "paid" | "overdue",
     } as CommissionInvoice;
   },
 
@@ -318,18 +320,18 @@ export const commissionService = {
 
     if (error) throw error;
 
-    const invoices = data || [];
+    const invoices: Partial<CommissionInvoice>[] = data || [];
     const totalInvoices = invoices.length;
-    const totalCommissionAmount = invoices.reduce((sum, inv) => sum + Number(inv.platform_commission_amount), 0);
+    const totalCommissionAmount = invoices.reduce((sum, inv) => sum + Number(inv.platform_commission_amount || 0), 0);
     const paidInvoices = invoices.filter(inv => inv.invoice_status === "paid").length;
     const pendingInvoices = invoices.filter(inv => inv.invoice_status === "pending").length;
     const overdueInvoices = invoices.filter(inv => inv.invoice_status === "overdue").length;
     const totalPaidAmount = invoices
       .filter(inv => inv.invoice_status === "paid")
-      .reduce((sum, inv) => sum + Number(inv.platform_commission_amount), 0);
+      .reduce((sum, inv) => sum + Number(inv.platform_commission_amount || 0), 0);
     const totalPendingAmount = invoices
-      .filter(inv => ["pending", "overdue"].includes(inv.invoice_status || ""))
-      .reduce((sum, inv) => sum + Number(inv.platform_commission_amount), 0);
+      .filter(inv => inv.invoice_status === "pending" || inv.invoice_status === "overdue")
+      .reduce((sum, inv) => sum + Number(inv.platform_commission_amount || 0), 0);
 
     return {
       totalInvoices,

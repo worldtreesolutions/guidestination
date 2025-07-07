@@ -1,4 +1,3 @@
-
 import Head from "next/head"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
@@ -76,17 +75,6 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-  // Safe translation function that doesn't throw errors
-  const safeT = (key: string): string => {
-    try {
-      const { t } = useLanguage()
-      return t(key)
-    } catch (err) {
-      console.error("Translation error:", err)
-      return key
-    }
-  }
 
   useEffect(() => {
     try {
