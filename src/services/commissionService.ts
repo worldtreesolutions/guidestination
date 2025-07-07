@@ -205,6 +205,11 @@ export const commissionService = {
 
   // Update commission invoice status
   async updateInvoiceStatus(invoiceId: string, status: "pending" | "cancelled" | "paid" | "overdue") {
+    const validStatuses = ["pending", "cancelled", "paid", "overdue"] as const;
+    if (!validStatuses.includes(status)) {
+      throw new Error(`Invalid status: ${status}`);
+    }
+
     const { data, error } = await supabase
       .from("commission_invoices")
       .update({ 

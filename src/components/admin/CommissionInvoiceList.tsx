@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -63,10 +62,7 @@ export default function CommissionInvoiceList({ status }: CommissionInvoiceListP
 
   const handleMarkAsPaid = async (invoiceId: string) => {
     try {
-      await commissionService.updateInvoiceStatus(invoiceId, "paid", {
-        paymentMethod: "manual",
-        paidAt: new Date().toISOString(),
-      });
+      await commissionService.updateInvoiceStatus(invoiceId, "paid");
       loadInvoices();
     } catch (error) {
       console.error("Failed to mark invoice as paid:", error);

@@ -88,7 +88,7 @@ export const stripeService = {
           },
           quantity: 1,
         },
-      ],
+      ] as any,
       metadata: {
         invoiceId,
         type: "commission_payment",

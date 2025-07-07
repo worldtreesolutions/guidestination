@@ -1,4 +1,3 @@
-
 import { NextApiRequest, NextApiResponse } from "next";
 import { commissionService } from "@/services/commissionService";
 
@@ -36,8 +35,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Update invoice status
     const updatedInvoice = await commissionService.updateInvoiceStatus(
       invoice_id,
-      status,
-      payment_data
+      status
     );
 
     // If marking as paid, create payment record
