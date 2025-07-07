@@ -1,8 +1,12 @@
 import supabase from "@/integrations/supabase/admin";
 import commissionService, { CommissionInvoice } from "./commissionService";
-import type { Database } from "@/integrations/supabase/types";
 
-type ActivityOwner = Database["public"]["Tables"]["activity_owners"]["Row"];
+// Simplified type to reduce memory usage
+interface ActivityOwner {
+  id: string;
+  business_name?: string;
+  email?: string;
+}
 
 export interface InvoiceEmailData {
   invoiceNumber: string;

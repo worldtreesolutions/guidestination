@@ -1,8 +1,39 @@
 import supabase from "@/integrations/supabase/admin";
-import type { Database } from "@/integrations/supabase/types";
 
-export type CommissionInvoice = Database["public"]["Tables"]["commission_invoices"]["Row"];
-export type CommissionPayment = Database["public"]["Tables"]["commission_payments"]["Row"];
+export interface CommissionInvoice {
+  id: string;
+  booking_id: number;
+  provider_id: string;
+  invoice_number: string;
+  total_booking_amount: number;
+  platform_commission_rate: number;
+  platform_commission_amount: number;
+  partner_commission_rate: number;
+  partner_commission_amount: number;
+  establishment_id?: string;
+  is_qr_booking: boolean;
+  invoice_status: string;
+  due_date: string;
+  payment_method?: string;
+  payment_reference?: string;
+  paid_at?: string;
+  stripe_payment_link_id?: string;
+  stripe_payment_link_url?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CommissionPayment {
+  id: string;
+  invoice_id: string;
+  payment_amount: number;
+  payment_method: string;
+  payment_reference?: string;
+  stripe_payment_intent_id?: string;
+  payment_status: string;
+  paid_at: string;
+  created_at: string;
+}
 
 export interface CommissionCalculation {
   totalAmount: number;
