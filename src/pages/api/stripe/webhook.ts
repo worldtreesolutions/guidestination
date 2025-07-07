@@ -1,200 +1,118 @@
 
-import { NextApiRequest, NextApiResponse } from "next";
-import type { Stripe } from "stripe";
-import stripeService from "@/services/stripeService";
-import supabase from "@/integrations/supabase/admin";
-import commissionService from "@/services/commissionService";
+    import { NextApiRequest, NextApiResponse } from "next"
+    import Stripe from "stripe"
+    import { buffer } from "micro"
+    import { createAdminClient } from "@/integrations/supabase/admin"
+    import stripeService from "@/services/stripeService"
+    import { Json } from "@/integrations/supabase/types"
 
-// Disable body parser for raw body access
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
-
-async function getRawBody(req: NextApiRequest): Promise<Buffer> {
-  const chunks: Buffer[] = [];
-  
-  return new Promise((resolve, reject) => {
-    req.on('data', (chunk: Buffer) => {
-      chunks.push(chunk);
-    });
-    
-    req.on('end', () => {
-      resolve(Buffer.concat(chunks));
-    });
-    
-    req.on('error', (err) => {
-      reject(err);
-    });
-  });
-}
-
-async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
-  console.log("Processing checkout session completed:", session.id);
-
-  try {
-    // Get booking details from metadata
-    const bookingId = session.metadata?.booking_id;
-    const activityId = session.metadata?.activity_id;
-    const providerId = session.metadata?.provider_id;
-    const establishmentId = session.metadata?.establishment_id;
-    const isQrBooking = session.metadata?.is_qr_booking === "true";
-
-    if (!bookingId || !activityId || !providerId) {
-      console.error("Missing required metadata in checkout session");
-      return;
-    }
-
-    // Update booking status
-    const { error: bookingError } = await supabase
-      .from("bookings")
-      .update({
-        status: "confirmed",
-        stripe_payment_intent_id: session.payment_intent as string,
-        is_qr_booking: isQrBooking,
-        qr_establishment_id: establishmentId || null,
-      })
-      .eq("id", parseInt(bookingId));
-
-    if (bookingError) {
-      console.error("Failed to update booking:", bookingError);
-      return;
-    }
-
-    // Create commission invoice automatically
-    await commissionService.createCommissionInvoice({
-      bookingId: parseInt(bookingId),
-      providerId,
-      totalAmount: (session.amount_total || 0) / 100, // Convert from cents
-      isQrBooking,
-      establishmentId,
-    });
-
-    // Mark booking as having commission invoice generated
-    await commissionService.markBookingCommissionGenerated(parseInt(bookingId));
-
-    console.log(`Commission invoice created for booking ${bookingId}`);
-  } catch (error) {
-    console.error("Error processing checkout session:", error);
-  }
-}
-
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
-
-  try {
-    // Check if Stripe is configured
-    if (!process.env.STRIPE_SECRET_KEY || !process.env.STRIPE_WEBHOOK_SECRET) {
-      return res.status(500).json({ 
-        error: "Stripe webhook is not configured. Please add STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET to your environment variables." 
-      });
-    }
-
-    // Import Stripe dynamically
-    const Stripe = (await import("stripe")).default;
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-      apiVersion: "2025-02-24.acacia",
-    });
+      apiVersion: "2024-06-20",
+    })
 
-    const sig = req.headers["stripe-signature"] as string;
-    let event: Stripe.Event;
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
 
-    try {
-      const body = await getRawBody(req);
-      event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Unknown error";
-      console.error(`Webhook signature verification failed: ${errorMessage}`);
-      return res.status(400).json({ error: "Webhook signature verification failed" });
+    export const config = {
+      api: {
+        bodyParser: false,
+      },
     }
 
-    console.log(`Received webhook event: ${event.type}`);
+    const supabase = createAdminClient()
 
-    // Check if event was already processed
-    const isProcessed = await stripeService.isEventProcessed(event.id);
-    if (isProcessed) {
-      console.log(`Event ${event.id} already processed, skipping`);
-      return res.status(200).json({ received: true, message: "Event already processed" });
-    }
-
-    // Record the webhook event
-    await stripeService.recordWebhookEvent(event.id, event.type, event.data.object);
-
-    try {
-      // Process different event types
-      switch (event.type) {
-        case "checkout.session.completed":
-          const session = event.data.object as Stripe.Checkout.Session;
-          console.log("Processing checkout.session.completed:", session.id);
-          await stripeService.handleCheckoutCompleted(session);
-          await handleCheckoutSessionCompleted(session);
-          break;
-
-        case "payment_intent.payment_failed":
-          const paymentIntent = event.data.object as Stripe.PaymentIntent;
-          console.log("Processing payment_intent.payment_failed:", paymentIntent.id);
-          await stripeService.handlePaymentFailed(paymentIntent);
-          break;
-
-        case "transfer.failed":
-          const transfer = event.data.object as Stripe.Transfer;
-          console.log("Processing transfer.failed:", transfer.id);
-          await stripeService.handleTransferFailed(transfer);
-          break;
-
-        case "account.updated":
-          const account = event.data.object as Stripe.Account;
-          console.log("Processing account.updated:", account.id);
-          await stripeService.handleAccountUpdated(account);
-          break;
-
-        case "payout.paid":
-          const paidPayout = event.data.object as Stripe.Payout;
-          console.log("Processing payout.paid:", paidPayout.id);
-          await stripeService.handlePayoutPaid(paidPayout);
-          break;
-
-        case "payout.failed":
-          const failedPayout = event.data.object as Stripe.Payout;
-          console.log("Processing payout.failed:", failedPayout.id);
-          await stripeService.handlePayoutFailed(failedPayout);
-          break;
-
-        case "charge.refunded":
-          const charge = event.data.object as Stripe.Charge;
-          console.log("Processing charge.refunded:", charge.id);
-          await stripeService.handleRefund(charge);
-          break;
-
-        default:
-          console.log(`Unhandled event type: ${event.type}`);
+    const recordStripeEvent = async (event: Stripe.Event) => {
+      if (!supabase) {
+        console.error("Supabase client not initialized for recording Stripe event.")
+        return
       }
-
-      // Mark event as processed
-      await stripeService.markEventProcessed(event.id);
-
-    } catch (processingError) {
-      const errorMessage = processingError instanceof Error ? processingError.message : "Unknown processing error";
-      console.error(`Error processing event ${event.id}:`, errorMessage);
-      
-      // Record the error
-      await stripeService.recordWebhookError(event.id, errorMessage);
-      
-      return res.status(500).json({ 
-        error: "Event processing failed",
-        eventId: event.id 
-      });
+      try {
+        await supabase.from("stripe_events").insert({
+          stripe_event_id: event.id,
+          event_type: event.type,
+          payload: event.data.object as unknown as Json,
+          processed: false,
+        })
+      } catch (error) {
+        console.error("Error recording Stripe event:", error)
+      }
     }
 
-    res.status(200).json({ received: true });
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.error(`Error processing webhook:`, errorMessage);
-    res.status(500).json({ 
-      error: "Webhook processing failed"
-    });
-  }
-}
+    const handler = async (req: NextApiRequest, res: NextApiResponse) => {
+      if (req.method === "POST") {
+        const buf = await buffer(req)
+        const sig = req.headers["stripe-signature"]
+
+        let event: Stripe.Event
+
+        try {
+          event = stripe.webhooks.constructEvent(buf, sig!, webhookSecret)
+        } catch (err) {
+          const errorMessage = err instanceof Error ? err.message : "Unknown error"
+          res.status(400).send(`Webhook Error: ${errorMessage}`)
+          return
+        }
+
+        if (!supabase) {
+          console.error("Supabase client not initialized.")
+          return res.status(500).json({ error: "Internal server error" })
+        }
+
+        await recordStripeEvent(event)
+
+        try {
+          switch (event.type) {
+            case "checkout.session.completed":
+              const session = event.data.object as Stripe.Checkout.Session
+              await stripeService.handleCheckoutSession(session)
+              break
+
+            case "checkout.session.async_payment_succeeded":
+              const asyncPaymentSession = event.data.object as Stripe.Checkout.Session
+              await stripeService.handleCheckoutSession(asyncPaymentSession)
+              break
+
+            case "checkout.session.async_payment_failed":
+              const failedSession = event.data.object as Stripe.Checkout.Session
+              if (failedSession.metadata?.bookingId) {
+                await stripeService.updateBookingStatus(failedSession.metadata.bookingId, "cancelled")
+              }
+              break
+
+            case "account.updated":
+              const account = event.data.object as Stripe.Account
+              await stripeService.handleAccountUpdate(account)
+              break
+            
+            case "payout.paid":
+              const payout = event.data.object as Stripe.Payout
+              await stripeService.handlePayout(payout, "paid")
+              break
+            
+            case "payout.failed":
+              const failedPayout = event.data.object as Stripe.Payout
+              await stripeService.handlePayout(failedPayout, "failed")
+              break;
+
+            case "transfer.created":
+            case "transfer.updated":
+            case "transfer.reversed":
+              console.log(`Received transfer event: ${event.type}`);
+              break;
+
+            default:
+              console.warn(`Unhandled event type: ${event.type}`)
+          }
+          res.json({ received: true })
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : "An unknown error occurred"
+          console.error(`Webhook handler error for event ${event.id}:`, errorMessage)
+          res.status(500).json({ error: "Webhook handler failed" })
+        }
+      } else {
+        res.setHeader("Allow", "POST")
+        res.status(405).end("Method Not Allowed")
+      }
+    }
+
+    export default handler
+  

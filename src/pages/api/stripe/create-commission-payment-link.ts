@@ -1,64 +1,64 @@
-import { NextApiRequest, NextApiResponse } from "next";
-import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-02-24.acacia",
-});
+    import { NextApiRequest, NextApiResponse } from "next"
+    import Stripe from "stripe"
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: "2024-06-20",
+    })
 
-  try {
-    const { invoiceId, amount, currency = "usd", description, metadata } = req.body;
+    export default async function handler(
+      req: NextApiRequest,
+      res: NextApiResponse
+    ) {
+      if (req.method === "POST") {
+        try {
+          const { invoiceId, amount, currency, description, providerEmail } = req.body
 
-    if (!invoiceId || !amount || !description) {
-      return res.status(400).json({ error: "Missing required fields" });
-    }
+          if (!invoiceId || !amount || !currency || !description) {
+            return res.status(400).json({ error: "Missing required parameters" })
+          }
 
-    // Create Stripe Payment Link for commission payment
-    const paymentLink = await stripe.paymentLinks.create({
-      line_items: [
-        {
-          price_data: {
-            currency: currency.toLowerCase(),
-            product_data: {
-              name: "Platform Commission Payment",
-              description: description,
+          const session = await stripe.checkout.sessions.create({
+            payment_method_types: ["card"],
+            line_items: [
+              {
+                price_ {
+                  currency: currency,
+                  product_ {
+                    name: description,
+                  },
+                  unit_amount: Math.round(amount * 100),
+                },
+                quantity: 1,
+              },
+            ],
+            mode: "payment",
+            success_url: `${process.env.NEXT_PUBLIC_APP_URL}/commission/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/admin/commission`,
+            customer_email: providerEmail,
+            payment_intent_ {
+              meta {
+                invoice_id: invoiceId,
+              },
             },
-            unit_amount: Math.round(amount * 100), // Convert to cents
-          },
-          quantity: 1,
-        },
-      ],
-      payment_intent_data: {
-        metadata: {
-          type: "commission_payment",
-          invoice_id: invoiceId,
-          ...metadata,
-        },
-      },
-      after_completion: {
-        type: "redirect",
-        redirect: {
-          url: `${process.env.NEXT_PUBLIC_APP_URL}/commission/payment-success?invoice_id=${invoiceId}`,
-        },
-      },
-    });
+            meta {
+              invoice_id: invoiceId,
+            }
+          })
 
-    res.status(200).json({
-      paymentLinkId: paymentLink.id,
-      paymentLinkUrl: paymentLink.url,
-    });
-  } catch (error) {
-    console.error("Error creating commission payment link:", error);
-    res.status(500).json({ 
-      error: "Failed to create payment link",
-      details: error instanceof Error ? error.message : "Unknown error"
-    });
-  }
-}
+          if (!session.url) {
+            return res.status(500).json({ error: "Could not create checkout session" })
+          }
+
+          return res.status(200).json({ paymentUrl: session.url })
+        } catch (err) {
+          console.error(err)
+          const errorMessage = err instanceof Error ? err.message : "Internal server error"
+          res.status(500).json({ error: errorMessage })
+        }
+      } else {
+        res.setHeader("Allow", "POST")
+        res.status(405).end("Method Not Allowed")
+      }
+    }
+  
