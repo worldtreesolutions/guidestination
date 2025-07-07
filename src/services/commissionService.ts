@@ -1,4 +1,5 @@
-import supabase from "@/integrations/supabase/admin";
+import { getAdminClient, isAdminAvailable } from "@/integrations/supabase/admin";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface CommissionInvoice {
   id: string;
@@ -47,7 +48,9 @@ export interface CommissionCalculation {
 
 // Helper to generate a unique invoice number
 const generateInvoiceNumber = async (): Promise<string> => {
-  const { count, error } = await supabase
+  const client = isAdminAvailable() ? getAdminClient() : supabase;
+  
+  const { count, error } = await client
     .from("commission_invoices")
     .select("*", { count: "exact", head: true });
 
@@ -93,6 +96,8 @@ export const commissionService = {
     isQrBooking?: boolean;
     establishmentId?: string;
   }): Promise<CommissionInvoice> {
+    const client = isAdminAvailable() ? getAdminClient() : supabase;
+    
     const commission = this.calculateCommission(
       bookingData.totalAmount,
       bookingData.isQrBooking || false
@@ -102,7 +107,7 @@ export const commissionService = {
     const dueDate = new Date();
     dueDate.setDate(dueDate.getDate() + 14); // Due in 14 days
 
-    const { data, error } = await supabase
+    const { data, error } = await client
       .from("commission_invoices")
       .insert({
         booking_id: bookingData.bookingId,
@@ -136,7 +141,9 @@ export const commissionService = {
     limit?: number;
     offset?: number;
   }): Promise<{ data: CommissionInvoice[]; count: number }> {
-    let query = supabase
+    const client = isAdminAvailable() ? getAdminClient() : supabase;
+    
+    let query = client
       .from("commission_invoices")
       .select("*", { count: "exact" })
       .order("created_at", { ascending: false });
@@ -169,7 +176,9 @@ export const commissionService = {
 
   // Get single commission invoice
   async getCommissionInvoice(invoiceId: string): Promise<CommissionInvoice | null> {
-    const { data, error } = await supabase
+    const client = isAdminAvailable() ? getAdminClient() : supabase;
+    
+    const { data, error } = await client
       .from("commission_invoices")
       .select("*")
       .eq("id", invoiceId)
@@ -192,6 +201,8 @@ export const commissionService = {
       paidAt?: string;
     }
   ): Promise<CommissionInvoice> {
+    const client = isAdminAvailable() ? getAdminClient() : supabase;
+    
     const updateData: Partial<CommissionInvoice> = {
       invoice_status: status,
       updated_at: new Date().toISOString()
@@ -203,7 +214,7 @@ export const commissionService = {
       updateData.paid_at = paymentData.paidAt || new Date().toISOString();
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await client
       .from("commission_invoices")
       .update(updateData)
       .eq("id", invoiceId)
@@ -222,7 +233,9 @@ export const commissionService = {
     paymentReference?: string;
     stripePaymentIntentId?: string;
   }): Promise<CommissionPayment> {
-    const { data, error } = await supabase
+    const client = isAdminAvailable() ? getAdminClient() : supabase;
+    
+    const { data, error } = await client
       .from("commission_payments")
       .insert({
         invoice_id: paymentData.invoiceId,
@@ -242,7 +255,9 @@ export const commissionService = {
 
   // Get commission payments for an invoice
   async getCommissionPayments(invoiceId: string): Promise<CommissionPayment[]> {
-    const { data, error } = await supabase
+    const client = isAdminAvailable() ? getAdminClient() : supabase;
+    
+    const { data, error } = await client
       .from("commission_payments")
       .select("*")
       .eq("invoice_id", invoiceId)
@@ -266,7 +281,9 @@ export const commissionService = {
     totalPaidAmount: number;
     totalPendingAmount: number;
   }> {
-    let query = supabase
+    const client = isAdminAvailable() ? getAdminClient() : supabase;
+    
+    let query = client
       .from("commission_invoices")
       .select("platform_commission_amount, invoice_status, created_at");
 
@@ -312,7 +329,9 @@ export const commissionService = {
 
   // Mark booking as having commission invoice generated
   async markBookingCommissionGenerated(bookingId: number): Promise<void> {
-    const { error } = await supabase
+    const client = isAdminAvailable() ? getAdminClient() : supabase;
+    
+    const { error } = await client
       .from("bookings")
       .update({ commission_invoice_generated: true })
       .eq("id", bookingId);
@@ -322,7 +341,9 @@ export const commissionService = {
 
   // Update booking with QR establishment info
   async updateBookingQrInfo(bookingId: number, establishmentId: string): Promise<void> {
-    const { error } = await supabase
+    const client = isAdminAvailable() ? getAdminClient() : supabase;
+    
+    const { error } = await client
       .from("bookings")
       .update({
         is_qr_booking: true,
