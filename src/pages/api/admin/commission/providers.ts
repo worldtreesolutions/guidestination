@@ -1,8 +1,8 @@
 
     import { NextApiRequest, NextApiResponse } from "next"
-    import { createAdminClient } from "@/integrations/supabase/admin"
+    import { getAdminClient } from "@/integrations/supabase/admin"
 
-    const supabaseAdmin = createAdminClient()
+    const supabaseAdmin = getAdminClient()
 
     interface Invoice {
         id: string;

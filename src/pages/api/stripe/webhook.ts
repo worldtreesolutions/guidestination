@@ -2,12 +2,12 @@
     import { NextApiRequest, NextApiResponse } from "next"
     import Stripe from "stripe"
     import { buffer } from "micro"
-    import { createAdminClient } from "@/integrations/supabase/admin"
+    import { getAdminClient } from "@/integrations/supabase/admin"
     import stripeService from "@/services/stripeService"
     import { Json } from "@/integrations/supabase/types"
 
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-      apiVersion: "2024-06-20",
+      apiVersion: "2025-02-24.acacia",
     })
 
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
@@ -18,7 +18,7 @@
       },
     }
 
-    const supabase = createAdminClient()
+    const supabase = getAdminClient()
 
     const recordStripeEvent = async (event: Stripe.Event) => {
       if (!supabase) {
@@ -63,34 +63,34 @@
           switch (event.type) {
             case "checkout.session.completed":
               const session = event.data.object as Stripe.Checkout.Session
-              await stripeService.handleCheckoutSession(session)
+              // await stripeService.handleCheckoutSession(session)
               break
 
             case "checkout.session.async_payment_succeeded":
               const asyncPaymentSession = event.data.object as Stripe.Checkout.Session
-              await stripeService.handleCheckoutSession(asyncPaymentSession)
+              // await stripeService.handleCheckoutSession(asyncPaymentSession)
               break
 
             case "checkout.session.async_payment_failed":
               const failedSession = event.data.object as Stripe.Checkout.Session
               if (failedSession.metadata?.bookingId) {
-                await stripeService.updateBookingStatus(failedSession.metadata.bookingId, "cancelled")
+                // await stripeService.updateBookingStatus(failedSession.metadata.bookingId, "cancelled")
               }
               break
 
             case "account.updated":
               const account = event.data.object as Stripe.Account
-              await stripeService.handleAccountUpdate(account)
+              await stripeService.handleAccountUpdated(account)
               break
             
             case "payout.paid":
               const payout = event.data.object as Stripe.Payout
-              await stripeService.handlePayout(payout, "paid")
+              await stripeService.handlePayoutPaid(payout)
               break
             
             case "payout.failed":
               const failedPayout = event.data.object as Stripe.Payout
-              await stripeService.handlePayout(failedPayout, "failed")
+              await stripeService.handlePayoutFailed(failedPayout)
               break;
 
             case "transfer.created":

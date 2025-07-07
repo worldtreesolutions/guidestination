@@ -2,11 +2,11 @@
     import { NextApiRequest, NextApiResponse } from "next"
     import Stripe from "stripe"
     import { buffer } from "micro"
-    import { createAdminClient } from "@/integrations/supabase/admin"
+    import { getAdminClient } from "@/integrations/supabase/admin"
     import { Json } from "@/integrations/supabase/types"
 
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-      apiVersion: "2024-06-20",
+      apiVersion: "2025-02-24.acacia",
     })
 
     const webhookSecret = process.env.STRIPE_COMMISSION_WEBHOOK_SECRET!
@@ -17,7 +17,7 @@
       },
     }
 
-    const supabase = createAdminClient()
+    const supabase = getAdminClient()
 
     const recordWebhookEvent = async (event: Stripe.Event) => {
       if (!supabase) {
