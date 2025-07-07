@@ -126,12 +126,7 @@ export const invoiceService = {
       // Update invoice status to paid
       await commissionService.updateInvoiceStatus(
         data.invoiceId,
-        "paid",
-        {
-          paymentMethod: data.paymentMethod,
-          paymentReference: data.paymentReference,
-          paidAt: new Date().toISOString()
-        }
+        "paid"
       );
 
       // Send payment confirmation email
@@ -199,7 +194,10 @@ export const invoiceService = {
         .in("id", overdueIds);
     }
 
-    return data || [];
+    return data?.map(invoice => ({
+      ...invoice,
+      partner_commission_rate: invoice.partner_commission_rate || 0,
+    })) as CommissionInvoice[] || [];
   },
 
   // Send reminder emails for overdue invoices

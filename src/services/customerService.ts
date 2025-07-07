@@ -88,13 +88,14 @@ export const customerService = {
 
     if (error) throw error
     
-    // Map the data to ensure customer_id is included
+    // Map the data to ensure customer_id is included and fix id type
     const mappedData = data.map(booking => ({
       ...booking,
+      id: booking.id.toString(),
       customer_id: booking.customer_id || customerId
     }))
     
-    return mappedData as Booking[]
+    return mappedData as unknown as Booking[]
   },
 
   async createBooking(
@@ -106,7 +107,10 @@ export const customerService = {
       .single()
 
     if (error) throw error
-    return data as Booking
+    return {
+      ...data,
+      id: data.id.toString(),
+    } as unknown as Booking
   },
 
   async getWishlist(userId: string) {

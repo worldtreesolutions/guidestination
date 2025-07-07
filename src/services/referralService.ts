@@ -82,7 +82,7 @@ export const referralService = {
 
     const commissionData = {
       establishment_id: establishmentId,
-      booking_id: bookingId,
+      booking_id: parseInt(bookingId), // Convert string to number
       activity_id: activityId,
       customer_id: customerId,
       referral_visit_id: referralVisitId || null,

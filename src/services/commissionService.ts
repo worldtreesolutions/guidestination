@@ -208,7 +208,7 @@ export const commissionService = {
     const { data, error } = await supabase
       .from("commission_invoices")
       .update({ 
-        invoice_status: status as any,
+        invoice_status: status,
         updated_at: new Date().toISOString() 
       })
       .eq("id", invoiceId)
