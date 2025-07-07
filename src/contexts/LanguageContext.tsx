@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 
 // Define available languages
@@ -36,9 +35,8 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
   // Initialize language from localStorage or default to English
   const [language, setLanguageState] = useState<Language>("en");
   const [translations, setTranslations] = useState<Translations>({});
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Changed to false to prevent blocking
   const [isInitialized, setIsInitialized] = useState(false);
-  const [forceUpdate, setForceUpdate] = useState(0);
 
   // Load language from localStorage on initial render
   useEffect(() => {
@@ -63,7 +61,6 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
     if (!isInitialized) return;
 
     const loadTranslations = async () => {
-      setIsLoading(true);
       try {
         console.log(`Loading translations for language: ${language}`);
         
@@ -80,8 +77,6 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
           console.error("Failed to load English fallback translations:", fallbackError);
           setTranslations({}); // Set to empty object on error
         }
-      } finally {
-        setIsLoading(false);
       }
     };
 
@@ -106,15 +101,12 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
     
     // Update state after localStorage is updated
     setLanguageState(newLanguage);
-    
-    // Force a re-render of all components using the language context
-    setForceUpdate(prev => prev + 1);
   }, [language]);
 
-  // Translation function
+  // Translation function - simplified to not block on loading
   const t = useCallback((key: string): string => {
-    if (isLoading || Object.keys(translations).length === 0) {
-      return key;
+    if (Object.keys(translations).length === 0) {
+      return key; // Return key if no translations loaded yet
     }
 
     const keys = key.split(".");
@@ -124,9 +116,6 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
       if (typeof current === "object" && current !== null && k in current) {
         current = current[k] as string | TranslationValue;
       } else {
-        if (process.env.NODE_ENV === "development") {
-          console.warn(`Translation missing for key segment: ${k} in full key: ${key} in language: ${language}`);
-        }
         return key; // Return the full key if any segment is not found
       }
     }
@@ -134,26 +123,17 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
     if (typeof current === "string") {
       return current;
     } else {
-      // The path led to an object, not a string. This might be an error in key usage or incomplete key.
-      if (process.env.NODE_ENV === "development") {
-        console.warn(`Translation key ${key} resolved to an object, not a string, in language: ${language}. This might mean the key is incomplete.`);
-      }
       return key; // Return the key itself
     }
-  }, [isLoading, translations, language]);
-
-  // Log current state for debugging
-  useEffect(() => {
-    console.log(`LanguageContext updated: language=${language}, isLoading=${isLoading}, translationsCount=${Object.keys(translations).length}, forceUpdate=${forceUpdate}`);
-  }, [language, isLoading, translations, forceUpdate]);
+  }, [translations]);
 
   // Memoize the context value to prevent unnecessary re-renders
   const contextValue = useMemo(() => ({
     language,
     setLanguage,
     t,
-    isLoading
-  }), [language, setLanguage, t, isLoading]);
+    isLoading: false // Always false to prevent blocking
+  }), [language, setLanguage, t]);
 
   return (
     <LanguageContext.Provider value={contextValue}>
