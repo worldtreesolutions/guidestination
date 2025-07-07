@@ -192,37 +192,22 @@ export const commissionService = {
   },
 
   // Update commission invoice status
-  async updateInvoiceStatus(
-    invoiceId: string,
-    status: "pending" | "paid" | "overdue" | "cancelled",
-    paymentData?: {
-      paymentMethod?: string;
-      paymentReference?: string;
-      paidAt?: string;
-    }
-  ): Promise<CommissionInvoice> {
-    const client = isAdminAvailable() ? getAdminClient() : supabase;
-    
-    const updateData: Partial<CommissionInvoice> = {
-      invoice_status: status,
-      updated_at: new Date().toISOString()
-    };
-
-    if (status === "paid" && paymentData) {
-      updateData.payment_method = paymentData.paymentMethod;
-      updateData.payment_reference = paymentData.paymentReference;
-      updateData.paid_at = paymentData.paidAt || new Date().toISOString();
-    }
-
-    const { data, error } = await client
+  async updateInvoiceStatus(invoiceId: string, status: "pending" | "cancelled" | "paid" | "overdue") {
+    const { data, error } = await supabase
       .from("commission_invoices")
-      .update(updateData)
+      .update({ 
+        invoice_status: status as any,
+        updated_at: new Date().toISOString() 
+      })
       .eq("id", invoiceId)
       .select()
       .single();
 
     if (error) throw error;
-    return data;
+    return {
+      ...data,
+      partner_commission_rate: data.partner_commission_rate || 0,
+    } as CommissionInvoice;
   },
 
   // Create commission payment record
