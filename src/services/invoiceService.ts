@@ -1,4 +1,5 @@
-import supabase from "@/integrations/supabase/admin";
+import { getAdminClient, isAdminAvailable } from "@/integrations/supabase/admin";
+import { supabase } from "@/integrations/supabase/client";
 import commissionService, { CommissionInvoice } from "./commissionService";
 
 // Simplified type to reduce memory usage
@@ -95,8 +96,9 @@ export const invoiceService = {
 
       const data = await response.json();
       
-      // Update invoice with payment link details
-      await supabase
+      // Update invoice with payment link details using safe client
+      const client = isAdminAvailable() ? getAdminClient() : supabase;
+      await client
         .from("commission_invoices")
         .update({
           stripe_payment_link_id: data.paymentLinkId,
@@ -139,8 +141,9 @@ export const invoiceService = {
         return;
       }
       
-      // Get provider details for email
-      const { data: provider } = await supabase
+      // Get provider details for email using safe client
+      const client = isAdminAvailable() ? getAdminClient() : supabase;
+      const { data: provider } = await client
         .from("activity_owners")
         .select("business_name, email")
         .eq("id", invoice.provider_id)
@@ -177,7 +180,9 @@ export const invoiceService = {
 
   // Get overdue invoices for reminder emails
   async getOverdueInvoices(): Promise<CommissionInvoice[]> {
-    const { data, error } = await supabase
+    const client = isAdminAvailable() ? getAdminClient() : supabase;
+    
+    const { data, error } = await client
       .from("commission_invoices")
       .select("*")
       .eq("invoice_status", "pending")
@@ -188,7 +193,7 @@ export const invoiceService = {
     // Update status to overdue
     if (data && data.length > 0) {
       const overdueIds = data.map(invoice => invoice.id);
-      await supabase
+      await client
         .from("commission_invoices")
         .update({ invoice_status: "overdue" })
         .in("id", overdueIds);
@@ -203,8 +208,9 @@ export const invoiceService = {
       const overdueInvoices = await this.getOverdueInvoices();
       
       for (const invoice of overdueInvoices) {
-        // Get provider details
-        const { data: provider } = await supabase
+        // Get provider details using safe client
+        const client = isAdminAvailable() ? getAdminClient() : supabase;
+        const { data: provider } = await client
           .from("activity_owners")
           .select("business_name, email")
           .eq("id", invoice.provider_id)
