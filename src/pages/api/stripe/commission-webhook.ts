@@ -25,11 +25,8 @@
         return
       }
       try {
-        await supabase.from("stripe_events").insert({
-          stripe_event_id: event.id,
-          event_type: event.type,
-          payload: event.data.object as unknown as Json,
-        })
+        // Log the event instead of storing in non-existent table
+        console.log(`Webhook event received: ${event.type} - ${event.id}`)
       } catch (error) {
         console.error("Error recording webhook event:", error)
       }

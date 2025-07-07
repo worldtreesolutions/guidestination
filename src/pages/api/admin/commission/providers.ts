@@ -30,7 +30,7 @@
 
       if (req.method === "GET") {
         try {
-          const {  providers, error } = await supabaseAdmin
+          const { data: providers, error } = await supabaseAdmin
             .from("activity_owners")
             .select(
               `

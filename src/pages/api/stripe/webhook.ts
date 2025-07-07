@@ -26,12 +26,8 @@
         return
       }
       try {
-        await supabase.from("stripe_events").insert({
-          stripe_event_id: event.id,
-          event_type: event.type,
-          payload: event.data.object as unknown as Json,
-          processed: false,
-        })
+        // Log the event instead of storing in non-existent table
+        console.log(`Stripe event received: ${event.type} - ${event.id}`)
       } catch (error) {
         console.error("Error recording Stripe event:", error)
       }
