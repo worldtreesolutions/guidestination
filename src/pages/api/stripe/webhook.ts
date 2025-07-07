@@ -75,19 +75,14 @@
               break
 
             case "account.updated":
-              const account = event.data.object as Stripe.Account
-              await stripeService.handleAccountUpdated(account)
+              console.log("Account updated:", event.data.object)
               break
-            
             case "payout.paid":
-              const payout = event.data.object as Stripe.Payout
-              await stripeService.handlePayoutPaid(payout)
+              console.log("Payout paid:", event.data.object)
               break
-            
             case "payout.failed":
-              const failedPayout = event.data.object as Stripe.Payout
-              await stripeService.handlePayoutFailed(failedPayout)
-              break;
+              console.log("Payout failed:", event.data.object)
+              break
 
             case "transfer.created":
             case "transfer.updated":

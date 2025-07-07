@@ -1,7 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { CheckoutSessionData } from "@/types/stripe";
-import { stripe } from "@/services/stripeService";
-import { supabase } from "@/integrations/supabase/client";
+import stripeService from "@/services/stripeService";
 
 const stripeApiVersion = "2025-02-24.acacia"; // Ensure this matches your Stripe account's API version
 
