@@ -1,3 +1,4 @@
+
 import { getAdminClient, isAdminAvailable } from "@/integrations/supabase/admin";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -13,7 +14,7 @@ export interface CommissionInvoice {
   partner_commission_amount: number;
   establishment_id?: string;
   is_qr_booking: boolean;
-  invoice_status: string;
+  invoice_status: "pending" | "cancelled" | "paid" | "overdue";
   due_date: string;
   payment_method?: string;
   payment_reference?: string;
@@ -133,6 +134,7 @@ export const commissionService = {
     return {
       ...data,
       partner_commission_rate: data.partner_commission_rate || 0,
+      invoice_status: data.invoice_status as "pending" | "cancelled" | "paid" | "overdue",
     } as CommissionInvoice;
   },
 
@@ -178,6 +180,7 @@ export const commissionService = {
       data: data?.map(invoice => ({
         ...invoice,
         partner_commission_rate: invoice.partner_commission_rate || 0,
+        invoice_status: invoice.invoice_status as "pending" | "cancelled" | "paid" | "overdue",
       })) as CommissionInvoice[] || [], 
       count: count || 0 
     };
@@ -200,12 +203,13 @@ export const commissionService = {
     return {
       ...data,
       partner_commission_rate: data.partner_commission_rate || 0,
+      invoice_status: data.invoice_status as "pending" | "cancelled" | "paid" | "overdue",
     } as CommissionInvoice;
   },
 
   // Update commission invoice status
   async updateInvoiceStatus(invoiceId: string, status: "pending" | "cancelled" | "paid" | "overdue"): Promise<CommissionInvoice> {
-    const validStatuses = ["pending", "cancelled", "paid", "overdue"] as const;
+    const validStatuses: ("pending" | "cancelled" | "paid" | "overdue")[] = ["pending", "cancelled", "paid", "overdue"];
     if (!validStatuses.includes(status)) {
       throw new Error(`Invalid status: ${status}`);
     }
@@ -213,7 +217,7 @@ export const commissionService = {
     const { data, error } = await supabase
       .from("commission_invoices")
       .update({ 
-        invoice_status: status as string,
+        invoice_status: status,
         updated_at: new Date().toISOString() 
       })
       .eq("id", invoiceId)
@@ -224,6 +228,7 @@ export const commissionService = {
     return {
       ...data,
       partner_commission_rate: data.partner_commission_rate || 0,
+      invoice_status: data.invoice_status as "pending" | "cancelled" | "paid" | "overdue",
     } as CommissionInvoice;
   },
 
