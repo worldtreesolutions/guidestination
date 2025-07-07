@@ -35,12 +35,12 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
   // Initialize language from localStorage or default to English
   const [language, setLanguageState] = useState<Language>("en");
   const [translations, setTranslations] = useState<Translations>({});
-  const [isLoading, setIsLoading] = useState(false); // Changed to false to prevent blocking
+  const [isLoading, setIsLoading] = useState(true); // Start with loading true
   const [isInitialized, setIsInitialized] = useState(false);
 
   // Load language from localStorage on initial render
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       try {
         const savedLanguage = localStorage.getItem("preferredLanguage") as Language;
         if (savedLanguage && ["en", "th", "zh", "es", "fr"].includes(savedLanguage)) {
@@ -61,22 +61,32 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
     if (!isInitialized) return;
 
     const loadTranslations = async () => {
+      setIsLoading(true);
       try {
         console.log(`Loading translations for language: ${language}`);
         
-        // All languages are dynamically imported for consistency
-        const langModule = await import(`@/translations/${language}.json`);
-        setTranslations(langModule.default as Translations);
+        const response = await fetch(`/translations/${language}.json`);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch translations for ${language}: ${response.statusText}`);
+        }
+        const data = await response.json();
+        setTranslations(data as Translations);
       } catch (error) {
         console.error(`Failed to load translations for ${language}:`, error);
         // Fallback to English if loading fails
         try {
-          const enTranslationsModule = (await import("@/translations/en.json"));
-          setTranslations(enTranslationsModule.default as Translations);
+          const enResponse = await fetch(`/translations/en.json`);
+          if (!enResponse.ok) {
+            throw new Error(`Failed to fetch English fallback translations: ${enResponse.statusText}`);
+          }
+          const enData = await enResponse.json();
+          setTranslations(enData as Translations);
         } catch (fallbackError) {
           console.error("Failed to load English fallback translations:", fallbackError);
           setTranslations({}); // Set to empty object on error
         }
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -90,7 +100,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
     console.log(`Changing language from ${language} to ${newLanguage}`);
     
     // Save to localStorage first
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       try {
         localStorage.setItem("preferredLanguage", newLanguage);
         console.log(`Saved language preference to localStorage: ${newLanguage}`);
@@ -103,10 +113,10 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
     setLanguageState(newLanguage);
   }, [language]);
 
-  // Translation function - simplified to not block on loading
+  // Translation function
   const t = useCallback((key: string): string => {
-    if (Object.keys(translations).length === 0) {
-      return key; // Return key if no translations loaded yet
+    if (isLoading || Object.keys(translations).length === 0) {
+      return key; // Return key if loading or no translations
     }
 
     const keys = key.split(".");
@@ -123,17 +133,17 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
     if (typeof current === "string") {
       return current;
     } else {
-      return key; // Return the key itself
+      return key;
     }
-  }, [translations]);
+  }, [translations, isLoading]);
 
   // Memoize the context value to prevent unnecessary re-renders
   const contextValue = useMemo(() => ({
     language,
     setLanguage,
     t,
-    isLoading: false // Always false to prevent blocking
-  }), [language, setLanguage, t]);
+    isLoading
+  }), [language, setLanguage, t, isLoading]);
 
   return (
     <LanguageContext.Provider value={contextValue}>
