@@ -57,7 +57,7 @@ export const establishmentActivityService = {
   },
 
   async linkActivityToEstablishment(establishmentActivity: EstablishmentActivityInsert) {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {  { user } } = await supabase.auth.getUser();
     
     const { data, error } = await supabase
       .from("establishment_activities")
