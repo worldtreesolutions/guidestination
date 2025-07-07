@@ -217,7 +217,7 @@ export const commissionService = {
     const { data, error } = await supabase
       .from("commission_invoices")
       .update({ 
-        invoice_status: status,
+        invoice_status: status as string,
         updated_at: new Date().toISOString() 
       })
       .eq("id", invoiceId)
@@ -228,7 +228,7 @@ export const commissionService = {
     return {
       ...data,
       partner_commission_rate: data.partner_commission_rate || 0,
-      invoice_status: data.invoice_status as "pending" | "cancelled" | "paid" | "overdue",
+      invoice_status: status,
     } as CommissionInvoice;
   },
 
