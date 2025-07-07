@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 
 // Define available languages
-export type Language = "en" | "th" | "zh" | "es" | "fr";
+export type Language = "en" | "th" | "fr";
 
 // Define a type for potentially nested translations using a proper recursive interface
 interface TranslationValue {
@@ -43,7 +43,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
     if (typeof window !== "undefined") {
       try {
         const savedLanguage = localStorage.getItem("preferredLanguage") as Language;
-        if (savedLanguage && ["en", "th", "zh", "es", "fr"].includes(savedLanguage)) {
+        if (savedLanguage && ["en", "th", "fr"].includes(savedLanguage)) {
           console.log(`Initializing with saved language: ${savedLanguage}`);
           setLanguageState(savedLanguage);
         } else {

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useLanguage, Language } from "@/contexts/LanguageContext";
@@ -41,20 +40,6 @@ export function LanguageSelector() {
       fallbackLabel: "Français",
       flag: "🇫🇷",
       country: "France"
-    },
-    { 
-      value: "es", 
-      label: t("language.spanish"), 
-      fallbackLabel: "Español",
-      flag: "🇪🇸",
-      country: "Spain"
-    },
-    { 
-      value: "zh", 
-      label: t("language.chinese"), 
-      fallbackLabel: "中文",
-      flag: "🇨🇳",
-      country: "China"
     },
     { 
       value: "th", 
