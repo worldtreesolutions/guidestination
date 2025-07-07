@@ -1,41 +1,9 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 
-export interface CommissionInvoice {
-  id: string;
-  booking_id: number;
-  provider_id: string;
-  invoice_number: string;
-  total_booking_amount: number;
-  platform_commission_rate: number;
-  platform_commission_amount: number;
-  partner_commission_rate: number;
-  partner_commission_amount: number;
-  establishment_id?: string;
-  is_qr_booking: boolean;
-  invoice_status: "pending" | "paid" | "overdue" | "cancelled";
-  payment_method?: "stripe_payment_link" | "bank_transfer" | "manual";
-  stripe_payment_link_id?: string;
-  stripe_payment_link_url?: string;
-  payment_reference?: string;
-  due_date: string;
-  paid_at?: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface CommissionPayment {
-  id: string;
-  invoice_id: string;
-  payment_amount: number;
-  payment_method: string;
-  payment_reference?: string;
-  stripe_payment_intent_id?: string;
-  payment_status: "pending" | "completed" | "failed" | "refunded";
-  paid_at?: string;
-  created_at: string;
-  updated_at: string;
-}
+export type CommissionInvoice = Database["public"]["Tables"]["commission_invoices"]["Row"];
+export type CommissionPayment = Database["public"]["Tables"]["commission_payments"]["Row"];
 
 export interface CommissionCalculation {
   totalAmount: number;
@@ -46,6 +14,23 @@ export interface CommissionCalculation {
   providerReceives: number;
   isQrBooking: boolean;
 }
+
+// Helper to generate a unique invoice number
+const generateInvoiceNumber = async (): Promise<string> => {
+  const { count, error } = await supabase
+    .from("commission_invoices")
+    .select("*", { count: "exact", head: true });
+
+  if (error) throw error;
+
+  const invoiceCount = count || 0;
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const nextId = (invoiceCount + 1).toString().padStart(4, "0");
+
+  return `INV-${year}${month}-${nextId}`;
+};
 
 export const commissionService = {
   // Calculate commission amounts based on booking details
@@ -83,11 +68,16 @@ export const commissionService = {
       bookingData.isQrBooking || false
     );
 
+    const invoiceNumber = await generateInvoiceNumber();
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + 14); // Due in 14 days
+
     const { data, error } = await supabase
       .from("commission_invoices")
       .insert({
         booking_id: bookingData.bookingId,
         provider_id: bookingData.providerId,
+        invoice_number: invoiceNumber,
         total_booking_amount: commission.totalAmount,
         platform_commission_rate: commission.platformCommissionRate,
         platform_commission_amount: commission.platformCommissionAmount,
@@ -95,12 +85,16 @@ export const commissionService = {
         partner_commission_amount: commission.partnerCommissionAmount,
         establishment_id: bookingData.establishmentId,
         is_qr_booking: commission.isQrBooking,
-        invoice_status: "pending"
+        invoice_status: "pending",
+        due_date: dueDate.toISOString(),
       })
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error("Error creating commission invoice:", error);
+      throw error;
+    }
     return data;
   },
 
@@ -111,7 +105,7 @@ export const commissionService = {
     establishmentId?: string;
     limit?: number;
     offset?: number;
-  }): Promise<{ data: CommissionInvoice[]; count: number }> {
+  }): Promise<{  CommissionInvoice[]; count: number }> {
     let query = supabase
       .from("commission_invoices")
       .select("*", { count: "exact" })
@@ -140,7 +134,7 @@ export const commissionService = {
     const { data, error, count } = await query;
 
     if (error) throw error;
-    return { data: data || [], count: count || 0 };
+    return {  data || [], count: count || 0 };
   },
 
   // Get single commission invoice
@@ -165,7 +159,7 @@ export const commissionService = {
       paidAt?: string;
     }
   ): Promise<CommissionInvoice> {
-    const updateData: any = {
+    const updateData: Partial<CommissionInvoice> = {
       invoice_status: status,
       updated_at: new Date().toISOString()
     };
@@ -269,7 +263,7 @@ export const commissionService = {
       .filter(inv => inv.invoice_status === "paid")
       .reduce((sum, inv) => sum + Number(inv.platform_commission_amount), 0);
     const totalPendingAmount = invoices
-      .filter(inv => inv.invoice_status === "pending")
+      .filter(inv => ["pending", "overdue"].includes(inv.invoice_status))
       .reduce((sum, inv) => sum + Number(inv.platform_commission_amount), 0);
 
     return {

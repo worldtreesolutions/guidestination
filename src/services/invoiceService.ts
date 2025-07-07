@@ -1,6 +1,9 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import commissionService, { CommissionInvoice } from "./commissionService";
+import type { Database } from "@/integrations/supabase/types";
+
+type ActivityOwner = Database["public"]["Tables"]["activity_owners"]["Row"];
 
 export interface InvoiceEmailData {
   invoiceNumber: string;
@@ -57,7 +60,7 @@ export const invoiceService = {
           amount: invoice.platform_commission_amount,
           currency: "usd", // or "thb" for Thailand
           description: `Commission payment for invoice ${invoice.invoice_number}`,
-          metadata: {
+          meta {
             invoice_id: invoice.id,
             provider_id: invoice.provider_id,
             booking_id: invoice.booking_id.toString()
@@ -66,7 +69,8 @@ export const invoiceService = {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to create payment link");
+        const errorData = await response.json();
+        throw new Error(`Failed to create payment link: ${errorData.details || response.statusText}`);
       }
 
       const data = await response.json();
@@ -92,7 +96,7 @@ export const invoiceService = {
   },
 
   // Process successful commission payment
-  async processCommissionPayment(data: {
+  async processCommissionPayment( {
     invoiceId: string;
     paymentAmount: number;
     paymentMethod: string;
@@ -116,19 +120,24 @@ export const invoiceService = {
 
       // Send payment confirmation email
       const invoice = await commissionService.getCommissionInvoice(data.invoiceId);
+      if (!invoice) {
+        console.error("Invoice not found for payment confirmation email");
+        return;
+      }
       
       // Get provider details for email
-      const { data: provider } = await supabase
+      const {  provider } = await supabase
         .from("activity_owners")
         .select("business_name, email")
         .eq("provider_id", invoice.provider_id)
         .single();
 
       if (provider) {
+        const owner = provider as ActivityOwner;
         await this.sendPaymentConfirmationEmail({
           invoiceNumber: invoice.invoice_number,
-          providerName: provider.business_name,
-          providerEmail: provider.email,
+          providerName: owner.business_name || "Provider",
+          providerEmail: owner.email || "",
           paymentAmount: data.paymentAmount,
           paymentMethod: data.paymentMethod,
           paymentReference: data.paymentReference
@@ -141,7 +150,7 @@ export const invoiceService = {
   },
 
   // Send payment confirmation email
-  async sendPaymentConfirmationEmail(data: {
+  async sendPaymentConfirmationEmail( {
     invoiceNumber: string;
     providerName: string;
     providerEmail: string;
@@ -188,21 +197,22 @@ export const invoiceService = {
       
       for (const invoice of overdueInvoices) {
         // Get provider details
-        const { data: provider } = await supabase
+        const {  provider } = await supabase
           .from("activity_owners")
           .select("business_name, email")
           .eq("provider_id", invoice.provider_id)
           .single();
 
         if (provider) {
+          const owner = provider as ActivityOwner;
           await this.sendInvoiceEmail({
             invoiceNumber: invoice.invoice_number,
-            providerName: provider.business_name,
-            providerEmail: provider.email,
+            providerName: owner.business_name || "Provider",
+            providerEmail: owner.email || "",
             totalAmount: invoice.total_booking_amount,
             commissionAmount: invoice.platform_commission_amount,
             dueDate: invoice.due_date,
-            paymentLinkUrl: invoice.stripe_payment_link_url
+            paymentLinkUrl: invoice.stripe_payment_link_url || undefined
           });
         }
       }
