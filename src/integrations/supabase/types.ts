@@ -611,7 +611,7 @@ export type Database = {
           id: string
           establishment_id: string
           user_agent: string | null
-          meta Json | null
+          metadata: Json | null
           created_at: string
         }
         Insert: {
@@ -643,7 +643,7 @@ export type Database = {
           establishment_id: string
           session_id: string
           user_agent: string | null
-          meta Json | null
+          metadata: Json | null
           visit_date: string
         }
         Insert: {
