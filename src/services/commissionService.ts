@@ -130,7 +130,10 @@ export const commissionService = {
       console.error("Error creating commission invoice:", error);
       throw error;
     }
-    return data;
+    return {
+      ...data,
+      partner_commission_rate: data.partner_commission_rate || 0,
+    } as CommissionInvoice;
   },
 
   // Get all commission invoices with filters
@@ -171,7 +174,13 @@ export const commissionService = {
     const { data, error, count } = await query;
 
     if (error) throw error;
-    return { data: data || [], count: count || 0 };
+    return { 
+      data: data?.map(invoice => ({
+        ...invoice,
+        partner_commission_rate: invoice.partner_commission_rate || 0,
+      })) as CommissionInvoice[] || [], 
+      count: count || 0 
+    };
   },
 
   // Get single commission invoice
@@ -188,7 +197,10 @@ export const commissionService = {
         console.error("Error fetching commission invoice:", error);
         return null;
     }
-    return data;
+    return {
+      ...data,
+      partner_commission_rate: data.partner_commission_rate || 0,
+    } as CommissionInvoice;
   },
 
   // Update commission invoice status
@@ -235,7 +247,11 @@ export const commissionService = {
       .single();
 
     if (error) throw error;
-    return data;
+    return {
+      ...data,
+      payment_reference: data.payment_reference || undefined,
+      stripe_payment_intent_id: data.stripe_payment_intent_id || undefined,
+    } as CommissionPayment;
   },
 
   // Get commission payments for an invoice
@@ -249,7 +265,11 @@ export const commissionService = {
       .order("created_at", { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    return data?.map(payment => ({
+      ...payment,
+      payment_reference: payment.payment_reference || undefined,
+      stripe_payment_intent_id: payment.stripe_payment_intent_id || undefined,
+    })) as CommissionPayment[] || [];
   },
 
   // Get commission statistics for admin dashboard
