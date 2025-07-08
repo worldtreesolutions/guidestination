@@ -419,6 +419,10 @@
       "title": "List Your Activities on Guidestination",
       "subtitle": "Join the leading platform for local experiences in Chiang Mai and connect with travelers worldwide"
     },
+    "page": {
+      "title": "List Your Activities",
+      "subtitle": "Join our platform and start earning by sharing your amazing activities with travelers"
+    },
     "benefits": {
       "legalProtection": {
         "title": "Legal Protection",
@@ -435,11 +439,29 @@
       "flexibleSchedule": {
         "title": "Flexible Schedule",
         "description": "Set your own availability and manage bookings easily"
+      },
+      "legalProtectionPage": {
+        "title": "Legal Protection",
+        "description": "Get comprehensive insurance coverage and legal protection for your activities"
+      },
+      "businessGrowthPage": {
+        "title": "Business Growth",
+        "description": "Expand your reach and grow your business with our marketing support"
+      },
+      "qualityStandardsPage": {
+        "title": "Quality Standards",
+        "description": "Maintain high quality standards with our verification and review system"
+      },
+      "flexibleSchedulePage": {
+        "title": "Flexible Schedule",
+        "description": "Set your own schedule and manage bookings at your convenience"
       }
     },
     "registration": {
       "title": "Register as an Activity Provider",
-      "description": "Fill out the form below to start listing your activities"
+      "description": "Fill out the form below to start listing your activities",
+      "pageTitle": "Activity Provider Registration",
+      "pageDescription": "Fill out the form below to start listing your activities on our platform"
     }
   },
   "dashboard": {
@@ -953,6 +975,37 @@
       "title": "Partner with Guidestination",
       "subtitle": "Expand your offerings and earn commissions by connecting your guests with unique local activities in Chiang Mai."
     },
+    "page": {
+      "heroTitle": "Become a Partner",
+      "heroSubtitle": "Join our network of successful partners and grow your business with Guidestination",
+      "startApplication": "Start Your Application",
+      "backToInfo": "Back to Partner Information",
+      "registrationTitle": "Partner Registration",
+      "registrationDescription": "Fill out the form below to join our partner network"
+    },
+    "sections": {
+      "whyPartner": {
+        "title": "Why Partner With Us?",
+        "description": "Discover the benefits of joining our growing network of partners"
+      },
+      "features": {
+        "title": "Everything You Need to Succeed",
+        "description": "Our comprehensive partner platform provides all the tools and support you need to grow your business.",
+        "getStarted": "Get Started Today"
+      },
+      "cta": {
+        "title": "Ready to Get Started?",
+        "description": "Join thousands of successful partners who are growing their business with Guidestination",
+        "applyNow": "Apply Now"
+      },
+      "contact": {
+        "title": "Have Questions?",
+        "description": "Our partner success team is here to help you every step of the way",
+        "callUs": "Call Us",
+        "emailUs": "Email Us",
+        "visitUs": "Visit Us"
+      }
+    },
     "benefits": {
       "hotels": {
         "title": "For Hotels & Accommodations",
@@ -969,7 +1022,44 @@
       "support": {
         "title": "Dedicated Support",
         "description": "Our team is here to help you succeed every step of the way."
+      },
+      "increaseRevenue": {
+        "title": "Increase Revenue",
+        "description": "Boost your business income through our commission-based partnership program"
+      },
+      "reachCustomers": {
+        "title": "Reach More Customers",
+        "description": "Access our growing network of travelers and activity seekers"
+      },
+      "trustedPlatform": {
+        "title": "Trusted Platform",
+        "description": "Join a secure and reliable platform with verified transactions"
+      },
+      "globalExposure": {
+        "title": "Global Exposure",
+        "description": "Showcase your business to international and local customers"
       }
+    },
+    "features": {
+      "realtimeBooking": "Real-time booking management",
+      "automatedTracking": "Automated commission tracking",
+      "marketingSupport": "Marketing materials and support",
+      "customerService": "24/7 customer service",
+      "analytics": "Analytics and reporting tools",
+      "mobileDashboard": "Mobile-friendly dashboard"
+    },
+    "dashboard": {
+      "title": "Partner Dashboard",
+      "description": "Manage your business efficiently",
+      "monthlyRevenue": "Monthly Revenue",
+      "newBookings": "New Bookings",
+      "thisWeek": "this week",
+      "customerRating": "Customer Rating"
+    },
+    "contact": {
+      "phone": "+66 2 123 4567",
+      "email": "partners@guidestination.com",
+      "location": "Bangkok, Thailand"
     },
     "registration": {
       "title": "Register as a Distribution Partner",
