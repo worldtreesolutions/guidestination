@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 
 // Define available languages
@@ -83,14 +82,16 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
 
   // Set language and save to localStorage
   const setLanguage = useCallback((newLanguage: Language) => {
-    if (newLanguage === language) return;
-    
-    setLanguageState(newLanguage);
-    
-    if (typeof window !== "undefined") {
-      localStorage.setItem("preferredLanguage", newLanguage);
-    }
-  }, [language]);
+    setLanguageState(prevLanguage => {
+      if (newLanguage === prevLanguage) return prevLanguage;
+      
+      if (typeof window !== "undefined") {
+        localStorage.setItem("preferredLanguage", newLanguage);
+      }
+      
+      return newLanguage;
+    });
+  }, []);
 
   // Translation function
   const t = useCallback((key: string): string => {
