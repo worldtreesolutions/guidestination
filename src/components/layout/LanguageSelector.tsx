@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useRouter } from "next/router";
 import { useLanguage, Language } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,7 +10,7 @@ import {
 import { Check } from "lucide-react";
 
 export function LanguageSelector() {
-  const { language, setLanguage, t, isLoading } = useLanguage();
+  const { language, setLanguage, isLoading } = useLanguage();
   const [mounted, setMounted] = useState(false);
 
   // Only show the language selector after the component has mounted
@@ -23,28 +22,24 @@ export function LanguageSelector() {
   const languages: { 
     value: Language; 
     label: string; 
-    fallbackLabel: string; 
     flag: string;
     country: string;
   }[] = [
     { 
       value: "en", 
-      label: t("language.english"), 
-      fallbackLabel: "English",
+      label: "English",
       flag: "🇺🇸",
       country: "United States"
     },
     { 
       value: "fr", 
-      label: t("language.french"), 
-      fallbackLabel: "Français",
+      label: "Français",
       flag: "🇫🇷",
       country: "France"
     },
     { 
       value: "th", 
-      label: t("language.thai"), 
-      fallbackLabel: "ไทย",
+      label: "ไทย",
       flag: "🇹🇭",
       country: "Thailand"
     },
@@ -53,16 +48,12 @@ export function LanguageSelector() {
   const handleLanguageChange = (newLanguage: Language) => {
     if (newLanguage === language) return;
     
-    console.log(`Language selector: changing from ${language} to ${newLanguage}`);
-    
     if (typeof window !== 'undefined') {
       try {
         // Save the language preference to localStorage
         localStorage.setItem("preferredLanguage", newLanguage);
-        console.log(`Saved language preference to localStorage: ${newLanguage}`);
         
-        // Update the language context state - this will trigger a re-render
-        // of all components using the language context without losing auth state
+        // Update the language context state
         setLanguage(newLanguage);
         
       } catch (error) {
@@ -81,7 +72,6 @@ export function LanguageSelector() {
     return (
       <Button variant="outline" size="sm" disabled>
         <span className="text-base">🌐</span>
-        <span className="ml-2">Loading...</span>
       </Button>
     );
   }
@@ -109,7 +99,7 @@ export function LanguageSelector() {
               <span className="text-base mr-3" title={lang.country}>
                 {lang.flag}
               </span>
-              <span>{lang.label || lang.fallbackLabel}</span>
+              <span>{lang.label}</span>
             </div>
             {language === lang.value && <Check className="h-4 w-4 ml-2" />}
           </DropdownMenuItem>

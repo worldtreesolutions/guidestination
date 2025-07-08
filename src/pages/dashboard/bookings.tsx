@@ -42,7 +42,7 @@ import {
   PopoverTrigger
 } from "@/components/ui/popover"
 import { format } from "date-fns"
-import { enUS, th, zhCN, es, fr } from "date-fns/locale"
+import { enUS, th, fr } from "date-fns/locale"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSelector } from "@/components/layout/LanguageSelector";
@@ -134,10 +134,6 @@ export default function BookingsPage() {
     switch (language) {
       case 'th':
         return th
-      case 'zh':
-        return zhCN
-      case 'es':
-        return es
       case 'fr':
         return fr
       default:
