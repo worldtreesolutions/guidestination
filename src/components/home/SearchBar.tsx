@@ -4,13 +4,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Search, MapPin, Calendar as CalendarIcon, Users } from "lucide-react"
-import { useLanguage } from "@/contexts/LanguageContext"
 import { useState } from "react"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 
 export function SearchBar() {
-  const { t } = useLanguage()
   const [destination, setDestination] = useState("")
   const [date, setDate] = useState<Date>()
   const [guests, setGuests] = useState("1")

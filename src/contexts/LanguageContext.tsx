@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
+
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 
 // Define available languages
 export type Language = "en" | "th" | "fr";
@@ -80,7 +81,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
     loadTranslations();
   }, [language, mounted]);
 
-  // Set language and save to localStorage
+  // Set language and save to localStorage - Fixed: Remove language dependency
   const setLanguage = useCallback((newLanguage: Language) => {
     setLanguageState(prevLanguage => {
       if (newLanguage === prevLanguage) return prevLanguage;
@@ -91,7 +92,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
       
       return newLanguage;
     });
-  }, []);
+  }, []); // No dependencies to prevent infinite loop
 
   // Translation function
   const t = useCallback((key: string): string => {
@@ -113,13 +114,6 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
     return typeof current === "string" ? current : key;
   }, [translations, isLoading, mounted]);
 
-  const contextValue = useMemo(() => ({
-    language,
-    setLanguage,
-    t,
-    isLoading
-  }), [language, setLanguage, t, isLoading]);
-
   if (!mounted) {
     return (
       <LanguageContext.Provider value={{
@@ -134,7 +128,12 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
   }
 
   return (
-    <LanguageContext.Provider value={contextValue}>
+    <LanguageContext.Provider value={{
+      language,
+      setLanguage,
+      t,
+      isLoading
+    }}>
       {children}
     </LanguageContext.Provider>
   );
