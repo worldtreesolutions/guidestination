@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
 
 // Define available languages
 export type Language = "en" | "th" | "fr";
@@ -37,6 +37,8 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
   const [translations, setTranslations] = useState<Translations>({});
   const [isLoading, setIsLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const loadingRef = useRef(false);
+  const currentLanguageRef = useRef<Language>("en");
 
   // Initialize on mount
   useEffect(() => {
@@ -47,16 +49,24 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
       const savedLanguage = localStorage.getItem("preferredLanguage") as Language;
       if (savedLanguage && ["en", "th", "fr"].includes(savedLanguage)) {
         setLanguageState(savedLanguage);
+        currentLanguageRef.current = savedLanguage;
       }
     }
   }, []);
 
-  // Load translations when language changes
+  // Load translations when language changes - Fixed to prevent infinite loops
   useEffect(() => {
-    if (!mounted) return;
+    if (!mounted || loadingRef.current || currentLanguageRef.current === language) {
+      return;
+    }
 
     const loadTranslations = async () => {
+      if (loadingRef.current) return;
+      
+      loadingRef.current = true;
       setIsLoading(true);
+      currentLanguageRef.current = language;
+      
       try {
         const response = await fetch(`/translations/${language}.json`);
         if (response.ok) {
@@ -75,6 +85,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
         setTranslations({});
       } finally {
         setIsLoading(false);
+        loadingRef.current = false;
       }
     };
 
@@ -83,18 +94,20 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
 
   // Set language and save to localStorage - Fixed: Remove language dependency
   const setLanguage = useCallback((newLanguage: Language) => {
-    setLanguageState(prevLanguage => {
-      if (newLanguage === prevLanguage) return prevLanguage;
-      
-      if (typeof window !== "undefined") {
+    if (newLanguage === currentLanguageRef.current) return;
+    
+    setLanguageState(newLanguage);
+    
+    if (typeof window !== "undefined") {
+      try {
         localStorage.setItem("preferredLanguage", newLanguage);
+      } catch (error) {
+        console.error("Error saving language to localStorage:", error);
       }
-      
-      return newLanguage;
-    });
-  }, []); // No dependencies to prevent infinite loop
+    }
+  }, []);
 
-  // Translation function
+  // Translation function - Memoized to prevent unnecessary re-renders
   const t = useCallback((key: string): string => {
     if (!mounted || isLoading || Object.keys(translations).length === 0) {
       return key;
@@ -114,6 +127,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
     return typeof current === "string" ? current : key;
   }, [translations, isLoading, mounted]);
 
+  // Show loading state until mounted
   if (!mounted) {
     return (
       <LanguageContext.Provider value={{

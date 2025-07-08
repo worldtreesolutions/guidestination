@@ -19,30 +19,10 @@ export function LanguageSelector() {
     setMounted(true);
   }, []);
 
-  const languages: { 
-    value: Language; 
-    label: string; 
-    flag: string;
-    country: string;
-  }[] = [
-    { 
-      value: "en", 
-      label: "English",
-      flag: "🇺🇸",
-      country: "United States"
-    },
-    { 
-      value: "fr", 
-      label: "Français",
-      flag: "🇫🇷",
-      country: "France"
-    },
-    { 
-      value: "th", 
-      label: "ไทย",
-      flag: "🇹🇭",
-      country: "Thailand"
-    },
+  const languages = [
+    { code: "en" as const, name: "English", flag: "🇺🇸" },
+    { code: "th" as const, name: "ไทย", flag: "🇹🇭" },
+    { code: "fr" as const, name: "Français", flag: "🇫🇷" }
   ];
 
   const handleLanguageChange = (newLanguage: Language) => {
@@ -76,14 +56,14 @@ export function LanguageSelector() {
     );
   }
 
-  const currentLanguage = languages.find((l) => l.value === language);
+  const currentLanguage = languages.find((l) => l.code === language);
   const currentFlag = currentLanguage?.flag || "🌐";
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className="min-w-[60px]">
-          <span className="text-base" title={currentLanguage?.country}>
+          <span className="text-base" title={currentLanguage?.name}>
             {currentFlag}
           </span>
         </Button>
@@ -91,17 +71,17 @@ export function LanguageSelector() {
       <DropdownMenuContent align="end" className="min-w-[180px]">
         {languages.map((lang) => (
           <DropdownMenuItem
-            key={lang.value}
-            onClick={() => handleLanguageChange(lang.value)}
+            key={lang.code}
+            onClick={() => handleLanguageChange(lang.code)}
             className="flex items-center justify-between cursor-pointer"
           >
             <div className="flex items-center">
-              <span className="text-base mr-3" title={lang.country}>
+              <span className="text-base mr-3" title={lang.name}>
                 {lang.flag}
               </span>
-              <span>{lang.label}</span>
+              <span>{lang.name}</span>
             </div>
-            {language === lang.value && <Check className="h-4 w-4 ml-2" />}
+            {language === lang.code && <Check className="h-4 w-4 ml-2" />}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
