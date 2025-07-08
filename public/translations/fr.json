@@ -421,6 +421,10 @@
       "title": "Listez Vos Activités sur Guidestination",
       "subtitle": "Rejoignez la plateforme leader pour les expériences locales à Chiang Mai et connectez-vous avec des voyageurs du monde entier"
     },
+    "page": {
+      "title": "Listez Vos Activités",
+      "subtitle": "Rejoignez notre plateforme et commencez à gagner en partageant vos activités incroyables avec les voyageurs"
+    },
     "benefits": {
       "legalProtection": {
         "title": "Protection Juridique",
@@ -437,11 +441,29 @@
       "flexibleSchedule": {
         "title": "Horaire Flexible",
         "description": "Définissez votre propre disponibilité et gérez les réservations facilement"
+      },
+      "legalProtectionPage": {
+        "title": "Protection Juridique",
+        "description": "Obtenez une couverture d'assurance complète et une protection juridique pour vos activités"
+      },
+      "businessGrowthPage": {
+        "title": "Croissance des Affaires",
+        "description": "Élargissez votre portée et développez votre entreprise avec notre soutien marketing"
+      },
+      "qualityStandardsPage": {
+        "title": "Standards de Qualité",
+        "description": "Maintenez des standards de qualité élevés avec notre système de vérification et d'évaluation"
+      },
+      "flexibleSchedulePage": {
+        "title": "Horaire Flexible",
+        "description": "Définissez votre propre horaire et gérez les réservations à votre convenance"
       }
     },
     "registration": {
       "title": "S'inscrire comme Fournisseur d'Activités",
-      "description": "Remplissez le formulaire ci-dessous pour commencer à lister vos activités"
+      "description": "Remplissez le formulaire ci-dessous pour commencer à lister vos activités",
+      "pageTitle": "Inscription Fournisseur d'Activités",
+      "pageDescription": "Remplissez le formulaire ci-dessous pour commencer à lister vos activités sur notre plateforme"
     }
   },
   "dashboard": {
@@ -864,14 +886,209 @@
     }
   },
   "partner": {
+    "meta": {
+      "title": "Devenir Partenaire - Guidestination",
+      "description": "Partenariat avec Guidestination pour offrir d'incroyables expériences locales à vos clients"
+    },
+    "hero": {
+      "title": "Partenariat avec Guidestination",
+      "subtitle": "Élargissez vos offres et gagnez des commissions en connectant vos clients avec des activités locales uniques à Chiang Mai."
+    },
+    "page": {
+      "heroTitle": "Devenir Partenaire",
+      "heroSubtitle": "Rejoignez notre réseau de partenaires prospères et développez votre entreprise avec Guidestination",
+      "startApplication": "Commencer Votre Candidature",
+      "backToInfo": "Retour aux Informations Partenaire",
+      "registrationTitle": "Inscription Partenaire",
+      "registrationDescription": "Remplissez le formulaire ci-dessous pour rejoindre notre réseau de partenaires"
+    },
+    "sections": {
+      "whyPartner": {
+        "title": "Pourquoi Devenir Partenaire ?",
+        "description": "Découvrez les avantages de rejoindre notre réseau croissant de partenaires"
+      },
+      "features": {
+        "title": "Tout Ce Dont Vous Avez Besoin Pour Réussir",
+        "description": "Notre plateforme partenaire complète fournit tous les outils et le soutien dont vous avez besoin pour développer votre entreprise.",
+        "getStarted": "Commencer Aujourd'hui"
+      },
+      "cta": {
+        "title": "Prêt à Commencer ?",
+        "description": "Rejoignez des milliers de partenaires prospères qui développent leur entreprise avec Guidestination",
+        "applyNow": "Postuler Maintenant"
+      },
+      "contact": {
+        "title": "Des Questions ?",
+        "description": "Notre équipe de succès partenaire est là pour vous aider à chaque étape",
+        "callUs": "Appelez-Nous",
+        "emailUs": "Envoyez-Nous un Email",
+        "visitUs": "Visitez-Nous"
+      }
+    },
+    "benefits": {
+      "hotels": {
+        "title": "Pour Hôtels et Hébergements",
+        "description": "Améliorez l'expérience client et générez des revenus auxiliaires."
+      },
+      "agencies": {
+        "title": "Pour Agences de Voyage",
+        "description": "Accédez à une liste organisée d'activités locales vérifiées pour vos clients."
+      },
+      "tracking": {
+        "title": "Suivi Facile des Commissions",
+        "description": "Rapports transparents et paiements ponctuels via notre tableau de bord partenaire."
+      },
+      "support": {
+        "title": "Support Dédié",
+        "description": "Notre équipe est là pour vous aider à réussir à chaque étape."
+      },
+      "increaseRevenue": {
+        "title": "Augmenter les Revenus",
+        "description": "Boostez vos revenus d'entreprise grâce à notre programme de partenariat basé sur les commissions"
+      },
+      "reachCustomers": {
+        "title": "Atteindre Plus de Clients",
+        "description": "Accédez à notre réseau croissant de voyageurs et de chercheurs d'activités"
+      },
+      "trustedPlatform": {
+        "title": "Plateforme de Confiance",
+        "description": "Rejoignez une plateforme sécurisée et fiable avec des transactions vérifiées"
+      },
+      "globalExposure": {
+        "title": "Exposition Mondiale",
+        "description": "Présentez votre entreprise aux clients internationaux et locaux"
+      }
+    },
+    "features": {
+      "realtimeBooking": "Gestion des réservations en temps réel",
+      "automatedTracking": "Suivi automatisé des commissions",
+      "marketingSupport": "Matériel marketing et support",
+      "customerService": "Service client 24/7",
+      "analytics": "Outils d'analyse et de rapport",
+      "mobileDashboard": "Tableau de bord mobile"
+    },
+    "dashboard": {
+      "title": "Tableau de Bord Partenaire",
+      "description": "Gérez votre entreprise efficacement",
+      "monthlyRevenue": "Revenus Mensuels",
+      "newBookings": "Nouvelles Réservations",
+      "thisWeek": "cette semaine",
+      "customerRating": "Note Client"
+    },
+    "contact": {
+      "phone": "+66 2 123 4567",
+      "email": "partners@guidestination.com",
+      "location": "Bangkok, Thaïlande"
+    },
+    "registration": {
+      "title": "S'inscrire comme Partenaire de Distribution",
+      "description": "Remplissez le formulaire ci-dessous pour rejoindre notre réseau."
+    },
     "form": {
+      "legal": {
+        "title": "Exigences Légales",
+        "requirement1": "Licence d'hôtel/hébergement valide requise",
+        "requirement2": "Enregistrement d'entreprise touristique obligatoire",
+        "requirement3": "Conformité aux réglementations d'hospitalité locales",
+        "requirement4": "Couverture d'assurance d'entreprise valide"
+      },
+      "validation": {
+        "hotelLicense": "Le numéro de licence d'hôtel est requis",
+        "tourismLicense": "Le numéro de licence touristique est requis",
+        "roomCount": "Le nombre de chambres est requis",
+        "bankName": "Le nom de la banque est requis",
+        "bankAccount": "Le numéro de compte bancaire est requis"
+      },
       "placeholder": {
-        "establishmentName": "Entrez le nom de votre établissement",
         "businessName": "Entrez le nom de votre établissement",
+        "establishmentName": "Entrez le nom de votre établissement",
+        "hotelLicense": "Entrez le numéro de licence d'hôtel",
+        "tourismLicense": "Entrez le numéro de licence touristique",
+        "roomCount": "Entrez le nombre de chambres",
+        "taxId": "Entrez le numéro d'identification fiscale",
+        "bankName": "Entrez le nom de la banque",
+        "bankAccount": "Entrez le numéro de compte bancaire",
         "address": "Entrez l'adresse de l'établissement"
       },
+      "businessType": {
+        "hotel": "Hôtel",
+        "resort": "Resort",
+        "guesthouse": "Maison d'hôtes",
+        "airbnb": "Airbnb/Location de Vacances"
+      },
+      "field": {
+        "hotelLicense": "Numéro de Licence d'Hôtel",
+        "tourismLicense": "Numéro de Licence Touristique",
+        "roomCount": "Nombre de Chambres",
+        "bankName": "Nom de la Banque",
+        "bankAccount": "Numéro de Compte Bancaire",
+        "supportingDocuments": "Documents Justificatifs"
+      },
       "description": {
+        "hotelLicense": "Requis pour les fournisseurs d'hébergement",
+        "tourismLicense": "Requis pour les entreprises liées au tourisme",
+        "supportingDocuments": "Téléchargez la licence d'entreprise, les documents fiscaux, les relevés bancaires et autres documents pertinents (PDF, DOC ou images, max 10MB chacun)",
         "address": "Veuillez fournir l'adresse complète de votre établissement"
+      },
+      "section": {
+        "commission": "Package Commission",
+        "payment": "Informations de Paiement",
+        "documents": "Documents Justificatifs"
+      },
+      "documents": {
+        "title": "Documents Requis",
+        "description": "Veuillez télécharger les documents suivants pour compléter votre inscription :",
+        "item1": "Certificat d'enregistrement d'entreprise",
+        "item2": "Licence d'hôtel/hébergement",
+        "item3": "Licence d'entreprise touristique",
+        "item4": "Documents d'identification fiscale",
+        "item5": "Documents de vérification de compte bancaire"
+      },
+      "package": {
+        "basic": {
+          "title": "Partenaire Basique",
+          "description": "5% de commission sur les réservations",
+          "feature1": "5% de commission sur toutes les réservations",
+          "feature2": "Calendrier de paiement mensuel",
+          "feature3": "Matériel marketing de base",
+          "feature4": "Support par email",
+          "select": "Sélectionner Basique"
+        },
+        "premium": {
+          "title": "Partenaire Premium",
+          "description": "8% de commission sur les réservations",
+          "feature1": "8% de commission sur toutes les réservations",
+          "feature2": "Calendrier de paiement hebdomadaire",
+          "feature3": "Matériel marketing premium",
+          "feature4": "Support téléphonique et email prioritaire",
+          "select": "Sélectionner Premium"
+        },
+        "recommended": "Recommandé"
+      },
+      "materials": {
+        "title": "Matériel Marketing Inclus",
+        "description": "Nous fournissons un support marketing complet pour vous aider à promouvoir les activités auprès de vos clients :",
+        "item1": "Brochures numériques et catalogues d'activités",
+        "item2": "Codes QR pour un accès facile aux réservations",
+        "item3": "Matériel promotionnel personnalisé avec votre marque",
+        "item4": "Matériel de formation du personnel et directives"
+      },
+      "commission": {
+        "title": "Structure de Commission",
+        "description": "Taux de commission transparents et compétitifs avec des paiements fiables :",
+        "basic": "Basique : 5% de commission sur toutes les réservations réussies",
+        "premium": "Premium : 8% de commission sur toutes les réservations réussies",
+        "monthly": "Paiements traités mensuellement (Basique) ou hebdomadairement (Premium)",
+        "tracking": "Suivi des commissions en temps réel via le tableau de bord partenaire"
+      },
+      "terms": {
+        "description": "En vous inscrivant, vous acceptez nos conditions générales de partenariat"
+      },
+      "success": {
+        "message": "Inscription partenaire soumise avec succès ! Nous examinerons votre candidature et vous contacterons dans les 2-3 jours ouvrables."
+      },
+      "error": {
+        "message": "Il y a eu une erreur lors de la soumission de votre inscription. Veuillez réessayer ou contacter le support."
       }
     }
   }
