@@ -4,7 +4,6 @@ import { Footer } from "@/components/layout/Footer"
 import { ActivityRow } from "@/components/home/ActivityRow"
 import { SearchBar } from "@/components/home/SearchBar"
 import { CategorySection } from "@/components/home/CategorySection"
-import { useLanguage } from "@/contexts/LanguageContext"
 import { BottomActionButtons } from "@/components/layout/BottomActionButtons"
 import { FloatingCart } from "@/components/layout/FloatingCart"
 import { useState, useEffect } from "react"
@@ -72,17 +71,10 @@ const mockCategories = [
 ]
 
 export default function HomePage() {
-  const [loading, setLoading] = useState(false)
   const [mounted, setMounted] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    try {
-      setMounted(true)
-    } catch (err) {
-      console.error("Mount error:", err)
-      setError("Failed to initialize application")
-    }
+    setMounted(true)
   }, [])
 
   const getActivitiesByCategory = (categoryName: string) => {
@@ -115,23 +107,6 @@ export default function HomePage() {
   const categories = mockCategories
   const categoryActivities = categories.map(category => getActivitiesByCategory(category.name))
 
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="text-center">
-          <div className="text-red-500 text-lg mb-4">Application Error</div>
-          <p className="text-gray-600">{error}</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            Reload Page
-          </button>
-        </div>
-      </div>
-    )
-  }
-
   if (!mounted) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
@@ -143,95 +118,66 @@ export default function HomePage() {
     )
   }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading activities...</p>
-        </div>
-      </div>
-    )
-  }
+  return (
+    <>
+      <Head>
+        <title>Guidestination - Discover Amazing Activities</title>
+        <meta name="description" content="Discover and book amazing activities and experiences" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
 
-  try {
-    return (
-      <>
-        <Head>
-          <title>Guidestination - Discover Amazing Activities</title>
-          <meta name="description" content="Discover and book amazing activities and experiences" />
-          <meta name="viewport" content="width=device-width, initial-scale=1" />
-          <link rel="icon" href="/favicon.ico" />
-        </Head>
+      <Navbar />
+      
+      <div className="min-h-screen bg-gray-50">
+        {/* Search Section - Replaced Hero */}
+        <section className="bg-white py-8 border-b">
+          <div className="container mx-auto px-4">
+            <SearchBar />
+          </div>
+        </section>
 
-        <Navbar />
+        {/* Categories Section */}
+        <section className="bg-gray-50 py-8">
+          <div className="container mx-auto px-4">
+            <CategorySection categories={mockCategories} />
+          </div>
+        </section>
+
+        {/* Activities Section */}
+        <section className="py-12">
+          <div className="container mx-auto px-4">
+            {/* Recommended Activities */}
+            <ActivityRow
+              title="Recommended by Us"
+              activities={getRecommendedActivities()}
+            />
+
+            {/* Featured Activities */}
+            <ActivityRow
+              title="Featured Activities"
+              activities={featuredActivities}
+            />
+
+            {/* Category-based Activity Rows */}
+            {categories.map((category, index) => (
+              <ActivityRow
+                key={category.id}
+                title={category.name}
+                activities={categoryActivities[index] || []}
+              />
+            ))}
+          </div>
+        </section>
+
+        {/* Bottom Action Buttons */}
+        <BottomActionButtons />
         
-        <div className="min-h-screen bg-gray-50">
-          {/* Search Section - Replaced Hero */}
-          <section className="bg-white py-8 border-b">
-            <div className="container mx-auto px-4">
-              <SearchBar />
-            </div>
-          </section>
-
-          {/* Categories Section */}
-          <section className="bg-gray-50 py-8">
-            <div className="container mx-auto px-4">
-              <CategorySection categories={mockCategories} />
-            </div>
-          </section>
-
-          {/* Activities Section */}
-          <section className="py-12">
-            <div className="container mx-auto px-4">
-              {/* Recommended Activities */}
-              <ActivityRow
-                title="Recommended by Us"
-                activities={getRecommendedActivities()}
-              />
-
-              {/* Featured Activities */}
-              <ActivityRow
-                title="Featured Activities"
-                activities={featuredActivities}
-              />
-
-              {/* Category-based Activity Rows */}
-              {categories.map((category, index) => (
-                <ActivityRow
-                  key={category.id}
-                  title={category.name}
-                  activities={categoryActivities[index] || []}
-                />
-              ))}
-            </div>
-          </section>
-
-          {/* Bottom Action Buttons */}
-          <BottomActionButtons />
-          
-          {/* Floating Cart */}
-          <FloatingCart />
-        </div>
-
-        <Footer />
-      </>
-    )
-  } catch (err) {
-    console.error("Render error:", err)
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="text-center">
-          <div className="text-red-500 text-lg mb-4">Render Error</div>
-          <p className="text-gray-600">Something went wrong while rendering the page</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            Reload Page
-          </button>
-        </div>
+        {/* Floating Cart */}
+        <FloatingCart />
       </div>
-    )
-  }
+
+      <Footer />
+    </>
+  )
 }

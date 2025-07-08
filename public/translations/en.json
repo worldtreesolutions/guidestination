@@ -1,13 +1,13 @@
 {
   "nav": {
-    "aiPlanning": "AI Planning",
-    "listActivities": "List Your Activities",
-    "listActivitiesFull": "List Your Activities",
-    "becomePartner": "Become a Partner",
-    "becomePartnerFull": "Become a Partner",
-    "providerDashboard": "Provider Dashboard",
+    "home": "Home",
+    "activities": "Activities",
+    "planning": "My Planning",
     "login": "Login",
-    "logout": "Logout"
+    "logout": "Logout",
+    "register": "Register",
+    "listActivities": "List Your Activities",
+    "becomePartner": "Become a Partner"
   },
   "home": {
     "hero": {

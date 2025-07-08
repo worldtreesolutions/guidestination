@@ -1,13 +1,13 @@
 {
   "nav": {
-    "aiPlanning": "การวางแผน AI",
-    "listActivities": "ลงรายการกิจกรรมของคุณ",
-    "listActivitiesFull": "ลงรายการกิจกรรมของคุณ",
-    "becomePartner": "เป็นพาร์ทเนอร์",
-    "becomePartnerFull": "เป็นพาร์ทเนอร์",
-    "providerDashboard": "แดชบอร์ดผู้ให้บริการ",
+    "home": "หน้าแรก",
+    "activities": "กิจกรรม",
+    "planning": "การวางแผนของฉัน",
     "login": "เข้าสู่ระบบ",
-    "logout": "ออกจากระบบ"
+    "logout": "ออกจากระบบ",
+    "register": "สมัครสมาชิก",
+    "listActivities": "ลงทะเบียนกิจกรรม",
+    "becomePartner": "เป็นพาร์ทเนอร์"
   },
   "home": {
     "hero": {

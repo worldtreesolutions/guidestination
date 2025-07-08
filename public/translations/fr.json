@@ -1,13 +1,13 @@
 {
   "nav": {
-    "aiPlanning": "Planification IA",
-    "listActivities": "Lister Vos Activités",
-    "listActivitiesFull": "Lister Vos Activités",
-    "becomePartner": "Devenir Partenaire",
-    "becomePartnerFull": "Devenir Partenaire",
-    "providerDashboard": "Tableau de Bord Fournisseur",
+    "home": "Accueil",
+    "activities": "Activités",
+    "planning": "Ma Planification",
     "login": "Connexion",
-    "logout": "Déconnexion"
+    "logout": "Déconnexion",
+    "register": "S'inscrire",
+    "listActivities": "Lister Vos Activités",
+    "becomePartner": "Devenir Partenaire"
   },
   "home": {
     "hero": {
