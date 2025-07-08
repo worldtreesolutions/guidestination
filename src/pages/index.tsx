@@ -6,7 +6,6 @@ import { SearchBar } from "@/components/home/SearchBar"
 import { CategorySection } from "@/components/home/CategorySection"
 import { BottomActionButtons } from "@/components/layout/BottomActionButtons"
 import { FloatingCart } from "@/components/layout/FloatingCart"
-import { useState, useEffect } from "react"
 
 // Mock data for now since we need to fix the service issues
 const mockActivities = [
@@ -71,12 +70,6 @@ const mockCategories = [
 ]
 
 export default function HomePage() {
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
   const getActivitiesByCategory = (categoryName: string) => {
     // Return different activities for each category
     switch (categoryName) {
@@ -106,17 +99,6 @@ export default function HomePage() {
   const featuredActivities = mockActivities.slice(0, 4)
   const categories = mockCategories
   const categoryActivities = categories.map(category => getActivitiesByCategory(category.name))
-
-  if (!mounted) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600 text-sm">Loading...</p>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <>
