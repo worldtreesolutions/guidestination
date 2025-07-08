@@ -7,15 +7,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ActivityOwnerRegistrationForm } from "@/components/activity-owner/ActivityOwnerRegistrationForm"
 import { Shield, Building2, Award, Clock } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
+import { useLanguage } from "@/contexts/LanguageContext"
 
 export default function ActivityOwnerDashboard() {
   const { user } = useAuth()
+  const { t } = useLanguage()
 
   return (
     <>
       <Head>
-        <title>List Your Activities - Guidestination</title>
-        <meta name="description" content="Join Guidestination as an activity provider and grow your business" />
+        <title>{t("activityOwner.page.title") || "List Your Activities"} - Guidestination</title>
+        <meta name="description" content={t("activityOwner.page.description") || "Join Guidestination as an activity provider and grow your business"} />
       </Head>
 
       <div className="min-h-screen flex flex-col w-full">
@@ -26,10 +28,10 @@ export default function ActivityOwnerDashboard() {
             <div className="w-full px-4 sm:px-6 lg:px-8">
               <div className="text-center mb-12">
                 <h1 className="text-4xl font-bold mb-4">
-                  List Your Activities
+                  {t("activityOwner.hero.title") || "List Your Activities"}
                 </h1>
                 <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                  Join our platform and start earning by sharing your amazing activities with travelers
+                  {t("activityOwner.hero.subtitle") || "Join our platform and start earning by sharing your amazing activities with travelers"}
                 </p>
               </div>
 
@@ -37,9 +39,9 @@ export default function ActivityOwnerDashboard() {
                 <Card>
                   <CardHeader>
                     <Shield className="h-10 w-10 text-primary mb-4" />
-                    <CardTitle>Legal Protection</CardTitle>
+                    <CardTitle>{t("activityOwner.benefits.legal.title") || "Legal Protection"}</CardTitle>
                     <CardDescription>
-                      Get comprehensive insurance coverage and legal protection for your activities
+                      {t("activityOwner.benefits.legal.description") || "Get comprehensive insurance coverage and legal protection for your activities"}
                     </CardDescription>
                   </CardHeader>
                 </Card>
@@ -47,9 +49,9 @@ export default function ActivityOwnerDashboard() {
                 <Card>
                   <CardHeader>
                     <Building2 className="h-10 w-10 text-primary mb-4" />
-                    <CardTitle>Business Growth</CardTitle>
+                    <CardTitle>{t("activityOwner.benefits.growth.title") || "Business Growth"}</CardTitle>
                     <CardDescription>
-                      Expand your reach and grow your business with our marketing support
+                      {t("activityOwner.benefits.growth.description") || "Expand your reach and grow your business with our marketing support"}
                     </CardDescription>
                   </CardHeader>
                 </Card>
@@ -57,9 +59,9 @@ export default function ActivityOwnerDashboard() {
                 <Card>
                   <CardHeader>
                     <Award className="h-10 w-10 text-primary mb-4" />
-                    <CardTitle>Quality Standards</CardTitle>
+                    <CardTitle>{t("activityOwner.benefits.quality.title") || "Quality Standards"}</CardTitle>
                     <CardDescription>
-                      Maintain high quality standards with our verification and review system
+                      {t("activityOwner.benefits.quality.description") || "Maintain high quality standards with our verification and review system"}
                     </CardDescription>
                   </CardHeader>
                 </Card>
@@ -67,9 +69,9 @@ export default function ActivityOwnerDashboard() {
                 <Card>
                   <CardHeader>
                     <Clock className="h-10 w-10 text-primary mb-4" />
-                    <CardTitle>Flexible Schedule</CardTitle>
+                    <CardTitle>{t("activityOwner.benefits.flexible.title") || "Flexible Schedule"}</CardTitle>
                     <CardDescription>
-                      Set your own schedule and manage bookings at your convenience
+                      {t("activityOwner.benefits.flexible.description") || "Set your own schedule and manage bookings at your convenience"}
                     </CardDescription>
                   </CardHeader>
                 </Card>
@@ -77,9 +79,9 @@ export default function ActivityOwnerDashboard() {
 
               <Card className="max-w-3xl mx-auto">
                 <CardHeader>
-                  <CardTitle>Activity Provider Registration</CardTitle>
+                  <CardTitle>{t("activityOwner.registration.title") || "Activity Provider Registration"}</CardTitle>
                   <CardDescription>
-                    Fill out the form below to start listing your activities on our platform
+                    {t("activityOwner.registration.subtitle") || "Fill out the form below to start listing your activities on our platform"}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
