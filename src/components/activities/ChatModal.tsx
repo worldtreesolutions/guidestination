@@ -1,5 +1,4 @@
-
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -30,17 +29,7 @@ export default function ChatModal({ isOpen, onClose, activity, currentUser }: Ch
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }
 
-  useEffect(() => {
-    if (isOpen && currentUser && activity.activity_owners) {
-      loadMessages()
-    }
-  }, [isOpen, currentUser, activity])
-
-  useEffect(() => {
-    scrollToBottom()
-  }, [messages])
-
-  const loadMessages = async () => {
+  const loadMessages = useCallback(async () => {
     if (!currentUser || !activity.activity_owners) return
     
     setLoading(true)
@@ -61,7 +50,17 @@ export default function ChatModal({ isOpen, onClose, activity, currentUser }: Ch
     } finally {
       setLoading(false)
     }
-  }
+  }, [currentUser, activity, toast])
+
+  useEffect(() => {
+    if (isOpen && currentUser && activity.activity_owners) {
+      loadMessages()
+    }
+  }, [isOpen, currentUser, activity, loadMessages])
+
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages])
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()

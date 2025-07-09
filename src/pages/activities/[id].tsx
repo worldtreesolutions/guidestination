@@ -1,6 +1,5 @@
-
 import Head from "next/head"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/router"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
@@ -41,19 +40,7 @@ export default function ActivityDetailPage() {
   const [wishlistLoading, setWishlistLoading] = useState(false)
   const [isChatOpen, setIsChatOpen] = useState(false)
 
-  useEffect(() => {
-    if (id && typeof id === "string") {
-      fetchActivity(parseInt(id))
-    }
-  }, [id])
-
-  useEffect(() => {
-    if (user && activity) {
-      checkWishlistStatus()
-    }
-  }, [user, activity])
-
-  const fetchActivity = async (activityId: number) => {
+  const fetchActivity = useCallback(async (activityId: number) => {
     try {
       setLoading(true)
       const activityData = await supabaseActivityService.getActivityById(activityId)
@@ -72,9 +59,15 @@ export default function ActivityDetailPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [router, toast])
 
-  const checkWishlistStatus = async () => {
+  useEffect(() => {
+    if (id && typeof id === "string") {
+      fetchActivity(parseInt(id))
+    }
+  }, [id, fetchActivity])
+
+  const checkWishlistStatus = useCallback(async () => {
     if (!user || !activity) return
     try {
       const wishlist = await customerService.getWishlist(user.id)
@@ -82,7 +75,13 @@ export default function ActivityDetailPage() {
     } catch (error) {
       console.error("Error checking wishlist status:", error)
     }
-  }
+  }, [user, activity])
+
+  useEffect(() => {
+    if (user && activity) {
+      checkWishlistStatus()
+    }
+  }, [user, activity, checkWishlistStatus])
 
   const handleWishlistToggle = async () => {
     if (!isAuthenticated) {
