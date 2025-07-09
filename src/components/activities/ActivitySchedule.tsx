@@ -1,26 +1,25 @@
-
 import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Badge } from "@/components/ui/badge"
 import { Clock, Calendar as CalendarIcon, Users } from "lucide-react"
-import { DatabaseActivity } from "@/services/supabaseActivityService"
+import { SupabaseActivity } from "@/services/supabaseActivityService"
 
 interface ActivityScheduleProps {
-  activity: DatabaseActivity
+  activity: SupabaseActivity
 }
 
 export default function ActivitySchedule({ activity }: ActivityScheduleProps) {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
 
   // Parse available dates from schedule
-  const availableDates = activity.schedule?.available_dates 
-    ? activity.schedule.available_dates.map(dateStr => new Date(dateStr))
+  const availableDates = activity.schedule?.available_dates
+    ? activity.schedule.available_dates.map((dateStr: string) => new Date(dateStr))
     : []
 
   const isDateAvailable = (date: Date) => {
-    return availableDates.some(availableDate => 
+    return availableDates.some((availableDate: Date) => 
       availableDate.toDateString() === date.toDateString()
     )
   }
@@ -141,10 +140,10 @@ export default function ActivitySchedule({ activity }: ActivityScheduleProps) {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {availableDates
-                .filter(date => date >= new Date())
-                .sort((a, b) => a.getTime() - b.getTime())
+                .filter((date: Date) => date >= new Date())
+                .sort((a: Date, b: Date) => a.getTime() - b.getTime())
                 .slice(0, 6)
-                .map((date, index) => (
+                .map((date: Date, index: number) => (
                   <div
                     key={index}
                     className="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"

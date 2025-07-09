@@ -142,66 +142,75 @@ export type Database = {
       bookings: {
         Row: {
           id: number
-          activity_id: number
-          customer_id: string | null
+          activity_id: number | null
           customer_name: string
           customer_email: string
           customer_phone: string | null
-          booking_date: string
-          participants: number
-          total_amount: number
-          status: "pending" | "confirmed" | "completed" | "cancelled"
-          created_at: string
-          updated_at: string
-          establishment_id: string | null
-          is_qr_booking: boolean
-          qr_establishment_id: string | null
+          booking_date: string | null
+          status: string | null
+          is_active: boolean | null
+          created_at: string | null
+          updated_at: string | null
+          total_amount: number | null
           referral_visit_id: string | null
           booking_source: string | null
+          establishment_id: string | null
+          customer_id: string | null
+          participants: number | null
+          updated_by: string | null
+          is_qr_booking: boolean | null
+          qr_establishment_id: string | null
           stripe_payment_intent_id: string | null
-          commission_invoice_generated: boolean
+          stripe_charge_id: string | null
+          commission_invoice_generated: boolean | null
         }
         Insert: {
           id?: number
-          activity_id: number
-          customer_id?: string | null
+          activity_id?: number | null
           customer_name: string
           customer_email: string
           customer_phone?: string | null
-          booking_date: string
-          participants: number
-          total_amount: number
-          status?: "pending" | "confirmed" | "completed" | "cancelled"
-          created_at?: string
-          updated_at?: string
-          establishment_id?: string | null
-          is_qr_booking?: boolean
-          qr_establishment_id?: string | null
+          booking_date?: string | null
+          status?: string | null
+          is_active?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
+          total_amount?: number | null
           referral_visit_id?: string | null
           booking_source?: string | null
+          establishment_id?: string | null
+          customer_id?: string | null
+          participants?: number | null
+          updated_by?: string | null
+          is_qr_booking?: boolean | null
+          qr_establishment_id?: string | null
           stripe_payment_intent_id?: string | null
-          commission_invoice_generated?: boolean
+          stripe_charge_id?: string | null
+          commission_invoice_generated?: boolean | null
         }
         Update: {
           id?: number
-          activity_id?: number
-          customer_id?: string | null
+          activity_id?: number | null
           customer_name?: string
           customer_email?: string
           customer_phone?: string | null
-          booking_date?: string
-          participants?: number
-          total_amount?: number
-          status?: "pending" | "confirmed" | "completed" | "cancelled"
-          created_at?: string
-          updated_at?: string
-          establishment_id?: string | null
-          is_qr_booking?: boolean
-          qr_establishment_id?: string | null
+          booking_date?: string | null
+          status?: string | null
+          is_active?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
+          total_amount?: number | null
           referral_visit_id?: string | null
           booking_source?: string | null
+          establishment_id?: string | null
+          customer_id?: string | null
+          participants?: number | null
+          updated_by?: string | null
+          is_qr_booking?: boolean | null
+          qr_establishment_id?: string | null
           stripe_payment_intent_id?: string | null
-          commission_invoice_generated?: boolean
+          stripe_charge_id?: string | null
+          commission_invoice_generated?: boolean | null
         }
         Relationships: [
           {
@@ -213,13 +222,83 @@ export type Database = {
           {
             foreignKeyName: "bookings_customer_id_fkey"
             columns: ["customer_id"]
-            referencedRelation: "customer_profiles"
-            referencedColumns: ["id"]
+            referencedRelation: "customers"
+            referencedColumns: ["cus_id"]
           },
           {
             foreignKeyName: "bookings_establishment_id_fkey"
             columns: ["establishment_id"]
             referencedRelation: "establishments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_qr_establishment_id_fkey"
+            columns: ["qr_establishment_id"]
+            referencedRelation: "establishments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_referral_visit_id_fkey"
+            columns: ["referral_visit_id"]
+            referencedRelation: "referral_visits"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_updated_by_fkey"
+            columns: ["updated_by"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      chat_messages: {
+        Row: {
+          id: string
+          sender_id: string
+          receiver_id: string
+          activity_id: number
+          message: string
+          sender_type: string
+          created_at: string | null
+          read_at: string | null
+        }
+        Insert: {
+          id?: string
+          sender_id: string
+          receiver_id: string
+          activity_id: number
+          message: string
+          sender_type: string
+          created_at?: string | null
+          read_at?: string | null
+        }
+        Update: {
+          id?: string
+          sender_id?: string
+          receiver_id?: string
+          activity_id?: number
+          message?: string
+          sender_type?: string
+          created_at?: string | null
+          read_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_activity_id_fkey"
+            columns: ["activity_id"]
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_messages_receiver_id_fkey"
+            columns: ["receiver_id"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            referencedRelation: "users"
             referencedColumns: ["id"]
           }
         ]

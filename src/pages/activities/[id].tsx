@@ -22,7 +22,7 @@ import {
   Phone,
   Mail
 } from "lucide-react"
-import supabaseActivityService, { DatabaseActivity } from "@/services/supabaseActivityService"
+import { supabaseActivityService, SupabaseActivity } from "@/services/supabaseActivityService"
 import customerService from "@/services/customerService"
 import Image from "next/image"
 import ActivitySchedule from "@/components/activities/ActivitySchedule"
@@ -34,7 +34,7 @@ export default function ActivityDetailPage() {
   const { user, isAuthenticated } = useAuth()
   const { toast } = useToast()
 
-  const [activity, setActivity] = useState<DatabaseActivity | null>(null)
+  const [activity, setActivity] = useState<SupabaseActivity | null>(null)
   const [loading, setLoading] = useState(true)
   const [isInWishlist, setIsInWishlist] = useState(false)
   const [wishlistLoading, setWishlistLoading] = useState(false)
@@ -286,7 +286,7 @@ export default function ActivityDetailPage() {
                   </CardHeader>
                   <CardContent>
                     <ul className="space-y-2">
-                      {activity.highlights.map((highlight, index) => (
+                      {activity.highlights.map((highlight: string, index: number) => (
                         <li key={index} className="flex items-start gap-2">
                           <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
                           <span>{highlight}</span>
@@ -311,7 +311,7 @@ export default function ActivityDetailPage() {
                     </CardHeader>
                     <CardContent>
                       <ul className="space-y-2">
-                        {activity.included.map((item, index) => (
+                        {activity.included.map((item: string, index: number) => (
                           <li key={index} className="flex items-start gap-2">
                             <CheckCircle className="h-4 w-4 text-green-600 mt-1 flex-shrink-0" />
                             <span className="text-sm">{item}</span>
@@ -329,7 +329,7 @@ export default function ActivityDetailPage() {
                     </CardHeader>
                     <CardContent>
                       <ul className="space-y-2">
-                        {activity.not_included.map((item, index) => (
+                        {activity.not_included.map((item: string, index: number) => (
                           <li key={index} className="flex items-start gap-2">
                             <XCircle className="h-4 w-4 text-red-600 mt-1 flex-shrink-0" />
                             <span className="text-sm">{item}</span>
@@ -368,7 +368,7 @@ export default function ActivityDetailPage() {
                   <div>
                     <h4 className="font-medium mb-2">Languages</h4>
                     <div className="flex gap-2">
-                      {activity.languages.map((language, index) => (
+                      {activity.languages.map((language: string, index: number) => (
                         <Badge key={index} variant="outline">{language}</Badge>
                       ))}
                     </div>

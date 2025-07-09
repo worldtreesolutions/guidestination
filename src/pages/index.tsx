@@ -1,4 +1,3 @@
-
 import Head from "next/head"
 import { useState, useEffect } from "react"
 import { Navbar } from "@/components/layout/Navbar"
@@ -8,7 +7,7 @@ import { SearchBar } from "@/components/home/SearchBar"
 import { CategorySection } from "@/components/home/CategorySection"
 import { BottomActionButtons } from "@/components/layout/BottomActionButtons"
 import { FloatingCart } from "@/components/layout/FloatingCart"
-import supabaseActivityService, { ActivityForHomepage } from "@/services/supabaseActivityService"
+import { supabaseActivityService, ActivityForHomepage } from "@/services/supabaseActivityService"
 
 const mockCategories = [
   { id: 1, name: "Adventure" },

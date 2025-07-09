@@ -1,24 +1,8 @@
-
 import { supabase } from "@/integrations/supabase/client"
+import { Database } from "@/integrations/supabase/types"
 
-export interface ChatMessage {
-  id: string
-  sender_id: string
-  receiver_id: string
-  activity_id: number
-  message: string
-  sender_type: "customer" | "activity_owner"
-  created_at: string
-  read_at?: string
-}
-
-export interface SendMessageData {
-  sender_id: string
-  receiver_id: string
-  activity_id: number
-  message: string
-  sender_type: "customer" | "activity_owner"
-}
+export type ChatMessage = Database["public"]["Tables"]["chat_messages"]["Row"]
+export type SendMessageData = Database["public"]["Tables"]["chat_messages"]["Insert"]
 
 const chatService = {
   async getMessages(customerId: string, ownerId: string, activityId: number): Promise<ChatMessage[]> {
@@ -34,7 +18,7 @@ const chatService = {
       throw error
     }
 
-    return data as ChatMessage[]
+    return data || []
   },
 
   async sendMessage(messageData: SendMessageData): Promise<ChatMessage> {
@@ -49,7 +33,7 @@ const chatService = {
       throw error
     }
 
-    return data as ChatMessage
+    return data
   },
 
   async markAsRead(messageId: string): Promise<void> {

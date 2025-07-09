@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Send, MessageCircle, User } from "lucide-react"
-import { DatabaseActivity } from "@/services/supabaseActivityService"
+import { SupabaseActivity } from "@/services/supabaseActivityService"
 import { User as SupabaseUser } from "@supabase/supabase-js"
 import chatService, { ChatMessage } from "@/services/chatService"
 import { useToast } from "@/hooks/use-toast"
@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast"
 interface ChatModalProps {
   isOpen: boolean
   onClose: () => void
-  activity: DatabaseActivity
+  activity: SupabaseActivity
   currentUser: SupabaseUser | null
 }
 
