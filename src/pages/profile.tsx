@@ -14,6 +14,7 @@ import ProfileEditForm from "@/components/profile/ProfileEditForm"
 import BookingCard from "@/components/profile/BookingCard"
 import WishlistCard from "@/components/profile/WishlistCard"
 import { Label } from "@/components/ui/label"
+import BookingDetailsModal from "@/components/profile/BookingDetailsModal"
 
 export default function ProfilePage() {
   const { user, loading: authLoading, signOut } = useAuth()
@@ -27,6 +28,8 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
   const [actionLoading, setActionLoading] = useState(false)
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false)
 
   const fetchData = useCallback(async () => {
     if (!user) return
@@ -112,6 +115,21 @@ export default function ProfilePage() {
   const handleLogout = async () => {
     await signOut()
     router.push("/")
+  }
+
+  const handleViewBookingDetails = async (bookingId: string) => {
+    try {
+      const booking = await customerService.getBookingById(bookingId)
+      setSelectedBooking(booking)
+      setIsBookingModalOpen(true)
+    } catch (error) {
+      console.error("Failed to fetch booking details:", error)
+      toast({
+        title: "Error",
+        description: "Failed to load booking details. Please try again.",
+        variant: "destructive",
+      })
+    }
   }
 
   if (authLoading || loading) {
@@ -205,7 +223,7 @@ export default function ProfilePage() {
                   {bookings.length > 0 ? (
                     <div className="space-y-4">
                       {bookings.slice(0, 3).map((booking) => (
-                        <BookingCard key={booking.id} booking={booking} onViewDetails={(id) => console.log(id)} />
+                        <BookingCard key={booking.id} booking={booking} onViewDetails={handleViewBookingDetails} />
                       ))}
                     </div>
                   ) : (
@@ -225,7 +243,7 @@ export default function ProfilePage() {
                   {bookings.length > 0 ? (
                     <div className="grid grid-cols-1 gap-4">
                       {bookings.map((booking) => (
-                        <BookingCard key={booking.id} booking={booking} onViewDetails={(id) => console.log(id)} />
+                        <BookingCard key={booking.id} booking={booking} onViewDetails={handleViewBookingDetails} />
                       ))}
                     </div>
                   ) : (
@@ -316,6 +334,15 @@ export default function ProfilePage() {
           </Tabs>
         </div>
       </div>
+
+      <BookingDetailsModal
+        booking={selectedBooking}
+        isOpen={isBookingModalOpen}
+        onClose={() => {
+          setIsBookingModalOpen(false)
+          setSelectedBooking(null)
+        }}
+      />
 
       <Footer />
     </>
