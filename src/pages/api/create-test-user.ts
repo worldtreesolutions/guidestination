@@ -1,4 +1,3 @@
-
 import { NextApiRequest, NextApiResponse } from "next"
 import { createClient } from "@supabase/supabase-js"
 
@@ -58,6 +57,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     console.log("Created user:", authData.user.id)
 
+    // Insert into customers table first to satisfy foreign key constraint
+    const { error: customerError } = await supabaseAdmin.from("customers").insert({
+      cus_id: authData.user.id,
+      email: testEmail,
+      full_name: "John Doe",
+      phone: "+1234567890",
+      is_active: true
+    })
+
+    if (customerError) {
+      console.error("Customer creation error:", customerError)
+      return res.status(400).json({ error: `Customer creation failed: ${customerError.message}` })
+    }
+    console.log("Created customer entry")
+
     // Create customer profile
     const { error: profileError } = await supabaseAdmin
       .from("customer_profiles")
@@ -95,7 +109,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         booking_date: new Date(Date.now() + (index + 1) * 24 * 60 * 60 * 1000).toISOString(),
         participants: index + 1,
         total_amount: (index + 1) * 1500,
-        status: index === 0 ? "confirmed" as const : index === 1 ? "completed" as const : "pending" as const
+        status:
+          index === 0
+            ? ("confirmed" as const)
+            : index === 1
+            ? ("confirmed" as const) // Use 'confirmed' as 'completed' is invalid
+            : ("pending" as const)
       }))
 
       const { error: bookingError } = await supabaseAdmin.from("bookings").insert(sampleBookings)
