@@ -14,9 +14,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     if (existingUser) {
       await supabase.auth.admin.deleteUser(existingUser.id)
-      // Also clean up profile data and customers table
+      // Also clean up profile data
       await supabase.from("customer_profiles").delete().eq("email", "testcustomer@guidestination.com")
-      await supabase.from("customers").delete().eq("email", "testcustomer@guidestination.com")
     }
 
     // Create test user with Supabase Auth using admin client
@@ -58,27 +57,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: profileError.message })
     }
 
-    // Insert into customers table using the actual user UUID
-    const { error: customerError } = await supabase
-      .from("customers")
-      .insert({
-        cus_id: authData.user.id,
-        email: "testcustomer@guidestination.com",
-        full_name: "John Doe",
-        phone: "+1234567890",
-        address: "123 Test Street, Bangkok, Thailand",
-        last_login: new Date().toISOString(),
-        total_bookings: 0,
-        total_spent: 0.00,
-        is_active: true
-      })
-
-    if (customerError) {
-      console.error("Customer table insertion error:", customerError)
-      // Don't fail the entire process if customers table insertion fails
-      console.warn("Customer record creation failed, but user and profile were created successfully")
-    }
-
     // Create some sample bookings for testing
     const { data: activities } = await supabase
       .from("activities")
@@ -112,14 +90,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     res.status(200).json({ 
-      message: "Test user created successfully with sample data and customer record.",
+      message: "Test user created successfully with sample data.",
       user: authData.user,
       credentials: {
         email: "testcustomer@guidestination.com",
         password: "testpassword123"
       },
-      customerRecordCreated: !customerError,
-      note: customerError ? "Customer profile created but customers table insertion failed. This may need manual intervention." : "Customer profile and customers table record created successfully."
+      note: "Customer profile created successfully. You can now log in and test the profile system."
     })
   } catch (error) {
     console.error("Error creating test user:", error)
