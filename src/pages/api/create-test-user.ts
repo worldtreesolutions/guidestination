@@ -73,7 +73,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         booking_date: new Date(Date.now() + (index + 1) * 24 * 60 * 60 * 1000).toISOString(),
         participants: index + 1,
         total_amount: (index + 1) * 1500,
-        status: index === 0 ? "confirmed" : index === 1 ? "completed" : "pending"
+        status: index === 0 ? "confirmed" as const : index === 1 ? "completed" as const : "pending" as const
       }))
 
       await supabase.from("bookings").insert(sampleBookings)
