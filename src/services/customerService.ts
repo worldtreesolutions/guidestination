@@ -101,11 +101,11 @@ const customerService = {
           title,
           description,
           image_url,
-          location
+          pickup_location
         )
       `
       )
-      .eq("id", bookingId)
+      .eq("id", parseInt(bookingId))
       .single()
 
     if (error) {
@@ -123,9 +123,9 @@ const customerService = {
         *,
         activities (
           title,
-          b_price:price,
+          b_price:b_price,
           image_url,
-          location
+          pickup_location
         )
       `
       )
