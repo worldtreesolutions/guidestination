@@ -378,28 +378,40 @@ export type Database = {
       }
       customer_profiles: {
         Row: {
-          id: string
-          user_id: string
-          name: string | null
+          customer_id: string
+          email: string
+          first_name: string | null
+          last_name: string | null
+          full_name: string | null
           phone: string | null
+          date_of_birth: string | null
           created_at: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
-          id?: string
-          user_id: string
-          name?: string | null
+          customer_id?: string
+          email: string
+          first_name?: string | null
+          last_name?: string | null
+          full_name?: string | null
           phone?: string | null
+          date_of_birth?: string | null
           created_at?: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
-          id?: string
-          user_id?: string
-          name?: string | null
+          customer_id?: string
+          email?: string
+          first_name?: string | null
+          last_name?: string | null
+          full_name?: string | null
           phone?: string | null
+          date_of_birth?: string | null
           created_at?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -861,19 +873,19 @@ export type Database = {
       wishlist: {
         Row: {
           id: string
-          user_id: string
+          customer_id: string
           activity_id: number
           created_at: string
         }
         Insert: {
           id?: string
-          user_id: string
+          customer_id: string
           activity_id: number
           created_at?: string
         }
         Update: {
           id?: string
-          user_id?: string
+          customer_id?: string
           activity_id?: number
           created_at?: string
         }
@@ -885,10 +897,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "wishlist_user_id_fkey"
-            columns: ["user_id"]
-            referencedRelation: "users"
-            referencedColumns: ["id"]
+            foreignKeyName: "wishlist_customer_id_fkey"
+            columns: ["customer_id"]
+            referencedRelation: "customer_profiles"
+            referencedColumns: ["customer_id"]
           }
         ]
       }
