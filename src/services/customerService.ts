@@ -3,7 +3,6 @@ import { supabase } from "@/integrations/supabase/client"
 export interface CustomerProfile {
   id: string;
   user_id: string;
-  name?: string | null;
   phone?: string | null;
   date_of_birth?: string;
   created_at: string;
@@ -11,21 +10,25 @@ export interface CustomerProfile {
   email?: string;
   first_name?: string;
   last_name?: string;
-  full_name?: string;
 }
 
 export interface Booking {
   id: string
   customer_id: string
   activity_id: number
-  customer_name: string
-  customer_email: string
   booking_date: string
   participants: number
   total_amount: number
   status: "pending" | "confirmed" | "completed" | "cancelled"
   created_at: string
   updated_at: string
+  activities?: {
+    title: string
+    description?: string
+    image_urls?: string[]
+    location?: string
+    image_url?: string 
+  }
 }
 
 export interface WishlistItem {
@@ -33,18 +36,27 @@ export interface WishlistItem {
   user_id: string;
   activity_id: number;
   created_at: string;
+  activities?: {
+    title: string
+    image_url?: string
+    b_price?: number
+    location?: string
+  }
 }
 
 export const customerService = {
-  async getProfile(userId: string) {
+  async getProfile(userId: string): Promise<CustomerProfile | null> {
     const { data, error } = await supabase
       .from("customer_profiles")
       .select("*")
       .eq("user_id", userId)
       .single();
 
-    if (error) throw error;
-    return data as unknown as CustomerProfile;
+    if (error && error.code !== 'PGRST116') {
+      console.error("Error fetching profile:", error);
+      throw error;
+    }
+    return data;
   },
 
   async updateProfile(userId: string, updates: Partial<CustomerProfile>) {
@@ -56,7 +68,7 @@ export const customerService = {
       .single();
 
     if (error) throw error;
-    return data as unknown as CustomerProfile;
+    return data as CustomerProfile;
   },
 
   async createProfile(
@@ -69,51 +81,64 @@ export const customerService = {
       .single();
 
     if (error) throw error;
-    return data as unknown as CustomerProfile;
+    return data as CustomerProfile;
   },
 
-  async getBookings(customerId: string) {
+  async getBookings(customerId: string): Promise<Booking[]> {
     const { data, error } = await supabase
-      .from('bookings')
+      .from("bookings")
       .select(`
         *,
         activities (
           title,
-          image_url,
-          b_price
+          description,
+          image_urls,
+          location,
+          image_url
         )
       `)
-      .eq('customer_id', customerId)
-      .order('created_at', { ascending: false })
+      .eq("customer_id", customerId)
+      .order("created_at", { ascending: false })
 
-    if (error) throw error
-    
-    // Map the data to ensure customer_id is included and fix id type
-    const mappedData = data.map(booking => ({
+    if (error) {
+      console.error("Error fetching customer bookings:", error)
+      throw error
+    }
+
+    return data.map(booking => ({
       ...booking,
       id: booking.id.toString(),
-      customer_id: booking.customer_id || customerId
-    }))
-    
-    return mappedData as unknown as Booking[]
+    })) as Booking[]
   },
 
-  async createBooking(
-    booking: Omit<Booking, 'id' | 'created_at' | 'updated_at'>) {
+  async getBookingById(bookingId: string): Promise<Booking | null> {
     const { data, error } = await supabase
-      .from('bookings')
-      .insert([booking])
-      .select()
+      .from("bookings")
+      .select(`
+        *,
+        activities (
+          title,
+          description,
+          image_urls,
+          location,
+          image_url
+        )
+      `)
+      .eq("id", bookingId)
       .single()
 
-    if (error) throw error
+    if (error) {
+      console.error("Error fetching booking:", error)
+      return null
+    }
+
     return {
       ...data,
       id: data.id.toString(),
-    } as unknown as Booking
+    } as Booking
   },
 
-  async getWishlist(userId: string) {
+  async getWishlist(userId: string): Promise<WishlistItem[]> {
     const { data, error } = await supabase
       .from("wishlist")
       .select(
@@ -122,7 +147,8 @@ export const customerService = {
         activities (
           title,
           image_url,
-          b_price
+          b_price,
+          location
         )
       `
       )
@@ -130,16 +156,8 @@ export const customerService = {
       .order("created_at", { ascending: false });
 
     if (error) {
-      // The relation might not exist or image_url might be missing.
-      // Fallback to query without the join.
-      const { data: wishlistData, error: wishlistError } = await supabase
-        .from("wishlist")
-        .select(`*`)
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false });
-      
-      if (wishlistError) throw wishlistError;
-      return wishlistData as WishlistItem[];
+      console.error("Error fetching wishlist:", error);
+      throw error;
     }
     return data as WishlistItem[];
   },
@@ -147,12 +165,7 @@ export const customerService = {
   async addToWishlist(userId: string, activityId: number) {
     const { data, error } = await supabase
       .from("wishlist")
-      .insert([
-        {
-          user_id: userId,
-          activity_id: activityId,
-        },
-      ])
+      .insert([{ user_id: userId, activity_id: activityId }])
       .select()
       .single();
 
@@ -169,52 +182,6 @@ export const customerService = {
 
     if (error) throw error;
     return true;
-  },
-
-  async getCustomerBookings(customerId: string): Promise<Booking[]> {
-    const { data, error } = await supabase
-      .from("bookings")
-      .select(`
-        *,
-        activities (
-          title,
-          description,
-          image_urls,
-          location
-        )
-      `)
-      .eq("customer_id", customerId)
-      .order("created_at", { ascending: false })
-
-    if (error) {
-      console.error("Error fetching customer bookings:", error)
-      throw error
-    }
-
-    // Convert the data to match Booking type with proper id conversion
-    return data.map(booking => ({
-      ...booking,
-      id: booking.id.toString(), // Convert number to string
-    })) as unknown as Booking[]
-  },
-
-  async getBookingById(bookingId: string): Promise<Booking | null> {
-    const { data, error } = await supabase
-      .from("bookings")
-      .select("*")
-      .eq("id", parseInt(bookingId)) // Convert string to number for query
-      .single()
-
-    if (error) {
-      console.error("Error fetching booking:", error)
-      return null
-    }
-
-    // Convert the data to match Booking type with proper id conversion
-    return {
-      ...data,
-      id: data.id.toString(), // Convert number to string
-    } as unknown as Booking
   },
 }
 
