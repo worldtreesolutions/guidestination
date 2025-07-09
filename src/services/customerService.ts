@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client"
 import { Database } from "@/integrations/supabase/types"
 
@@ -22,8 +23,8 @@ export interface Booking {
 }
 
 export interface WishlistItem {
-  id: number
-  user_id: string
+  id: string
+  customer_id: string
   activity_id: number
   created_at: string
   activities?: {
@@ -77,7 +78,7 @@ const customerService = {
           title,
           description,
           image_url,
-          location
+          pickup_location
         )
       `
       )
@@ -123,7 +124,7 @@ const customerService = {
         *,
         activities (
           title,
-          b_price:b_price,
+          b_price,
           image_url,
           pickup_location
         )
