@@ -1,68 +1,36 @@
-
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ActivityCard } from "./ActivityCard";
 import { useRef } from "react";
 import { SupabaseActivity } from "@/services/supabaseActivityService";
-import Link from "next/link";
-
-interface Activity {
-  title: string
-  image: string
-  price: number
-  location: string
-  rating: number
-  href: string
-}
+import Link from "next/link"
+import { ActivityForHomepage } from "@/services/supabaseActivityService"
 
 interface ActivityRowProps {
-  title: string;
-  activities: {
-    title: string
-    image: string
-    price: number
-    location: string
-    rating: number
-    href: string
-  }[];
+  title: string
+  activities: ActivityForHomepage[]
 }
 
 export function ActivityRow({ title, activities }: ActivityRowProps) {
+  if (activities.length === 0) return null
+
   return (
-    <div className="py-8">
-      <h2 className="text-2xl font-bold mb-4">{title}</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {activities.map((activity) => {
-          const mockSupabaseActivity: SupabaseActivity = {
-            id: 0, // Mock ID
-            title: activity.title,
-            description: "A great activity to enjoy.",
-            price: activity.price,
-            location: activity.location,
-            image_urls: [activity.image],
-            category_id: 1,
-            owner_id: "mock_owner",
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            is_active: true,
-            duration: 2,
-            booking_type: "daily",
-            max_participants: 10,
-            rating: activity.rating,
-            review_count: 10,
-            languages: ["English"],
-            highlights: ["Highlight 1", "Highlight 2"],
-            meeting_point: "Mock meeting point",
-            included: ["Item 1"],
-            not_included: ["Item 2"],
-          };
-          return (
-            <Link href={activity.href} key={activity.href}>
-              <ActivityCard activity={mockSupabaseActivity} />
-            </Link>
-          );
-        })}
+    <div className="mb-12">
+      <h2 className="text-2xl font-bold mb-6">{title}</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {activities.map((activity) => (
+          <Link key={activity.id} href={`/activities/${activity.id}`}>
+            <ActivityCard
+              title={activity.title}
+              image={activity.image_url || "https://images.unsplash.com/photo-1563492065599-3520f775eeed"}
+              price={activity.price}
+              location={activity.location || "Location TBD"}
+              rating={activity.rating || 0}
+              href={`/activities/${activity.id}`}
+            />
+          </Link>
+        ))}
       </div>
     </div>
-  );
+  )
 }

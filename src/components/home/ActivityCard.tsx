@@ -1,68 +1,41 @@
-import { Card, CardContent, CardFooter } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Calendar, Heart } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
 import Image from "next/image"
-import Link from "next/link"
-import { usePlanning } from "@/contexts/PlanningContext"
-import { useIsMobile } from "@/hooks/use-mobile"
-import { useLanguage } from "@/contexts/LanguageContext"
-import { Badge } from "@/components/ui/badge"
-import { Star, MapPin, Clock, Users } from "lucide-react"
-import { SupabaseActivity } from "@/services/supabaseActivityService"
+import { Star, MapPin } from "lucide-react"
 
 interface ActivityCardProps {
-  activity: SupabaseActivity;
-  onSelect?: (activity: SupabaseActivity) => void;
+  title: string
+  image: string
+  price: number
+  location: string
+  rating: number
+  href: string
 }
 
-export function ActivityCard({ activity, onSelect }: ActivityCardProps) {
-  const { addActivity, isActivitySelected } = usePlanning()
-  const { t } = useLanguage()
-  const isSelected = isActivitySelected(activity.id.toString())
-
-  const handleSelect = () => {
-    if (!isSelected) {
-      addActivity(activity)
-    }
-    onSelect?.(activity)
-  }
-
+export function ActivityCard({ title, image, price, location, rating }: ActivityCardProps) {
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group">
+    <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
       <div className="relative aspect-video">
         <Image
-          src={activity.image_urls?.[0] || "/placeholder.jpg"}
-          alt={activity.title}
+          src={image}
+          alt={title}
           fill
-          className="object-cover group-hover:scale-105 transition-transform duration-300"
+          className="object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-        <div className="absolute bottom-4 left-4 text-white">
-          <h3 className="font-semibold text-lg mb-1">{activity.title}</h3>
-          <p className="text-sm opacity-90">{activity.location}</p>
-        </div>
-        <div className="absolute top-4 right-4">
-          <Badge variant="secondary" className="bg-white/90 text-black">
-            ฿{activity.price?.toLocaleString()}
-          </Badge>
-        </div>
       </div>
       <CardContent className="p-4">
+        <h3 className="font-semibold text-lg mb-2 line-clamp-2">{title}</h3>
+        <div className="flex items-center text-gray-600 mb-2">
+          <MapPin className="h-4 w-4 mr-1" />
+          <span className="text-sm truncate">{location}</span>
+        </div>
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Clock className="h-4 w-4" />
-            <span>{activity.duration}h</span>
-            <Users className="h-4 w-4 ml-2" />
-            <span>Max {activity.max_participants || 10}</span>
+          <div className="flex items-center">
+            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
+            <span className="text-sm">{rating.toFixed(1)}</span>
           </div>
-          <Button
-            size="sm"
-            variant={isSelected ? "secondary" : "default"}
-            onClick={handleSelect}
-            disabled={isSelected}
-          >
-            {isSelected ? t("activity.selected") : t("activity.select")}
-          </Button>
+          <div className="text-lg font-bold text-blue-600">
+            ฿{price.toLocaleString()}
+          </div>
         </div>
       </CardContent>
     </Card>
