@@ -14,12 +14,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     if (existingUser) {
       await supabase.auth.admin.deleteUser(existingUser.id)
-      // Also clean up profile and customer data
+      // Also clean up profile data
       await supabase.from("customer_profiles").delete().eq("email", "testcustomer@guidestination.com")
-      // Use SQL to delete from customers table
-      await supabase.rpc('exec_sql', { 
-        sql: `DELETE FROM customers WHERE email = 'testcustomer@guidestination.com'` 
-      })
     }
 
     // Create test user with Supabase Auth using admin client
@@ -61,31 +57,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: profileError.message })
     }
 
-    // Create customer record in customers table using direct SQL
-    const customerInsertSql = `
-      INSERT INTO customers (
-        cus_id, email, full_name, phone, address, last_login, 
-        total_bookings, total_spent, is_active
-      ) VALUES (
-        '${authData.user.id}', 
-        'testcustomer@guidestination.com', 
-        'John Doe', 
-        '+1234567890', 
-        '123 Test Street, Bangkok, Thailand', 
-        NOW(), 
-        0, 
-        0.00, 
-        true
-      )
-    `
-    
-    const { error: customerError } = await supabase.rpc('exec_sql', { sql: customerInsertSql })
-
-    if (customerError) {
-      console.error("Customer creation error:", customerError)
-      return res.status(400).json({ error: customerError.message })
-    }
-
     // Create some sample bookings for testing
     const { data: activities } = await supabase
       .from("activities")
@@ -106,18 +77,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }))
 
       await supabase.from("bookings").insert(sampleBookings)
-
-      // Update customer total_bookings and total_spent using SQL
-      const totalBookings = sampleBookings.length
-      const totalSpent = sampleBookings.reduce((sum, booking) => sum + booking.total_amount, 0)
-      
-      const updateCustomerSql = `
-        UPDATE customers 
-        SET total_bookings = ${totalBookings}, total_spent = ${totalSpent}
-        WHERE cus_id = '${authData.user.id}'
-      `
-      
-      await supabase.rpc('exec_sql', { sql: updateCustomerSql })
     }
 
     // Create some sample wishlist items
@@ -131,12 +90,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     res.status(200).json({ 
-      message: "Test user created successfully with sample data in both customer_profiles and customers tables",
+      message: "Test user created successfully with sample data. Note: You may need to manually add the customer record to the customers table.",
       user: authData.user,
       credentials: {
         email: "testcustomer@guidestination.com",
         password: "testpassword123"
-      }
+      },
+      note: "Customer profile created. For the customers table, you may need to add the record manually in the database."
     })
   } catch (error) {
     console.error("Error creating test user:", error)
