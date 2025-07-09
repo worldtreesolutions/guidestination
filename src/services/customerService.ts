@@ -1,8 +1,18 @@
 
 import { supabase } from "@/integrations/supabase/client"
-import { Database } from "@/integrations/supabase/types"
 
-export type CustomerProfile = Database["public"]["Tables"]["customer_profiles"]["Row"]
+export interface CustomerProfile {
+  customer_id: string
+  email: string
+  first_name: string | null
+  last_name: string | null
+  full_name: string | null
+  phone: string | null
+  date_of_birth: string | null
+  created_at: string
+  updated_at: string
+  user_id: string | null
+}
 
 export interface Booking {
   id: string
@@ -19,6 +29,7 @@ export interface Booking {
     image_urls?: string[]
     location?: string
     image_url?: string
+    pickup_location?: string
   }
 }
 
@@ -33,6 +44,7 @@ export interface WishlistItem {
     image_url?: string
     b_price?: number
     location?: string
+    pickup_location?: string
   }
 }
 
@@ -142,7 +154,7 @@ const customerService = {
   async addToWishlist(userId: string, activityId: number) {
     const { data, error } = await supabase
       .from("wishlist")
-      .insert([{ customer_id: userId, activity_id: activityId }])
+      .insert({ customer_id: userId, activity_id: activityId })
       .select()
       .single()
 
