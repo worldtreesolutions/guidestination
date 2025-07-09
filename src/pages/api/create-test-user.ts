@@ -8,6 +8,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
+    // First, clean up any existing test user
+    const { data: existingUsers } = await supabase.auth.admin.listUsers()
+    const existingUser = existingUsers.users.find(u => u.email === "testcustomer@guidestination.com")
+    
+    if (existingUser) {
+      await supabase.auth.admin.deleteUser(existingUser.id)
+      // Also clean up profile data
+      await supabase.from("customer_profiles").delete().eq("email", "testcustomer@guidestination.com")
+    }
+
     // Create test user with Supabase Auth using admin client
     const { data: authData, error: authError } = await supabase.auth.admin.createUser({
       email: "testcustomer@guidestination.com",
@@ -28,26 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: "Failed to create user" })
     }
 
-    // Create customer entry
-    const { error: customerError } = await supabase
-      .from("customers")
-      .insert({
-        cus_id: authData.user.id,
-        email: "testcustomer@guidestination.com",
-        full_name: "John Doe",
-        phone: "+1234567890",
-        address: "123 Test Street, Test City",
-        last_login: new Date().toISOString(),
-        total_bookings: 0,
-        total_spent: 0.00,
-        is_active: true
-      })
-
-    if (customerError) {
-      console.error("Customer creation error:", customerError)
-    }
-
-    // Create customer profile
+    // Create customer profile (this is the correct table that exists)
     const { error: profileError } = await supabase
       .from("customer_profiles")
       .insert({
@@ -63,10 +54,43 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (profileError) {
       console.error("Profile creation error:", profileError)
+      return res.status(400).json({ error: profileError.message })
+    }
+
+    // Create some sample bookings for testing
+    const { data: activities } = await supabase
+      .from("activities")
+      .select("id")
+      .limit(3)
+
+    if (activities && activities.length > 0) {
+      const sampleBookings = activities.map((activity, index) => ({
+        customer_id: authData.user.id,
+        activity_id: activity.id,
+        customer_name: "John Doe",
+        customer_email: "testcustomer@guidestination.com",
+        customer_phone: "+1234567890",
+        booking_date: new Date(Date.now() + (index + 1) * 24 * 60 * 60 * 1000).toISOString(),
+        participants: index + 1,
+        total_amount: (index + 1) * 1500,
+        status: index === 0 ? "confirmed" : index === 1 ? "completed" : "pending"
+      }))
+
+      await supabase.from("bookings").insert(sampleBookings)
+    }
+
+    // Create some sample wishlist items
+    if (activities && activities.length > 1) {
+      const wishlistItems = activities.slice(0, 2).map(activity => ({
+        customer_id: authData.user.id,
+        activity_id: activity.id
+      }))
+
+      await supabase.from("wishlist").insert(wishlistItems)
     }
 
     res.status(200).json({ 
-      message: "Test user created successfully",
+      message: "Test user created successfully with sample data",
       user: authData.user,
       credentials: {
         email: "testcustomer@guidestination.com",
