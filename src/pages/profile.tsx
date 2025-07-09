@@ -63,6 +63,14 @@ export default function ProfilePage() {
     }
   }, [user, authLoading, router, fetchData])
 
+  // Handle tab navigation from URL query parameter
+  useEffect(() => {
+    const { tab } = router.query
+    if (tab && typeof tab === "string") {
+      setActiveTab(tab)
+    }
+  }, [router.query])
+
   const handleProfileSave = async (updates: Partial<CustomerProfile>) => {
     if (!user) return
     setActionLoading(true)

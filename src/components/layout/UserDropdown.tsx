@@ -1,4 +1,3 @@
-
 import { useState } from "react"
 import { useRouter } from "next/router"
 import { useAuth } from "@/contexts/AuthContext"
@@ -33,8 +32,8 @@ export default function UserDropdown() {
     }
   }
 
-  const navigateTo = (path: string) => {
-    router.push(path)
+  const navigateToTab = (tab: string) => {
+    router.push(`/profile?tab=${tab}`)
   }
 
   const getInitials = (email: string) => {
@@ -62,19 +61,19 @@ export default function UserDropdown() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => navigateTo("/profile")}>
+        <DropdownMenuItem onClick={() => navigateToTab("overview")}>
           <User className="mr-2 h-4 w-4" />
           <span>Profile</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => navigateTo("/profile?tab=bookings")}>
+        <DropdownMenuItem onClick={() => navigateToTab("bookings")}>
           <Calendar className="mr-2 h-4 w-4" />
           <span>My Bookings</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => navigateTo("/profile?tab=wishlist")}>
+        <DropdownMenuItem onClick={() => navigateToTab("wishlist")}>
           <Heart className="mr-2 h-4 w-4" />
           <span>Wishlist</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => navigateTo("/profile?tab=settings")}>
+        <DropdownMenuItem onClick={() => navigateToTab("settings")}>
           <Settings className="mr-2 h-4 w-4" />
           <span>Settings</span>
         </DropdownMenuItem>

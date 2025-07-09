@@ -17,34 +17,19 @@ export function Navbar() {
   const { t } = useLanguage()
   const isMobile = useIsMobile()
 
-  const handleSignOut = async () => {
-    await signOut()
-    router.push("/")
-  }
-
   return (
     <nav className="bg-white shadow-sm border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex items-center">
+        <div className="flex justify-between items-center h-16">
+          <div className="flex-1"></div>
+          
+          <div className="flex items-center justify-center">
             <Link href="/" className="flex-shrink-0 flex items-center">
               <span className="text-2xl font-bold text-blue-600">Guidestination</span>
             </Link>
           </div>
 
-          <div className="hidden md:flex items-center space-x-8">
-            <Link href="/" className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">
-              Home
-            </Link>
-            <Link href="/activities" className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">
-              Activities
-            </Link>
-            <Link href="/planning" className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">
-              Planning
-            </Link>
-          </div>
-
-          <div className="flex items-center space-x-4">
+          <div className="flex-1 flex items-center justify-end space-x-4">
             {isAuthenticated ? (
               <UserDropdown />
             ) : (
