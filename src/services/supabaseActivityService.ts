@@ -1,183 +1,260 @@
+import { supabase } from "@/integrations/supabase/client"
 
-import { supabase } from "@/integrations/supabase/client";
-import { Database, Tables, TablesInsert } from "@/integrations/supabase/types";
-
-export type SupabaseActivity = Tables<"activities"> & {
-  category_name?: string;
-  owner_email?: string;
-  media?: { url: string; type: "image" | "video" }[];
-  schedules?: any;
-  final_price?: number;
-  category?: string;
-  reviewCount?: number;
-  images?: string[];
-  includes_pickup?: boolean;
-  pickup_locations?: string;
-  includes_meal?: boolean;
-  meal_description?: string;
-  average_rating?: number;
-  videos?: string[];
-};
-
-const mapActivityData = (activity: any): SupabaseActivity | null => {
-    if (!activity) return null;
-
-    const newActivity = { ...activity };
-
-    if (newActivity.categories) {
-        newActivity.category_name = newActivity.categories.name;
-        newActivity.category = newActivity.categories.name;
-        delete newActivity.categories;
-    }
-    
-    newActivity.final_price = newActivity.price;
-    newActivity.reviewCount = newActivity.review_count;
-    newActivity.images = newActivity.image_urls;
-    newActivity.average_rating = newActivity.rating;
-    
-    newActivity.videos = newActivity.videos || [];
-    newActivity.includes_pickup = newActivity.includes_pickup || false;
-    newActivity.pickup_locations = newActivity.pickup_locations || "";
-    newActivity.includes_meal = newActivity.includes_meal || false;
-    newActivity.meal_description = newActivity.meal_description || "";
-    newActivity.schedules = newActivity.schedules || { availableDates: [] };
-
-    return newActivity as SupabaseActivity;
+export interface SupabaseActivity {
+  id: number
+  title: string
+  description: string | null
+  image_url: string | null
+  pickup_location: string | null
+  dropoff_location: string | null
+  discounts: number | null
+  max_participants: number | null
+  highlights: string | null
+  included: string | null
+  not_included: string | null
+  meeting_point: string | null
+  languages: string | null
+  is_active: boolean | null
+  created_at: string | null
+  updated_at: string | null
+  b_price: number | null
+  status: number | null
+  location_lat: number | null
+  location_lng: number | null
+  place_id: string | null
+  address: string | null
+  provider_id: string | null
+  final_price: number | null
+  video_url: string | null
+  video_duration: number | null
+  video_size: number | null
+  video_thumbnail_url: string | null
+  duration: string | null
+  min_age: number | null
+  max_age: number | null
+  activity_name: string | null
+  technical_skill_level: string | null
+  physical_effort_level: string | null
+  category: string | null
+  average_rating: number | null
+  review_count: number | null
+  includes_pickup: boolean | null
+  pickup_locations: string | null
+  includes_meal: boolean | null
+  meal_description: string | null
+  name: string | null
+  requires_approval: boolean
+  instant_booking: boolean | null
+  cancellation_policy: string | null
+  base_price_thb: number | null
+  currency_code: string | null
+  country_code: string | null
+  created_by: string | null
+  updated_by: string | null
+  meeting_point_place_id: string | null
+  meeting_point_lat: number | null
+  meeting_point_lng: number | null
+  meeting_point_formatted_address: string | null
+  dropoff_location_place_id: string | null
+  dropoff_location_lat: number | null
+  dropoff_location_lng: number | null
+  dropoff_location_formatted_address: string | null
+  pickup_location_place_id: string | null
+  pickup_location_lat: number | null
+  pickup_location_lng: number | null
+  pickup_location_formatted_address: string | null
+  // Add computed properties
+  location?: string
+  price?: number
+  rating?: number
+  activity_owners?: {
+    id: string
+    business_name: string
+    contact_email?: string
+    contact_phone?: string
+  }
+  schedule?: {
+    available_dates: string[]
+    start_time?: string
+    end_time?: string
+  }
 }
 
-export const supabaseActivityService = {
-  async getActivityById(id: string): Promise<SupabaseActivity | null> {
-    const activityId = parseInt(id, 10);
-    let query;
-    if (isNaN(activityId)) {
-      query = supabase
-        .from("activities")
-        .select(`*, categories (name)`)
-        .ilike("title", id.replace(/-/g, " "))
-        .limit(1)
-        .single();
-    } else {
-      query = supabase
-        .from("activities")
-        .select(`*, categories (name)`)
-        .eq("id", activityId)
-        .single();
-    }
+export interface ActivityForHomepage {
+  id: number
+  title: string
+  image_url: string | null
+  price: number
+  location: string | null
+  rating?: number
+  review_count?: number
+  category?: string
+}
 
-    const { data, error } = await query;
+const supabaseActivityService = {
+  async getActivityById(id: number): Promise<SupabaseActivity | null> {
+    const { data, error } = await supabase
+      .from("activities")
+      .select(`
+        *,
+        activity_owners (
+          id,
+          business_name,
+          email,
+          phone
+        )
+      `)
+      .eq("id", id)
+      .single()
 
     if (error) {
-      console.error("Error fetching activity:", error);
-      return null;
+      console.error("Error fetching activity:", error)
+      return null
     }
-    
-    return mapActivityData(data);
+
+    // Transform the data to match our interface
+    const activity: SupabaseActivity = {
+      ...data,
+      location: data.address || data.pickup_location,
+      price: data.b_price,
+      rating: data.average_rating,
+      activity_owners: data.activity_owners ? {
+        id: data.activity_owners.id,
+        business_name: data.activity_owners.business_name,
+        contact_email: data.activity_owners.email,
+        contact_phone: data.activity_owners.phone
+      } : undefined,
+      // Parse JSON fields
+      highlights: data.highlights ? (typeof data.highlights === 'string' ? data.highlights.split(',') : data.highlights) : null,
+      included: data.included ? (typeof data.included === 'string' ? data.included.split(',') : data.included) : null,
+      not_included: data.not_included ? (typeof data.not_included === 'string' ? data.not_included.split(',') : data.not_included) : null,
+      languages: data.languages ? (typeof data.languages === 'string' ? data.languages.split(',') : data.languages) : null,
+    }
+
+    return activity
   },
 
   async getActivityBySlug(slug: string): Promise<SupabaseActivity | null> {
-    return this.getActivityById(slug);
+    // For now, treat slug as ID since we don't have slug field
+    const id = parseInt(slug)
+    if (isNaN(id)) return null
+    return this.getActivityById(id)
   },
 
-  async getActivityMedia(activityId: number) {
-    return []; 
-  },
-
-  async getActivitySchedules(activityId: number) {
-    return [];
-  },
-
-  async getFeaturedActivities(): Promise<SupabaseActivity[]> {
+  async getFeaturedActivities(limit: number = 4): Promise<ActivityForHomepage[]> {
     const { data, error } = await supabase
       .from("activities")
-      .select("*, categories(name)")
+      .select("*")
       .eq("is_active", true)
-      .limit(6);
+      .order("average_rating", { ascending: false })
+      .limit(limit)
 
     if (error) {
-      console.error("Error fetching featured activities:", error);
-      return [];
+      console.error("Error fetching featured activities:", error)
+      return []
     }
-    
-    return data.map(d => mapActivityData(d)!).filter(d => d !== null);
+
+    return this.convertToHomepageFormat(data)
   },
 
-  async getActivitiesByCategory(categoryId: number): Promise<SupabaseActivity[]> {
+  async getRecommendedActivities(limit: number = 8): Promise<ActivityForHomepage[]> {
     const { data, error } = await supabase
       .from("activities")
-      .select("*, categories(name)")
-      .eq("category_id", categoryId)
-      .eq("is_active", true);
+      .select("*")
+      .eq("is_active", true)
+      .order("review_count", { ascending: false })
+      .limit(limit)
 
     if (error) {
-      console.error("Error fetching activities by category:", error);
-      return [];
+      console.error("Error fetching recommended activities:", error)
+      return []
     }
-    
-    return data.map(d => mapActivityData(d)!).filter(d => d !== null);
+
+    return this.convertToHomepageFormat(data)
+  },
+
+  async getActivitiesByCategory(categoryName: string): Promise<SupabaseActivity[]> {
+    const { data, error } = await supabase
+      .from("activities")
+      .select("*")
+      .eq("is_active", true)
+      .eq("category", categoryName)
+      .limit(10)
+
+    if (error) {
+      console.error("Error fetching activities by category:", error)
+      return []
+    }
+
+    return data.map(activity => ({
+      ...activity,
+      location: activity.address || activity.pickup_location,
+      price: activity.b_price,
+      rating: activity.average_rating,
+      highlights: activity.highlights ? (typeof activity.highlights === 'string' ? activity.highlights.split(',') : activity.highlights) : null,
+      included: activity.included ? (typeof activity.included === 'string' ? activity.included.split(',') : activity.included) : null,
+      not_included: activity.not_included ? (typeof activity.not_included === 'string' ? activity.not_included.split(',') : activity.not_included) : null,
+      languages: activity.languages ? (typeof activity.languages === 'string' ? activity.languages.split(',') : activity.languages) : null,
+    }))
+  },
+
+  convertToHomepageFormat(activities: any[]): ActivityForHomepage[] {
+    return activities.map(activity => ({
+      id: activity.id,
+      title: activity.title,
+      image_url: activity.image_url,
+      price: activity.b_price || 0,
+      location: activity.address || activity.pickup_location,
+      rating: activity.average_rating,
+      review_count: activity.review_count,
+      category: activity.category
+    }))
   },
 
   async searchActivities(query: string): Promise<SupabaseActivity[]> {
     const { data, error } = await supabase
       .from("activities")
-      .select("*, categories(name)")
-      .textSearch("title", query, { type: "websearch" })
-      .eq("is_active", true);
+      .select("*")
+      .eq("is_active", true)
+      .or(`title.ilike.%${query}%,description.ilike.%${query}%,category.ilike.%${query}%`)
+      .limit(20)
 
     if (error) {
-      console.error("Error searching activities:", error);
-      return [];
+      console.error("Error searching activities:", error)
+      return []
     }
-    
-    return data.map(d => mapActivityData(d)!).filter(d => d !== null);
-  },
 
-  async createBooking(bookingData: TablesInsert<'bookings'>) {
-    const { data, error } = await supabase
-      .from("bookings")
-      .insert(bookingData)
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Error creating booking:", error);
-      throw new Error("Could not create booking.");
-    }
-    return data;
-  },
-
-  async getActivityReviews(activityId: number) {
-    const { data, error } = await supabase
-      .from("reviews")
-      .select(`
-        *,
-        customer_profiles ( name )
-      `)
-      .eq("activity_id", activityId);
-
-    if (error) {
-      console.error("Error fetching reviews:", error);
-      return [];
-    }
-    return data;
+    return data.map(activity => ({
+      ...activity,
+      location: activity.address || activity.pickup_location,
+      price: activity.b_price,
+      rating: activity.average_rating,
+      highlights: activity.highlights ? (typeof activity.highlights === 'string' ? activity.highlights.split(',') : activity.highlights) : null,
+      included: activity.included ? (typeof activity.included === 'string' ? activity.included.split(',') : activity.included) : null,
+      not_included: activity.not_included ? (typeof activity.not_included === 'string' ? activity.not_included.split(',') : activity.not_included) : null,
+      languages: activity.languages ? (typeof activity.languages === 'string' ? activity.languages.split(',') : activity.languages) : null,
+    }))
   },
 
   async addReview(reviewData: {
-    activity_id: number;
-    user_id: string;
-    rating: number;
-    comment: string;
+    activity_id: number
+    user_id: string
+    rating: number
+    comment?: string
   }) {
     const { data, error } = await supabase
       .from("reviews")
       .insert(reviewData)
       .select()
-      .single();
+      .single()
 
     if (error) {
-      console.error("Error adding review:", error);
-      throw new Error("Could not add review.");
+      console.error("Error adding review:", error)
+      throw error
     }
-    return data;
-  },
-};
-  
+
+    return data
+  }
+}
+
+export { supabaseActivityService }

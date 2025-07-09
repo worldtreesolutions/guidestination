@@ -30,7 +30,7 @@ export default function ChatModal({ isOpen, onClose, activity, currentUser }: Ch
   }
 
   const loadMessages = useCallback(async () => {
-    if (!currentUser || !activity.activity_owners) return
+    if (!currentUser || !activity.activity_owners?.id) return
     
     setLoading(true)
     try {
@@ -53,7 +53,7 @@ export default function ChatModal({ isOpen, onClose, activity, currentUser }: Ch
   }, [currentUser, activity, toast])
 
   useEffect(() => {
-    if (isOpen && currentUser && activity.activity_owners) {
+    if (isOpen && currentUser && activity.activity_owners?.id) {
       loadMessages()
     }
   }, [isOpen, currentUser, activity, loadMessages])
@@ -64,7 +64,7 @@ export default function ChatModal({ isOpen, onClose, activity, currentUser }: Ch
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newMessage.trim() || !currentUser || !activity.activity_owners) return
+    if (!newMessage.trim() || !currentUser || !activity.activity_owners?.id) return
 
     setSending(true)
     try {
@@ -90,14 +90,16 @@ export default function ChatModal({ isOpen, onClose, activity, currentUser }: Ch
     }
   }
 
-  const formatTime = (timestamp: string) => {
+  const formatTime = (timestamp: string | null) => {
+    if (!timestamp) return ""
     return new Date(timestamp).toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit"
     })
   }
 
-  const formatDate = (timestamp: string) => {
+  const formatDate = (timestamp: string | null) => {
+    if (!timestamp) return ""
     const date = new Date(timestamp)
     const today = new Date()
     const yesterday = new Date(today)
@@ -126,7 +128,7 @@ export default function ChatModal({ isOpen, onClose, activity, currentUser }: Ch
             Chat about {activity.title}
           </DialogTitle>
           <DialogDescription>
-            {activity.activity_owners ? 
+            {activity.activity_owners?.business_name ? 
               `Chat with ${activity.activity_owners.business_name}` : 
               "Chat with activity owner"
             }
@@ -142,7 +144,7 @@ export default function ChatModal({ isOpen, onClose, activity, currentUser }: Ch
               </div>
               <div className="flex-1">
                 <h4 className="font-medium">{activity.title}</h4>
-                <p className="text-sm text-gray-600">฿{activity.b_price.toLocaleString()}</p>
+                <p className="text-sm text-gray-600">฿{(activity.b_price || 0).toLocaleString()}</p>
               </div>
               <Badge variant="secondary">{activity.category}</Badge>
             </div>
@@ -166,7 +168,7 @@ export default function ChatModal({ isOpen, onClose, activity, currentUser }: Ch
               {messages.map((message, index) => {
                 const isCurrentUser = message.sender_id === currentUser.id
                 const showDate = index === 0 || 
-                  formatDate(message.created_at) !== formatDate(messages[index - 1].created_at)
+                  formatDate(message.created_at) !== formatDate(messages[index - 1]?.created_at)
 
                 return (
                   <div key={message.id}>

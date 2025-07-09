@@ -177,7 +177,7 @@ export default function ActivityDetailPage() {
     <>
       <Head>
         <title>{activity.title} - Guidestination</title>
-        <meta name="description" content={activity.description} />
+        <meta name="description" content={activity.description || ""} />
       </Head>
 
       <Navbar />
@@ -202,15 +202,15 @@ export default function ActivityDetailPage() {
                   <div className="flex items-center gap-4 text-gray-600 mb-4">
                     <div className="flex items-center gap-1">
                       <MapPin className="h-4 w-4" />
-                      <span>{activity.location || activity.pickup_location}</span>
+                      <span>{activity.location || activity.pickup_location || "Location TBD"}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <Clock className="h-4 w-4" />
-                      <span>{activity.duration}</span>
+                      <span>{activity.duration || "Duration TBD"}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <Users className="h-4 w-4" />
-                      <span>Max {activity.max_participants} participants</span>
+                      <span>Max {activity.max_participants || "N/A"} participants</span>
                     </div>
                     {activity.rating && (
                       <div className="flex items-center gap-1">
@@ -223,13 +223,13 @@ export default function ActivityDetailPage() {
                     )}
                   </div>
                   <Badge variant="secondary" className="mb-4">
-                    {activity.category}
+                    {activity.category || "General"}
                   </Badge>
                 </div>
                 
                 <div className="text-right">
                   <div className="text-3xl font-bold text-blue-600 mb-4">
-                    ฿{activity.b_price.toLocaleString()}
+                    ฿{(activity.b_price || 0).toLocaleString()}
                   </div>
                   <div className="flex gap-2">
                     <Button
@@ -275,11 +275,11 @@ export default function ActivityDetailPage() {
                   <CardTitle>Description</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-700 leading-relaxed">{activity.description}</p>
+                  <p className="text-gray-700 leading-relaxed">{activity.description || "No description available."}</p>
                 </CardContent>
               </Card>
 
-              {activity.highlights && activity.highlights.length > 0 && (
+              {activity.highlights && Array.isArray(activity.highlights) && activity.highlights.length > 0 && (
                 <Card>
                   <CardHeader>
                     <CardTitle>Highlights</CardTitle>
@@ -304,7 +304,7 @@ export default function ActivityDetailPage() {
 
             <TabsContent value="details" className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {activity.included && activity.included.length > 0 && (
+                {activity.included && Array.isArray(activity.included) && activity.included.length > 0 && (
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-green-600">What's Included</CardTitle>
@@ -322,7 +322,7 @@ export default function ActivityDetailPage() {
                   </Card>
                 )}
 
-                {activity.not_included && activity.not_included.length > 0 && (
+                {activity.not_included && Array.isArray(activity.not_included) && activity.not_included.length > 0 && (
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-red-600">What's Not Included</CardTitle>
@@ -348,13 +348,13 @@ export default function ActivityDetailPage() {
                 <CardContent className="space-y-4">
                   <div>
                     <h4 className="font-medium mb-2">Meeting Point</h4>
-                    <p className="text-gray-600">{activity.meeting_point}</p>
+                    <p className="text-gray-600">{activity.meeting_point || "To be confirmed"}</p>
                   </div>
                   
                   {activity.includes_pickup && (
                     <div>
                       <h4 className="font-medium mb-2">Pickup Information</h4>
-                      <p className="text-gray-600">{activity.pickup_location}</p>
+                      <p className="text-gray-600">{activity.pickup_location || "Pickup details to be confirmed"}</p>
                     </div>
                   )}
 
@@ -365,14 +365,16 @@ export default function ActivityDetailPage() {
                     </div>
                   )}
 
-                  <div>
-                    <h4 className="font-medium mb-2">Languages</h4>
-                    <div className="flex gap-2">
-                      {activity.languages.map((language: string, index: number) => (
-                        <Badge key={index} variant="outline">{language}</Badge>
-                      ))}
+                  {activity.languages && Array.isArray(activity.languages) && (
+                    <div>
+                      <h4 className="font-medium mb-2">Languages</h4>
+                      <div className="flex gap-2">
+                        {activity.languages.map((language: string, index: number) => (
+                          <Badge key={index} variant="outline">{language}</Badge>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
@@ -394,10 +396,12 @@ export default function ActivityDetailPage() {
                       </div>
                       
                       <div className="flex gap-4">
-                        <div className="flex items-center gap-2">
-                          <Mail className="h-4 w-4 text-blue-600" />
-                          <span className="text-gray-600">{activity.activity_owners.contact_email}</span>
-                        </div>
+                        {activity.activity_owners.contact_email && (
+                          <div className="flex items-center gap-2">
+                            <Mail className="h-4 w-4 text-blue-600" />
+                            <span className="text-gray-600">{activity.activity_owners.contact_email}</span>
+                          </div>
+                        )}
                         
                         {activity.activity_owners.contact_phone && (
                           <div className="flex items-center gap-2">
