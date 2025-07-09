@@ -229,7 +229,7 @@ export default function ActivityDetailPage() {
                 
                 <div className="text-right">
                   <div className="text-3xl font-bold text-blue-600 mb-4">
-                    ฿{(activity.b_price || 0).toLocaleString()}
+                    ฿{(activity.price || 0).toLocaleString()}
                   </div>
                   <div className="flex gap-2">
                     <Button

@@ -144,7 +144,7 @@ export default function ChatModal({ isOpen, onClose, activity, currentUser }: Ch
               </div>
               <div className="flex-1">
                 <h4 className="font-medium">{activity.title}</h4>
-                <p className="text-sm text-gray-600">฿{(activity.b_price || 0).toLocaleString()}</p>
+                <p className="text-sm text-gray-600">฿{(activity.price || 0).toLocaleString()}</p>
               </div>
               <Badge variant="secondary">{activity.category}</Badge>
             </div>

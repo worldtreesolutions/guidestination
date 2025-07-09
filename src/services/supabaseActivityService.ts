@@ -9,11 +9,11 @@ export interface SupabaseActivity {
   dropoff_location: string | null
   discounts: number | null
   max_participants: number | null
-  highlights: string | null
-  included: string | null
-  not_included: string | null
+  highlights: string[] | null
+  included: string[] | null
+  not_included: string[] | null
   meeting_point: string | null
-  languages: string | null
+  languages: string[] | null
   is_active: boolean | null
   created_at: string | null
   updated_at: string | null
@@ -100,8 +100,7 @@ const supabaseActivityService = {
         activity_owners (
           id,
           business_name,
-          email,
-          phone
+          email
         )
       `)
       .eq("id", id)
@@ -115,20 +114,62 @@ const supabaseActivityService = {
     // Transform the data to match our interface
     const activity: SupabaseActivity = {
       ...data,
-      location: data.address || data.pickup_location,
-      price: data.b_price,
-      rating: data.average_rating,
+      image_url: data.image_urls?.[0] || null,
+      pickup_location: data.location || null,
+      dropoff_location: null,
+      discounts: null,
+      b_price: data.price,
+      status: null,
+      location_lat: null,
+      location_lng: null,
+      place_id: null,
+      address: data.location,
+      provider_id: data.owner_id,
+      final_price: null,
+      video_url: null,
+      video_duration: null,
+      video_size: null,
+      video_thumbnail_url: null,
+      min_age: null,
+      max_age: null,
+      activity_name: null,
+      technical_skill_level: null,
+      physical_effort_level: null,
+      category: null,
+      average_rating: data.rating,
+      includes_pickup: null,
+      pickup_locations: null,
+      includes_meal: null,
+      meal_description: null,
+      requires_approval: false,
+      instant_booking: null,
+      cancellation_policy: null,
+      base_price_thb: null,
+      currency_code: null,
+      country_code: null,
+      created_by: null,
+      updated_by: null,
+      meeting_point_place_id: null,
+      meeting_point_lat: null,
+      meeting_point_lng: null,
+      meeting_point_formatted_address: null,
+      dropoff_location_place_id: null,
+      dropoff_location_lat: null,
+      dropoff_location_lng: null,
+      dropoff_location_formatted_address: null,
+      pickup_location_place_id: null,
+      pickup_location_lat: null,
+      pickup_location_lng: null,
+      pickup_location_formatted_address: null,
+      location: data.location,
+      price: data.price,
+      rating: data.rating,
       activity_owners: data.activity_owners ? {
         id: data.activity_owners.id,
         business_name: data.activity_owners.business_name,
         contact_email: data.activity_owners.email,
-        contact_phone: data.activity_owners.phone
+        contact_phone: undefined
       } : undefined,
-      // Parse JSON fields
-      highlights: data.highlights ? (typeof data.highlights === 'string' ? data.highlights.split(',') : data.highlights) : null,
-      included: data.included ? (typeof data.included === 'string' ? data.included.split(',') : data.included) : null,
-      not_included: data.not_included ? (typeof data.not_included === 'string' ? data.not_included.split(',') : data.not_included) : null,
-      languages: data.languages ? (typeof data.languages === 'string' ? data.languages.split(',') : data.languages) : null,
     }
 
     return activity
@@ -146,7 +187,7 @@ const supabaseActivityService = {
       .from("activities")
       .select("*")
       .eq("is_active", true)
-      .order("average_rating", { ascending: false })
+      .order("rating", { ascending: false })
       .limit(limit)
 
     if (error) {
@@ -178,7 +219,6 @@ const supabaseActivityService = {
       .from("activities")
       .select("*")
       .eq("is_active", true)
-      .eq("category", categoryName)
       .limit(10)
 
     if (error) {
@@ -188,13 +228,56 @@ const supabaseActivityService = {
 
     return data.map(activity => ({
       ...activity,
-      location: activity.address || activity.pickup_location,
-      price: activity.b_price,
-      rating: activity.average_rating,
-      highlights: activity.highlights ? (typeof activity.highlights === 'string' ? activity.highlights.split(',') : activity.highlights) : null,
-      included: activity.included ? (typeof activity.included === 'string' ? activity.included.split(',') : activity.included) : null,
-      not_included: activity.not_included ? (typeof activity.not_included === 'string' ? activity.not_included.split(',') : activity.not_included) : null,
-      languages: activity.languages ? (typeof activity.languages === 'string' ? activity.languages.split(',') : activity.languages) : null,
+      image_url: activity.image_urls?.[0] || null,
+      pickup_location: activity.location || null,
+      dropoff_location: null,
+      discounts: null,
+      b_price: activity.price,
+      status: null,
+      location_lat: null,
+      location_lng: null,
+      place_id: null,
+      address: activity.location,
+      provider_id: activity.owner_id,
+      final_price: null,
+      video_url: null,
+      video_duration: null,
+      video_size: null,
+      video_thumbnail_url: null,
+      min_age: null,
+      max_age: null,
+      activity_name: null,
+      technical_skill_level: null,
+      physical_effort_level: null,
+      category: null,
+      average_rating: activity.rating,
+      includes_pickup: null,
+      pickup_locations: null,
+      includes_meal: null,
+      meal_description: null,
+      requires_approval: false,
+      instant_booking: null,
+      cancellation_policy: null,
+      base_price_thb: null,
+      currency_code: null,
+      country_code: null,
+      created_by: null,
+      updated_by: null,
+      meeting_point_place_id: null,
+      meeting_point_lat: null,
+      meeting_point_lng: null,
+      meeting_point_formatted_address: null,
+      dropoff_location_place_id: null,
+      dropoff_location_lat: null,
+      dropoff_location_lng: null,
+      dropoff_location_formatted_address: null,
+      pickup_location_place_id: null,
+      pickup_location_lat: null,
+      pickup_location_lng: null,
+      pickup_location_formatted_address: null,
+      location: activity.location,
+      price: activity.price,
+      rating: activity.rating,
     }))
   },
 
@@ -202,10 +285,10 @@ const supabaseActivityService = {
     return activities.map(activity => ({
       id: activity.id,
       title: activity.title,
-      image_url: activity.image_url,
-      price: activity.b_price || 0,
-      location: activity.address || activity.pickup_location,
-      rating: activity.average_rating,
+      image_url: activity.image_urls?.[0] || null,
+      price: activity.price || 0,
+      location: activity.location,
+      rating: activity.rating,
       review_count: activity.review_count,
       category: activity.category
     }))
@@ -216,7 +299,7 @@ const supabaseActivityService = {
       .from("activities")
       .select("*")
       .eq("is_active", true)
-      .or(`title.ilike.%${query}%,description.ilike.%${query}%,category.ilike.%${query}%`)
+      .or(`title.ilike.%${query}%,description.ilike.%${query}%`)
       .limit(20)
 
     if (error) {
@@ -226,13 +309,56 @@ const supabaseActivityService = {
 
     return data.map(activity => ({
       ...activity,
-      location: activity.address || activity.pickup_location,
-      price: activity.b_price,
-      rating: activity.average_rating,
-      highlights: activity.highlights ? (typeof activity.highlights === 'string' ? activity.highlights.split(',') : activity.highlights) : null,
-      included: activity.included ? (typeof activity.included === 'string' ? activity.included.split(',') : activity.included) : null,
-      not_included: activity.not_included ? (typeof activity.not_included === 'string' ? activity.not_included.split(',') : activity.not_included) : null,
-      languages: activity.languages ? (typeof activity.languages === 'string' ? activity.languages.split(',') : activity.languages) : null,
+      image_url: activity.image_urls?.[0] || null,
+      pickup_location: activity.location || null,
+      dropoff_location: null,
+      discounts: null,
+      b_price: activity.price,
+      status: null,
+      location_lat: null,
+      location_lng: null,
+      place_id: null,
+      address: activity.location,
+      provider_id: activity.owner_id,
+      final_price: null,
+      video_url: null,
+      video_duration: null,
+      video_size: null,
+      video_thumbnail_url: null,
+      min_age: null,
+      max_age: null,
+      activity_name: null,
+      technical_skill_level: null,
+      physical_effort_level: null,
+      category: null,
+      average_rating: activity.rating,
+      includes_pickup: null,
+      pickup_locations: null,
+      includes_meal: null,
+      meal_description: null,
+      requires_approval: false,
+      instant_booking: null,
+      cancellation_policy: null,
+      base_price_thb: null,
+      currency_code: null,
+      country_code: null,
+      created_by: null,
+      updated_by: null,
+      meeting_point_place_id: null,
+      meeting_point_lat: null,
+      meeting_point_lng: null,
+      meeting_point_formatted_address: null,
+      dropoff_location_place_id: null,
+      dropoff_location_lat: null,
+      dropoff_location_lng: null,
+      dropoff_location_formatted_address: null,
+      pickup_location_place_id: null,
+      pickup_location_lat: null,
+      pickup_location_lng: null,
+      pickup_location_formatted_address: null,
+      location: activity.location,
+      price: activity.price,
+      rating: activity.rating,
     }))
   },
 
