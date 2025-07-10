@@ -1,3 +1,4 @@
+
 export interface SupabaseActivity {
   id: number;
   title: string;
@@ -5,7 +6,6 @@ export interface SupabaseActivity {
   description: string | null;
   price: number | null;
   location: string | null;
-  image_url: string[] | null;
   image_urls: string[] | null;
   category_id: number;
   owner_id: string;
@@ -62,3 +62,15 @@ export interface SupabaseBooking {
   platformFee: number;
   totalAmount: number;
 }
+
+export interface ActivityForHomepage {
+  id: number;
+  title: string;
+  image_url: string | null;
+  price: number;
+  location: string | null;
+  rating: number | null;
+  review_count: number | null;
+  category_name: string | null;
+}
+  
