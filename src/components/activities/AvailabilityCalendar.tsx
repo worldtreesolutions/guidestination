@@ -1,3 +1,4 @@
+
 import { useState } from "react"
 import { Calendar } from "@/components/ui/calendar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -29,15 +30,22 @@ export function AvailabilityCalendar({
 }: AvailabilityCalendarProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date())
 
-  // Convert string dates to Date objects
-  const availableDateObjects = availableDates.map(dateStr => new Date(dateStr))
+  // Convert string dates to Date objects, ensuring UTC parsing
+  const availableDateObjects = availableDates.map(dateStr => {
+    const [year, month, day] = dateStr.split('-').map(Number);
+    return new Date(Date.UTC(year, month - 1, day));
+  });
 
-  // Check if a date is available
+  // Check if a date is available by comparing year, month, and day
   const isDateAvailable = (date: Date) => {
+    // The date from the calendar is in local time. We compare its components
+    // with the UTC components of our available dates.
     return availableDateObjects.some(availableDate => 
-      availableDate.toDateString() === date.toDateString()
-    )
-  }
+      availableDate.getUTCFullYear() === date.getFullYear() &&
+      availableDate.getUTCMonth() === date.getMonth() &&
+      availableDate.getUTCDate() === date.getDate()
+    );
+  };
 
   // Disable dates that are not available or in the past
   const disabledDates = (date: Date) => {
@@ -51,7 +59,12 @@ export function AvailabilityCalendar({
   const getSelectedDateSchedule = () => {
     if (!selectedDate) return null
     
-    const dateStr = selectedDate.toISOString().split('T')[0]
+    // Format selectedDate to YYYY-MM-DD to match scheduleData date format
+    const year = selectedDate.getFullYear();
+    const month = (selectedDate.getMonth() + 1).toString().padStart(2, '0');
+    const day = selectedDate.getDate().toString().padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
+    
     return scheduleData.find(schedule => schedule.date === dateStr)
   }
 

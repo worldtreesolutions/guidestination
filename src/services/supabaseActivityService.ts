@@ -462,7 +462,6 @@ export const supabaseActivityService = {
       price: data.price || 0,
       duration: data.duration,
       max_participants: data.max_participants || 10,
-      min_participants: data.min_participants || 1,
       location: data.location || '',
       meeting_point: data.meeting_point || '',
       category_id: data.category_id,
