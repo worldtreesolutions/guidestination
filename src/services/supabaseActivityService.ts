@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client"
 import { SupabaseActivity, ActivityForHomepage, Booking, Earning } from "@/types/activity"
 
