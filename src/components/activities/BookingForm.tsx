@@ -11,8 +11,11 @@ import {
 } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast"
-import { SupabaseActivity } from "@/services/supabaseActivityService"
+import { SupabaseActivity } from "@/types/activity"
 import { Users, Minus, Plus } from "lucide-react"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form"
+import * as z from "zod"
 
 interface BookingFormProps {
   activity: SupabaseActivity;
@@ -21,8 +24,16 @@ interface BookingFormProps {
   onParticipantsChange: (participants: number) => void;
 }
 
+const bookingSchema = z.object({
+  participants: z.number().min(1, "At least one participant is required."),
+})
+
 export function BookingForm({ activity, selectedDate, participants, onParticipantsChange }: BookingFormProps) {
   const { toast } = useToast()
+  const { register, handleSubmit } = useForm({
+    defaultValues: { participants },
+    resolver: zodResolver(bookingSchema),
+  })
 
   const handleBooking = () => {
     if (!selectedDate) {

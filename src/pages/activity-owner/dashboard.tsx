@@ -9,7 +9,7 @@ import { DashboardHeader } from "@/components/activity-owner/dashboard/Dashboard
 import { EarningsChart } from "@/components/activity-owner/dashboard/EarningsChart"
 import { RecentBookings } from "@/components/activity-owner/dashboard/RecentBookings"
 import { ActivityList } from "@/components/activity-owner/dashboard/ActivityList"
-import { fetchActivitiesByOwner, fetchRecentBookingsForOwner } from "@/services/supabaseActivityService"
+import { fetchActivitiesByOwner, fetchRecentBookingsForOwner, fetchEarningsForOwner, deleteActivity } from "@/services/supabaseActivityService"
 import { SupabaseActivity, SupabaseBooking } from "@/types/activity"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast"
@@ -34,7 +34,7 @@ export default function DashboardPage() {
     pending: 0
   })
   const [loading, setLoading] = useState(true)
-  const [activityToDelete, setActivityToDelete] = useState<string | null>(null)
+  const [activityToDelete, setActivityToDelete] = useState<number | null>(null)
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -49,7 +49,7 @@ export default function DashboardPage() {
         const [activitiesData, bookingsData, earningsData] = await Promise.all([
           fetchActivitiesByOwner(user.id),
           fetchRecentBookingsForOwner(user.id),
-          activityService.getProviderEarnings(user.id)
+          fetchEarningsForOwner(user.id)
         ])
         
         setActivities(activitiesData)
@@ -74,7 +74,7 @@ export default function DashboardPage() {
     if (!activityToDelete) return
     
     try {
-      await activityService.deleteActivity(activityToDelete)
+      await deleteActivity(activityToDelete)
       setActivities(activities.filter(activity => activity.id !== activityToDelete))
       toast({
         title: t("form.success.title") || "Activity deleted",

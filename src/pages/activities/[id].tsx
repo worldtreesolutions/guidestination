@@ -22,13 +22,16 @@ import {
   Phone,
   Mail
 } from "lucide-react"
-import { supabaseActivityService, SupabaseActivity } from "@/services/supabaseActivityService"
+import { supabaseActivityService } from "@/services/supabaseActivityService"
+import { SupabaseActivity } from "@/types/activity"
 import customerService from "@/services/customerService"
 import Image from "next/image"
 import ActivitySchedule from "@/components/activities/ActivitySchedule"
 import ChatModal from "@/components/activities/ChatModal"
+import { ActivityReviews } from "@/components/activities/ActivityReviews"
+import { useIsMobile } from "@/hooks/use-mobile"
 
-export default function ActivityDetailPage() {
+export default function ActivityPage() {
   const router = useRouter()
   const { id } = router.query
   const { user, isAuthenticated } = useAuth()
@@ -40,14 +43,12 @@ export default function ActivityDetailPage() {
   const [wishlistLoading, setWishlistLoading] = useState(false)
   const [isChatOpen, setIsChatOpen] = useState(false)
 
-  const fetchActivity = useCallback(async (activityId: number) => {
+  const fetchActivity = async () => {
+    if (!id || typeof id !== "string") return
+    
     try {
       setLoading(true)
-      const activityData = await supabaseActivityService.getActivityById(activityId)
-      if (!activityData) {
-        router.push("/404")
-        return
-      }
+      const activityData = await supabaseActivityService.getActivityById(id)
       setActivity(activityData)
     } catch (error) {
       console.error("Error fetching activity:", error)
@@ -59,12 +60,10 @@ export default function ActivityDetailPage() {
     } finally {
       setLoading(false)
     }
-  }, [router, toast])
+  }
 
   useEffect(() => {
-    if (id && typeof id === "string") {
-      fetchActivity(parseInt(id))
-    }
+    fetchActivity()
   }, [id, fetchActivity])
 
   const checkWishlistStatus = useCallback(async () => {
@@ -435,6 +434,8 @@ export default function ActivityDetailPage() {
           currentUser={user}
         />
       )}
+
+      <ActivityReviews activity={activity} />
 
       <Footer />
     </>

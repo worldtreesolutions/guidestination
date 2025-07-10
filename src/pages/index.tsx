@@ -2,12 +2,14 @@ import Head from "next/head"
 import { useState, useEffect } from "react"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
+import { CategoryNav } from "@/components/home/CategoryNav"
 import { ActivityRow } from "@/components/home/ActivityRow"
 import { SearchBar } from "@/components/home/SearchBar"
 import { CategorySection } from "@/components/home/CategorySection"
 import { BottomActionButtons } from "@/components/layout/BottomActionButtons"
 import { FloatingCart } from "@/components/layout/FloatingCart"
-import { supabaseActivityService, ActivityForHomepage } from "@/services/supabaseActivityService"
+import { supabaseActivityService } from "@/services/supabaseActivityService"
+import { ActivityForHomepage } from "@/types/activity"
 
 const mockCategories = [
   { id: 1, name: "Adventure" },
@@ -18,6 +20,13 @@ const mockCategories = [
   { id: 6, name: "Wellness" },
   { id: 7, name: "Workshop" }
 ]
+
+interface HomeProps {
+  featuredActivities: ActivityForHomepage[];
+  recommendedActivities: ActivityForHomepage[];
+  categoryActivities: { [key: string]: ActivityForHomepage[] };
+  loading: boolean;
+}
 
 export default function HomePage() {
   const [featuredActivities, setFeaturedActivities] = useState<ActivityForHomepage[]>([])

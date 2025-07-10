@@ -57,7 +57,7 @@ export interface SupabaseBooking {
   customerName: string;
   customerEmail: string;
   date: string;
-  time: string;
+  bookingTime: string;
   providerAmount: number;
   platformFee: number;
   totalAmount: number;

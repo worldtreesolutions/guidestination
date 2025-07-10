@@ -30,7 +30,8 @@ import { AvailabilityCalendar } from "@/components/activities/AvailabilityCalend
 import { BookingForm } from "@/components/activities/BookingForm"
 import { ActivityReviews } from "@/components/activities/ActivityReviews"
 import { useIsMobile } from "@/hooks/use-mobile"
-import { supabaseActivityService, SupabaseActivity } from "@/services/supabaseActivityService"
+import { supabaseActivityService } from "@/services/supabaseActivityService"
+import { SupabaseActivity } from "@/types/activity"
 
 export default function ActivityPage() {
   const router = useRouter()
@@ -126,14 +127,14 @@ export default function ActivityPage() {
             <div className="mb-6">
               <div className="flex items-center gap-2 mb-4">
                 <Badge variant="secondary" className="capitalize">
-                  {activity.category}
+                  {activity.category_name}
                 </Badge>
                 {activity.rating && (
                   <div className="flex items-center gap-1">
                     <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                     <span className="font-medium">{activity.rating}</span>
                     <span className="text-muted-foreground">
-                      ({activity.reviewCount} reviews)
+                      ({activity.review_count} reviews)
                     </span>
                   </div>
                 )}

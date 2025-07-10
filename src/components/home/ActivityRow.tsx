@@ -4,7 +4,7 @@ import { ActivityCard } from "./ActivityCard";
 import { useRef } from "react";
 import { SupabaseActivity } from "@/services/supabaseActivityService";
 import Link from "next/link"
-import { ActivityForHomepage } from "@/services/supabaseActivityService"
+import { ActivityForHomepage } from "@/types/activity"
 
 interface ActivityRowProps {
   title: string

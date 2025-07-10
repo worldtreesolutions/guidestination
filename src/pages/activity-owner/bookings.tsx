@@ -2,8 +2,7 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/router"
 import Head from "next/head"
 import { useAuth } from "@/contexts/AuthContext"
-import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout" // Add DashboardLayout import
-import { activityService, Booking } from "@/services/activityService"
+import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout" 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -218,7 +217,7 @@ function BookingTable({ bookings, getStatusColor }: BookingTableProps) {
                 </TableCell>
                 <TableCell>
                   <div>{new Date(booking.date).toLocaleDateString()}</div>
-                  <div className="text-xs text-muted-foreground">{booking.time}</div>
+                  <div className="text-xs text-muted-foreground">{booking.bookingTime}</div>
                 </TableCell>
                 <TableCell>{booking.participants}</TableCell>
                 <TableCell>

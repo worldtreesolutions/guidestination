@@ -6,7 +6,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { PreferencesForm, PreferencesFormData } from "@/components/recommendation/PreferencesForm";
 import { recommendationService, RecommendedPlan, UserPreferences, RecommendedActivity } from "@/services/recommendationService";
-import { SupabaseActivity } from "@/services/supabaseActivityService";
+import { SupabaseActivity } from "@/types/activity";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, MapPin, Clock, Users, Star } from "lucide-react";
@@ -124,7 +124,7 @@ export default function RecommendationPage() {
                         <div className="relative w-full md:w-64 h-48">
                           <CardContent className="p-0">
                             <Image
-                              src={activity.image_url?.[0] || '/placeholder.svg'}
+                              src={activity.image_urls?.[0] || '/placeholder.svg'}
                               alt={activity.title}
                               className="w-full h-48 object-cover"
                             />
@@ -137,7 +137,7 @@ export default function RecommendationPage() {
                               <p className="text-sm text-muted-foreground">{activity.description}</p>
                             </div>
                             <div className="text-left sm:text-right mt-2 sm:mt-0">
-                              <p className="font-semibold">{activity.price.toLocaleString()} THB</p>
+                              <p className="font-semibold">{activity.price?.toLocaleString()} THB</p>
                               <p className="text-sm text-muted-foreground">{activity.duration} hours</p>
                             </div>
                           </div>

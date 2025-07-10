@@ -48,7 +48,7 @@ export function RecentBookings({ bookings }: RecentBookingsProps) {
               <TableRow key={booking.id}>
                 <TableCell className="font-medium">{booking.activityTitle}</TableCell>
                 <TableCell>{booking.customerName}</TableCell>
-                <TableCell>{new Date(booking.date).toLocaleDateString()} at {booking.time}</TableCell>
+                <TableCell>{new Date(booking.date).toLocaleDateString()} at {booking.bookingTime}</TableCell>
                 <TableCell>{booking.participants}</TableCell>
                 <TableCell>฿{booking.providerAmount.toLocaleString()}</TableCell>
                 <TableCell>

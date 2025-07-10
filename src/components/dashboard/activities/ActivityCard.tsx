@@ -19,7 +19,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { SupabaseActivity } from "@/services/supabaseActivityService"
+import { SupabaseActivity } from "@/types/activity"
 import Image from "next/image"
 import Link from "next/link"
 

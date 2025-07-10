@@ -1,12 +1,7 @@
-
-import { PreferencesFormData } from "@/components/recommendation/PreferencesForm";
 import { supabase } from "@/integrations/supabase/client";
-import { SupabaseActivity } from "./supabaseActivityService";
+import { SupabaseActivity } from "@/types/activity";
 
-export interface RecommendedActivity extends SupabaseActivity {
-  timeSlot: string;
-  day: string;
-}
+export type RecommendedActivity = SupabaseActivity & { recommendationReason: string };
 
 export interface UserPreferences {
   travelStyle: string;
@@ -24,70 +19,49 @@ export interface RecommendedPlan {
   numberOfDays: number;
 }
 
-// This is a mock implementation. Replace with your actual recommendation logic.
-export const recommendActivities = async (
-  preferences: UserPreferences
-): Promise<RecommendedPlan> => {
-  // For now, just fetch some featured activities as a mock recommendation
-  const { data, error } = await supabase
-    .from("activities")
-    .select("*, categories(name)")
-    .limit(5);
+export class RecommendationService {
+  private fetchRecommendedActivities(preferences: UserPreferences): SupabaseActivity[] {
+    const { travelStyle, budget, unavailableDays, travelDates } = preferences;
+    const { start, end } = travelDates;
 
-  if (error) {
-    console.error("Error fetching activities for recommendation:", error);
-    return { activities: [], totalPrice: 0, numberOfDays: 0 };
+    // For now, just fetch some featured activities as a mock recommendation
+    const { data, error } = await supabase
+      .from("activities")
+      .select("*, categories(name)")
+      .eq("is_active", true)
+      .limit(20);
+
+    if (error) {
+      console.error("Error fetching recommended activities:", error);
+      return [];
+    }
+
+    return data.map(a => ({...a, category_name: a.categories.name})) as SupabaseActivity[];
   }
 
-  const activities = data.map(d => mapActivityData(d)!).filter(d => d !== null) as SupabaseActivity[];
+  private calculateTotalPrice(activities: SupabaseActivity[]): number {
+    return activities.reduce((total, activity) => total + (activity.price || 0), 0);
+  }
 
-  // Mock assigning day and timeslot
-  const recommendedActivities: RecommendedActivity[] = activities.map((act, index) => ({
-    ...act,
-    day: `Day ${index + 1}`,
-    timeSlot: "Morning",
-  }));
+  public getRecommendations(preferences: UserPreferences): RecommendedPlan {
+    const activities = this.fetchRecommendedActivities(preferences);
 
-  const plan: RecommendedPlan = {
-    activities: recommendedActivities,
-    totalPrice: recommendedActivities.reduce((sum, act) => sum + (act.price || 0), 0),
-    numberOfDays: 3, // Mock value
-  };
+    // Mock assigning day and timeslot
+    const recommendedActivities: RecommendedActivity[] = activities.map((act, index) => ({
+      ...act,
+      day: `Day ${index + 1}`,
+      timeSlot: "Morning",
+      recommendationReason: "Mock reason",
+    }));
 
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(plan);
-    }, 1000); // Simulate network delay
-  });
-};
+    const plan: RecommendedPlan = {
+      activities: recommendedActivities,
+      totalPrice: this.calculateTotalPrice(recommendedActivities),
+      numberOfDays: 3, // Mock value
+    };
 
-export const recommendationService = {
-  getRecommendations: recommendActivities,
-};
-
-// Helper function to map data, should be consistent with supabaseActivityService
-const mapActivityData = (activity: any): SupabaseActivity | null => {
-    if (!activity) return null;
-
-    const newActivity = { ...activity };
-
-    if (newActivity.categories) {
-        newActivity.category_name = newActivity.categories.name;
-        newActivity.category = newActivity.categories.name;
-        delete newActivity.categories;
-    }
-    
-    newActivity.final_price = newActivity.price;
-    newActivity.reviewCount = newActivity.review_count;
-    newActivity.images = newActivity.image_urls;
-    newActivity.average_rating = newActivity.rating;
-    
-    newActivity.videos = newActivity.videos || [];
-    newActivity.includes_pickup = newActivity.includes_pickup || false;
-    newActivity.pickup_locations = newActivity.pickup_locations || "";
-    newActivity.includes_meal = newActivity.includes_meal || false;
-    newActivity.meal_description = newActivity.meal_description || "";
-    newActivity.schedules = newActivity.schedules || { availableDates: [] };
-
-    return newActivity as SupabaseActivity;
+    return plan;
+  }
 }
+
+export const recommendationService = new RecommendationService();
