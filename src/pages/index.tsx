@@ -1,5 +1,5 @@
 import Head from "next/head"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { CategoryNav } from "@/components/home/CategoryNav"
@@ -17,51 +17,65 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true)
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
 
-  useEffect(() => {
-    const fetchAllCategoriesWithActivities = async () => {
-      try {
-        setLoading(true)
-        
-        // Fetch categories first
-        const fetchedCategories = await categoryService.getAllCategories()
-        setCategories(fetchedCategories)
+  const fetchAllCategoriesWithActivities = useCallback(async () => {
+    try {
+      setLoading(true)
+      
+      // Fetch categories first
+      const fetchedCategories = await categoryService.getAllCategories()
+      setCategories(fetchedCategories)
 
-        // Fetch activities for each category
-        const categoryActivities: Record<string, ActivityForHomepage[]> = {}
-        
-        // Add featured activities
+      // Fetch activities for each category
+      const categoryActivities: Record<string, ActivityForHomepage[]> = {}
+      
+      // Add featured activities
+      try {
         const featured = await supabaseActivityService.getFeaturedActivities(8)
         categoryActivities["Featured"] = supabaseActivityService.convertToHomepageFormat(featured)
+      } catch (error) {
+        console.error("Error fetching featured activities:", error)
+        categoryActivities["Featured"] = []
+      }
 
-        // Add recommended activities
+      // Add recommended activities
+      try {
         const recommended = await supabaseActivityService.getRecommendedActivities(8)
         categoryActivities["Recommended"] = supabaseActivityService.convertToHomepageFormat(recommended)
+      } catch (error) {
+        console.error("Error fetching recommended activities:", error)
+        categoryActivities["Recommended"] = []
+      }
 
-        // Fetch activities for each category
-        for (const category of fetchedCategories) {
-          if (category.name) {
+      // Fetch activities for each category
+      for (const category of fetchedCategories) {
+        if (category.name) {
+          try {
             const activities = await supabaseActivityService.getActivitiesByCategory(category.name, 8)
             const homepageActivities = supabaseActivityService.convertToHomepageFormat(activities)
             if (homepageActivities.length > 0) {
               categoryActivities[category.name] = homepageActivities
             }
+          } catch (error) {
+            console.error(`Error fetching activities for category ${category.name}:`, error)
           }
         }
-
-        setActivitiesByCategory(categoryActivities)
-      } catch (error) {
-        console.error("Error fetching categories and activities:", error)
-      } finally {
-        setLoading(false)
       }
+
+      setActivitiesByCategory(categoryActivities)
+    } catch (error) {
+      console.error("Error fetching categories and activities:", error)
+    } finally {
+      setLoading(false)
     }
+  }, [])
 
+  useEffect(() => {
     fetchAllCategoriesWithActivities()
-  }, []) // Empty dependency array to prevent infinite loop
+  }, [fetchAllCategoriesWithActivities])
 
-  const handleSelectCategory = (categoryName: string | null) => {
+  const handleSelectCategory = useCallback((categoryName: string | null) => {
     setSelectedCategory(categoryName)
-  }
+  }, [])
 
   const renderActivityRows = () => {
     if (loading) {
