@@ -37,12 +37,21 @@ export function AvailabilityCalendar({
     scheduleDataLength: scheduleData.length
   });
 
+  // Additional debug logging to see the actual data structure
+  console.log("Raw availableDates array:", availableDates);
+  console.log("Raw scheduleData array:", scheduleData);
+  console.log("Type of availableDates:", typeof availableDates);
+  console.log("Is availableDates an array?", Array.isArray(availableDates));
+
   // Convert string dates to Date objects, ensuring proper parsing
   const availableDateObjects = availableDates.map(dateStr => {
+    console.log("Processing date string:", dateStr);
     // Handle YYYY-MM-DD format by splitting and creating a UTC date
     // This prevents timezone-related off-by-one-day errors
     const parts = dateStr.split('-').map(Number);
-    return new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
+    const dateObj = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
+    console.log("Converted to date object:", dateObj);
+    return dateObj;
   });
 
   console.log("Converted available date objects (UTC):", availableDateObjects);
