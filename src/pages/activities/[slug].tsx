@@ -61,6 +61,7 @@ export default function ActivityPage() {
       setActivity(activityData)
     } catch (error) {
       console.error("Error fetching activity:", error)
+      setActivity(null)
       toast({
         title: "Error",
         description: "Failed to get activity details. Please try again.",

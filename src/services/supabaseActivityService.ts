@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client"
 import { SupabaseActivity, ActivityForHomepage, SupabaseBooking, Earning, Booking } from "@/types/activity"
 
@@ -74,26 +75,6 @@ export const supabaseActivityService = {
     try {
       console.log("Fetching activity with ID:", id)
       
-      // First, try a simple query to see if the activity exists
-      const { data: basicData, error: basicError } = await supabase
-        .from("activities")
-        .select("*")
-        .eq("id", id)
-        .single()
-
-      if (basicError) {
-        console.error("Basic query error:", basicError)
-        throw new Error(`Activity not found: ${basicError.message}`)
-      }
-
-      if (!basicData) {
-        console.error("No activity found with ID:", id)
-        throw new Error("Activity not found")
-      }
-
-      console.log("Basic activity data found:", basicData)
-
-      // Now try the complex query with joins
       const { data, error } = await supabase
         .from("activities")
         .select(`
@@ -137,30 +118,24 @@ export const supabaseActivityService = {
           )
         `)
         .eq("id", id)
-        .single()
+        .maybeSingle()
 
       if (error) {
-        console.error("Complex query error:", error)
-        // Fall back to basic data if complex query fails
-        console.log("Falling back to basic data due to complex query error")
-        const transformedActivity = this.transformActivity(basicData)
-        return transformedActivity
+        console.error("Error fetching activity by ID:", error)
+        throw error
       }
 
       if (!data) {
-        console.error("No data returned from complex query")
-        // Fall back to basic data
-        const transformedActivity = this.transformActivity(basicData)
-        return transformedActivity
+        throw new Error(`Activity with ID ${id} not found.`)
       }
 
-      console.log("Complex query successful, raw activity data:", data)
+      console.log("Complex query successful, raw activity ", data)
       const transformedActivity = this.transformActivity(data)
       console.log("Transformed activity:", transformedActivity)
       
       return transformedActivity
     } catch (error) {
-      console.error("Error fetching activity by ID:", error)
+      console.error("Error in getActivityById:", error)
       throw error
     }
   },
@@ -234,7 +209,6 @@ export const supabaseActivityService = {
 
   async createActivity(activityData: Partial<SupabaseActivity>): Promise<SupabaseActivity> {
     try {
-      // Map the activity data to match the database schema
       const insertData: any = {
         title: activityData.title || "",
         description: activityData.description || "",
@@ -338,7 +312,7 @@ export const supabaseActivityService = {
   },
 
   async fetchBookingsForOwner(ownerId: string): Promise<Booking[]> {
-    const { data: activitiesData, error: activitiesError } = await supabase
+    const {  activitiesData, error: activitiesError } = await supabase
       .from('activities')
       .select('id')
       .eq('provider_id', ownerId);
@@ -421,12 +395,9 @@ export const supabaseActivityService = {
     return { total, pending, monthly };
   },
 
-  transformActivity(data: any): SupabaseActivity {
-    console.log("Transforming activity data:", data)
-    
-    // Transform schedule instances into the format expected by the calendar
-    const scheduleInstances = data.activity_schedule_instances || []
-    const availableDates = scheduleInstances
+  transformActivity( any): SupabaseActivity {
+    const scheduleInstances: any[] = data.activity_schedule_instances || [];
+    const availableDates: SupabaseActivity['schedules']['availableDates'] = scheduleInstances
       .filter((instance: any) => instance.is_active && instance.status === 'available')
       .map((instance: any) => ({
         date: instance.scheduled_date,
@@ -434,32 +405,31 @@ export const supabaseActivityService = {
         endTime: instance.end_time,
         capacity: instance.capacity || 10,
         booked: instance.booked_count || 0,
-        available: instance.available_spots || (instance.capacity - (instance.booked_count || 0)),
-        price: instance.price || data.price
-      }))
+        available: instance.available_spots ?? (instance.capacity - (instance.booked_count || 0)),
+        price: instance.price || data.price || data.base_price_thb,
+      }));
 
-    console.log("Transformed schedule instances:", availableDates)
+    const selectedOptionsData: any[] = data.activity_selected_options || [];
+    const selectedOptions: SupabaseActivity['selectedOptions'] = selectedOptionsData
+      .map((selectedOption: any) => {
+        const option = selectedOption.activity_options;
+        if (!option) return null;
+        return {
+          id: option.id,
+          label: option.label || '',
+          icon: option.icon || '',
+          type: option.type || 'highlight',
+          category: option.category || '',
+        };
+      })
+      .filter((opt): opt is NonNullable<typeof opt> => opt !== null && opt.id);
 
-    // Transform selected options
-    const selectedOptions = (data.activity_selected_options || []).map((selectedOption: any) => {
-      const option = selectedOption.activity_options
-      return {
-        id: option?.id,
-        label: option?.label || '',
-        icon: option?.icon || '',
-        type: option?.type || 'highlight',
-        category: option?.category || ''
-      }
-    }).filter((opt: any) => opt.id) // Filter out invalid options
-
-    console.log("Transformed selected options:", selectedOptions)
-
-    return {
+    const transformed: SupabaseActivity = {
       id: data.id,
       title: data.title || data.name || '',
       name: data.name || data.title || '',
       description: data.description || '',
-      price: data.price || 0,
+      price: data.price ?? data.base_price_thb ?? null,
       duration: data.duration,
       max_participants: data.max_participants || 10,
       location: data.location || '',
@@ -467,50 +437,34 @@ export const supabaseActivityService = {
       category: data.category || '',
       category_name: data.category_name || '',
       provider_id: data.provider_id,
-      is_active: data.is_active || false,
+      is_active: data.is_active,
       created_at: data.created_at,
       updated_at: data.updated_at,
-      
-      // Age and skill requirements
       min_age: data.min_age,
       max_age: data.max_age,
       physical_effort_level: data.physical_effort_level,
       technical_skill_level: data.technical_skill_level,
-      
-      // Additional features
-      includes_pickup: data.includes_pickup || false,
-      includes_meal: data.includes_meal || false,
+      includes_pickup: data.includes_pickup,
+      includes_meal: data.includes_meal,
       pickup_locations: data.pickup_locations,
       meal_description: data.meal_description,
-      
-      // Media
       image_urls: (data.activity_media || [])
         .filter((media: any) => media.media_type === 'image')
         .map((media: any) => media.media_url),
       video_url: (data.activity_media || [])
-        .filter((media: any) => media.media_type === 'video')
-        .map((media: any) => media.media_url)?.[0] || null,
-      
-      // Languages
+        .find((media: any) => media.media_type === 'video')?.media_url || null,
       languages: data.languages || ['English'],
-      
-      // Reviews
-      rating: data.rating || 0,
+      rating: data.rating ?? data.average_rating ?? null,
       review_count: data.review_count || 0,
-      
-      // Legacy fields for compatibility
       highlights: data.highlights || [],
       included: data.included || [],
       not_included: data.not_included || [],
-      
-      // New structured data
       selectedOptions: selectedOptions,
-      
-      // Schedule data in the format expected by the calendar
       schedules: {
-        availableDates: availableDates
-      }
-    }
+        availableDates: availableDates,
+      },
+    };
+    return transformed;
   },
 
   convertToHomepageFormat(activities: SupabaseActivity[]): ActivityForHomepage[] {
