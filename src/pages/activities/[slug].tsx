@@ -66,8 +66,10 @@ export default function ActivityPage() {
   }, [slug, toast])
 
   useEffect(() => {
-    fetchActivity()
-  }, [fetchActivity])
+    if (slug) {
+      fetchActivity()
+    }
+  }, [slug, fetchActivity]) // Only depend on slug and fetchActivity
 
   const checkWishlistStatus = useCallback(async () => {
     if (!user || !activity) return

@@ -1,4 +1,3 @@
-
 import Head from "next/head"
 import { useState, useEffect } from "react"
 import { Navbar } from "@/components/layout/Navbar"
@@ -72,7 +71,7 @@ export default function HomePage() {
     }
 
     fetchData()
-  }, [])
+  }, []) // Empty dependency array to prevent infinite re-renders
 
   const handleSelectCategory = (categoryName: string | null) => {
     setSelectedCategory(categoryName)
