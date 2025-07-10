@@ -356,7 +356,7 @@ export const supabaseActivityService = {
     }
   },
 
-  transformActivities(data: any[]): SupabaseActivity[] {
+  transformActivities( any[]): SupabaseActivity[] {
     return data.map(item => this.transformActivity(item))
   },
 
