@@ -399,14 +399,16 @@ export const supabaseActivityService = {
   generateScheduleInstances(schedules: any[], activityPrice: number): any[] {
     const instances: any[] = [];
     const today = new Date();
-    const futureLimit = new Date();
-    futureLimit.setMonth(futureLimit.getMonth() + 6); // Generate 6 months ahead
+    today.setUTCHours(0, 0, 0, 0);
+
+    const futureLimit = new Date(today);
+    futureLimit.setUTCMonth(futureLimit.getUTCMonth() + 6); // Generate 6 months ahead
 
     schedules.forEach(schedule => {
       if (!schedule.is_active) return;
 
-      const startDate = schedule.availability_start_date ? new Date(schedule.availability_start_date) : today;
-      const endDate = schedule.availability_end_date ? new Date(schedule.availability_end_date) : futureLimit;
+      const startDate = schedule.availability_start_date ? new Date(schedule.availability_start_date + 'T00:00:00Z') : today;
+      const endDate = schedule.availability_end_date ? new Date(schedule.availability_end_date + 'T00:00:00Z') : futureLimit;
       
       // Generate weekly recurring instances if recurrence_pattern is 'weekly' and has days of week
       if (schedule.recurrence_pattern === 'weekly' && schedule.recurrence_day_of_week) {
@@ -415,7 +417,7 @@ export const supabaseActivityService = {
         
         let currentDate = new Date(startDate);
         while (currentDate <= endDate && currentDate <= futureLimit) {
-          const dayOfWeek = currentDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
+          const dayOfWeek = currentDate.getUTCDay(); // 0 = Sunday, 1 = Monday, etc.
           
           if (daysOfWeek.includes(dayOfWeek)) {
             const instanceDate = currentDate.toISOString().split('T')[0];
@@ -434,7 +436,7 @@ export const supabaseActivityService = {
             });
           }
           
-          currentDate.setDate(currentDate.getDate() + 1);
+          currentDate.setUTCDate(currentDate.getUTCDate() + 1);
         }
       } else if (schedule.recurrence_pattern === 'daily') {
         // Generate daily recurring instances
@@ -455,7 +457,7 @@ export const supabaseActivityService = {
             status: 'available'
           });
           
-          currentDate.setDate(currentDate.getDate() + interval);
+          currentDate.setUTCDate(currentDate.getUTCDate() + interval);
         }
       } else {
         // One-time schedule
@@ -481,7 +483,7 @@ export const supabaseActivityService = {
   },
 
   transformActivity(data: any): SupabaseActivity {
-    console.log("Transforming activity data:", data);
+    console.log("Transforming activity ", data);
     console.log("Raw schedule instances:", data.activity_schedule_instances);
     console.log("Raw schedules:", data.activity_schedules);
     
@@ -502,9 +504,10 @@ export const supabaseActivityService = {
         const isActive = instance.is_active !== false; // Default to true if undefined
         const isAvailable = !instance.status || instance.status === 'available' || instance.status === 'active';
         const hasValidDate = instance.scheduled_date;
+        
         const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const isFutureDate = new Date(instance.scheduled_date) >= today;
+        today.setUTCHours(0, 0, 0, 0);
+        const isFutureDate = hasValidDate && new Date(instance.scheduled_date + 'T00:00:00Z') >= today;
         
         console.log(`Instance ${instance.id}: active=${isActive}, available=${isAvailable}, hasDate=${hasValidDate}, isFuture=${isFutureDate}, status=${instance.status}, date=${instance.scheduled_date}`);
         
