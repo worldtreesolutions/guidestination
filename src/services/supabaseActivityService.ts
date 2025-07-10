@@ -1,26 +1,7 @@
 
+    
 import { supabase } from "@/integrations/supabase/client"
 import { SupabaseActivity, Earning } from "@/types/activity"
-
-export interface ActivityScheduleInstance {
-  id: number
-  scheduled_date: string
-  start_time: string
-  end_time: string
-  capacity: number
-  booked_count: number
-  available_spots: number
-  price: number
-  status: string
-  is_active: boolean
-}
-
-export interface ActivitySelectedOption {
-  id: string
-  option_name: string
-  option_type: 'highlight' | 'included' | 'not_included' | 'not_allowed'
-  is_selected: boolean
-}
 
 export const supabaseActivityService = {
   async getActivities(filters?: {
@@ -32,15 +13,25 @@ export const supabaseActivityService = {
   }) {
     try {
       let query = supabase
-        .from('activities')
+        .from("activities")
         .select(`
-          *,
-          categories!inner(name)
+          id,
+          title,
+          name,
+          description,
+          price,
+          average_rating,
+          review_count,
+          address,
+          duration,
+          provider_id,
+          categories (name),
+          activity_media (media_url)
         `)
-        .eq('is_active', true)
+        .eq("is_active", true)
 
       if (filters?.category) {
-        query = query.eq('categories.name', filters.category)
+        query = query.eq("categories.name", filters.category)
       }
 
       if (filters?.limit) {
@@ -54,49 +45,61 @@ export const supabaseActivityService = {
       const { data, error } = await query
 
       if (error) {
-        console.error('Error fetching activities:', error)
+        console.error("Error fetching activities:", error)
         throw error
       }
       
-      const activities = await Promise.all(data?.map(async (activity: any) => {
-        const { data: media } = await supabase.from('activity_media').select('media_url').eq('activity_id', activity.id);
-        const imageUrls = media?.map((m: any) => m.media_url) || [];
+      const activities = data?.map((activity: any) => {
+        const imageUrls = activity.activity_media?.map((m: any) => m.media_url) || []
         return {
           ...activity,
-          category_name: activity.categories?.name || 'Uncategorized',
+          category_name: activity.categories?.name || "Uncategorized",
           image_urls: imageUrls,
           image_url: imageUrls[0] || null,
-          price: activity.final_price || activity.price || 0,
+          price: activity.price || 0,
           rating: activity.average_rating || 0,
           review_count: activity.review_count || 0,
-          location: activity.address || activity.location || 'Location TBD'
+          location: activity.address || "Location TBD"
         }
-      }) || []);
+      }) || []
 
       return activities;
 
     } catch (error) {
-      console.error('Error in getActivities:', error)
+      console.error("Error in getActivities:", error)
       throw error
     }
   },
 
   async getActivityById(id: number): Promise<SupabaseActivity | null> {
     try {
-      console.log('Fetching activity with ID:', id)
+      console.log("Fetching activity with ID:", id)
       
-      const { data: activity, error: activityError } = await supabase
-        .from('activities')
+      const {  activity, error: activityError } = await supabase
+        .from("activities")
         .select(`
           *,
-          categories(name)
+          categories (name),
+          activity_schedule_instances (*),
+          activity_selected_options (
+            id,
+            is_selected,
+            activity_options (
+              id,
+              label,
+              type,
+              icon,
+              category
+            )
+          ),
+          activity_media (media_url)
         `)
-        .eq('id', id)
-        .eq('is_active', true)
+        .eq("id", id)
+        .eq("is_active", true)
         .single()
 
       if (activityError) {
-        console.error('Error fetching activity:', activityError)
+        console.error("Error fetching activity:", activityError.message)
         throw activityError
       }
 
@@ -104,100 +107,64 @@ export const supabaseActivityService = {
         return null
       }
 
-      console.log('Activity fetched:', activity)
+      console.log("Activity fetched:", activity)
 
-      // Fetch schedule instances
-      const { data: scheduleInstances, error: scheduleError } = await supabase
-        .from('activity_schedule_instances')
-        .select('*')
-        .eq('activity_id', id)
-        .eq('is_active', true)
-        .in('status', ['active', 'available'])
-        .gte('scheduled_date', new Date().toISOString().split('T')[0])
-        .order('scheduled_date', { ascending: true })
+      const imageUrls = activity.activity_media?.map((m: any) => m.media_url) || []
 
-      if (scheduleError) {
-        console.error('Error fetching schedule instances:', scheduleError)
-      }
+      const formattedSchedules = activity.activity_schedule_instances
+        ?.filter((inst: any) => inst.is_active && ['active', 'available'].includes(inst.status))
+        .map((instance: any) => ({
+          date: instance.scheduled_date,
+          startTime: instance.start_time,
+          endTime: instance.end_time,
+          capacity: instance.capacity,
+          booked: instance.booked_count,
+          available: instance.available_spots,
+          price: parseFloat(instance.price)
+        })) || []
 
-      console.log('Schedule instances fetched:', scheduleInstances)
+      console.log("Formatted schedules:", formattedSchedules)
 
-      // Fetch selected options
-      const { data: selectedOptions, error: optionsError } = await supabase
-        .from('activity_selected_options')
-        .select(`
-          id,
-          activity_options(
-            id,
-            label,
-            type,
-            icon,
-            category
-          )
-        `)
-        .eq('activity_id', id)
+      const formattedOptions = activity.activity_selected_options
+        ?.filter((opt: any) => opt.is_selected)
+        .map((option: any) => ({
+          id: option.id.toString(),
+          option_name: option.activity_options?.label || "",
+          option_type: option.activity_options?.type || "included",
+          is_selected: option.is_selected
+        })) || []
 
-      if (optionsError) {
-        console.error('Error fetching activity options:', optionsError)
-      }
-
-      console.log('Selected options fetched:', selectedOptions)
-      
-      // Fetch media
-      const { data: media } = await supabase.from('activity_media').select('media_url').eq('activity_id', activity.id);
-      const imageUrls = media?.map((m: any) => m.media_url) || [];
-
-      // Format schedules
-      const formattedSchedules = scheduleInstances?.map((instance: any) => ({
-        date: instance.scheduled_date,
-        startTime: instance.start_time,
-        endTime: instance.end_time,
-        capacity: instance.capacity,
-        booked: instance.booked_count,
-        available: instance.available_spots,
-        price: parseFloat(instance.price)
-      })) || []
-
-      console.log('Formatted schedules:', formattedSchedules)
-
-      // Format options
-      const formattedOptions = selectedOptions?.map((option: any) => ({
-        id: option.id.toString(),
-        option_name: option.activity_options?.label || '',
-        option_type: option.activity_options?.type || 'included',
-        is_selected: true
-      })) || []
-
-      console.log('Formatted options:', formattedOptions)
+      console.log("Formatted options:", formattedOptions)
 
       const result: SupabaseActivity = {
         ...activity,
-        category_name: activity.categories?.name || 'Uncategorized',
+        category: activity.categories?.name || "Uncategorized",
+        category_name: activity.categories?.name || "Uncategorized",
         image_urls: imageUrls,
         image_url: imageUrls[0] || null,
-        price: activity.final_price || activity.price || 0,
+        price: activity.price || 0,
         rating: activity.average_rating || 0,
         review_count: activity.review_count || 0,
-        location: activity.address || activity.location || 'Location TBD',
+        location: activity.address || "Location TBD",
         schedules: {
           availableDates: formattedSchedules
         },
         activity_selected_options: formattedOptions
       }
 
-      console.log('Final result:', result)
-      console.log('Available dates in result:', result.schedules.availableDates)
+      console.log("Final result:", result)
+      console.log("Available dates in result:", result.schedules.availableDates)
 
       return result
     } catch (error) {
-      console.error('Error in getActivityById:', error)
+      console.error("Error in getActivityById:", error)
       throw error
     }
   },
 
   async createActivity(activityData: Partial<SupabaseActivity>) {
     const { data, error } = await supabase
-        .from('activities')
+        .from("activities")
         .insert([activityData] as any)
         .select()
         .single()
@@ -208,9 +175,9 @@ export const supabaseActivityService = {
 
   async updateActivity(id: number, activityData: Partial<SupabaseActivity>) {
     const { data, error } = await supabase
-        .from('activities')
+        .from("activities")
         .update(activityData as any)
-        .eq('id', id)
+        .eq("id", id)
         .select()
         .single()
     if (error) throw error
@@ -219,9 +186,9 @@ export const supabaseActivityService = {
 
   async deleteActivity(id: number) {
     const { error } = await supabase
-        .from('activities')
+        .from("activities")
         .update({ is_active: false })
-        .eq('id', id)
+        .eq("id", id)
     if (error) throw error
     return true
   },
@@ -236,10 +203,10 @@ export const supabaseActivityService = {
 
   async getActivityCategories() {
     const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .eq('is_active', true)
-        .order('name')
+        .from("categories")
+        .select("*")
+        .eq("is_active", true)
+        .order("name")
     if (error) throw error
     return data || []
   },
@@ -251,16 +218,16 @@ export const supabaseActivityService = {
 
   async getActivityReviews(activityId: number) {
     const { data, error } = await supabase
-        .from('reviews')
-        .select('*, customer_profiles(full_name, first_name, last_name)')
-        .eq('activity_id', activityId)
+        .from("reviews")
+        .select("*, customer_profiles(full_name, first_name, last_name)")
+        .eq("activity_id", activityId)
     if (error) throw error
     return data || []
   },
 
   async createActivityReview(reviewData: any) {
     const { data, error } = await supabase
-        .from('reviews')
+        .from("reviews")
         .insert([reviewData])
         .select()
         .single()
@@ -270,15 +237,15 @@ export const supabaseActivityService = {
   },
 
   async updateActivityRating(activityId: number) {
-    const { data: reviews, error } = await supabase
-        .from('reviews')
-        .select('rating')
-        .eq('activity_id', activityId)
+    const {  reviews, error } = await supabase
+        .from("reviews")
+        .select("rating")
+        .eq("activity_id", activityId)
     if (error || !reviews) return
 
     const totalRating = reviews.reduce((sum: number, review: { rating: number }) => sum + review.rating, 0)
     const averageRating = totalRating / reviews.length
-    await supabase.from('activities').update({ average_rating: averageRating, review_count: reviews.length }).eq('id', activityId)
+    await supabase.from("activities").update({ average_rating: averageRating, review_count: reviews.length }).eq("id", activityId)
   },
 
   // Placeholder functions to fix build errors
@@ -296,3 +263,4 @@ export const supabaseActivityService = {
 }
 
 export default supabaseActivityService
+  

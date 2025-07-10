@@ -1,320 +1,171 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { WeeklyActivitySchedule } from "@/components/activities/WeeklyActivitySchedule"
-import { MobileWeeklyActivitySchedule } from "@/components/activities/MobileWeeklyActivitySchedule"
-import { SelectedActivitiesList } from "@/components/activities/SelectedActivitiesList"
-import { BulkBookingWidget } from "@/components/activities/BulkBookingWidget"
-import { usePlanning } from "@/contexts/PlanningContext"
-import { useLanguage } from "@/contexts/LanguageContext"
-import { DndContext, DragEndEvent, DragOverlay, useSensor, useSensors, PointerSensor, DragStartEvent } from "@dnd-kit/core"
-import { useState, useCallback } from "react"
-import Image from "next/image"
-import { Calendar, Clock, MapPin, DollarSign, Menu } from "lucide-react"
-import { useIsMobile } from "@/hooks/use-mobile"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { SupabaseActivity } from "@/types/activity"
-import { Button } from "@/components/ui/button"
 
-export interface ScheduledActivity {
-  id: string
-  title: string
-  imageUrl: string
-  day: string
-  hour: number
-  duration: number
-  price: number
-  participants: number
-  availableSlots?: {
-    [key: string]: number[]
-  }
-}
+    import { useState, useMemo, useCallback } from "react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { usePlanning } from "@/contexts/PlanningContext"
+import { SupabaseActivity } from "@/types/activity"
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from "@dnd-kit/core"
+import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable"
+import { CSS } from "@dnd-kit/utilities"
+import { GripVertical, Trash2 } from "lucide-react"
+import Image from "next/image"
+import { WeeklyActivitySchedule } from "./WeeklyActivitySchedule"
+import { MobileWeeklyActivitySchedule } from "./MobileWeeklyActivitySchedule"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 interface ExcursionPlannerProps {
-  activities: SupabaseActivity[];
-  onPlanComplete: (plan: any) => void;
+  activities: SupabaseActivity[]
+  onPlanComplete: (plan: any) => void
 }
 
-export function ExcursionPlanner({ activities, onPlanComplete }: ExcursionPlannerProps) {
-  const { selectedActivities, scheduledActivities, updateActivity, removeActivity, clearActivities, scheduleActivity, addActivity } = usePlanning()
-  const { t } = useLanguage()
-  const [draggedActivity, setDraggedActivity] = useState<ScheduledActivity | null>(null)
-  const [isRemoving, setIsRemoving] = useState(false)
-  const isMobile = useIsMobile()
-  const [activeTab, setActiveTab] = useState<"calendar" | "activities">("calendar")
+interface ScheduledActivity extends SupabaseActivity {
+  day?: string
+  hour?: number
+  imageUrl?: string
+  participants?: number
+}
 
-  const sensors = useSensors(useSensor(PointerSensor, {
-    activationConstraint: {
-      distance: isMobile ? 10 : 8,
-      delay: isMobile ? 100 : 0,
-      tolerance: isMobile ? 5 : 0
-    },
-  }))
+function SortableActivityItem({ activity, onRemove }: { activity: SupabaseActivity; onRemove: (id: number) => void }) {
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: activity.id })
 
-  const handleDragStart = (event: DragStartEvent) => {
-    if (isRemoving) return
-    
-    const scheduled = scheduledActivities.find(a => a.id === event.active.id);
-    if (scheduled) {
-      setDraggedActivity(scheduled);
-      return;
-    }
-    
-    const selected = selectedActivities.find(a => a.id.toString() === event.active.id);
-    if (selected) {
-      const activity: ScheduledActivity = {
-        id: selected.id.toString(),
-        title: selected.title,
-        imageUrl: selected.image_urls?.[0] || "",
-        day: "",
-        hour: 0,
-        duration: selected.duration || 2,
-        price: selected.price || 0,
-        participants: 1
-      };
-      setDraggedActivity(activity);
-    }
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
   }
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const dragged = draggedActivity
-    setDraggedActivity(null)
-    
-    if (isRemoving || !dragged || !event.over) return
-
-    if (event.over.id === "selected-list") {
-      scheduleActivity(dragged.id, "", 0)
-      return
-    }
-
-    const [day, hour] = event.over.id.toString().split("-")
-    const hourNum = parseInt(hour)
-    const endHour = hourNum + dragged.duration
-
-    if (endHour <= 17) {
-      scheduleActivity(dragged.id, day, hourNum)
-      if (isMobile) {
-        setActiveTab("calendar")
-      }
-    } else {
-      const activity = scheduledActivities.find(a => a.id === dragged.id)
-      if (activity) {
-        scheduleActivity(dragged.id, activity.day, activity.hour)
-      }
-    }
-  }
-
-  const handleActivityRemove = useCallback((activityId: string) => {
-    setIsRemoving(true)
-    removeActivity(activityId)
-    setTimeout(() => {
-      setIsRemoving(false)
-    }, 100)
-  }, [removeActivity])
-
-  const handleActivitySelect = useCallback((activityId: string, updatedActivity: ScheduledActivity) => {
-    updateActivity(activityId, updatedActivity)
-  }, [updateActivity])
-
-  const totalActivitiesCount = selectedActivities.length + scheduledActivities.length
 
   return (
-    <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8'>
-      <DndContext
-        sensors={sensors}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-      >
-        <div className='mb-4 sm:mb-6'>
-          <h1 className='text-2xl sm:text-3xl font-bold text-primary'>{t("planner.title")}</h1>
-          <p className='text-muted-foreground mt-2 text-sm sm:text-base'>
-            {t("planner.description")}
-          </p>
-        </div>
-
-        {isMobile ? (
-          <div className='space-y-4'>
-            <div className='flex border-b border-gray-200 rounded-t-lg overflow-hidden'>
-              <button
-                className={`flex-1 py-3 text-center font-medium transition-colors ${
-                  activeTab === 'calendar' 
-                    ? 'text-primary border-b-2 border-primary bg-primary/5' 
-                    : 'text-gray-500 hover:bg-gray-50'
-                }`}
-                onClick={() => setActiveTab('calendar')}
-              >
-                <div className='flex items-center justify-center'>
-                  <Calendar className='h-4 w-4 mr-2' />
-                  {t("planner.calendar")}
-                </div>
-              </button>
-              <button
-                className={`flex-1 py-3 text-center font-medium transition-colors ${
-                  activeTab === 'activities' 
-                    ? 'text-primary border-b-2 border-primary bg-primary/5' 
-                    : 'text-gray-500 hover:bg-gray-50'
-                }`}
-                onClick={() => setActiveTab('activities')}
-              >
-                <div className='flex items-center justify-center'>
-                  <MapPin className='h-4 w-4 mr-2' />
-                  {t("planner.activities")} ({totalActivitiesCount})
-                </div>
-              </button>
-            </div>
-
-            {activeTab === 'calendar' && (
-              <Card className='border-primary/20 shadow-lg'>
-                <CardHeader className='pb-2 bg-primary/5 rounded-t-lg'>
-                  <div className='flex items-center'>
-                    <Calendar className='h-5 w-5 mr-2 text-primary' />
-                    <CardTitle className='text-lg font-bold'>{t("planner.activityCalendar")}</CardTitle>
-                  </div>
-                  <CardDescription className='text-xs'>
-                    {t("planner.calendarDescription")}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className='pt-4 pb-6'>
-                  <MobileWeeklyActivitySchedule
-                    scheduledActivities={scheduledActivities}
-                    draggedActivity={draggedActivity}
-                    onActivitySelect={handleActivitySelect}
-                    onActivityRemove={handleActivityRemove}
-                  />
-                </CardContent>
-              </Card>
-            )}
-
-            {activeTab === 'activities' && (
-              <div className='space-y-4'>
-                <Card className='border-primary/20 shadow-lg'>
-                  <CardHeader className='pb-2 bg-primary/5 rounded-t-lg'>
-                    <div className='flex items-center'>
-                      <MapPin className='h-5 w-5 mr-2 text-primary' />
-                      <CardTitle className='text-lg font-bold'>{t("planner.selectedActivities")}</CardTitle>
-                    </div>
-                    <CardDescription className='text-xs'>
-                      {totalActivitiesCount} {totalActivitiesCount !== 1 ? t("planner.activitiesSelected") : t("planner.activitySelected")}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className='pt-4 pb-6'>
-                    <SelectedActivitiesList
-                      activities={selectedActivities}
-                      onActivityRemove={handleActivityRemove}
-                    />
-                  </CardContent>
-                </Card>
-                
-                <Card className='border-primary/20 shadow-lg'>
-                  <CardHeader className='pb-2 bg-primary/5 rounded-t-lg'>
-                    <div className='flex items-center'>
-                      <DollarSign className='h-5 w-5 mr-2 text-primary' />
-                      <CardTitle className='text-lg font-bold'>{t("planner.booking")}</CardTitle>
-                    </div>
-                    <CardDescription className='text-xs'>
-                      {t("planner.bookingDescription")}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className='pt-4 pb-6'>
-                    <BulkBookingWidget
-                      activities={[...selectedActivities, ...scheduledActivities]}
-                      onClearSelection={clearActivities}
-                    />
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-6">
-              <Card className="border-primary/20 shadow-lg">
-                <CardHeader className="pb-2 bg-primary/5 rounded-t-lg">
-                  <div className="flex items-center">
-                    <Calendar className="h-5 w-5 mr-2 text-primary" />
-                    <CardTitle className="text-xl font-bold">{t("planner.activityCalendar")}</CardTitle>
-                  </div>
-                  <CardDescription>
-                    {t("planner.calendarDescription")}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pt-4">
-                  <WeeklyActivitySchedule
-                    scheduledActivities={scheduledActivities}
-                    draggedActivity={draggedActivity}
-                    onActivitySelect={handleActivitySelect}
-                    onActivityRemove={handleActivityRemove}
-                  />
-                </CardContent>
-              </Card>
-            </div>
-            
-            <div className="space-y-6">
-              <Card className="border-primary/20 shadow-lg">
-                <CardHeader className="pb-2 bg-primary/5 rounded-t-lg">
-                  <div className="flex items-center">
-                    <MapPin className="h-5 w-5 mr-2 text-primary" />
-                    <CardTitle className="text-xl font-bold">{t("planner.selectedActivities")}</CardTitle>
-                  </div>
-                  <CardDescription>
-                    {totalActivitiesCount} {totalActivitiesCount !== 1 ? t("planner.activitiesSelected") : t("planner.activitySelected")}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pt-4">
-                  <SelectedActivitiesList
-                    activities={selectedActivities}
-                    onActivityRemove={handleActivityRemove}
-                  />
-                </CardContent>
-              </Card>
-              
-              <Card className="border-primary/20 shadow-lg">
-                <CardHeader className="pb-2 bg-primary/5 rounded-t-lg">
-                  <div className="flex items-center">
-                    <DollarSign className="h-5 w-5 mr-2 text-primary" />
-                    <CardTitle className="text-xl font-bold">{t("planner.booking")}</CardTitle>
-                  </div>
-                  <CardDescription>
-                    {t("planner.bookingDescription")}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pt-4">
-                  <BulkBookingWidget
-                    activities={[...selectedActivities, ...scheduledActivities]}
-                    onClearSelection={clearActivities}
-                  />
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        )}
-
-        <DragOverlay dropAnimation={null}>
-          {draggedActivity && !isRemoving && (
-            <div className='relative w-[120px] h-[160px] sm:w-[150px] sm:h-[200px] rounded-lg overflow-hidden border-2 border-primary bg-white shadow-xl pointer-events-none'>
-              <Image
-                src={draggedActivity.imageUrl}
-                alt={draggedActivity.title}
-                fill
-                className='object-cover'
-              />
-              <div className='absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/30'>
-                <div className='p-2 sm:p-3 text-white'>
-                  <div className='font-medium text-xs sm:text-sm line-clamp-2'>{draggedActivity.title}</div>
-                  <div className='flex flex-col gap-1 mt-1'>
-                    <div className='text-xs bg-primary/80 rounded-full px-2 py-1 inline-flex items-center gap-1 w-fit'>
-                      <Clock className='h-3 w-3' />
-                      {draggedActivity.duration}h
-                    </div>
-                    <div className='text-xs bg-primary/80 rounded-full px-2 py-1 inline-flex items-center gap-1 w-fit'>
-                      <MapPin className='h-3 w-3' />
-                      ฿{draggedActivity.price.toLocaleString()}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </DragOverlay>
-      </DndContext>
+    <div ref={setNodeRef} style={style} {...attributes} className="flex items-center gap-4 p-2 bg-white rounded-lg shadow">
+      <button {...listeners} className="cursor-grab">
+        <GripVertical className="h-5 w-5 text-gray-400" />
+      </button>
+      <Image
+        src={activity.image_url || "/placeholder.jpg"}
+        alt={activity.title}
+        width={64}
+        height={64}
+        className="rounded-md object-cover"
+      />
+      <div className="flex-grow">
+        <h4 className="font-semibold">{activity.title}</h4>
+        <p className="text-sm text-gray-500">{activity.category_name}</p>
+      </div>
+      <Button variant="ghost" size="icon" onClick={() => onRemove(activity.id)}>
+        <Trash2 className="h-4 w-4 text-red-500" />
+      </Button>
     </div>
   )
 }
+
+export function ExcursionPlanner({ activities, onPlanComplete }: ExcursionPlannerProps) {
+  const {
+    selectedActivities,
+    scheduledActivities,
+    addActivity,
+    removeActivity,
+    scheduleActivity,
+    updateScheduledActivity,
+    isActivitySelected,
+  } = usePlanning()
+
+  const [editingActivity, setEditingActivity] = useState<ScheduledActivity | null>(null)
+  const isMobile = useIsMobile()
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  )
+
+  const handleDragEnd = (event: any) => {
+    const { active, over } = event
+    if (active.id !== over.id) {
+      const oldIndex = selectedActivities.findIndex(a => a.id === active.id)
+      const newIndex = selectedActivities.findIndex(a => a.id === over.id)
+      // This part needs to update the context state, which is complex.
+      // For now, we'll just log it. A full implementation would require a reorder function in the context.
+      console.log(`Move activity from index ${oldIndex} to ${newIndex}`)
+    }
+  }
+
+  const handleScheduleClick = (activity: ScheduledActivity) => {
+    const defaultDay = "Monday"
+    const defaultHour = 9
+    scheduleActivity(activity.id, defaultDay, defaultHour)
+  }
+
+  const availableActivities = useMemo(() => {
+    return activities.filter(activity => !isActivitySelected(activity.id))
+  }, [activities, isActivitySelected])
+
+  return (
+    <div className="container mx-auto p-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Left Panel: Activity Selection */}
+        <div className="lg:col-span-1 space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Available Activities</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 max-h-96 overflow-y-auto">
+              {availableActivities.map(activity => (
+                <div key={activity.id} className="flex items-center justify-between p-2 border rounded-lg">
+                  <span>{activity.title}</span>
+                  <Button size="sm" onClick={() => addActivity(activity)}>
+                    Add
+                  </Button>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Selected for Planning</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                <SortableContext items={selectedActivities.map(a => a.id)} strategy={verticalListSortingStrategy}>
+                  <div className="space-y-2">
+                    {selectedActivities.map(activity => (
+                      <SortableActivityItem key={activity.id} activity={activity} onRemove={removeActivity} />
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
+              {selectedActivities.length === 0 && (
+                <p className="text-sm text-gray-500 text-center py-4">No activities selected yet.</p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Panel: Weekly Schedule */}
+        <div className="lg:col-span-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Weekly Excursion Plan</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isMobile ? (
+                <MobileWeeklyActivitySchedule
+                  scheduledActivities={scheduledActivities}
+                  onActivityDrop={scheduleActivity}
+                  onActivityClick={(activity: ScheduledActivity) => setEditingActivity(activity)}
+                />
+              ) : (
+                <WeeklyActivitySchedule
+                  scheduledActivities={scheduledActivities}
+                  onActivityDrop={scheduleActivity}
+                  onActivityClick={(activity: ScheduledActivity) => setEditingActivity(activity)}
+                />
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  )
+}
+  

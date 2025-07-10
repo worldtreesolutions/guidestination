@@ -20,6 +20,7 @@ export interface SupabaseActivity {
   physical_effort_level: string | null;
   technical_skill_level: string | null;
   location: string | null;
+  address?: string | null;
   meeting_point: string | null;
   includes_pickup: boolean;
   pickup_locations: string | null;
@@ -30,6 +31,7 @@ export interface SupabaseActivity {
   not_included: string[] | null;
   languages: string[] | null;
   rating: number | null;
+  average_rating?: number | null;
   review_count: number | null;
   image_urls: string[] | null;
   image_url: string | null;
