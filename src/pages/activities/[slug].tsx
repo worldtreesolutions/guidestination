@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/router"
 import Head from "next/head"
@@ -597,6 +596,7 @@ export default function ActivityPage() {
 
                       <AvailabilityCalendar
                         availableDates={activity.schedules?.availableDates?.map((d: any) => d.date) || []}
+                        scheduleData={activity.schedules?.availableDates || []}
                         selectedDate={selectedDate}
                         onDateSelect={setSelectedDate}
                       />

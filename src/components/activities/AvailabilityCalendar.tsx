@@ -1,18 +1,29 @@
-
 import { useState } from "react"
 import { Calendar } from "@/components/ui/calendar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { CalendarDays, Clock } from "lucide-react"
 
+interface ScheduleDate {
+  date: string;
+  startTime: string;
+  endTime: string;
+  capacity: number;
+  booked: number;
+  available: number;
+  price?: number;
+}
+
 interface AvailabilityCalendarProps {
   availableDates: string[]
+  scheduleData?: ScheduleDate[]
   selectedDate?: Date
   onDateSelect: (date: Date | undefined) => void
 }
 
 export function AvailabilityCalendar({ 
   availableDates, 
+  scheduleData = [],
   selectedDate, 
   onDateSelect 
 }: AvailabilityCalendarProps) {
@@ -36,6 +47,42 @@ export function AvailabilityCalendar({
     return date < today || !isDateAvailable(date)
   }
 
+  // Get schedule info for selected date
+  const getSelectedDateSchedule = () => {
+    if (!selectedDate) return null
+    
+    const dateStr = selectedDate.toISOString().split('T')[0]
+    return scheduleData.find(schedule => schedule.date === dateStr)
+  }
+
+  const selectedSchedule = getSelectedDateSchedule()
+
+  // Get unique time slots from all schedule data
+  const getAvailableTimes = () => {
+    if (scheduleData.length === 0) {
+      return [
+        { startTime: "09:00", endTime: "12:00" },
+        { startTime: "14:00", endTime: "17:00" }
+      ]
+    }
+
+    // Get unique time combinations
+    const uniqueTimes = scheduleData.reduce((acc: any[], schedule) => {
+      const timeSlot = `${schedule.startTime} - ${schedule.endTime}`
+      if (!acc.find(t => `${t.startTime} - ${t.endTime}` === timeSlot)) {
+        acc.push({
+          startTime: schedule.startTime,
+          endTime: schedule.endTime
+        })
+      }
+      return acc
+    }, [])
+
+    return uniqueTimes.slice(0, 4) // Limit to 4 time slots for display
+  }
+
+  const availableTimes = getAvailableTimes()
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
@@ -53,20 +100,51 @@ export function AvailabilityCalendar({
         onMonthChange={setCurrentMonth}
       />
 
-      {availableDates.length > 0 && (
+      {selectedDate && selectedSchedule && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Clock className="h-4 w-4" />
+            <span className="text-sm font-medium">Selected Date Details</span>
+          </div>
+          
+          <div className="bg-muted/50 rounded-lg p-3 space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium">Time:</span>
+              <Badge variant="outline">
+                {selectedSchedule.startTime} - {selectedSchedule.endTime}
+              </Badge>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium">Availability:</span>
+              <span className="text-sm text-muted-foreground">
+                {selectedSchedule.available} of {selectedSchedule.capacity} spots available
+              </span>
+            </div>
+            {selectedSchedule.price && (
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium">Price:</span>
+                <span className="text-sm font-semibold">
+                  ฿{selectedSchedule.price.toLocaleString()}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {availableDates.length > 0 && !selectedDate && (
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <Clock className="h-4 w-4" />
             <span className="text-sm font-medium">Available Times</span>
           </div>
           
-          <div className="grid grid-cols-2 gap-2">
-            <Badge variant="outline" className="justify-center py-2">
-              09:00 AM
-            </Badge>
-            <Badge variant="outline" className="justify-center py-2">
-              02:00 PM
-            </Badge>
+          <div className="grid grid-cols-1 gap-2">
+            {availableTimes.map((time, index) => (
+              <Badge key={index} variant="outline" className="justify-center py-2">
+                {time.startTime} - {time.endTime}
+              </Badge>
+            ))}
           </div>
         </div>
       )}
@@ -82,7 +160,7 @@ export function AvailabilityCalendar({
       <div className="text-xs text-muted-foreground space-y-1">
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 bg-primary rounded-full"></div>
-          <span>Available dates</span>
+          <span>Available dates ({availableDates.length})</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 bg-muted rounded-full"></div>

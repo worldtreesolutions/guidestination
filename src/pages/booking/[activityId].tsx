@@ -325,6 +325,7 @@ export default function ActivityBookingPage() {
                         <h3 className="font-semibold mb-3">Select Date</h3>
                         <AvailabilityCalendar
                           availableDates={activity.schedules?.availableDates?.map((d: any) => d.date) || []}
+                          scheduleData={activity.schedules?.availableDates || []}
                           selectedDate={selectedDate}
                           onDateSelect={setSelectedDate}
                         />
