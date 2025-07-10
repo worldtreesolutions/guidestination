@@ -102,10 +102,10 @@ export const supabaseActivityService = {
             is_active,
             status
           ),
-          activity_selected_options!inner(
+          activity_selected_options(
             id,
             option_id,
-            activity_options!inner(
+            activity_options(
               id,
               label,
               icon,
@@ -437,7 +437,7 @@ export const supabaseActivityService = {
           if (daysOfWeek.includes(dayOfWeek)) {
             const dateStr = d.toISOString().split('T')[0]
             // Don't add if we already have a specific instance for this date
-            if (!instanceDates.some(inst => inst.date === dateStr)) {
+            if (!instanceDates.some((inst: any) => inst.date === dateStr)) {
               scheduleDates.push({
                 date: dateStr,
                 startTime: schedule.start_time || "09:00",
