@@ -1,4 +1,11 @@
 
+export interface ActivitySelectedOption {
+  id: number;
+  option_name: string;
+  option_type: string;
+  is_selected: boolean;
+}
+
 export interface SupabaseActivity {
   id: number;
   title: string;
@@ -42,6 +49,7 @@ export interface SupabaseActivity {
       price?: number;
     }[];
   };
+  activity_selected_options?: ActivitySelectedOption[];
   selectedOptions?: {
     id: number;
     label: string;
