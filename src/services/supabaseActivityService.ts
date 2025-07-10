@@ -408,8 +408,9 @@ export const supabaseActivityService = {
       const startDate = schedule.availability_start_date ? new Date(schedule.availability_start_date) : today;
       const endDate = schedule.availability_end_date ? new Date(schedule.availability_end_date) : futureLimit;
       
-      if (schedule.is_recurring && schedule.recurrence_pattern === 'weekly' && schedule.recurrence_day_of_week) {
-        // Generate weekly recurring instances
+      // Generate weekly recurring instances if recurrence_pattern is 'weekly' and has days of week
+      if (schedule.recurrence_pattern === 'weekly' && schedule.recurrence_day_of_week) {
+        console.log("Generating weekly instances for schedule:", schedule);
         const daysOfWeek = Array.isArray(schedule.recurrence_day_of_week) ? schedule.recurrence_day_of_week : [schedule.recurrence_day_of_week];
         
         let currentDate = new Date(startDate);
@@ -417,9 +418,11 @@ export const supabaseActivityService = {
           const dayOfWeek = currentDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
           
           if (daysOfWeek.includes(dayOfWeek)) {
+            const instanceDate = currentDate.toISOString().split('T')[0];
+            console.log(`Creating instance for date: ${instanceDate}, day: ${dayOfWeek}`);
             instances.push({
-              id: `generated-${schedule.id}-${currentDate.toISOString().split('T')[0]}`,
-              scheduled_date: currentDate.toISOString().split('T')[0],
+              id: `generated-${schedule.id}-${instanceDate}`,
+              scheduled_date: instanceDate,
               start_time: schedule.start_time || '09:00:00',
               end_time: schedule.end_time || '17:00:00',
               capacity: schedule.capacity || 10,
@@ -433,7 +436,7 @@ export const supabaseActivityService = {
           
           currentDate.setDate(currentDate.getDate() + 1);
         }
-      } else if (schedule.is_recurring && schedule.recurrence_pattern === 'daily') {
+      } else if (schedule.recurrence_pattern === 'daily') {
         // Generate daily recurring instances
         let currentDate = new Date(startDate);
         const interval = schedule.recurrence_interval || 1;
@@ -473,6 +476,7 @@ export const supabaseActivityService = {
       }
     });
 
+    console.log(`Generated ${instances.length} schedule instances:`, instances.slice(0, 5));
     return instances;
   },
 
