@@ -1,3 +1,4 @@
+
 import { useDroppable, useDraggable } from "@dnd-kit/core"
 import { CSS } from "@dnd-kit/utilities"
 import Image from "next/image"
@@ -47,7 +48,7 @@ const RemoveButton = ({
 const ActivityCard = ({ activity, onRemove }: { activity: ScheduledActivity; onRemove: (id: string) => void }) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: activity.id,
-     { activity }
+    data: { activity }
   });
 
   const style = transform ? {
@@ -117,7 +118,7 @@ const DroppableCell = ({
   const { t } = useLanguage()
   const { setNodeRef } = useDroppable({
     id: `${day}-${hour}`,
-     { day, hour },
+    data: { day, hour },
     disabled: !isAvailable
   });
 
@@ -324,4 +325,3 @@ export const WeeklyActivitySchedule = ({
     </div>
   )
 }
-  
