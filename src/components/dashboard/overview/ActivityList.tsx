@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { SupabaseActivity } from "@/services/supabaseActivityService"
+import { SupabaseActivity } from "@/types/activity"
 import Image from "next/image"
 
 interface ActivityListProps {
@@ -27,11 +27,13 @@ export function ActivityList({ activities, onEdit, onView }: ActivityListProps) 
     }).format(price)
   }
 
-  const getStatusColor = (isActive: boolean) => {
+  const getStatusColor = (isActive: boolean | null) => {
+    if (isActive === null) return "bg-gray-100 text-gray-800"
     return isActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
   }
 
-  const getStatusText = (isActive: boolean) => {
+  const getStatusText = (isActive: boolean | null) => {
+    if (isActive === null) return "Unknown"
     return isActive ? "Active" : "Inactive"
   }
 
@@ -63,28 +65,26 @@ export function ActivityList({ activities, onEdit, onView }: ActivityListProps) 
               className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
             >
               <div className="flex items-center space-x-4">
-                <TableCell>
-                  <div className="flex items-center gap-3">
-                    <Image
-                      src={activity.image_url?.[0] || '/placeholder.svg'}
-                      alt={activity.title}
-                      width={40}
-                      height={40}
-                      className="w-10 h-10 rounded-lg object-cover"
-                    />
-                    <div>
-                      <h3 className="font-medium">{activity.title}</h3>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge className={getStatusColor(activity.is_active)}>
-                          {getStatusText(activity.is_active)}
-                        </Badge>
-                        <span className="text-sm text-muted-foreground">
-                          {formatPrice(activity.price)}
-                        </span>
-                      </div>
+                <div className="flex items-center gap-3">
+                  <Image
+                    src={activity.image_url?.[0] || '/placeholder.svg'}
+                    alt={activity.title}
+                    width={40}
+                    height={40}
+                    className="w-10 h-10 rounded-lg object-cover"
+                  />
+                  <div>
+                    <h3 className="font-medium">{activity.title}</h3>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge className={getStatusColor(activity.is_active)}>
+                        {getStatusText(activity.is_active)}
+                      </Badge>
+                      <span className="text-sm text-muted-foreground">
+                        {formatPrice(activity.price)}
+                      </span>
                     </div>
                   </div>
-                </TableCell>
+                </div>
               </div>
               
               <DropdownMenu>

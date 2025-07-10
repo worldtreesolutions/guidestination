@@ -5,7 +5,7 @@ import { useDraggable } from "@dnd-kit/core"
 import { CSS } from "@dnd-kit/utilities"
 import { Clock, MapPin, Users, X, Star } from "lucide-react"
 import { useLanguage } from "@/contexts/LanguageContext"
-import { SupabaseActivity } from "@/services/supabaseActivityService"
+import { SupabaseActivity } from "@/types/activity"
 import Image from "next/image"
 
 interface SelectedActivitiesListProps {

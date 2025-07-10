@@ -6,7 +6,7 @@ import { ShoppingCart, Trash2, CreditCard, Calendar } from "lucide-react"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { motion } from "framer-motion"
-import { SupabaseActivity } from "@/services/supabaseActivityService"
+import { SupabaseActivity } from "@/types/activity"
 import Image from "next/image"
 
 type ActivityItem = SupabaseActivity | ScheduledActivity;
@@ -48,7 +48,7 @@ export function BulkBookingWidget({ activities, onClearSelection }: BulkBookingW
         {activities.map((activity) => (
           <div key={activity.id} className="flex items-center space-x-3 p-3 border rounded-lg">
             <Image
-              src={activity.image_url?.[0] || "/placeholder.svg"}
+              src={isScheduledActivity(activity) ? activity.imageUrl : (activity.image_url?.[0] || "/placeholder.svg")}
               alt={activity.title}
               width={80}
               height={80}

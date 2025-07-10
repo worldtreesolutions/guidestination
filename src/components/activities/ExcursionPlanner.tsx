@@ -11,7 +11,7 @@ import Image from "next/image"
 import { Calendar, Clock, MapPin, DollarSign, Menu } from "lucide-react"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { SupabaseActivity } from "@/services/supabaseActivityService"
+import { SupabaseActivity } from "@/types/activity"
 import { Button } from "@/components/ui/button"
 
 export interface ScheduledActivity {
@@ -63,7 +63,7 @@ export function ExcursionPlanner({ activities, onPlanComplete }: ExcursionPlanne
       const activity: ScheduledActivity = {
         id: selected.id.toString(),
         title: selected.title,
-        imageUrl: selected.image_urls?.[0] || "",
+        imageUrl: selected.image_url?.[0] || "",
         day: "",
         hour: 0,
         duration: selected.duration || 2,

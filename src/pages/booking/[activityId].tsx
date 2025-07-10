@@ -411,10 +411,18 @@ export default function ActivityBookingPage() {
 
         <div className="mt-8">
           <h2 className="text-2xl font-bold mb-4">Schedule</h2>
-          <WeeklyActivitySchedule schedules={activity.schedule} onSelectTime={(day, time) => {
-            setSelectedTime(time);
-            setSelectedDay(day);
-          }} />
+          {activity.schedule && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="border rounded-lg p-4">
+                <h3 className="font-semibold mb-2">Start Time</h3>
+                <p>{activity.schedule.startTime || "Not specified"}</p>
+              </div>
+              <div className="border rounded-lg p-4">
+                <h3 className="font-semibold mb-2">End Time</h3>
+                <p>{activity.schedule.endTime || "Not specified"}</p>
+              </div>
+            </div>
+          )}
         </div>
 
         <Footer />

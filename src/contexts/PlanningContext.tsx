@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, ReactNode } from "react"
-import { SupabaseActivity } from "@/services/supabaseActivityService";
+import { SupabaseActivity } from "@/types/activity";
 import { ScheduledActivity } from "@/components/activities/ExcursionPlanner";
 
 type Activity = SupabaseActivity;
@@ -35,14 +35,7 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
     const isAlreadyScheduled = scheduledActivities.some(a => a.id === activity.id.toString());
 
     if (!isAlreadySelected && !isAlreadyScheduled) {
-      const newActivity = {
-        ...activity,
-        id: `${activity.id}-${Date.now()}`, // Create a unique ID for the planner
-        plannerDate: date,
-        plannerTime: time,
-        imageUrl: activity.image_url?.[0] || '/placeholder.svg',
-      };
-      setSelectedActivities(prev => [...prev, newActivity]);
+      setSelectedActivities(prev => [...prev, activity]);
     }
   }, [selectedActivities, scheduledActivities]);
 
@@ -69,11 +62,11 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
         const newScheduledActivity: ScheduledActivity = {
           id: activityToSchedule.id.toString(),
           title: activityToSchedule.title,
-          imageUrl: activityToSchedule.image_urls?.[0] || "",
+          imageUrl: activityToSchedule.image_url?.[0] || "",
           day,
           hour,
-          duration: activityToSchedule.duration,
-          price: activityToSchedule.price,
+          duration: activityToSchedule.duration || 2,
+          price: activityToSchedule.price || 0,
           participants: 1, // Default participants
         };
         return [...prevScheduled, newScheduledActivity];
