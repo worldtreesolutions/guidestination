@@ -74,6 +74,26 @@ export const supabaseActivityService = {
     try {
       console.log("Fetching activity with ID:", id)
       
+      // First, try a simple query to see if the activity exists
+      const { data: basicData, error: basicError } = await supabase
+        .from("activities")
+        .select("*")
+        .eq("id", id)
+        .single()
+
+      if (basicError) {
+        console.error("Basic query error:", basicError)
+        throw new Error(`Activity not found: ${basicError.message}`)
+      }
+
+      if (!basicData) {
+        console.error("No activity found with ID:", id)
+        throw new Error("Activity not found")
+      }
+
+      console.log("Basic activity data found:", basicData)
+
+      // Now try the complex query with joins
       const { data, error } = await supabase
         .from("activities")
         .select(`
@@ -120,16 +140,21 @@ export const supabaseActivityService = {
         .single()
 
       if (error) {
-        console.error("Database error fetching activity by ID:", error)
-        throw new Error(`Database error: ${error.message}`)
+        console.error("Complex query error:", error)
+        // Fall back to basic data if complex query fails
+        console.log("Falling back to basic data due to complex query error")
+        const transformedActivity = this.transformActivity(basicData)
+        return transformedActivity
       }
 
       if (!data) {
-        console.error("No activity found with ID:", id)
-        throw new Error("Activity not found")
+        console.error("No data returned from complex query")
+        // Fall back to basic data
+        const transformedActivity = this.transformActivity(basicData)
+        return transformedActivity
       }
 
-      console.log("Raw activity data:", data)
+      console.log("Complex query successful, raw activity data:", data)
       const transformedActivity = this.transformActivity(data)
       console.log("Transformed activity:", transformedActivity)
       
