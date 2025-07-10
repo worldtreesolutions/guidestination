@@ -1,5 +1,6 @@
+
 import Head from "next/head"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { CategoryNav } from "@/components/home/CategoryNav"
@@ -9,69 +10,73 @@ import { BottomActionButtons } from "@/components/layout/BottomActionButtons"
 import { FloatingCart } from "@/components/layout/FloatingCart"
 import { supabaseActivityService } from "@/services/supabaseActivityService"
 import { ActivityForHomepage } from "@/types/activity"
+import categoryService, { type Category } from "@/services/categoryService"
 
 export default function HomePage() {
-  const [activities, setActivities] = useState<ActivityForHomepage[]>([])
-  const [featuredActivities, setFeaturedActivities] = useState<ActivityForHomepage[]>([])
-  const [recommendedActivities, setRecommendedActivities] = useState<ActivityForHomepage[]>([])
+  const [activitiesByCategory, setActivitiesByCategory] = useState<Record<string, ActivityForHomepage[]>>({})
+  const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
 
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      try {
-        setLoading(true)
-        
-        const [featured, recommended] = await Promise.all([
-          supabaseActivityService.getFeaturedActivities(4),
-          supabaseActivityService.getRecommendedActivities(8)
-        ])
-        
-        setFeaturedActivities(supabaseActivityService.convertToHomepageFormat(featured))
-        setRecommendedActivities(supabaseActivityService.convertToHomepageFormat(recommended))
-        setActivities(supabaseActivityService.convertToHomepageFormat(recommended))
-
-      } catch (error) {
-        console.error("Error fetching initial activities:", error)
-      } finally {
-        setLoading(false)
-      }
+  const fetchActivitiesForCategory = useCallback(async (categoryName: string) => {
+    try {
+      const activities = await supabaseActivityService.getActivitiesByCategory(categoryName, 8)
+      return supabaseActivityService.convertToHomepageFormat(activities)
+    } catch (error) {
+      console.error(`Error fetching activities for category ${categoryName}:`, error)
+      return []
     }
-
-    fetchInitialData()
   }, [])
 
-  useEffect(() => {
-    const fetchActivities = async () => {
+  const fetchAllCategoriesWithActivities = useCallback(async () => {
+    try {
       setLoading(true)
-      try {
-        let fetchedActivities
-        if (selectedCategory) {
-          fetchedActivities = await supabaseActivityService.getActivitiesByCategory(selectedCategory)
-        } else {
-          fetchedActivities = await supabaseActivityService.getRecommendedActivities(8)
+      
+      // Fetch categories first
+      const fetchedCategories = await categoryService.getAllCategories()
+      setCategories(fetchedCategories)
+
+      // Fetch activities for each category
+      const categoryActivities: Record<string, ActivityForHomepage[]> = {}
+      
+      // Add featured activities
+      const featured = await supabaseActivityService.getFeaturedActivities(8)
+      categoryActivities["Featured"] = supabaseActivityService.convertToHomepageFormat(featured)
+
+      // Add recommended activities
+      const recommended = await supabaseActivityService.getRecommendedActivities(8)
+      categoryActivities["Recommended"] = supabaseActivityService.convertToHomepageFormat(recommended)
+
+      // Fetch activities for each category
+      for (const category of fetchedCategories) {
+        if (category.name) {
+          const activities = await fetchActivitiesForCategory(category.name)
+          if (activities.length > 0) {
+            categoryActivities[category.name] = activities
+          }
         }
-        setActivities(supabaseActivityService.convertToHomepageFormat(fetchedActivities))
-      } catch (error) {
-        console.error(`Error fetching activities for category ${selectedCategory}:`, error)
-        setActivities([])
-      } finally {
-        setLoading(false)
       }
+
+      setActivitiesByCategory(categoryActivities)
+    } catch (error) {
+      console.error("Error fetching categories and activities:", error)
+    } finally {
+      setLoading(false)
     }
+  }, [fetchActivitiesForCategory])
 
-    fetchActivities()
-  }, [selectedCategory])
+  useEffect(() => {
+    fetchAllCategoriesWithActivities()
+  }, [fetchAllCategoriesWithActivities])
 
-
-  const handleSelectCategory = (categoryName: string | null) => {
-    setSelectedCategory(categoryName);
-  };
+  const handleSelectCategory = useCallback((categoryName: string | null) => {
+    setSelectedCategory(categoryName)
+  }, [])
 
   const renderActivityRows = () => {
     if (loading) {
       return (
-        <div className="text-center">
+        <div className="text-center py-12">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading activities...</p>
         </div>
@@ -79,24 +84,29 @@ export default function HomePage() {
     }
 
     if (selectedCategory) {
-      return <ActivityRow title={selectedCategory} activities={activities} />
+      const activities = activitiesByCategory[selectedCategory] || []
+      return (
+        <div className="space-y-8">
+          <ActivityRow title={selectedCategory} activities={activities} />
+        </div>
+      )
     }
 
+    // Netflix-style: Show all categories with their activities
     return (
-      <>
-        {recommendedActivities.length > 0 && (
-          <ActivityRow
-            title="Recommended by Us"
-            activities={recommendedActivities}
-          />
-        )}
-        {featuredActivities.length > 0 && (
-          <ActivityRow
-            title="Featured Activities"
-            activities={featuredActivities}
-          />
-        )}
-      </>
+      <div className="space-y-12">
+        {Object.entries(activitiesByCategory).map(([categoryName, activities]) => {
+          if (activities.length === 0) return null
+          
+          return (
+            <ActivityRow
+              key={categoryName}
+              title={categoryName}
+              activities={activities}
+            />
+          )
+        })}
+      </div>
     )
   }
 
@@ -120,7 +130,10 @@ export default function HomePage() {
 
         <section className="bg-gray-50 py-8">
           <div className="container mx-auto px-4">
-            <CategoryNav selectedCategory={selectedCategory} onSelectCategory={handleSelectCategory} />
+            <CategoryNav 
+              selectedCategory={selectedCategory} 
+              onSelectCategory={handleSelectCategory} 
+            />
           </div>
         </section>
 
@@ -131,7 +144,6 @@ export default function HomePage() {
         </section>
 
         <BottomActionButtons />
-        
         <FloatingCart />
       </div>
 

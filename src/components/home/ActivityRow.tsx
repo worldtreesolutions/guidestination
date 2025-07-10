@@ -11,23 +11,16 @@ interface ActivityRowProps {
 }
 
 export function ActivityRow({ title, activities }: ActivityRowProps) {
-  if (activities.length === 0) return null
+  if (!activities || activities.length === 0) {
+    return null
+  }
 
   return (
-    <div className="mb-12">
-      <h2 className="text-2xl font-bold mb-6">{title}</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="mb-8">
+      <h2 className="text-2xl font-bold mb-6 text-gray-900">{title}</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {activities.map((activity) => (
-          <Link key={activity.id} href={`/activities/${activity.id}`}>
-            <ActivityCard
-              title={activity.title}
-              image={activity.image_url || "https://images.unsplash.com/photo-1563492065599-3520f775eeed"}
-              price={activity.price}
-              location={activity.location || "Location TBD"}
-              rating={activity.rating || 0}
-              href={`/activities/${activity.id}`}
-            />
-          </Link>
+          <ActivityCard key={activity.id} activity={activity} />
         ))}
       </div>
     </div>
