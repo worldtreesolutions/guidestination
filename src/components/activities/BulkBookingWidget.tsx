@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { ScheduledActivity } from "./ExcursionPlanner"
@@ -49,10 +48,10 @@ export function BulkBookingWidget({ activities, onClearSelection }: BulkBookingW
         {activities.map((activity) => (
           <div key={activity.id} className="flex items-center space-x-3 p-3 border rounded-lg">
             <Image
-              src={isScheduledActivity(activity) ? activity.imageUrl : activity.image_urls?.[0] || "/placeholder.jpg"}
+              src={activity.image_url?.[0] || "/placeholder.svg"}
               alt={activity.title}
-              width={48}
-              height={48}
+              width={80}
+              height={80}
               className="w-12 h-12 rounded object-cover"
             />
             <div className="flex-1">

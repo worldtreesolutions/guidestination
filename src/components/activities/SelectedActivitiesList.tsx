@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -48,10 +47,10 @@ function DraggableActivityCard({ activity, onRemove }: { activity: SupabaseActiv
         <div className="relative">
           <div className="aspect-video relative overflow-hidden">
             <Image
-              src={activity.image_urls?.[0] || "/placeholder.jpg"}
+              src={activity.image_url?.[0] || '/placeholder.svg'}
               alt={activity.title}
-              width={200}
-              height={112}
+              width={64}
+              height={36}
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />

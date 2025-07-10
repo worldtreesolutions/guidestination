@@ -35,7 +35,14 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
     const isAlreadyScheduled = scheduledActivities.some(a => a.id === activity.id.toString());
 
     if (!isAlreadySelected && !isAlreadyScheduled) {
-      setSelectedActivities(prev => [...prev, activity]);
+      const newActivity = {
+        ...activity,
+        id: `${activity.id}-${Date.now()}`, // Create a unique ID for the planner
+        plannerDate: date,
+        plannerTime: time,
+        imageUrl: activity.image_url?.[0] || '/placeholder.svg',
+      };
+      setSelectedActivities(prev => [...prev, newActivity]);
     }
   }, [selectedActivities, scheduledActivities]);
 

@@ -2,8 +2,6 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/router"
 import Head from "next/head"
 import { useAuth } from "@/contexts/AuthContext"
-// Remove ProviderLayout import
-// import { ProviderLayout } from "@/components/activity-owner/layout/ProviderLayout"
 import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout" // Add DashboardLayout import
 import { activityService, Booking } from "@/services/activityService"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -14,13 +12,15 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 import { Search } from "lucide-react"
+import { fetchBookingsForOwner } from "@/services/supabaseActivityService";
+import { SupabaseBooking } from "@/types/activity";
 
 export default function BookingsPage() {
   const { user, isAuthenticated } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
+  const [bookings, setBookings] = useState<SupabaseBooking[]>([]);
+  const [filteredBookings, setFilteredBookings] = useState<SupabaseBooking[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -34,7 +34,7 @@ export default function BookingsPage() {
       if (!user) return;
       
       try {
-        const data = await activityService.getBookingsByProvider(user.id);
+        const data = await fetchBookingsForOwner(user.id);
         setBookings(data);
         setFilteredBookings(data);
       } catch (error) {
@@ -180,7 +180,7 @@ export default function BookingsPage() {
 }
 
 interface BookingTableProps {
-  bookings: Booking[];
+  bookings: SupabaseBooking[];
   getStatusColor: (status: string) => string;
 }
 

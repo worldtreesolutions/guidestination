@@ -36,6 +36,8 @@ export default function ActivityBookingPage() {
   const [loading, setLoading] = useState(true)
   const [selectedDate, setSelectedDate] = useState<Date>()
   const [selectedParticipants, setSelectedParticipants] = useState(1)
+  const [selectedTime, setSelectedTime] = useState<string | null>(null)
+  const [selectedDay, setSelectedDay] = useState<string | null>(null)
   const isMobile = useIsMobile()
 
   useEffect(() => {
@@ -405,6 +407,14 @@ export default function ActivityBookingPage() {
               <p>{activity.meeting_point}</p>
             </div>
           )}
+        </div>
+
+        <div className="mt-8">
+          <h2 className="text-2xl font-bold mb-4">Schedule</h2>
+          <WeeklyActivitySchedule schedules={activity.schedule} onSelectTime={(day, time) => {
+            setSelectedTime(time);
+            setSelectedDay(day);
+          }} />
         </div>
 
         <Footer />

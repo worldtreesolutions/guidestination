@@ -10,6 +10,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useToast } from "@/hooks/use-toast"
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Line, LineChart } from "recharts"
 import { CreditCard, TrendingUp, DollarSign, Calendar } from "lucide-react"
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { fetchEarningsForOwner } from '@/services/supabaseActivityService';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 
 export default function EarningsPage() {
   const { user, isAuthenticated } = useAuth();

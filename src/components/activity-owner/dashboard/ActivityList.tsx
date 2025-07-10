@@ -1,4 +1,3 @@
-
 import { Activity } from "@/services/activityService"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -6,6 +5,8 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Edit, Eye, Trash2 } from "lucide-react"
 import Link from "next/link"
+import { fetchActivitiesByOwner } from '@/services/supabaseActivityService';
+import { SupabaseActivity } from '@/types/activity';
 
 interface ActivityListProps {
   activities: Activity[];

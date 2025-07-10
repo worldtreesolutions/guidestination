@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -64,24 +63,28 @@ export function ActivityList({ activities, onEdit, onView }: ActivityListProps) 
               className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
             >
               <div className="flex items-center space-x-4">
-                <Image
-                  src={activity.image_urls?.[0] || "/placeholder.jpg"}
-                  alt={activity.title}
-                  width={48}
-                  height={48}
-                  className="w-12 h-12 rounded-lg object-cover"
-                />
-                <div>
-                  <h3 className="font-medium">{activity.title}</h3>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Badge className={getStatusColor(activity.is_active)}>
-                      {getStatusText(activity.is_active)}
-                    </Badge>
-                    <span className="text-sm text-muted-foreground">
-                      {formatPrice(activity.price)}
-                    </span>
+                <TableCell>
+                  <div className="flex items-center gap-3">
+                    <Image
+                      src={activity.image_url?.[0] || '/placeholder.svg'}
+                      alt={activity.title}
+                      width={40}
+                      height={40}
+                      className="w-10 h-10 rounded-lg object-cover"
+                    />
+                    <div>
+                      <h3 className="font-medium">{activity.title}</h3>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge className={getStatusColor(activity.is_active)}>
+                          {getStatusText(activity.is_active)}
+                        </Badge>
+                        <span className="text-sm text-muted-foreground">
+                          {formatPrice(activity.price)}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                </TableCell>
               </div>
               
               <DropdownMenu>

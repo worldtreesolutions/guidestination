@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react"
 import { useRouter } from "next/router"
 import Head from "next/head"
@@ -10,10 +9,12 @@ import { DashboardHeader } from "@/components/activity-owner/dashboard/Dashboard
 import { EarningsChart } from "@/components/activity-owner/dashboard/EarningsChart"
 import { RecentBookings } from "@/components/activity-owner/dashboard/RecentBookings"
 import { ActivityList } from "@/components/activity-owner/dashboard/ActivityList"
-import { activityService, Activity, Booking } from "@/services/activityService"
+import { fetchActivitiesByOwner, fetchRecentBookingsForOwner } from "@/services/supabaseActivityService"
+import { SupabaseActivity, SupabaseBooking } from "@/types/activity"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 
 export default function DashboardPage() {
   const { user, isAuthenticated } = useAuth()
@@ -21,8 +22,8 @@ export default function DashboardPage() {
   const router = useRouter()
   const { toast } = useToast()
   const isMobile = useIsMobile()
-  const [activities, setActivities] = useState<Activity[]>([])
-  const [bookings, setBookings] = useState<Booking[]>([])
+  const [activities, setActivities] = useState<SupabaseActivity[]>([])
+  const [bookings, setBookings] = useState<SupabaseBooking[]>([])
   const [earnings, setEarnings] = useState<{
     total: number
     monthly: { month: string; amount: number }[]
@@ -46,8 +47,8 @@ export default function DashboardPage() {
       
       try {
         const [activitiesData, bookingsData, earningsData] = await Promise.all([
-          activityService.getActivitiesByProvider(user.id),
-          activityService.getBookingsByProvider(user.id),
+          fetchActivitiesByOwner(user.id),
+          fetchRecentBookingsForOwner(user.id),
           activityService.getProviderEarnings(user.id)
         ])
         

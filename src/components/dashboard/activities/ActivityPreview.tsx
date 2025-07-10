@@ -1,9 +1,11 @@
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Activity } from "@/services/activityService";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Users, Calendar, MapPin, Languages, Check, X } from "lucide-react";
 import Image from "next/image";
+import { useEffect, useState } from 'react';
+import { getActivityById } from '@/services/supabaseActivityService';
+import { SupabaseActivity } from '@/types/activity';
 
 interface ActivityPreviewProps {
   activity: Activity | null;
@@ -12,7 +14,17 @@ interface ActivityPreviewProps {
 }
 
 export function ActivityPreview({ activity, isOpen, onClose }: ActivityPreviewProps) {
-  if (!activity) return null;
+  const [supabaseActivity, setSupabaseActivity] = useState<SupabaseActivity | null>(null);
+
+  useEffect(() => {
+    if (activity) {
+      getActivityById(activity.id).then((supabaseActivity) => {
+        setSupabaseActivity(supabaseActivity);
+      });
+    }
+  }, [activity]);
+
+  if (!supabaseActivity) return null;
 
   // Format duration for display
   const formatDuration = (duration: string) => {
@@ -54,10 +66,10 @@ export function ActivityPreview({ activity, isOpen, onClose }: ActivityPreviewPr
         <div className="space-y-6 pt-4">
           {/* Hero Image */}
           <div className="relative h-64 sm:h-80 w-full rounded-lg overflow-hidden">
-            {activity.images && activity.images.length > 0 ? (
+            {supabaseActivity.images && supabaseActivity.images.length > 0 ? (
               <Image
-                src={activity.images[0]}
-                alt={activity.title}
+                src={supabaseActivity.images[0]}
+                alt={supabaseActivity.title}
                 fill
                 className="object-cover"
               />
@@ -68,16 +80,16 @@ export function ActivityPreview({ activity, isOpen, onClose }: ActivityPreviewPr
             )}
             <div className="absolute bottom-4 right-4">
               <Badge className="text-sm px-3 py-1">
-                {activity.category.charAt(0).toUpperCase() + activity.category.slice(1)}
+                {supabaseActivity.category.charAt(0).toUpperCase() + supabaseActivity.category.slice(1)}
               </Badge>
             </div>
           </div>
 
           {/* Title and Price */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <h1 className="text-2xl font-bold">{activity.title}</h1>
+            <h1 className="text-2xl font-bold">{supabaseActivity.title}</h1>
             <div className="text-xl font-bold">
-              ฿{activity.finalPrice.toLocaleString()} <span className="text-sm text-muted-foreground">per person</span>
+              ฿{supabaseActivity.finalPrice.toLocaleString()} <span className="text-sm text-muted-foreground">per person</span>
             </div>
           </div>
 
@@ -85,33 +97,33 @@ export function ActivityPreview({ activity, isOpen, onClose }: ActivityPreviewPr
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <div className="flex items-center gap-2">
               <Clock className="h-5 w-5 text-muted-foreground" />
-              <span>{formatDuration(activity.duration)}</span>
+              <span>{formatDuration(supabaseActivity.duration)}</span>
             </div>
             <div className="flex items-center gap-2">
               <Users className="h-5 w-5 text-muted-foreground" />
-              <span>Max {activity.maxParticipants} people</span>
+              <span>Max {supabaseActivity.maxParticipants} people</span>
             </div>
             <div className="flex items-center gap-2">
               <Calendar className="h-5 w-5 text-muted-foreground" />
-              <span>{formatDates(activity.schedule?.availableDates)}</span>
+              <span>{formatDates(supabaseActivity.schedule?.availableDates)}</span>
             </div>
             <div className="flex items-center gap-2">
               <MapPin className="h-5 w-5 text-muted-foreground" />
-              <span>{activity.meetingPoint}</span>
+              <span>{supabaseActivity.meetingPoint}</span>
             </div>
           </div>
 
           {/* Description */}
           <div>
             <h2 className="text-xl font-semibold mb-2">Description</h2>
-            <p className="text-muted-foreground whitespace-pre-line">{activity.description}</p>
+            <p className="text-muted-foreground whitespace-pre-line">{supabaseActivity.description}</p>
           </div>
 
           {/* Highlights */}
           <div>
             <h2 className="text-xl font-semibold mb-2">Highlights</h2>
             <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              {activity.highlights.map((highlight, index) => (
+              {supabaseActivity.highlights.map((highlight, index) => (
                 <li key={index} className="flex items-start gap-2">
                   <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                   <span>{highlight}</span>
@@ -125,7 +137,7 @@ export function ActivityPreview({ activity, isOpen, onClose }: ActivityPreviewPr
             <h2 className="text-xl font-semibold mb-2">Languages</h2>
             <div className="flex items-center gap-2">
               <Languages className="h-5 w-5 text-muted-foreground" />
-              <span>{activity.languages.join(", ")}</span>
+              <span>{supabaseActivity.languages.join(", ")}</span>
             </div>
           </div>
 
@@ -133,7 +145,7 @@ export function ActivityPreview({ activity, isOpen, onClose }: ActivityPreviewPr
           <div>
             <h2 className="text-xl font-semibold mb-2">What's Included</h2>
             <ul className="space-y-2">
-              {activity.included.map((item, index) => (
+              {supabaseActivity.included.map((item, index) => (
                 <li key={index} className="flex items-start gap-2">
                   <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                   <span>{item}</span>
@@ -143,11 +155,11 @@ export function ActivityPreview({ activity, isOpen, onClose }: ActivityPreviewPr
           </div>
 
           {/* What's Not Included */}
-          {activity.notIncluded && activity.notIncluded.length > 0 && (
+          {supabaseActivity.notIncluded && supabaseActivity.notIncluded.length > 0 && (
             <div>
               <h2 className="text-xl font-semibold mb-2">What's Not Included</h2>
               <ul className="space-y-2">
-                {activity.notIncluded.map((item, index) => (
+                {supabaseActivity.notIncluded.map((item, index) => (
                   <li key={index} className="flex items-start gap-2">
                     <X className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
                     <span>{item}</span>
@@ -160,18 +172,18 @@ export function ActivityPreview({ activity, isOpen, onClose }: ActivityPreviewPr
           {/* Additional Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Pickup Information */}
-            {activity.includesPickup && (
+            {supabaseActivity.includesPickup && (
               <div className="border rounded-lg p-4">
                 <h3 className="font-semibold mb-2">Pickup Information</h3>
-                <p>{activity.pickupLocations}</p>
+                <p>{supabaseActivity.pickupLocations}</p>
               </div>
             )}
 
             {/* Meal Information */}
-            {activity.includesMeal && (
+            {supabaseActivity.includesMeal && (
               <div className="border rounded-lg p-4">
                 <h3 className="font-semibold mb-2">Meal Information</h3>
-                <p>{activity.mealDescription}</p>
+                <p>{supabaseActivity.mealDescription}</p>
               </div>
             )}
           </div>
@@ -182,25 +194,25 @@ export function ActivityPreview({ activity, isOpen, onClose }: ActivityPreviewPr
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="border rounded-lg p-4">
                 <h3 className="font-semibold mb-2">Start Time</h3>
-                <p>{activity.schedule?.startTime || "Not specified"}</p>
+                <p>{supabaseActivity.schedule?.startTime || "Not specified"}</p>
               </div>
               <div className="border rounded-lg p-4">
                 <h3 className="font-semibold mb-2">End Time</h3>
-                <p>{activity.schedule?.endTime || "Not specified"}</p>
+                <p>{supabaseActivity.schedule?.endTime || "Not specified"}</p>
               </div>
             </div>
           </div>
 
           {/* Image Gallery */}
-          {activity.images && activity.images.length > 1 && (
+          {supabaseActivity.images && supabaseActivity.images.length > 1 && (
             <div>
               <h2 className="text-xl font-semibold mb-2">Gallery</h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                {activity.images.slice(1).map((image, index) => (
+                {supabaseActivity.images.slice(1).map((image, index) => (
                   <div key={index} className="relative aspect-square rounded-lg overflow-hidden">
                     <Image
                       src={image}
-                      alt={`${activity.title} - image ${index + 2}`}
+                      alt={`${supabaseActivity.title} - image ${index + 2}`}
                       fill
                       className="object-cover"
                     />

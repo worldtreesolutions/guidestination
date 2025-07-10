@@ -122,12 +122,13 @@ export default function RecommendationPage() {
                     <Card key={activity.id}>
                       <div className="flex flex-col md:flex-row">
                         <div className="relative w-full md:w-64 h-48">
-                          <Image
-                            src={activity.image_urls?.[0] || "/placeholder.jpg"}
-                            alt={activity.title}
-                            fill
-                            className="object-cover rounded-t-lg md:rounded-l-lg md:rounded-t-none"
-                          />
+                          <CardContent className="p-0">
+                            <Image
+                              src={activity.image_url?.[0] || '/placeholder.svg'}
+                              alt={activity.title}
+                              className="w-full h-48 object-cover"
+                            />
+                          </CardContent>
                         </div>
                         <CardContent className="flex-1 p-4 sm:p-6">
                           <div className="flex flex-col sm:flex-row justify-between items-start gap-2 sm:gap-4 mb-4">
