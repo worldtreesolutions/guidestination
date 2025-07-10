@@ -29,20 +29,24 @@ export const supabaseActivityService = {
   },
 
   async getRecommendedActivities(limit = 8): Promise<SupabaseActivity[]> {
-    // For now, recommended are the same as featured. This can be changed later.
-    const { data, error } = await this.supabase
-      .from("activities")
-      .select(this.baseActivitySelect)
-      .eq("is_active", true)
-      .order("average_rating", { ascending: false, nulls: "last" })
-      .limit(limit)
+    try {
+      const { data, error } = await supabase
+        .from("activities")
+        .select(this.baseActivitySelect)
+        .eq("is_active", true)
+        .order("average_rating", { ascending: false, nulls: "last" })
+        .limit(limit)
 
-    if (error) {
+      if (error) {
+        console.error("Error fetching recommended activities:", error)
+        throw error
+      }
+
+      return data.map(this.transformActivity.bind(this))
+    } catch (error) {
       console.error("Error fetching recommended activities:", error)
       throw error
     }
-
-    return data.map(this.transformActivity.bind(this))
   },
 
   async getActivitiesByCategory(categoryName: string, limit = 8): Promise<SupabaseActivity[]> {
