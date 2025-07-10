@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client"
 import { SupabaseActivity } from "@/types/activity"
+import { ActivityForHomepage } from "@/types/activity"
 
 export const supabaseActivityService = {
   async getFeaturedActivities(limit: number = 4): Promise<SupabaseActivity[]> {
@@ -22,6 +23,31 @@ export const supabaseActivityService = {
       return this.transformActivities(data || [])
     } catch (error) {
       console.error("Error fetching featured activities:", error)
+      throw error
+    }
+  },
+
+  async getRecommendedActivities(limit: number = 8): Promise<ActivityForHomepage[]> {
+    try {
+      const { data, error } = await supabase
+        .from("activities")
+        .select(`
+          *,
+          activity_media(media_url, media_type, thumbnail_url)
+        `)
+        .eq("is_active", true)
+        .order("created_at", { ascending: false })
+        .limit(limit)
+
+      if (error) {
+        console.error("Error fetching recommended activities:", error)
+        throw error
+      }
+
+      const activities = this.transformActivities(data || [])
+      return this.convertToHomepageFormat(activities)
+    } catch (error) {
+      console.error("Error fetching recommended activities:", error)
       throw error
     }
   },
@@ -314,6 +340,24 @@ export const supabaseActivityService = {
 
   transformActivities(data: any[]): SupabaseActivity[] {
     return data.map(item => this.transformActivity(item))
+  },
+
+  convertToHomepageFormat(activities: SupabaseActivity[]): ActivityForHomepage[] {
+    return activities.map(activity => ({
+      id: activity.id,
+      title: activity.title,
+      name: activity.name,
+      description: activity.description,
+      category: activity.category,
+      price: activity.price,
+      rating: activity.rating,
+      review_count: activity.review_count,
+      image_url: activity.image_urls[0] || "",
+      image_urls: activity.image_urls,
+      location: activity.location,
+      duration: activity.duration,
+      provider_id: activity.provider_id
+    }))
   },
 
   parseJsonField(field: any): any {

@@ -45,7 +45,7 @@ export default function HomePage() {
           supabaseActivityService.getRecommendedActivities(8)
         ])
         
-        setFeaturedActivities(featured)
+        setFeaturedActivities(supabaseActivityService.convertToHomepageFormat(featured))
         setRecommendedActivities(recommended)
 
         // Fetch activities by category
