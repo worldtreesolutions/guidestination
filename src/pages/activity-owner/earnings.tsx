@@ -39,8 +39,8 @@ export default function EarningsPage() {
             supabaseActivityService.fetchBookingsForOwner(user.id),
             supabaseActivityService.fetchEarningsForOwner(user.id)
           ]);
-          setBookings(ownerBookings);
-          setEarnings(ownerEarnings);
+          setBookings(ownerBookings as Booking[]);
+          setEarnings(ownerEarnings || { total: 0, monthly: [], pending: 0 });
         } catch (err: any) {
           setError(err.message);
         } finally {

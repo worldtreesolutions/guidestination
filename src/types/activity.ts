@@ -1,6 +1,5 @@
-
 export interface ActivitySelectedOption {
-  id: number;
+  id: string;
   option_name: string;
   option_type: string;
   is_selected: boolean;
@@ -33,6 +32,7 @@ export interface SupabaseActivity {
   rating: number | null;
   review_count: number | null;
   image_urls: string[] | null;
+  image_url: string | null;
   video_url: string | null;
   provider_id: string;
   is_active: boolean;

@@ -31,7 +31,7 @@ import { ActivityReviews } from "@/components/activities/ActivityReviews"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { supabaseActivityService } from "@/services/supabaseActivityService"
 import customerService from "@/services/customerService"
-import { SupabaseActivity } from "@/types/activity"
+import { SupabaseActivity, ActivitySelectedOption } from "@/types/activity"
 import { ActivityDetails } from "@/components/activities/ActivityDetails"
 
 export default function ActivityPage() {
@@ -392,7 +392,10 @@ export default function ActivityPage() {
                   </TabsList>
 
                   <TabsContent value="overview" className="space-y-6">
-                    <ActivityDetails activity={activity} />
+                    <ActivityDetails activity={{
+                      ...activity,
+                      activity_selected_options: activity.activity_selected_options as ActivitySelectedOption[] | undefined
+                    }} />
                   </TabsContent>
 
                   <TabsContent value="itinerary" className="space-y-6">

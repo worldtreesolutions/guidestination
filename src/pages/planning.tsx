@@ -6,7 +6,7 @@ import { useIsMobile } from "@/hooks/use-mobile"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { supabaseActivityService } from "@/services/supabaseActivityService"
 import { SupabaseActivity } from "@/types/activity"
-import { usePlanning } from "@/contexts/PlanningContext"
+import { PlanningContext, usePlanning } from "@/contexts/PlanningContext"
 import { useState, useEffect, useContext, useCallback } from "react"
 import { useToast } from "@/hooks/use-toast"
 

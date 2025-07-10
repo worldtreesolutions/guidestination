@@ -1,5 +1,4 @@
-
-    import { supabase } from "@/integrations/supabase/client"
+import { supabase } from "@/integrations/supabase/client"
     import { SupabaseActivity } from "@/types/activity"
 
     export interface ActivityScheduleInstance {
@@ -61,10 +60,12 @@
           const activities = await Promise.all(data?.map(async (activity: any) => {
             // @ts-ignore
             const {  media } = await supabase.from('activity_media').select('media_url').eq('activity_id', activity.id);
+            const imageUrls = media?.map((m: any) => m.media_url) || [];
             return {
               ...activity,
               category_name: activity.categories?.name || 'Uncategorized',
-              image_urls: media?.map((m: any) => m.media_url) || [],
+              image_urls: imageUrls,
+              image_url: imageUrls[0] || null,
               price: activity.final_price || activity.price || 0,
               rating: activity.average_rating || 0,
               review_count: activity.review_count || 0,
@@ -138,6 +139,7 @@
           
           // @ts-ignore
           const {  media } = await supabase.from('activity_media').select('media_url').eq('activity_id', activity.id);
+          const imageUrls = media?.map((m: any) => m.media_url) || [];
 
           const formattedSchedules = (scheduleInstances as any)?.map((instance: any) => ({
             date: instance.scheduled_date,
@@ -159,7 +161,8 @@
           const result: SupabaseActivity = {
             ...(activity as any),
             category_name: (activity as any).categories?.name || 'Uncategorized',
-            image_urls: media?.map((m: any) => m.media_url) || [],
+            image_urls: imageUrls,
+            image_url: imageUrls[0] || null,
             price: (activity as any).final_price || (activity as any).price || 0,
             rating: (activity as any).average_rating || 0,
             review_count: (activity as any).review_count || 0,
@@ -270,7 +273,9 @@
       async fetchActivitiesByOwner(ownerId: string) { return []; },
       async fetchBookingsForOwner(ownerId: string) { return []; },
       async fetchRecentBookingsForOwner(ownerId: string) { return []; },
-      async fetchEarningsForOwner(ownerId: string) { return null; },
+      async fetchEarningsForOwner(ownerId: string): Promise<Earning> { 
+        return { total: 0, monthly: [], pending: 0 }; 
+      },
       async getFeaturedActivities() { return this.getActivities({ limit: 5 }); },
       async getRecommendedActivities() { return this.getActivities({ limit: 5 }); },
       async getActivitiesByCategory(category: string) { return this.getActivities({ category, limit: 4 }); },
