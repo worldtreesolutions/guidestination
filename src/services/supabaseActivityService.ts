@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client"
 import { SupabaseActivity, ActivityForHomepage, SupabaseBooking, Earning, Booking } from "@/types/activity"
 
@@ -479,8 +478,10 @@ export const supabaseActivityService = {
 
   transformActivity(data: any): SupabaseActivity {
     console.log("Transforming activity data:", data);
+    console.log("Raw schedule instances:", data.activity_schedule_instances);
+    console.log("Raw schedules:", data.activity_schedules);
     
-    // Handle schedule instances - combine existing instances with generated ones from schedules
+    // Handle schedule instances - use existing instances or generate from schedules
     let scheduleInstances: any[] = data.activity_schedule_instances || [];
     
     // If we have schedules but no instances, generate them
@@ -489,19 +490,36 @@ export const supabaseActivityService = {
       scheduleInstances = this.generateScheduleInstances(data.activity_schedules, data.price || data.base_price_thb || 0);
     }
 
-    const availableDates: SupabaseActivity['schedules']['availableDates'] = scheduleInstances
-      .filter((instance: any) => instance.is_active && (instance.status === 'available' || instance.status === 'active'))
-      .map((instance: any) => ({
-        date: instance.scheduled_date,
-        startTime: instance.start_time,
-        endTime: instance.end_time,
-        capacity: instance.capacity || 10,
-        booked: instance.booked_count || 0,
-        available: instance.available_spots ?? (instance.capacity - (instance.booked_count || 0)),
-        price: instance.price || data.price || data.base_price_thb,
-      }));
+    console.log("Final schedule instances to process:", scheduleInstances);
 
-    console.log("Generated available dates:", availableDates);
+    // Filter and transform schedule instances to available dates
+    const availableDates: SupabaseActivity['schedules']['availableDates'] = scheduleInstances
+      .filter((instance: any) => {
+        const isActive = instance.is_active !== false; // Default to true if undefined
+        const isAvailable = !instance.status || instance.status === 'available' || instance.status === 'active';
+        const hasValidDate = instance.scheduled_date;
+        
+        console.log(`Instance ${instance.id}: active=${isActive}, available=${isAvailable}, hasDate=${hasValidDate}, status=${instance.status}`);
+        
+        return isActive && isAvailable && hasValidDate;
+      })
+      .map((instance: any) => {
+        const availableDate = {
+          date: instance.scheduled_date,
+          startTime: instance.start_time || '09:00:00',
+          endTime: instance.end_time || '17:00:00',
+          capacity: instance.capacity || 10,
+          booked: instance.booked_count || 0,
+          available: instance.available_spots ?? (instance.capacity - (instance.booked_count || 0)),
+          price: instance.price || data.price || data.base_price_thb || 0,
+        };
+        
+        console.log("Transformed available date:", availableDate);
+        return availableDate;
+      })
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()); // Sort by date
+
+    console.log("Final available dates for calendar:", availableDates);
 
     // Handle selected options with proper type categorization
     const selectedOptionsData: any[] = data.activity_selected_options || [];
@@ -591,7 +609,13 @@ export const supabaseActivityService = {
       },
     };
     
-    console.log("Final transformed activity:", transformed);
+    console.log("Final transformed activity with schedule count:", {
+      id: transformed.id,
+      title: transformed.title,
+      availableDatesCount: transformed.schedules.availableDates.length,
+      firstFewDates: transformed.schedules.availableDates.slice(0, 3)
+    });
+    
     return transformed;
   },
 
