@@ -69,7 +69,7 @@ export const supabaseActivityService = {
     try {
       console.log(`[Service] Fetching activity with ID: ${id}`);
       
-      const {  activity, error: activityError } = await supabase
+      const { data: activity, error: activityError } = await supabase
         .from("activities")
         .select(`
           *,
@@ -91,20 +91,20 @@ export const supabaseActivityService = {
 
       console.log("[Service] Raw activity data fetched:", activity);
 
-      // Fetch schedule data
-      const {  scheduleData, error: scheduleError } = await supabase
+      // Fetch schedule data with correct destructuring
+      const { data: scheduleData, error: scheduleError } = await supabase
         .from("activity_schedule")
         .select("*")
         .eq("activity_id", id)
         .eq("is_active", true);
 
       if (scheduleError) {
-        console.error("[Service] Error fetching schedule ", scheduleError.message);
+        console.error("[Service] Error fetching schedule:", scheduleError.message);
       }
-      console.log("[Service] Raw schedule ", scheduleData);
+      console.log("[Service] Raw schedule data:", scheduleData);
 
-      // Fetch selected options
-      const {  optionsData, error: optionsError } = await supabase
+      // Fetch selected options with correct destructuring
+      const { data: optionsData, error: optionsError } = await supabase
         .from('activity_selected_options')
         .select(`
           is_selected,
@@ -118,30 +118,36 @@ export const supabaseActivityService = {
         .eq('is_selected', true);
 
       if (optionsError) {
-        console.error("[Service] Error fetching options ", optionsError.message);
+        console.error("[Service] Error fetching options:", optionsError.message);
       }
-      console.log("[Service] Raw options ", optionsData);
+      console.log("[Service] Raw options data:", optionsData);
 
-      const formattedSchedules = scheduleData
-        ?.filter((schedule: any) => schedule.is_active)
-        .map((schedule: any) => ({
-          date: schedule.scheduled_date,
-          startTime: schedule.start_time,
-          endTime: schedule.end_time,
-          capacity: schedule.capacity || 10,
-          booked: schedule.booked_count || 0,
-          available: (schedule.capacity || 10) - (schedule.booked_count || 0),
-          price: parseFloat(schedule.price || activity.price || 0)
-        })) || [];
+      // Format schedules with better error handling
+      const formattedSchedules = scheduleData && Array.isArray(scheduleData)
+        ? scheduleData
+            .filter((schedule: any) => schedule.is_active)
+            .map((schedule: any) => ({
+              date: schedule.scheduled_date,
+              startTime: schedule.start_time,
+              endTime: schedule.end_time,
+              capacity: schedule.capacity || 10,
+              booked: schedule.booked_count || 0,
+              available: (schedule.capacity || 10) - (schedule.booked_count || 0),
+              price: parseFloat(schedule.price || activity.price || 0)
+            }))
+        : [];
 
       console.log("[Service] Formatted schedules (availableDates):", formattedSchedules);
 
-      const formattedOptions = optionsData?.map((selectedOption: any) => ({
-        id: selectedOption.activity_options.id.toString(),
-        option_name: selectedOption.activity_options.label,
-        option_type: selectedOption.activity_options.type,
-        is_selected: selectedOption.is_selected
-      })) || [];
+      // Format options with better error handling
+      const formattedOptions = optionsData && Array.isArray(optionsData)
+        ? optionsData.map((selectedOption: any) => ({
+            id: selectedOption.activity_options?.id?.toString() || '',
+            option_name: selectedOption.activity_options?.label || '',
+            option_type: selectedOption.activity_options?.type || '',
+            is_selected: selectedOption.is_selected
+          }))
+        : [];
 
       console.log("[Service] Formatted options:", formattedOptions);
 
