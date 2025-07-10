@@ -2,16 +2,18 @@ import { supabase } from "@/integrations/supabase/client"
 import { SupabaseActivity, ActivityForHomepage, SupabaseBooking, Earning } from "@/types/activity"
 
 export const supabaseActivityService = {
+  baseActivitySelect: `
+    *,
+    activity_media(media_url, media_type, thumbnail_url)
+  `,
+
   async getFeaturedActivities(limit: number = 4): Promise<SupabaseActivity[]> {
     try {
       const { data, error } = await supabase
         .from("activities")
-        .select(`
-          *,
-          activity_media(media_url, media_type, thumbnail_url)
-        `)
+        .select(this.baseActivitySelect)
         .eq("is_active", true)
-        .order("average_rating", { ascending: false, nullsFirst: false })
+        .order("average_rating", { ascending: false, nulls: "last" })
         .limit(limit)
 
       if (error) {
@@ -19,45 +21,35 @@ export const supabaseActivityService = {
         throw error
       }
 
-      return this.transformActivities(data || [])
+      return data.map(this.transformActivity.bind(this))
     } catch (error) {
       console.error("Error fetching featured activities:", error)
       throw error
     }
   },
 
-  async getRecommendedActivities(limit: number = 8): Promise<SupabaseActivity[]> {
-    try {
-      const { data, error } = await supabase
-        .from("activities")
-        .select(`
-          *,
-          activity_media(media_url, media_type, thumbnail_url)
-        `)
-        .eq("is_active", true)
-        .order("created_at", { ascending: false })
-        .limit(limit)
+  async getRecommendedActivities(limit = 8): Promise<SupabaseActivity[]> {
+    // For now, recommended are the same as featured. This can be changed later.
+    const { data, error } = await this.supabase
+      .from("activities")
+      .select(this.baseActivitySelect)
+      .eq("is_active", true)
+      .order("average_rating", { ascending: false, nulls: "last" })
+      .limit(limit)
 
-      if (error) {
-        console.error("Error fetching recommended activities:", error)
-        throw error
-      }
-
-      return this.transformActivities(data || [])
-    } catch (error) {
+    if (error) {
       console.error("Error fetching recommended activities:", error)
       throw error
     }
+
+    return data.map(this.transformActivity.bind(this))
   },
 
-  async getActivitiesByCategory(categoryName: string, limit: number = 10): Promise<SupabaseActivity[]> {
+  async getActivitiesByCategory(categoryName: string, limit = 8): Promise<SupabaseActivity[]> {
     try {
       const { data, error } = await supabase
         .from("activities")
-        .select(`
-          *,
-          activity_media(media_url, media_type, thumbnail_url)
-        `)
+        .select(this.baseActivitySelect)
         .eq("is_active", true)
         .eq("category", categoryName)
         .limit(limit)
@@ -67,7 +59,7 @@ export const supabaseActivityService = {
         throw error
       }
 
-      return this.transformActivities(data || [])
+      return data.map(this.transformActivity.bind(this))
     } catch (error) {
       console.error("Error fetching activities by category:", error)
       throw error
@@ -128,10 +120,7 @@ export const supabaseActivityService = {
     try {
       let query = supabase
         .from("activities")
-        .select(`
-          *,
-          activity_media(media_url, media_type, thumbnail_url)
-        `)
+        .select(this.baseActivitySelect)
         .eq("is_active", true)
         .order("created_at", { ascending: false })
 
@@ -146,7 +135,7 @@ export const supabaseActivityService = {
         throw error
       }
 
-      return this.transformActivities(data || [])
+      return data.map(this.transformActivity.bind(this))
     } catch (error) {
       console.error("Error fetching all activities:", error)
       throw error
@@ -157,10 +146,7 @@ export const supabaseActivityService = {
     try {
       const { data, error } = await supabase
         .from("activities")
-        .select(`
-          *,
-          activity_media(media_url, media_type, thumbnail_url)
-        `)
+        .select(this.baseActivitySelect)
         .eq("is_active", true)
         .or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,category.ilike.%${searchTerm}%`)
         .limit(limit)
@@ -170,7 +156,7 @@ export const supabaseActivityService = {
         throw error
       }
 
-      return this.transformActivities(data || [])
+      return data.map(this.transformActivity.bind(this))
     } catch (error) {
       console.error("Error searching activities:", error)
       throw error
@@ -181,10 +167,7 @@ export const supabaseActivityService = {
     try {
       const { data, error } = await supabase
         .from("activities")
-        .select(`
-          *,
-          activity_media(media_url, media_type, thumbnail_url)
-        `)
+        .select(this.baseActivitySelect)
         .eq("provider_id", providerId)
         .order("created_at", { ascending: false })
 
@@ -193,7 +176,7 @@ export const supabaseActivityService = {
         throw error
       }
 
-      return this.transformActivities(data || [])
+      return data.map(this.transformActivity.bind(this))
     } catch (error) {
       console.error("Error fetching activities by provider:", error)
       throw error
@@ -381,10 +364,6 @@ export const supabaseActivityService = {
     }
   },
 
-  transformActivities(data: any[]): SupabaseActivity[] {
-    return data.map(item => this.transformActivity(item))
-  },
-
   convertToHomepageFormat(activities: SupabaseActivity[]): ActivityForHomepage[] {
     return activities.map(activity => ({
       id: String(activity.id),
@@ -420,10 +399,7 @@ export const supabaseActivityService = {
     try {
       let query = supabase
         .from("activities")
-        .select(`
-          *,
-          activity_media(media_url, media_type, thumbnail_url)
-        `)
+        .select(this.baseActivitySelect)
         .eq("is_active", true)
         .order("created_at", { ascending: false })
 
@@ -442,7 +418,7 @@ export const supabaseActivityService = {
         throw error
       }
 
-      return this.transformActivities(data || [])
+      return data.map(this.transformActivity.bind(this))
     } catch (error) {
       console.error("Error fetching activities:", error)
       throw error

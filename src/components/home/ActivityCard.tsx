@@ -26,7 +26,6 @@ export function ActivityCard({ activity }: ActivityCardProps) {
 
   // Provide fallback values to prevent undefined errors
   const safePrice = typeof price === 'number' ? price : 0
-  const safeRating = typeof rating === 'number' ? rating : 0
   const safeLocation = location || "Location not specified"
   const safeImageUrl = image_url || "https://images.unsplash.com/photo-1563492065-1a83e8c6b8d8"
 
@@ -55,7 +54,7 @@ export function ActivityCard({ activity }: ActivityCardProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
-            <span className="text-sm">{safeRating.toFixed(1)}</span>
+            <span className="text-sm">{(rating || 0).toFixed(1)}</span>
           </div>
           <div className="text-lg font-bold text-blue-600">
             ฿{safePrice.toLocaleString()}
