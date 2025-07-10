@@ -26,7 +26,7 @@ export const supabaseActivityService = {
     }
   },
 
-  async getRecommendedActivities(limit: number = 8): Promise<ActivityForHomepage[]> {
+  async getRecommendedActivities(limit: number = 8): Promise<SupabaseActivity[]> {
     try {
       const { data, error } = await supabase
         .from("activities")
@@ -43,8 +43,7 @@ export const supabaseActivityService = {
         throw error
       }
 
-      const activities = this.transformActivities(data || [])
-      return this.convertToHomepageFormat(activities)
+      return this.transformActivities(data || [])
     } catch (error) {
       console.error("Error fetching recommended activities:", error)
       throw error

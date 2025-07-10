@@ -1,4 +1,3 @@
-
 import Head from "next/head"
 import { useState, useEffect, useCallback } from "react"
 import { Navbar } from "@/components/layout/Navbar"
