@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client"
 import { SupabaseActivity, ActivityForHomepage, SupabaseBooking, Earning, Booking } from "@/types/activity"
 
@@ -89,7 +90,10 @@ export const supabaseActivityService = {
             end_time,
             is_active,
             recurrence_pattern,
-            recurrence_interval
+            recurrence_interval,
+            is_recurring,
+            recurrence_day_of_week,
+            recurrence_end_date
           ),
           activity_schedule_instances(
             id,
@@ -127,7 +131,7 @@ export const supabaseActivityService = {
         throw new Error(`Activity with ID ${id} not found.`)
       }
 
-      console.log("Complex query successful, raw activity ", data)
+      console.log("Complex query successful, raw activity data:", data)
       const transformedActivity = this.transformActivity(data)
       console.log("Transformed activity:", transformedActivity)
       
@@ -393,10 +397,100 @@ export const supabaseActivityService = {
     return { total, pending, monthly };
   },
 
+  generateScheduleInstances(schedules: any[], activityPrice: number): any[] {
+    const instances: any[] = [];
+    const today = new Date();
+    const futureLimit = new Date();
+    futureLimit.setMonth(futureLimit.getMonth() + 6); // Generate 6 months ahead
+
+    schedules.forEach(schedule => {
+      if (!schedule.is_active) return;
+
+      const startDate = schedule.availability_start_date ? new Date(schedule.availability_start_date) : today;
+      const endDate = schedule.availability_end_date ? new Date(schedule.availability_end_date) : futureLimit;
+      
+      if (schedule.is_recurring && schedule.recurrence_pattern === 'weekly' && schedule.recurrence_day_of_week) {
+        // Generate weekly recurring instances
+        const daysOfWeek = Array.isArray(schedule.recurrence_day_of_week) ? schedule.recurrence_day_of_week : [schedule.recurrence_day_of_week];
+        
+        let currentDate = new Date(startDate);
+        while (currentDate <= endDate && currentDate <= futureLimit) {
+          const dayOfWeek = currentDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
+          
+          if (daysOfWeek.includes(dayOfWeek)) {
+            instances.push({
+              id: `generated-${schedule.id}-${currentDate.toISOString().split('T')[0]}`,
+              scheduled_date: currentDate.toISOString().split('T')[0],
+              start_time: schedule.start_time || '09:00:00',
+              end_time: schedule.end_time || '17:00:00',
+              capacity: schedule.capacity || 10,
+              booked_count: 0,
+              available_spots: schedule.capacity || 10,
+              price: activityPrice,
+              is_active: true,
+              status: 'available'
+            });
+          }
+          
+          currentDate.setDate(currentDate.getDate() + 1);
+        }
+      } else if (schedule.is_recurring && schedule.recurrence_pattern === 'daily') {
+        // Generate daily recurring instances
+        let currentDate = new Date(startDate);
+        const interval = schedule.recurrence_interval || 1;
+        
+        while (currentDate <= endDate && currentDate <= futureLimit) {
+          instances.push({
+            id: `generated-${schedule.id}-${currentDate.toISOString().split('T')[0]}`,
+            scheduled_date: currentDate.toISOString().split('T')[0],
+            start_time: schedule.start_time || '09:00:00',
+            end_time: schedule.end_time || '17:00:00',
+            capacity: schedule.capacity || 10,
+            booked_count: 0,
+            available_spots: schedule.capacity || 10,
+            price: activityPrice,
+            is_active: true,
+            status: 'available'
+          });
+          
+          currentDate.setDate(currentDate.getDate() + interval);
+        }
+      } else {
+        // One-time schedule
+        if (startDate >= today) {
+          instances.push({
+            id: `generated-${schedule.id}-${startDate.toISOString().split('T')[0]}`,
+            scheduled_date: startDate.toISOString().split('T')[0],
+            start_time: schedule.start_time || '09:00:00',
+            end_time: schedule.end_time || '17:00:00',
+            capacity: schedule.capacity || 10,
+            booked_count: 0,
+            available_spots: schedule.capacity || 10,
+            price: activityPrice,
+            is_active: true,
+            status: 'available'
+          });
+        }
+      }
+    });
+
+    return instances;
+  },
+
   transformActivity(data: any): SupabaseActivity {
-    const scheduleInstances: any[] = data.activity_schedule_instances || [];
+    console.log("Transforming activity data:", data);
+    
+    // Handle schedule instances - combine existing instances with generated ones from schedules
+    let scheduleInstances: any[] = data.activity_schedule_instances || [];
+    
+    // If we have schedules but no instances, generate them
+    if (data.activity_schedules && data.activity_schedules.length > 0 && scheduleInstances.length === 0) {
+      console.log("Generating schedule instances from schedules:", data.activity_schedules);
+      scheduleInstances = this.generateScheduleInstances(data.activity_schedules, data.price || data.base_price_thb || 0);
+    }
+
     const availableDates: SupabaseActivity['schedules']['availableDates'] = scheduleInstances
-      .filter((instance: any) => instance.is_active && instance.status === 'available')
+      .filter((instance: any) => instance.is_active && (instance.status === 'available' || instance.status === 'active'))
       .map((instance: any) => ({
         date: instance.scheduled_date,
         startTime: instance.start_time,
@@ -407,11 +501,19 @@ export const supabaseActivityService = {
         price: instance.price || data.price || data.base_price_thb,
       }));
 
+    console.log("Generated available dates:", availableDates);
+
+    // Handle selected options with proper type categorization
     const selectedOptionsData: any[] = data.activity_selected_options || [];
+    console.log("Raw selected options data:", selectedOptionsData);
+    
     const selectedOptions: SupabaseActivity['selectedOptions'] = selectedOptionsData
       .map((selectedOption: any) => {
         const option = selectedOption.activity_options;
-        if (!option) return null;
+        if (!option) {
+          console.log("No activity_options found for selected option:", selectedOption);
+          return null;
+        }
         return {
           id: option.id,
           label: option.label || '',
@@ -421,6 +523,8 @@ export const supabaseActivityService = {
         };
       })
       .filter((opt): opt is NonNullable<typeof opt> => opt !== null && opt.id);
+
+    console.log("Processed selected options:", selectedOptions);
 
     // Parse languages field to ensure it's always an array
     let languages: string[] = ['English'];
@@ -443,6 +547,8 @@ export const supabaseActivityService = {
     const highlights = this.parseJsonField(data.highlights) || [];
     const included = this.parseJsonField(data.included) || [];
     const not_included = this.parseJsonField(data.not_included) || [];
+
+    console.log("Parsed JSON fields:", { highlights, included, not_included });
 
     const transformed: SupabaseActivity = {
       id: data.id,
@@ -484,6 +590,8 @@ export const supabaseActivityService = {
         availableDates: availableDates,
       },
     };
+    
+    console.log("Final transformed activity:", transformed);
     return transformed;
   },
 

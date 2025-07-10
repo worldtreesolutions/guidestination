@@ -226,17 +226,17 @@ export default function ActivityPage() {
 
   const allHighlights = [
     ...(activity.highlights || []),
-    ...(activity.selectedOptions?.filter(opt => opt.type === 'highlight').map(opt => `${opt.icon} ${opt.label}`) || [])
+    ...(activity.selectedOptions?.filter(opt => opt.type === 'highlight' || opt.type === 'highlights').map(opt => opt.icon ? `${opt.icon} ${opt.label}` : opt.label) || [])
   ];
 
   const allIncluded = [
     ...(activity.included || []),
-    ...(activity.selectedOptions?.filter(opt => opt.type === 'included').map(opt => `${opt.icon} ${opt.label}`) || [])
+    ...(activity.selectedOptions?.filter(opt => opt.type === 'included' || opt.type === 'include').map(opt => opt.icon ? `${opt.icon} ${opt.label}` : opt.label) || [])
   ];
 
   const allNotIncluded = [
     ...(activity.not_included || []),
-    ...(activity.selectedOptions?.filter(opt => opt.type === 'not_included').map(opt => `${opt.icon} ${opt.label}`) || [])
+    ...(activity.selectedOptions?.filter(opt => opt.type === 'not_included' || opt.type === 'exclude' || opt.type === 'not included').map(opt => opt.icon ? `${opt.icon} ${opt.label}` : opt.label) || [])
   ];
 
   return (
