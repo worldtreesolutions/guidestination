@@ -486,32 +486,6 @@ export const supabaseActivityService = {
           }))
       : []
 
-    // Categorize options based on type
-    const highlightOptions = selectedOptions.filter((option: any) => option.type === 'highlight')
-    const includedOptions = selectedOptions.filter((option: any) => option.type === 'included')
-    const notIncludedOptions = selectedOptions.filter((option: any) => option.type === 'not_included')
-
-    // Parse existing data from JSON fields
-    const existingHighlights = this.parseJsonField(data.highlights) || []
-    const existingIncluded = this.parseJsonField(data.included) || []
-    const existingNotIncluded = this.parseJsonField(data.not_included) || []
-
-    // Combine options with existing data - prioritize selected options
-    const combinedHighlights = [
-      ...highlightOptions.map((option: any) => option.icon ? `${option.icon} ${option.label}` : option.label),
-      ...existingHighlights
-    ].filter(Boolean)
-    
-    const combinedIncluded = [
-      ...includedOptions.map((option: any) => option.icon ? `${option.icon} ${option.label}` : option.label),
-      ...existingIncluded
-    ].filter(Boolean)
-    
-    const combinedNotIncluded = [
-      ...notIncludedOptions.map((option: any) => option.icon ? `${option.icon} ${option.label}` : option.label),
-      ...existingNotIncluded
-    ].filter(Boolean)
-
     return {
       id: data.id,
       title: data.title || data.name || data.activity_name || "",
@@ -532,9 +506,9 @@ export const supabaseActivityService = {
       pickup_locations: data.pickup_locations || data.pickup_location || "",
       includes_meal: Boolean(data.includes_meal),
       meal_description: data.meal_description || "",
-      highlights: combinedHighlights.length > 0 ? combinedHighlights : null,
-      included: combinedIncluded.length > 0 ? combinedIncluded : null,
-      not_included: combinedNotIncluded.length > 0 ? combinedNotIncluded : null,
+      highlights: this.parseJsonField(data.highlights),
+      included: this.parseJsonField(data.included),
+      not_included: this.parseJsonField(data.not_included),
       languages: this.parseJsonField(data.languages) || ["English"],
       rating: rating,
       review_count: data.review_count || 0,

@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/router"
 import Head from "next/head"
@@ -69,7 +70,7 @@ export default function ActivityPage() {
     if (slug) {
       fetchActivity()
     }
-  }, [slug, fetchActivity]) // Only depend on slug and fetchActivity
+  }, [slug, fetchActivity])
 
   const checkWishlistStatus = useCallback(async () => {
     if (!user || !activity) return
@@ -217,6 +218,21 @@ export default function ActivityPage() {
     return durationMap[duration] || `${duration} hours`
   }
 
+  const allHighlights = [
+    ...(activity.highlights || []),
+    ...(activity.selectedOptions?.filter(opt => opt.type === 'highlight').map(opt => `${opt.icon} ${opt.label}`) || [])
+  ];
+
+  const allIncluded = [
+    ...(activity.included || []),
+    ...(activity.selectedOptions?.filter(opt => opt.type === 'included').map(opt => `${opt.icon} ${opt.label}`) || [])
+  ];
+
+  const allNotIncluded = [
+    ...(activity.not_included || []),
+    ...(activity.selectedOptions?.filter(opt => opt.type === 'not_included').map(opt => `${opt.icon} ${opt.label}`) || [])
+  ];
+
   return (
     <>
       <Head>
@@ -340,14 +356,14 @@ export default function ActivityPage() {
                       </CardContent>
                     </Card>
 
-                    {activity.highlights && Array.isArray(activity.highlights) && activity.highlights.length > 0 && (
+                    {allHighlights.length > 0 && (
                       <Card>
                         <CardHeader>
                           <CardTitle>Highlights</CardTitle>
                         </CardHeader>
                         <CardContent>
                           <ul className="space-y-2">
-                            {activity.highlights.map((highlight, index) => (
+                            {allHighlights.map((highlight, index) => (
                               <li key={index} className="flex items-start gap-2">
                                 <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
                                 <span>{highlight}</span>
@@ -372,7 +388,6 @@ export default function ActivityPage() {
                       </CardContent>
                     </Card>
 
-                    {/* Activity Requirements */}
                     {(activity.min_age || activity.max_age || activity.physical_effort_level || activity.technical_skill_level) && (
                       <Card>
                         <CardHeader>
@@ -415,26 +430,6 @@ export default function ActivityPage() {
                       </Card>
                     )}
 
-                    {/* Activity Features from Selected Options */}
-                    {activity.selectedOptions && activity.selectedOptions.length > 0 && (
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>Activity Features</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                            {activity.selectedOptions.map((option, index) => (
-                              <div key={index} className="flex items-center gap-2 p-2 bg-muted rounded-lg">
-                                <span className="text-lg">{option.icon}</span>
-                                <span className="text-sm font-medium">{option.label}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
-
-                    {/* Schedule Information */}
                     {activity.schedules?.availableDates && activity.schedules.availableDates.length > 0 && (
                       <Card>
                         <CardHeader>
@@ -456,7 +451,6 @@ export default function ActivityPage() {
                             </div>
                           </div>
                           
-                          {/* Show more schedule details */}
                           <div className="mt-4">
                             <h4 className="font-semibold mb-2">Available Dates</h4>
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
@@ -533,14 +527,14 @@ export default function ActivityPage() {
 
                   <TabsContent value="included" className="space-y-6">
                     <div className="grid md:grid-cols-2 gap-6">
-                      {activity.included && Array.isArray(activity.included) && activity.included.length > 0 && (
+                      {allIncluded.length > 0 && (
                         <Card>
                           <CardHeader>
                             <CardTitle className="text-green-600">What's Included</CardTitle>
                           </CardHeader>
                           <CardContent>
                             <ul className="space-y-2">
-                              {activity.included.map((item, index) => (
+                              {allIncluded.map((item, index) => (
                                 <li key={index} className="flex items-start gap-2">
                                   <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
                                   <span className="text-sm">{item}</span>
@@ -551,14 +545,14 @@ export default function ActivityPage() {
                         </Card>
                       )}
 
-                      {activity.not_included && Array.isArray(activity.not_included) && activity.not_included.length > 0 && (
+                      {allNotIncluded.length > 0 && (
                         <Card>
                           <CardHeader>
                             <CardTitle className="text-red-600">What's Not Included</CardTitle>
                           </CardHeader>
                           <CardContent>
                             <ul className="space-y-2">
-                              {activity.not_included.map((item, index) => (
+                              {allNotIncluded.map((item, index) => (
                                 <li key={index} className="flex items-start gap-2">
                                   <XCircle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
                                   <span className="text-sm">{item}</span>
@@ -569,80 +563,6 @@ export default function ActivityPage() {
                         </Card>
                       )}
                     </div>
-
-                    {/* Show selected options categorized by type */}
-                    {activity.selectedOptions && activity.selectedOptions.length > 0 && (
-                      <div className="space-y-6">
-                        {/* Highlight options */}
-                        {activity.selectedOptions.filter(opt => opt.type === 'highlight').length > 0 && (
-                          <Card>
-                            <CardHeader>
-                              <CardTitle className="text-blue-600">Experience Highlights</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                {activity.selectedOptions
-                                  .filter(opt => opt.type === 'highlight')
-                                  .map((option, index) => (
-                                    <div key={index} className="flex items-center gap-2 p-2 bg-blue-50 rounded-lg">
-                                      <span className="text-lg">{option.icon}</span>
-                                      <span className="text-sm font-medium">{option.label}</span>
-                                    </div>
-                                  ))}
-                              </div>
-                            </CardContent>
-                          </Card>
-                        )}
-
-                        {/* Included options */}
-                        {activity.selectedOptions.filter(opt => opt.type === 'included').length > 0 && (
-                          <Card>
-                            <CardHeader>
-                              <CardTitle className="text-green-600">Additional Inclusions</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                              <ul className="space-y-2">
-                                {activity.selectedOptions
-                                  .filter(opt => opt.type === 'included')
-                                  .map((option, index) => (
-                                    <li key={index} className="flex items-start gap-2">
-                                      <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                                      <span className="text-sm">
-                                        {option.icon && <span className="mr-1">{option.icon}</span>}
-                                        {option.label}
-                                      </span>
-                                    </li>
-                                  ))}
-                              </ul>
-                            </CardContent>
-                          </Card>
-                        )}
-
-                        {/* Not included options */}
-                        {activity.selectedOptions.filter(opt => opt.type === 'not_included').length > 0 && (
-                          <Card>
-                            <CardHeader>
-                              <CardTitle className="text-red-600">Additional Exclusions</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                              <ul className="space-y-2">
-                                {activity.selectedOptions
-                                  .filter(opt => opt.type === 'not_included')
-                                  .map((option, index) => (
-                                    <li key={index} className="flex items-start gap-2">
-                                      <XCircle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
-                                      <span className="text-sm">
-                                        {option.icon && <span className="mr-1">{option.icon}</span>}
-                                        {option.label}
-                                      </span>
-                                    </li>
-                                  ))}
-                              </ul>
-                            </CardContent>
-                          </Card>
-                        )}
-                      </div>
-                    )}
                   </TabsContent>
 
                   <TabsContent value="reviews">
@@ -700,3 +620,4 @@ export default function ActivityPage() {
     </>
   )
 }
+      
