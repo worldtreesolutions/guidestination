@@ -15,7 +15,7 @@ export const categoryService = {
     return data || [];
   },
 
-  async getCategoryById(id: string): Promise<{  Category | null; error: any }> {
+  async getCategoryById(id: string): Promise<{  Category | null; error: any | null }> {
     const numericId = parseInt(id, 10);
     if (isNaN(numericId)) {
       const err = { message: "Invalid category ID format. ID must be a number.", details: `Received: ${id}`, hint: "Ensure ID is a numeric string.", code: "22P02" };
@@ -36,7 +36,7 @@ export const categoryService = {
     return { data, error: error?.code === "PGRST116" ? null : error };
   },
 
-  async getActivitiesByCategoryId(categoryId: number): Promise<{  Activity[] | null; error: any }> {
+  async getActivitiesByCategoryId(categoryId: number): Promise<{  Activity[] | null; error: any | null }> {
     const { data, error } = await supabase
       .from("activities")
       .select("*")
@@ -44,6 +44,7 @@ export const categoryService = {
 
     if (error) {
       console.error(`Error fetching activities for category ID ${categoryId}:`, error.message);
+      return {  null, error };
     }
     return { data, error };
   },
