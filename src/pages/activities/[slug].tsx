@@ -455,6 +455,24 @@ export default function ActivityPage() {
                               </p>
                             </div>
                           </div>
+                          
+                          {/* Show more schedule details */}
+                          <div className="mt-4">
+                            <h4 className="font-semibold mb-2">Available Dates</h4>
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                              {activity.schedules.availableDates.slice(0, 8).map((dateInfo, index) => (
+                                <div key={index} className="text-xs p-2 bg-muted rounded">
+                                  <div className="font-medium">{new Date(dateInfo.date).toLocaleDateString()}</div>
+                                  <div className="text-muted-foreground">{dateInfo.available}/{dateInfo.capacity} spots</div>
+                                </div>
+                              ))}
+                            </div>
+                            {activity.schedules.availableDates.length > 8 && (
+                              <p className="text-xs text-muted-foreground mt-2">
+                                And {activity.schedules.availableDates.length - 8} more dates available...
+                              </p>
+                            )}
+                          </div>
                         </CardContent>
                       </Card>
                     )}
@@ -551,6 +569,80 @@ export default function ActivityPage() {
                         </Card>
                       )}
                     </div>
+
+                    {/* Show selected options categorized by type */}
+                    {activity.selectedOptions && activity.selectedOptions.length > 0 && (
+                      <div className="space-y-6">
+                        {/* Highlight options */}
+                        {activity.selectedOptions.filter(opt => opt.type === 'highlight').length > 0 && (
+                          <Card>
+                            <CardHeader>
+                              <CardTitle className="text-blue-600">Experience Highlights</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {activity.selectedOptions
+                                  .filter(opt => opt.type === 'highlight')
+                                  .map((option, index) => (
+                                    <div key={index} className="flex items-center gap-2 p-2 bg-blue-50 rounded-lg">
+                                      <span className="text-lg">{option.icon}</span>
+                                      <span className="text-sm font-medium">{option.label}</span>
+                                    </div>
+                                  ))}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        )}
+
+                        {/* Included options */}
+                        {activity.selectedOptions.filter(opt => opt.type === 'included').length > 0 && (
+                          <Card>
+                            <CardHeader>
+                              <CardTitle className="text-green-600">Additional Inclusions</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <ul className="space-y-2">
+                                {activity.selectedOptions
+                                  .filter(opt => opt.type === 'included')
+                                  .map((option, index) => (
+                                    <li key={index} className="flex items-start gap-2">
+                                      <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                                      <span className="text-sm">
+                                        {option.icon && <span className="mr-1">{option.icon}</span>}
+                                        {option.label}
+                                      </span>
+                                    </li>
+                                  ))}
+                              </ul>
+                            </CardContent>
+                          </Card>
+                        )}
+
+                        {/* Not included options */}
+                        {activity.selectedOptions.filter(opt => opt.type === 'not_included').length > 0 && (
+                          <Card>
+                            <CardHeader>
+                              <CardTitle className="text-red-600">Additional Exclusions</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <ul className="space-y-2">
+                                {activity.selectedOptions
+                                  .filter(opt => opt.type === 'not_included')
+                                  .map((option, index) => (
+                                    <li key={index} className="flex items-start gap-2">
+                                      <XCircle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
+                                      <span className="text-sm">
+                                        {option.icon && <span className="mr-1">{option.icon}</span>}
+                                        {option.label}
+                                      </span>
+                                    </li>
+                                  ))}
+                              </ul>
+                            </CardContent>
+                          </Card>
+                        )}
+                      </div>
+                    )}
                   </TabsContent>
 
                   <TabsContent value="reviews">
