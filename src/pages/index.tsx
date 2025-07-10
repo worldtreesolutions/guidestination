@@ -1,5 +1,6 @@
+
 import Head from "next/head"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { CategoryNav } from "@/components/home/CategoryNav"
@@ -9,10 +10,22 @@ import { BottomActionButtons } from "@/components/layout/BottomActionButtons"
 import { FloatingCart } from "@/components/layout/FloatingCart"
 import { supabaseActivityService } from "@/services/supabaseActivityService"
 import categoryService from "@/services/categoryService"
+import { SupabaseActivity } from "@/types/activity"
+
+interface Category {
+  id: number;
+  name: string;
+  description: string | null;
+}
+
+interface HomePageProps {
+  featuredActivities: SupabaseActivity[];
+  recommendedActivities: SupabaseActivity[];
+  activitiesByCategory: { [key: string]: SupabaseActivity[] };
+  categories: Category[];
+}
 
 export default function HomePage({
-  featuredActivities,
-  recommendedActivities,
   activitiesByCategory,
   categories,
 }: HomePageProps) {
@@ -42,7 +55,7 @@ export default function HomePage({
             <ActivityRow
               key={categoryName}
               title={categoryName}
-              activities={activities}
+              activities={activities as SupabaseActivity[]}
             />
           )
         })}
@@ -98,16 +111,16 @@ export async function getServerSideProps() {
     const featuredActivitiesData = await supabaseActivityService.getFeaturedActivities()
     const recommendedActivitiesData = await supabaseActivityService.getRecommendedActivities()
 
-    const categories = await categoryService.getCategories()
-    const activitiesByCategory = await Promise.all(
-      categories.slice(0, 4).map(async (category) => {
+    // @ts-ignore
+    const categories = await categoryService.getAllCategories()
+    const activitiesByCategory: { [key: string]: SupabaseActivity[] } = {};
+
+    await Promise.all(
+      categories.slice(0, 4).map(async (category: Category) => {
         const activities = await supabaseActivityService.getActivitiesByCategory(
           category.name
         )
-        return {
-          categoryName: category.name,
-          activities: activities,
-        }
+        activitiesByCategory[category.name] = activities as SupabaseActivity[];
       })
     )
 
@@ -125,9 +138,10 @@ export async function getServerSideProps() {
       props: {
         featuredActivities: [],
         recommendedActivities: [],
-        activitiesByCategory: [],
+        activitiesByCategory: {},
         categories: [],
       },
     }
   }
 }
+  

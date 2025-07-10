@@ -8,6 +8,7 @@ import { supabaseActivityService } from "@/services/supabaseActivityService"
 import { SupabaseActivity } from "@/types/activity"
 import { usePlanning } from "@/contexts/PlanningContext"
 import { useState, useEffect, useContext, useCallback } from "react"
+import { useToast } from "@/hooks/use-toast"
 
 export default function PlanningPage() {
   const { toast } = useToast()
@@ -19,7 +20,7 @@ export default function PlanningPage() {
   const fetchActivities = useCallback(async () => {
     try {
       setLoading(true)
-      const data = await supabaseActivityService.getActivities()
+      const data = await supabaseActivityService.getAllActivities()
       setActivities(data as SupabaseActivity[])
     } catch (error) {
       console.error("Error fetching activities:", error)
@@ -35,7 +36,7 @@ export default function PlanningPage() {
 
   useEffect(() => {
     fetchActivities()
-  }, [])
+  }, [fetchActivities])
 
   if (loading) {
     return <div>Loading...</div>

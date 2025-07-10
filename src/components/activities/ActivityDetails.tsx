@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 
 interface ActivityOption {
-  id: string
+  id: string;
   option_name: string
   option_type: 'highlight' | 'included' | 'not_included' | 'not_allowed'
   is_selected: boolean
