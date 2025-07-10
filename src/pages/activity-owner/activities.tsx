@@ -55,8 +55,14 @@ export default function ActivitiesPage() {
         
         const mappedData = data.map(d => ({
             ...d,
-            category_name: d.categories?.name || "Uncategorized"
-        })) as SupabaseActivity[];
+            category_name: d.categories?.name || "Uncategorized",
+            name: d.title,
+            min_participants: d.min_participants || 1,
+            inclusions: d.included || [],
+            exclusions: d.not_included || [],
+            additional_info: d.additional_info || null,
+            booking_type: d.booking_type || "instant"
+        })) as unknown as SupabaseActivity[];
 
         setActivities(mappedData);
       } catch (error) {

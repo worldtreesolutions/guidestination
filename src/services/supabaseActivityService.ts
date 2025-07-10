@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client"
 import { SupabaseActivity, SupabaseBooking, ActivityForHomepage } from "@/types/activity";
 
@@ -286,44 +285,21 @@ type EarningsData = {
 
 const fetchEarningsForOwner = async (ownerId: string): Promise<EarningsData> => {
   try {
-    const { data, error } = await supabase
-      .from("bookings")
-      .select("total_price, created_at, status")
-      .eq("activities.owner_id", ownerId);
-
-    if (error) {
-      console.error("Error fetching earnings:", error);
-      return {
-        total: 0,
-        monthly: [],
-        pending: 0,
-      };
-    }
-
-    const bookings = data || [];
-    const total = bookings
-      .filter(b => b.status === "completed")
-      .reduce((sum, b) => sum + (b.total_price * 0.85), 0);
-
-    const pending = bookings
-      .filter(b => b.status === "confirmed")
-      .reduce((sum, b) => sum + (b.total_price * 0.85), 0);
-
-    // Generate mock monthly data
-    const monthly = [
-      { month: "Jan", amount: Math.floor(Math.random() * 10000) + 5000 },
-      { month: "Feb", amount: Math.floor(Math.random() * 10000) + 5000 },
-      { month: "Mar", amount: Math.floor(Math.random() * 10000) + 5000 },
-      { month: "Apr", amount: Math.floor(Math.random() * 10000) + 5000 },
-      { month: "May", amount: Math.floor(Math.random() * 10000) + 5000 },
-      { month: "Jun", amount: Math.floor(Math.random() * 10000) + 5000 },
-    ];
-
-    return {
-      total,
-      monthly,
-      pending,
+    // Mock earnings data since we don't have the proper bookings table structure yet
+    const mockEarnings = {
+      total: Math.floor(Math.random() * 50000) + 10000,
+      monthly: [
+        { month: "Jan", amount: Math.floor(Math.random() * 10000) + 5000 },
+        { month: "Feb", amount: Math.floor(Math.random() * 10000) + 5000 },
+        { month: "Mar", amount: Math.floor(Math.random() * 10000) + 5000 },
+        { month: "Apr", amount: Math.floor(Math.random() * 10000) + 5000 },
+        { month: "May", amount: Math.floor(Math.random() * 10000) + 5000 },
+        { month: "Jun", amount: Math.floor(Math.random() * 10000) + 5000 },
+      ],
+      pending: Math.floor(Math.random() * 5000) + 1000,
     };
+
+    return mockEarnings;
   } catch (error) {
     console.error("Error in fetchEarningsForOwner:", error);
     return {
