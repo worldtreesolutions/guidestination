@@ -422,24 +422,12 @@ export const supabaseActivityService = {
   },
 
   transformActivity(data: any): SupabaseActivity {
-    // Handle image URLs
-    const imageUrls = data.activity_media
-      ?.filter((media: any) => media.media_type === "image")
-      ?.map((media: any) => media.media_url) || []
-
-    if (data.image_url && !imageUrls.includes(data.image_url)) {
-      imageUrls.unshift(data.image_url)
-    }
-
-    // Safe numeric conversions
-    const rating = data.average_rating ? Number(data.average_rating) : 0
-    const price = data.base_price_thb ? Number(data.base_price_thb) : 0
-    const duration = data.duration ? Number(data.duration) : null
-
-    // Process schedule instances first (most specific)
-    const scheduleInstances = Array.isArray(data.activity_schedule_instances) ? data.activity_schedule_instances : []
-    const instanceDates = scheduleInstances
-      .filter((instance: any) => instance?.is_active && instance?.status === 'active')
+    console.log("Transforming activity data:", data)
+    
+    // Transform schedule instances into the format expected by the calendar
+    const scheduleInstances = data.activity_schedule_instances || []
+    const availableDates = scheduleInstances
+      .filter((instance: any) => instance.is_active && instance.status === 'available')
       .map((instance: any) => ({
         date: instance.scheduled_date,
         startTime: instance.start_time,
@@ -447,112 +435,82 @@ export const supabaseActivityService = {
         capacity: instance.capacity || 10,
         booked: instance.booked_count || 0,
         available: instance.available_spots || (instance.capacity - (instance.booked_count || 0)),
-        price: instance.price || price
+        price: instance.price || data.price
       }))
 
-    // Process activity schedules (recurring patterns)
-    const activitySchedules = Array.isArray(data.activity_schedules) ? data.activity_schedules : []
-    const scheduleDates: any[] = []
-    
-    activitySchedules
-      .filter((schedule: any) => schedule?.is_active)
-      .forEach((schedule: any) => {
-        // Generate dates for the next 60 days based on schedule
-        const startDate = new Date(schedule.availability_start_date || new Date())
-        const endDate = new Date(schedule.availability_end_date || new Date(Date.now() + 60 * 24 * 60 * 60 * 1000))
-        
-        for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-          const dayOfWeek = d.getDay()
-          const daysOfWeek = Array.isArray(schedule.days_of_week) ? schedule.days_of_week : [0, 1, 2, 3, 4, 5, 6]
-          
-          if (daysOfWeek.includes(dayOfWeek)) {
-            const dateStr = d.toISOString().split('T')[0]
-            // Don't add if we already have a specific instance for this date
-            if (!instanceDates.some((inst: any) => inst.date === dateStr)) {
-              scheduleDates.push({
-                date: dateStr,
-                startTime: schedule.start_time || "09:00",
-                endTime: schedule.end_time || "17:00",
-                capacity: schedule.capacity || 10,
-                booked: schedule.booked_count || 0,
-                available: (schedule.capacity || 10) - (schedule.booked_count || 0),
-                price: price
-              })
-            }
-          }
-        }
-      })
+    console.log("Transformed schedule instances:", availableDates)
 
-    // If no schedules exist, create default availability for the next 30 days
-    const defaultDates: any[] = []
-    if (instanceDates.length === 0 && scheduleDates.length === 0) {
-      for (let i = 1; i <= 30; i++) {
-        const date = new Date()
-        date.setDate(date.getDate() + i)
-        defaultDates.push({
-          date: date.toISOString().split('T')[0],
-          startTime: "09:00",
-          endTime: "17:00",
-          capacity: 10,
-          booked: 0,
-          available: 10,
-          price: price
-        })
+    // Transform selected options
+    const selectedOptions = (data.activity_selected_options || []).map((selectedOption: any) => {
+      const option = selectedOption.activity_options
+      return {
+        id: option?.id,
+        label: option?.label || '',
+        icon: option?.icon || '',
+        type: option?.type || 'highlight',
+        category: option?.category || ''
       }
-    }
+    }).filter((opt: any) => opt.id) // Filter out invalid options
 
-    // Combine all available dates
-    const allAvailableDates = [...instanceDates, ...scheduleDates, ...defaultDates]
-
-    // Process selected options and categorize them
-    const selectedOptions = Array.isArray(data.activity_selected_options) 
-      ? data.activity_selected_options
-          .filter((selectedOption: any) => selectedOption?.activity_options)
-          .map((selectedOption: any) => ({
-            id: selectedOption.id,
-            label: selectedOption.activity_options.label || "",
-            icon: selectedOption.activity_options.icon || "",
-            type: selectedOption.activity_options.type || "",
-            category: selectedOption.activity_options.category || ""
-          }))
-      : []
+    console.log("Transformed selected options:", selectedOptions)
 
     return {
       id: data.id,
-      title: data.title || data.name || data.activity_name || "",
-      name: data.name || data.title || data.activity_name || "",
-      description: data.description || "",
-      category: data.category || "",
-      category_name: data.category || "",
-      price: price,
+      title: data.title || data.name || '',
+      name: data.name || data.title || '',
+      description: data.description || '',
+      price: data.price || 0,
+      duration: data.duration,
       max_participants: data.max_participants || 10,
-      duration: duration,
-      min_age: data.min_age || null,
-      max_age: data.max_age || null,
-      physical_effort_level: data.physical_effort_level || null,
-      technical_skill_level: data.technical_skill_level || null,
-      location: data.address || data.meeting_point_formatted_address || data.location || "",
-      meeting_point: data.meeting_point || "",
-      includes_pickup: Boolean(data.includes_pickup),
-      pickup_locations: data.pickup_locations || data.pickup_location || "",
-      includes_meal: Boolean(data.includes_meal),
-      meal_description: data.meal_description || "",
-      highlights: this.parseJsonField(data.highlights),
-      included: this.parseJsonField(data.included),
-      not_included: this.parseJsonField(data.not_included),
-      languages: this.parseJsonField(data.languages) || ["English"],
-      rating: rating,
+      min_participants: data.min_participants || 1,
+      location: data.location || '',
+      meeting_point: data.meeting_point || '',
+      category_id: data.category_id,
+      category_name: data.category_name || '',
+      provider_id: data.provider_id,
+      is_active: data.is_active || false,
+      created_at: data.created_at,
+      updated_at: data.updated_at,
+      
+      // Age and skill requirements
+      min_age: data.min_age,
+      max_age: data.max_age,
+      physical_effort_level: data.physical_effort_level,
+      technical_skill_level: data.technical_skill_level,
+      
+      // Additional features
+      includes_pickup: data.includes_pickup || false,
+      includes_meal: data.includes_meal || false,
+      pickup_locations: data.pickup_locations,
+      meal_description: data.meal_description,
+      
+      // Media
+      image_urls: (data.activity_media || [])
+        .filter((media: any) => media.media_type === 'image')
+        .map((media: any) => media.media_url),
+      video_urls: (data.activity_media || [])
+        .filter((media: any) => media.media_type === 'video')
+        .map((media: any) => media.media_url),
+      
+      // Languages
+      languages: data.languages || ['English'],
+      
+      // Reviews
+      rating: data.rating || 0,
       review_count: data.review_count || 0,
-      image_urls: imageUrls,
-      video_url: data.video_url || "",
-      provider_id: data.provider_id || "",
-      is_active: Boolean(data.is_active),
-      created_at: data.created_at || "",
-      updated_at: data.updated_at || "",
+      
+      // Legacy fields for compatibility
+      highlights: data.highlights || [],
+      included: data.included || [],
+      not_included: data.not_included || [],
+      
+      // New structured data
+      selectedOptions: selectedOptions,
+      
+      // Schedule data in the format expected by the calendar
       schedules: {
-        availableDates: allAvailableDates
-      },
-      selectedOptions: selectedOptions
+        availableDates: availableDates
+      }
     }
   },
 
