@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 
@@ -10,7 +9,7 @@ interface ActivityOption {
 }
 
 interface Activity {
-  id: string
+  id: number
   title: string
   description: string
   activity_selected_options?: ActivityOption[]

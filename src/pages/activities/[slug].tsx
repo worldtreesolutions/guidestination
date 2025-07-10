@@ -393,24 +393,6 @@ export default function ActivityPage() {
 
                   <TabsContent value="overview" className="space-y-6">
                     <ActivityDetails activity={activity} />
-
-                    {allHighlights.length > 0 && (
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>Highlights</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <ul className="space-y-2">
-                            {allHighlights.map((highlight, index) => (
-                              <li key={index} className="flex items-start gap-2">
-                                <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                                <span>{highlight}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </CardContent>
-                      </Card>
-                    )}
                   </TabsContent>
 
                   <TabsContent value="itinerary" className="space-y-6">
