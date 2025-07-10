@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client"
 import { SupabaseActivity, ActivityForHomepage, Booking, Earning } from "@/types/activity"
 
@@ -306,7 +305,7 @@ export const supabaseActivityService = {
     return Promise.resolve({ total: 0, monthly: [], pending: 0 })
   },
 
-  transformActivity( any): SupabaseActivity {
+  transformActivity(data: any): SupabaseActivity {
     const imageUrls = data.activity_media
       ?.filter((media: any) => media.media_type === "image")
       ?.map((media: any) => media.media_url) || []
@@ -356,7 +355,7 @@ export const supabaseActivityService = {
     }
   },
 
-  transformActivities( any[]): SupabaseActivity[] {
+  transformActivities(data: any[]): SupabaseActivity[] {
     return data.map(item => this.transformActivity(item))
   },
 
