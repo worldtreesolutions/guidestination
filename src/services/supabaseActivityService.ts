@@ -202,15 +202,34 @@ export const supabaseActivityService = {
 
   async createActivity(activityData: Partial<SupabaseActivity>): Promise<SupabaseActivity> {
     try {
+      // Map the activity data to match the database schema
+      const insertData: any = {
+        title: activityData.title || "",
+        description: activityData.description || "",
+        category: activityData.category || "",
+        base_price_thb: activityData.price || 0,
+        max_participants: activityData.max_participants || 10,
+        duration: activityData.duration || null,
+        min_age: activityData.min_age || null,
+        max_age: activityData.max_age || null,
+        physical_effort_level: activityData.physical_effort_level || null,
+        technical_skill_level: activityData.technical_skill_level || null,
+        meeting_point: activityData.meeting_point || "",
+        includes_pickup: activityData.includes_pickup || false,
+        pickup_locations: activityData.pickup_locations || "",
+        includes_meal: activityData.includes_meal || false,
+        meal_description: activityData.meal_description || "",
+        provider_id: activityData.provider_id || "",
+        is_active: activityData.is_active !== undefined ? activityData.is_active : true,
+        highlights: activityData.highlights ? JSON.stringify(activityData.highlights) : null,
+        included: activityData.included ? JSON.stringify(activityData.included) : null,
+        not_included: activityData.not_included ? JSON.stringify(activityData.not_included) : null,
+        languages: activityData.languages ? JSON.stringify(activityData.languages) : null,
+      }
+
       const { data, error } = await supabase
         .from("activities")
-        .insert({
-          ...activityData,
-          highlights: activityData.highlights ? JSON.stringify(activityData.highlights) : null,
-          included: activityData.included ? JSON.stringify(activityData.included) : null,
-          not_included: activityData.not_included ? JSON.stringify(activityData.not_included) : null,
-          languages: activityData.languages ? JSON.stringify(activityData.languages) : null,
-        })
+        .insert(insertData)
         .select()
         .single()
 
