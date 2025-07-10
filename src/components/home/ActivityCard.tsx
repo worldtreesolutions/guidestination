@@ -5,10 +5,14 @@ import { Star, MapPin } from "lucide-react"
 import { ActivityForHomepage } from "@/types/activity"
 
 interface ActivityCardProps {
-  activity: ActivityForHomepage
+  activity?: ActivityForHomepage
 }
 
 export function ActivityCard({ activity }: ActivityCardProps) {
+  if (!activity) {
+    return null; // Or a skeleton loader
+  }
+
   const {
     title,
     image_url,
@@ -18,8 +22,8 @@ export function ActivityCard({ activity }: ActivityCardProps) {
   } = activity
 
   // Provide fallback values to prevent undefined errors
-  const safePrice = price || 0
-  const safeRating = rating || 0
+  const safePrice = price ?? 0
+  const safeRating = rating ?? 0
   const safeLocation = location || "Location not specified"
   const safeImageUrl = image_url || "/placeholder-image.jpg"
 
@@ -28,7 +32,7 @@ export function ActivityCard({ activity }: ActivityCardProps) {
       <div className="relative aspect-video">
         <Image
           src={safeImageUrl}
-          alt={title}
+          alt={title || "Activity image"}
           fill
           className="object-cover"
         />
@@ -52,3 +56,4 @@ export function ActivityCard({ activity }: ActivityCardProps) {
     </Card>
   )
 }
+  
