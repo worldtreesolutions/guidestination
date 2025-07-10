@@ -41,7 +41,7 @@ export function CategoryNav({ selectedCategory, onSelectCategory }: CategoryNavP
             className="whitespace-nowrap text-xs sm:text-sm px-2 sm:px-4 h-8 sm:h-10"
             onClick={() => onSelectCategory(category.name)}
           >
-            {t(`category.${category.name.toLowerCase()}`, category.name)}
+            {t(`category.${category.name?.toLowerCase() || ""}`) || category.name}
           </Button>
         ))}
       </div>
