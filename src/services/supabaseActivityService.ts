@@ -1,329 +1,332 @@
 import { supabase } from "@/integrations/supabase/client"
-import { SupabaseActivity, SupabaseBooking, ActivityForHomepage } from "@/types/activity";
+import { SupabaseActivity } from "@/types/activity"
 
-const getActivityById = async (id: string): Promise<SupabaseActivity | null> => {
-  const { data, error } = await supabase
-    .from('activities')
-    .select('*, categories(name)')
-    .eq('id', parseInt(id, 10))
-    .single();
+export const supabaseActivityService = {
+  async getFeaturedActivities(limit: number = 4): Promise<SupabaseActivity[]> {
+    try {
+      const { data, error } = await supabase
+        .from("activities")
+        .select(`
+          *,
+          activity_media(media_url, media_type, thumbnail_url)
+        `)
+        .eq("is_active", true)
+        .order("average_rating", { ascending: false, nullsLast: true })
+        .limit(limit)
 
-  if (error) {
-    console.error('Error fetching activity by id:', error);
-    return null;
-  }
-  if (!data) return null;
+      if (error) {
+        console.error("Error fetching featured activities:", error)
+        throw error
+      }
 
-  return {
-    ...data,
-    category_name: data.categories?.name || 'N/A',
-  } as unknown as SupabaseActivity;
-};
-
-const supabaseActivityService = {
-  async getActivityById(id: string): Promise<SupabaseActivity | null> {
-    return getActivityById(id);
-  },
-
-  async getActivityBySlug(slug: string): Promise<SupabaseActivity | null> {
-    return this.getActivityById(slug)
-  },
-
-  async getFeaturedActivities(limit: number = 4): Promise<ActivityForHomepage[]> {
-    const { data, error } = await supabase
-      .from("activities")
-      .select("*, categories(name)")
-      .eq("is_active", true)
-      .order("rating", { ascending: false, nullsFirst: false })
-      .limit(limit)
-
-    if (error) {
+      return this.transformActivities(data || [])
+    } catch (error) {
       console.error("Error fetching featured activities:", error)
-      return []
-    }
-
-    return this.convertToHomepageFormat(data)
-  },
-
-  async getRecommendedActivities(limit: number = 8): Promise<ActivityForHomepage[]> {
-    const { data, error } = await supabase
-      .from("activities")
-      .select("*, categories(name)")
-      .eq("is_active", true)
-      .order("review_count", { ascending: false, nullsFirst: false })
-      .limit(limit)
-
-    if (error) {
-      console.error("Error fetching recommended activities:", error)
-      return []
-    }
-
-    return this.convertToHomepageFormat(data)
-  },
-
-  async getActivitiesByCategory(categoryName: string): Promise<SupabaseActivity[]> {
-    const { data: categoryData, error: categoryError } = await supabase
-      .from('categories')
-      .select('id')
-      .eq('name', categoryName)
-      .single();
-
-    if (categoryError || !categoryData) {
-      console.error("Error fetching category:", categoryError);
-      return [];
-    }
-
-    const { data, error } = await supabase
-      .from("activities")
-      .select("*, categories(name)")
-      .eq("is_active", true)
-      .eq("category_id", categoryData.id)
-      .limit(10)
-
-    if (error) {
-      console.error("Error fetching activities by category:", error)
-      return []
-    }
-
-    return data.map((activity: any) => ({
-      ...activity,
-      category_name: activity.categories.name,
-    })) as SupabaseActivity[];
-  },
-
-  convertToHomepageFormat(activities: any[]): ActivityForHomepage[] {
-    return activities.map(activity => ({
-      id: activity.id,
-      title: activity.title,
-      image_url: activity.image_urls?.[0] || null,
-      price: activity.price || 0,
-      location: activity.location,
-      rating: activity.rating,
-      review_count: activity.review_count,
-      category_name: activity.categories?.name
-    }))
-  },
-
-  async searchActivities(query: string): Promise<SupabaseActivity[]> {
-    const { data, error } = await supabase
-      .from("activities")
-      .select("*, categories(name)")
-      .eq("is_active", true)
-      .or(`title.ilike.%${query}%,description.ilike.%${query}%`)
-      .limit(20)
-
-    if (error) {
-      console.error("Error searching activities:", error)
-      return []
-    }
-
-    return data.map((activity: any) => ({
-      ...activity,
-      category_name: activity.categories.name,
-    })) as SupabaseActivity[];
-  },
-
-  async addReview(reviewData: {
-    activity_id: number
-    user_id: string
-    rating: number
-    comment?: string
-  }) {
-    const { data, error } = await supabase
-      .from("reviews")
-      .insert(reviewData)
-      .select()
-      .single()
-
-    if (error) {
-      console.error("Error adding review:", error)
       throw error
     }
-
-    return data
   },
 
-  async getActivities(filters: any): Promise<SupabaseActivity[]> {
-    let query = supabase
-      .from("activities")
-      .select("*, categories(name)")
-      .eq("is_active", true)
+  async getActivitiesByCategory(categoryName: string, limit: number = 10): Promise<SupabaseActivity[]> {
+    try {
+      const { data, error } = await supabase
+        .from("activities")
+        .select(`
+          *,
+          activity_media(media_url, media_type, thumbnail_url)
+        `)
+        .eq("is_active", true)
+        .eq("category", categoryName)
+        .limit(limit)
 
-    if (filters.category) {
-      const { data: categoryData } = await supabase.from('categories').select('id').eq('name', filters.category).single();
-      if (categoryData) {
-        query = query.eq('category_id', categoryData.id)
+      if (error) {
+        console.error("Error fetching activities by category:", error)
+        throw error
+      }
+
+      return this.transformActivities(data || [])
+    } catch (error) {
+      console.error("Error fetching activities by category:", error)
+      throw error
+    }
+  },
+
+  async getActivityById(id: string): Promise<SupabaseActivity> {
+    try {
+      const { data, error } = await supabase
+        .from("activities")
+        .select(`
+          *,
+          activity_media(media_url, media_type, thumbnail_url),
+          activity_schedules(
+            id,
+            capacity,
+            booked_count,
+            availability_start_date,
+            availability_end_date,
+            start_time,
+            end_time,
+            is_active
+          )
+        `)
+        .eq("id", id)
+        .eq("is_active", true)
+        .single()
+
+      if (error) {
+        console.error("Error fetching activity by ID:", error)
+        throw error
+      }
+
+      if (!data) {
+        throw new Error("Activity not found")
+      }
+
+      return this.transformActivity(data)
+    } catch (error) {
+      console.error("Error fetching activity by ID:", error)
+      throw error
+    }
+  },
+
+  async getAllActivities(limit?: number): Promise<SupabaseActivity[]> {
+    try {
+      let query = supabase
+        .from("activities")
+        .select(`
+          *,
+          activity_media(media_url, media_type, thumbnail_url)
+        `)
+        .eq("is_active", true)
+        .order("created_at", { ascending: false })
+
+      if (limit) {
+        query = query.limit(limit)
+      }
+
+      const { data, error } = await query
+
+      if (error) {
+        console.error("Error fetching all activities:", error)
+        throw error
+      }
+
+      return this.transformActivities(data || [])
+    } catch (error) {
+      console.error("Error fetching all activities:", error)
+      throw error
+    }
+  },
+
+  async searchActivities(searchTerm: string, limit: number = 20): Promise<SupabaseActivity[]> {
+    try {
+      const { data, error } = await supabase
+        .from("activities")
+        .select(`
+          *,
+          activity_media(media_url, media_type, thumbnail_url)
+        `)
+        .eq("is_active", true)
+        .or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,category.ilike.%${searchTerm}%`)
+        .limit(limit)
+
+      if (error) {
+        console.error("Error searching activities:", error)
+        throw error
+      }
+
+      return this.transformActivities(data || [])
+    } catch (error) {
+      console.error("Error searching activities:", error)
+      throw error
+    }
+  },
+
+  async getActivitiesByProvider(providerId: string): Promise<SupabaseActivity[]> {
+    try {
+      const { data, error } = await supabase
+        .from("activities")
+        .select(`
+          *,
+          activity_media(media_url, media_type, thumbnail_url)
+        `)
+        .eq("provider_id", providerId)
+        .order("created_at", { ascending: false })
+
+      if (error) {
+        console.error("Error fetching activities by provider:", error)
+        throw error
+      }
+
+      return this.transformActivities(data || [])
+    } catch (error) {
+      console.error("Error fetching activities by provider:", error)
+      throw error
+    }
+  },
+
+  async createActivity(activityData: Partial<SupabaseActivity>): Promise<SupabaseActivity> {
+    try {
+      const { data, error } = await supabase
+        .from("activities")
+        .insert([{
+          title: activityData.title,
+          description: activityData.description,
+          category: activityData.category,
+          base_price_thb: activityData.price,
+          max_participants: activityData.max_participants,
+          duration: activityData.duration,
+          meeting_point: activityData.meeting_point,
+          includes_pickup: activityData.includes_pickup || false,
+          pickup_locations: activityData.pickup_locations,
+          includes_meal: activityData.includes_meal || false,
+          meal_description: activityData.meal_description,
+          highlights: activityData.highlights ? JSON.stringify(activityData.highlights) : null,
+          included: activityData.included ? JSON.stringify(activityData.included) : null,
+          not_included: activityData.not_included ? JSON.stringify(activityData.not_included) : null,
+          languages: activityData.languages ? JSON.stringify(activityData.languages) : null,
+          provider_id: activityData.provider_id,
+          is_active: true
+        }])
+        .select()
+        .single()
+
+      if (error) {
+        console.error("Error creating activity:", error)
+        throw error
+      }
+
+      return this.transformActivity(data)
+    } catch (error) {
+      console.error("Error creating activity:", error)
+      throw error
+    }
+  },
+
+  async updateActivity(id: string, activityData: Partial<SupabaseActivity>): Promise<SupabaseActivity> {
+    try {
+      const updateData: any = {
+        updated_at: new Date().toISOString()
+      }
+
+      if (activityData.title) updateData.title = activityData.title
+      if (activityData.description) updateData.description = activityData.description
+      if (activityData.category) updateData.category = activityData.category
+      if (activityData.price) updateData.base_price_thb = activityData.price
+      if (activityData.max_participants) updateData.max_participants = activityData.max_participants
+      if (activityData.duration) updateData.duration = activityData.duration
+      if (activityData.meeting_point) updateData.meeting_point = activityData.meeting_point
+      if (activityData.includes_pickup !== undefined) updateData.includes_pickup = activityData.includes_pickup
+      if (activityData.pickup_locations) updateData.pickup_locations = activityData.pickup_locations
+      if (activityData.includes_meal !== undefined) updateData.includes_meal = activityData.includes_meal
+      if (activityData.meal_description) updateData.meal_description = activityData.meal_description
+      if (activityData.highlights) updateData.highlights = JSON.stringify(activityData.highlights)
+      if (activityData.included) updateData.included = JSON.stringify(activityData.included)
+      if (activityData.not_included) updateData.not_included = JSON.stringify(activityData.not_included)
+      if (activityData.languages) updateData.languages = JSON.stringify(activityData.languages)
+
+      const { data, error } = await supabase
+        .from("activities")
+        .update(updateData)
+        .eq("id", id)
+        .select()
+        .single()
+
+      if (error) {
+        console.error("Error updating activity:", error)
+        throw error
+      }
+
+      return this.transformActivity(data)
+    } catch (error) {
+      console.error("Error updating activity:", error)
+      throw error
+    }
+  },
+
+  async deleteActivity(id: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from("activities")
+        .update({ is_active: false })
+        .eq("id", id)
+
+      if (error) {
+        console.error("Error deleting activity:", error)
+        throw error
+      }
+
+      return true
+    } catch (error) {
+      console.error("Error deleting activity:", error)
+      throw error
+    }
+  },
+
+  transformActivity(data: any): SupabaseActivity {
+    const imageUrls = data.activity_media
+      ?.filter((media: any) => media.media_type === "image")
+      ?.map((media: any) => media.media_url) || []
+
+    if (data.image_url && !imageUrls.includes(data.image_url)) {
+      imageUrls.unshift(data.image_url)
+    }
+
+    return {
+      id: data.id,
+      title: data.title || data.name || data.activity_name || "",
+      name: data.name || data.title || data.activity_name || "",
+      description: data.description || "",
+      category: data.category || "",
+      category_name: data.category || "",
+      price: data.base_price_thb || data.final_price || data.b_price || 0,
+      max_participants: data.max_participants || 10,
+      duration: data.duration,
+      location: data.address || data.meeting_point_formatted_address || "",
+      meeting_point: data.meeting_point || "",
+      includes_pickup: data.includes_pickup || false,
+      pickup_locations: data.pickup_locations || data.pickup_location || "",
+      includes_meal: data.includes_meal || false,
+      meal_description: data.meal_description || "",
+      highlights: this.parseJsonField(data.highlights),
+      included: this.parseJsonField(data.included),
+      not_included: this.parseJsonField(data.not_included),
+      languages: this.parseJsonField(data.languages) || ["English"],
+      rating: data.average_rating || 0,
+      review_count: data.review_count || 0,
+      image_urls: imageUrls,
+      video_url: data.video_url || "",
+      provider_id: data.provider_id || "",
+      is_active: data.is_active || false,
+      created_at: data.created_at || "",
+      updated_at: data.updated_at || "",
+      schedules: {
+        availableDates: data.activity_schedules?.map((schedule: any) => ({
+          date: schedule.availability_start_date,
+          startTime: schedule.start_time,
+          endTime: schedule.end_time,
+          capacity: schedule.capacity,
+          booked: schedule.booked_count || 0,
+          available: schedule.capacity - (schedule.booked_count || 0)
+        })) || []
       }
     }
-    
-    const { data, error } = await query.limit(10)
-
-    if (error) {
-      console.error("Error fetching activities:", error)
-      return []
-    }
-
-    return data.map((activity: any) => ({
-      ...activity,
-      category_name: activity.categories.name,
-    })) as SupabaseActivity[];
   },
 
-  async getActivitiesForHomepage(): Promise<ActivityForHomepage[]> {
-    const { data, error } = await supabase
-      .from("activities")
-      .select("*, categories(name)")
-      .eq("is_active", true)
-      .limit(10)
-
-    if (error) {
-      console.error("Error fetching activities for homepage:", error)
-      return []
-    }
-
-    return this.convertToHomepageFormat(data);
+  transformActivities(data: any[]): SupabaseActivity[] {
+    return data.map(item => this.transformActivity(item))
   },
+
+  parseJsonField(field: any): any {
+    if (!field) return null
+    if (typeof field === "string") {
+      try {
+        return JSON.parse(field)
+      } catch {
+        return field.split(",").map((item: string) => item.trim()).filter(Boolean)
+      }
+    }
+    return field
+  }
 }
 
-const fetchActivitiesByOwner = async (ownerId: string): Promise<SupabaseActivity[]> => {
-  const { data, error } = await supabase
-    .from("activities")
-    .select("*, categories(name)")
-    .eq("owner_id", ownerId);
-
-  if (error) {
-    console.error("Error fetching activities by owner:", error);
-    throw error;
-  }
-
-  return data.map((activity: any) => ({
-    ...activity,
-    category_name: activity.categories?.name || "Uncategorized",
-    name: activity.title,
-    min_participants: activity.min_participants || 1,
-    inclusions: activity.included || [],
-    exclusions: activity.not_included || [],
-    additional_info: activity.additional_info || null,
-    booking_type: activity.booking_type || "instant"
-  })) as SupabaseActivity[];
-};
-
-const fetchRecentBookingsForOwner = async (ownerId: string): Promise<SupabaseBooking[]> => {
-  try {
-    const { data, error } = await supabase
-      .from("bookings")
-      .select(`
-        *,
-        activities(title),
-        profiles(full_name, email)
-      `)
-      .eq("activities.owner_id", ownerId)
-      .order("created_at", { ascending: false })
-      .limit(10);
-
-    if (error) {
-      console.error("Error fetching recent bookings:", error);
-      return [];
-    }
-
-    return (data || []).map((booking: any) => ({
-      ...booking,
-      activityTitle: booking.activities?.title || "Unknown Activity",
-      customerName: booking.profiles?.full_name || "Unknown Customer",
-      customerEmail: booking.profiles?.email || "Unknown Email",
-      date: booking.booking_date,
-      bookingTime: new Date(booking.created_at).toLocaleTimeString(),
-      providerAmount: booking.total_price * 0.85,
-      platformFee: booking.total_price * 0.15,
-      totalAmount: booking.total_price
-    })) as SupabaseBooking[];
-  } catch (error) {
-    console.error("Error in fetchRecentBookingsForOwner:", error);
-    return [];
-  }
-};
-
-const fetchBookingsForOwner = async (ownerId: string): Promise<SupabaseBooking[]> => {
-  try {
-    const { data, error } = await supabase
-      .from("bookings")
-      .select(`
-        *,
-        activities(title),
-        profiles(full_name, email)
-      `)
-      .eq("activities.owner_id", ownerId)
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      console.error("Error fetching bookings:", error);
-      return [];
-    }
-
-    return (data || []).map((booking: any) => ({
-      ...booking,
-      activityTitle: booking.activities?.title || "Unknown Activity",
-      customerName: booking.profiles?.full_name || "Unknown Customer",
-      customerEmail: booking.profiles?.email || "Unknown Email",
-      date: booking.booking_date,
-      bookingTime: new Date(booking.created_at).toLocaleTimeString(),
-      providerAmount: booking.total_price * 0.85,
-      platformFee: booking.total_price * 0.15,
-      totalAmount: booking.total_price
-    })) as SupabaseBooking[];
-  } catch (error) {
-    console.error("Error in fetchBookingsForOwner:", error);
-    return [];
-  }
-};
-
-type EarningsData = {
-  total: number;
-  monthly: { month: string; amount: number }[];
-  pending: number;
-};
-
-const fetchEarningsForOwner = async (ownerId: string): Promise<EarningsData> => {
-  try {
-    // Mock earnings data since we don't have the proper bookings table structure yet
-    const mockEarnings = {
-      total: Math.floor(Math.random() * 50000) + 10000,
-      monthly: [
-        { month: "Jan", amount: Math.floor(Math.random() * 10000) + 5000 },
-        { month: "Feb", amount: Math.floor(Math.random() * 10000) + 5000 },
-        { month: "Mar", amount: Math.floor(Math.random() * 10000) + 5000 },
-        { month: "Apr", amount: Math.floor(Math.random() * 10000) + 5000 },
-        { month: "May", amount: Math.floor(Math.random() * 10000) + 5000 },
-        { month: "Jun", amount: Math.floor(Math.random() * 10000) + 5000 },
-      ],
-      pending: Math.floor(Math.random() * 5000) + 1000,
-    };
-
-    return mockEarnings;
-  } catch (error) {
-    console.error("Error in fetchEarningsForOwner:", error);
-    return {
-      total: 0,
-      monthly: [],
-      pending: 0,
-    };
-  }
-};
-
-const deleteActivity = async (activityId: number) => {
-  const { error } = await supabase.from('activities').delete().eq('id', activityId);
-  if (error) {
-    console.error('Error deleting activity:', error);
-    throw error;
-  }
-};
-
-export { 
-  supabaseActivityService, 
-  fetchActivitiesByOwner, 
-  fetchRecentBookingsForOwner, 
-  fetchBookingsForOwner, 
-  fetchEarningsForOwner,
-  getActivityById,
-  deleteActivity
-};
+export default supabaseActivityService
