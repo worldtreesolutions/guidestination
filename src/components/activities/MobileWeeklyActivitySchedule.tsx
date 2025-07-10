@@ -48,7 +48,7 @@ const ActivityCard = ({ activity, onRemove }: { activity: ScheduledActivity; onR
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: activity.id,
      { activity }
-  })
+  });
 
   const style = transform ? {
     transform: CSS.Translate.toString(transform)
@@ -119,7 +119,7 @@ const DroppableCell = ({
     id: `${day}-${hour}`,
      { day, hour },
     disabled: !isAvailable
-  })
+  });
 
   if (!isAvailable && showUnavailable) {
     return (
