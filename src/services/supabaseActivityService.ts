@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client"
 import { SupabaseActivity, SupabaseBooking, ActivityForHomepage } from "@/types/activity";
 
@@ -5,7 +6,7 @@ const getActivityById = async (id: string): Promise<SupabaseActivity | null> => 
   const { data, error } = await supabase
     .from('activities')
     .select('*, categories(name)')
-    .eq('id', id)
+    .eq('id', parseInt(id, 10))
     .single();
 
   if (error) {
@@ -150,7 +151,10 @@ const supabaseActivityService = {
       .eq("is_active", true)
 
     if (filters.category) {
-      query = query.eq('categories.name', filters.category)
+      const {  categoryData } = await supabase.from('categories').select('id').eq('name', filters.category).single();
+      if (categoryData) {
+        query = query.eq('category_id', categoryData.id)
+      }
     }
     
     const { data, error } = await query.limit(10)
@@ -201,31 +205,37 @@ const fetchActivitiesByOwner = async (ownerId: string): Promise<SupabaseActivity
 
 const fetchRecentBookingsForOwner = async (ownerId: string): Promise<SupabaseBooking[]> => {
   const { data, error } = await supabase
-    .rpc('get_recent_bookings_for_owner' as any, { owner_id_param: ownerId })
+    .rpc('get_recent_bookings_for_owner', { owner_id_param: ownerId })
 
   if (error) {
     console.error("Error fetching recent bookings:", error);
     throw error;
   }
 
-  return data as SupabaseBooking[];
+  return (data as SupabaseBooking[]) || [];
 };
 
 const fetchBookingsForOwner = async (ownerId: string): Promise<SupabaseBooking[]> => {
   const { data, error } = await supabase
-    .rpc('get_bookings_for_owner' as any, { owner_id_param: ownerId })
+    .rpc('get_bookings_for_owner', { owner_id_param: ownerId })
 
   if (error) {
     console.error("Error fetching bookings:", error);
     throw error;
   }
 
-  return data as SupabaseBooking[];
+  return (data as SupabaseBooking[]) || [];
 };
 
-const fetchEarningsForOwner = async (ownerId: string) => {
+type EarningsData = {
+  total: number;
+  monthly: { month: string; amount: number }[];
+  pending: number;
+};
+
+const fetchEarningsForOwner = async (ownerId: string): Promise<EarningsData> => {
   const { data, error } = await supabase
-    .rpc('get_earnings_for_owner' as any, { owner_id_param: ownerId })
+    .rpc('get_earnings_for_owner', { owner_id_param: ownerId })
 
   if (error) {
     console.error("Error fetching earnings for owner:", error);
@@ -236,7 +246,13 @@ const fetchEarningsForOwner = async (ownerId: string) => {
     };
   }
 
-  return data[0];
+  const result = data as any;
+
+  return result?.[0] || {
+      total: 0,
+      monthly: [],
+      pending: 0,
+    };
 };
 
 const deleteActivity = async (activityId: number) => {
@@ -256,4 +272,3 @@ export {
   getActivityById,
   deleteActivity
 };
-  

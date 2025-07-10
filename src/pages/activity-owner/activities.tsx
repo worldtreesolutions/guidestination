@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import Head from "next/head";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { SupabaseActivity } from "@/services/supabaseActivityService";
+import { SupabaseActivity } from "@/types/activity";
 import { useToast } from "@/hooks/use-toast";
 import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout";
 import { ActivityCard } from "@/components/dashboard/activities/ActivityCard";
