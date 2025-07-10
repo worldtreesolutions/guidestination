@@ -1,10 +1,10 @@
 
-    import { useState, useMemo, useCallback } from "react"
+import { useState, useMemo, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { usePlanning } from "@/contexts/PlanningContext"
-import { SupabaseActivity } from "@/types/activity"
-import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from "@dnd-kit/core"
+import { SupabaseActivity, ScheduledActivity } from "@/types/activity"
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent, Active, Over } from "@dnd-kit/core"
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import { GripVertical, Trash2 } from "lucide-react"
@@ -16,13 +16,6 @@ import { useIsMobile } from "@/hooks/use-mobile"
 interface ExcursionPlannerProps {
   activities: SupabaseActivity[]
   onPlanComplete: (plan: any) => void
-}
-
-interface ScheduledActivity extends SupabaseActivity {
-  day?: string
-  hour?: number
-  imageUrl?: string
-  participants?: number
 }
 
 function SortableActivityItem({ activity, onRemove }: { activity: SupabaseActivity; onRemove: (id: number) => void }) {
@@ -68,6 +61,7 @@ export function ExcursionPlanner({ activities, onPlanComplete }: ExcursionPlanne
   } = usePlanning()
 
   const [editingActivity, setEditingActivity] = useState<ScheduledActivity | null>(null)
+  const [draggedActivity, setDraggedActivity] = useState<ScheduledActivity | null>(null)
   const isMobile = useIsMobile()
 
   const sensors = useSensors(
@@ -78,21 +72,34 @@ export function ExcursionPlanner({ activities, onPlanComplete }: ExcursionPlanne
     })
   )
 
-  const handleDragEnd = (event: any) => {
-    const { active, over } = event
-    if (active.id !== over.id) {
-      const oldIndex = selectedActivities.findIndex(a => a.id === active.id)
-      const newIndex = selectedActivities.findIndex(a => a.id === over.id)
-      // This part needs to update the context state, which is complex.
-      // For now, we'll just log it. A full implementation would require a reorder function in the context.
-      console.log(`Move activity from index ${oldIndex} to ${newIndex}`)
+  const handleDragStart = (event: any) => {
+    const { active } = event;
+    const activity = scheduledActivities.find(a => a.id === active.id);
+    if (activity) {
+      setDraggedActivity(activity);
     }
-  }
+  };
 
-  const handleScheduleClick = (activity: ScheduledActivity) => {
-    const defaultDay = "Monday"
-    const defaultHour = 9
-    scheduleActivity(activity.id, defaultDay, defaultHour)
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+    setDraggedActivity(null);
+
+    if (over && over.data.current) {
+      const { day, hour } = over.data.current;
+      if (day && typeof hour === 'number') {
+        scheduleActivity(active.id as number, day, hour);
+        return;
+      }
+    }
+    
+    if (active.id !== over?.id) {
+      const oldIndex = selectedActivities.findIndex(a => a.id === active.id)
+      const newIndex = selectedActivities.findIndex(a => a.id === over?.id)
+      if (oldIndex !== -1 && newIndex !== -1) {
+        // This part needs to update the context state, which is complex.
+        console.log(`Move activity from index ${oldIndex} to ${newIndex}`)
+      }
+    }
   }
 
   const availableActivities = useMemo(() => {
@@ -100,32 +107,37 @@ export function ExcursionPlanner({ activities, onPlanComplete }: ExcursionPlanne
   }, [activities, isActivitySelected])
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Panel: Activity Selection */}
-        <div className="lg:col-span-1 space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Available Activities</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 max-h-96 overflow-y-auto">
-              {availableActivities.map(activity => (
-                <div key={activity.id} className="flex items-center justify-between p-2 border rounded-lg">
-                  <span>{activity.title}</span>
-                  <Button size="sm" onClick={() => addActivity(activity)}>
-                    Add
-                  </Button>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
+    <DndContext 
+      sensors={sensors} 
+      collisionDetection={closestCenter} 
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
+      <div className="container mx-auto p-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Panel: Activity Selection */}
+          <div className="lg:col-span-1 space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Available Activities</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2 max-h-96 overflow-y-auto">
+                {availableActivities.map(activity => (
+                  <div key={activity.id} className="flex items-center justify-between p-2 border rounded-lg">
+                    <span>{activity.title}</span>
+                    <Button size="sm" onClick={() => addActivity(activity)}>
+                      Add
+                    </Button>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Selected for Planning</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <Card>
+              <CardHeader>
+                <CardTitle>Selected for Planning</CardTitle>
+              </CardHeader>
+              <CardContent>
                 <SortableContext items={selectedActivities.map(a => a.id)} strategy={verticalListSortingStrategy}>
                   <div className="space-y-2">
                     {selectedActivities.map(activity => (
@@ -133,39 +145,41 @@ export function ExcursionPlanner({ activities, onPlanComplete }: ExcursionPlanne
                     ))}
                   </div>
                 </SortableContext>
-              </DndContext>
-              {selectedActivities.length === 0 && (
-                <p className="text-sm text-gray-500 text-center py-4">No activities selected yet.</p>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+                {selectedActivities.length === 0 && (
+                  <p className="text-sm text-gray-500 text-center py-4">No activities selected yet.</p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
 
-        {/* Right Panel: Weekly Schedule */}
-        <div className="lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Weekly Excursion Plan</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isMobile ? (
-                <MobileWeeklyActivitySchedule
-                  scheduledActivities={scheduledActivities}
-                  onActivityDrop={scheduleActivity}
-                  onActivityClick={(activity: ScheduledActivity) => setEditingActivity(activity)}
-                />
-              ) : (
-                <WeeklyActivitySchedule
-                  scheduledActivities={scheduledActivities}
-                  onActivityDrop={scheduleActivity}
-                  onActivityClick={(activity: ScheduledActivity) => setEditingActivity(activity)}
-                />
-              )}
-            </CardContent>
-          </Card>
+          {/* Right Panel: Weekly Schedule */}
+          <div className="lg:col-span-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Weekly Excursion Plan</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isMobile ? (
+                  <MobileWeeklyActivitySchedule
+                    scheduledActivities={scheduledActivities}
+                    draggedActivity={draggedActivity}
+                    onActivityClick={(activity: ScheduledActivity) => setEditingActivity(activity)}
+                    onActivityRemove={(id) => removeActivity(Number(id))}
+                  />
+                ) : (
+                  <WeeklyActivitySchedule
+                    scheduledActivities={scheduledActivities}
+                    draggedActivity={draggedActivity}
+                    onActivityClick={(activity: ScheduledActivity) => setEditingActivity(activity)}
+                    onActivityRemove={(id) => removeActivity(Number(id))}
+                  />
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
-    </div>
+    </DndContext>
   )
 }
   

@@ -63,6 +63,13 @@ export interface SupabaseActivity {
   booking_type?: "daily" | "hourly";
 }
 
+export interface ScheduledActivity extends SupabaseActivity {
+  day?: string;
+  hour?: number;
+  imageUrl?: string;
+  participants?: number;
+}
+
 export interface ActivityForHomepage {
   id: number;
   title: string;
