@@ -1,5 +1,5 @@
 import Head from "next/head"
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect } from "react"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { CategoryNav } from "@/components/home/CategoryNav"
@@ -17,60 +17,51 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true)
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
 
-  const fetchActivitiesForCategory = useCallback(async (categoryName: string) => {
-    try {
-      const activities = await supabaseActivityService.getActivitiesByCategory(categoryName, 8)
-      return supabaseActivityService.convertToHomepageFormat(activities)
-    } catch (error) {
-      console.error(`Error fetching activities for category ${categoryName}:`, error)
-      return []
-    }
-  }, [])
+  useEffect(() => {
+    const fetchAllCategoriesWithActivities = async () => {
+      try {
+        setLoading(true)
+        
+        // Fetch categories first
+        const fetchedCategories = await categoryService.getAllCategories()
+        setCategories(fetchedCategories)
 
-  const fetchAllCategoriesWithActivities = useCallback(async () => {
-    try {
-      setLoading(true)
-      
-      // Fetch categories first
-      const fetchedCategories = await categoryService.getAllCategories()
-      setCategories(fetchedCategories)
+        // Fetch activities for each category
+        const categoryActivities: Record<string, ActivityForHomepage[]> = {}
+        
+        // Add featured activities
+        const featured = await supabaseActivityService.getFeaturedActivities(8)
+        categoryActivities["Featured"] = supabaseActivityService.convertToHomepageFormat(featured)
 
-      // Fetch activities for each category
-      const categoryActivities: Record<string, ActivityForHomepage[]> = {}
-      
-      // Add featured activities
-      const featured = await supabaseActivityService.getFeaturedActivities(8)
-      categoryActivities["Featured"] = supabaseActivityService.convertToHomepageFormat(featured)
+        // Add recommended activities
+        const recommended = await supabaseActivityService.getRecommendedActivities(8)
+        categoryActivities["Recommended"] = supabaseActivityService.convertToHomepageFormat(recommended)
 
-      // Add recommended activities
-      const recommended = await supabaseActivityService.getRecommendedActivities(8)
-      categoryActivities["Recommended"] = supabaseActivityService.convertToHomepageFormat(recommended)
-
-      // Fetch activities for each category
-      for (const category of fetchedCategories) {
-        if (category.name) {
-          const activities = await fetchActivitiesForCategory(category.name)
-          if (activities.length > 0) {
-            categoryActivities[category.name] = activities
+        // Fetch activities for each category
+        for (const category of fetchedCategories) {
+          if (category.name) {
+            const activities = await supabaseActivityService.getActivitiesByCategory(category.name, 8)
+            const homepageActivities = supabaseActivityService.convertToHomepageFormat(activities)
+            if (homepageActivities.length > 0) {
+              categoryActivities[category.name] = homepageActivities
+            }
           }
         }
+
+        setActivitiesByCategory(categoryActivities)
+      } catch (error) {
+        console.error("Error fetching categories and activities:", error)
+      } finally {
+        setLoading(false)
       }
-
-      setActivitiesByCategory(categoryActivities)
-    } catch (error) {
-      console.error("Error fetching categories and activities:", error)
-    } finally {
-      setLoading(false)
     }
-  }, [fetchActivitiesForCategory])
 
-  useEffect(() => {
     fetchAllCategoriesWithActivities()
-  }, [fetchAllCategoriesWithActivities])
+  }, []) // Empty dependency array to prevent infinite loop
 
-  const handleSelectCategory = useCallback((categoryName: string | null) => {
+  const handleSelectCategory = (categoryName: string | null) => {
     setSelectedCategory(categoryName)
-  }, [])
+  }
 
   const renderActivityRows = () => {
     if (loading) {

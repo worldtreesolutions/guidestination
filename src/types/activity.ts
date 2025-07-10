@@ -55,7 +55,7 @@ export interface ActivityForHomepage {
   provider_id: string;
 }
 
-export interface Booking {
+export interface SupabaseBooking {
   id: string;
   created_at: string;
   activity_id: string;
