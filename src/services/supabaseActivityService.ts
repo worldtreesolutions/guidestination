@@ -498,7 +498,9 @@ export const supabaseActivityService = {
         const isActive = instance.is_active !== false; // Default to true if undefined
         const isAvailable = !instance.status || instance.status === 'available' || instance.status === 'active';
         const hasValidDate = instance.scheduled_date;
-        const isFutureDate = new Date(instance.scheduled_date) >= new Date().setHours(0, 0, 0, 0);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const isFutureDate = new Date(instance.scheduled_date) >= today;
         
         console.log(`Instance ${instance.id}: active=${isActive}, available=${isAvailable}, hasDate=${hasValidDate}, isFuture=${isFutureDate}, status=${instance.status}, date=${instance.scheduled_date}`);
         
