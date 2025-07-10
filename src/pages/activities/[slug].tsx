@@ -51,13 +51,19 @@ export default function ActivityPage() {
     
     try {
       setLoading(true)
-      const activityData = await supabaseActivityService.getActivityById(parseInt(slug))
+      // Parse the slug as an ID since we're passing numeric IDs
+      const activityId = parseInt(slug)
+      if (isNaN(activityId)) {
+        throw new Error("Invalid activity ID")
+      }
+      
+      const activityData = await supabaseActivityService.getActivityById(activityId)
       setActivity(activityData)
     } catch (error) {
       console.error("Error fetching activity:", error)
       toast({
         title: "Error",
-        description: "Failed to load activity details. Please try again.",
+        description: "Failed to get activity details. Please try again.",
         variant: "destructive",
       })
     } finally {

@@ -31,6 +31,7 @@ export function ActivityCard({ activity }: ActivityCardProps) {
 
   const handleClick = () => {
     if (id) {
+      // Use the ID directly since the route expects [slug] which can be an ID
       router.push(`/activities/${id}`)
     }
   }
