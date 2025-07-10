@@ -370,6 +370,68 @@ export default function ActivityPage() {
                       </CardContent>
                     </Card>
 
+                    {/* Activity Requirements */}
+                    {(activity.min_age || activity.max_age || activity.physical_effort_level || activity.technical_skill_level) && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Activity Requirements</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          {(activity.min_age || activity.max_age) && (
+                            <div className="flex items-center gap-2">
+                              <Users className="h-4 w-4 text-primary" />
+                              <span className="font-medium">Age Requirements:</span>
+                              <span>
+                                {activity.min_age && activity.max_age 
+                                  ? `${activity.min_age} - ${activity.max_age} years`
+                                  : activity.min_age 
+                                    ? `Minimum ${activity.min_age} years`
+                                    : `Maximum ${activity.max_age} years`
+                                }
+                              </span>
+                            </div>
+                          )}
+                          {activity.physical_effort_level && (
+                            <div className="flex items-center gap-2">
+                              <CheckCircle className="h-4 w-4 text-primary" />
+                              <span className="font-medium">Physical Effort:</span>
+                              <Badge variant="outline" className="capitalize">
+                                {activity.physical_effort_level}
+                              </Badge>
+                            </div>
+                          )}
+                          {activity.technical_skill_level && (
+                            <div className="flex items-center gap-2">
+                              <Star className="h-4 w-4 text-primary" />
+                              <span className="font-medium">Skill Level:</span>
+                              <Badge variant="outline" className="capitalize">
+                                {activity.technical_skill_level}
+                              </Badge>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* Activity Features */}
+                    {activity.selectedOptions && activity.selectedOptions.length > 0 && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Activity Features</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                            {activity.selectedOptions.map((option, index) => (
+                              <div key={index} className="flex items-center gap-2 p-2 bg-muted rounded-lg">
+                                <span className="text-lg">{option.icon}</span>
+                                <span className="text-sm font-medium">{option.label}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+
                     {activity.includes_pickup && (
                       <Card>
                         <CardHeader>
