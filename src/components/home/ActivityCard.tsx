@@ -1,4 +1,3 @@
-
 import { Card, CardContent } from "@/components/ui/card"
 import Image from "next/image"
 import { Star, MapPin } from "lucide-react"
@@ -10,7 +9,7 @@ interface ActivityCardProps {
 
 export function ActivityCard({ activity }: ActivityCardProps) {
   if (!activity) {
-    return null; // Or a skeleton loader
+    return null
   }
 
   const {
@@ -22,10 +21,10 @@ export function ActivityCard({ activity }: ActivityCardProps) {
   } = activity
 
   // Provide fallback values to prevent undefined errors
-  const safePrice = price ?? 0
-  const safeRating = rating ?? 0
+  const safePrice = typeof price === 'number' ? price : 0
+  const safeRating = typeof rating === 'number' ? rating : 0
   const safeLocation = location || "Location not specified"
-  const safeImageUrl = image_url || "/placeholder-image.jpg"
+  const safeImageUrl = image_url || "https://images.unsplash.com/photo-1563492065-1a83e8c6b8d8"
 
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">

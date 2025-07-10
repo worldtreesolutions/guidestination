@@ -313,14 +313,18 @@ export const supabaseActivityService = {
       imageUrls.unshift(data.image_url)
     }
 
+    // Ensure numeric values are properly converted
+    const rating = data.average_rating ? parseFloat(data.average_rating) : 0
+    const price = data.base_price_thb ? parseFloat(data.base_price_thb) : 0
+
     return {
-      id: data.id,
+      id: String(data.id),
       title: data.title || data.name || data.activity_name || "",
       name: data.name || data.title || data.activity_name || "",
       description: data.description || "",
       category: data.category || "",
       category_name: data.category || "",
-      price: data.base_price_thb || data.final_price || data.b_price || 0,
+      price: price,
       max_participants: data.max_participants || 10,
       duration: data.duration,
       location: data.address || data.meeting_point_formatted_address || "",
@@ -333,7 +337,7 @@ export const supabaseActivityService = {
       included: this.parseJsonField(data.included),
       not_included: this.parseJsonField(data.not_included),
       languages: this.parseJsonField(data.languages) || ["English"],
-      rating: data.average_rating || 0,
+      rating: rating,
       review_count: data.review_count || 0,
       image_urls: imageUrls,
       video_url: data.video_url || "",
@@ -360,16 +364,16 @@ export const supabaseActivityService = {
 
   convertToHomepageFormat(activities: SupabaseActivity[]): ActivityForHomepage[] {
     return activities.map(activity => ({
-      id: activity.id,
+      id: String(activity.id),
       title: activity.title,
       name: activity.name,
       description: activity.description,
       category: activity.category,
       category_name: activity.category_name,
-      price: activity.price,
-      rating: activity.rating,
+      price: typeof activity.price === 'number' ? activity.price : 0,
+      rating: typeof activity.rating === 'number' ? activity.rating : 0,
       review_count: activity.review_count,
-      image_url: activity.image_urls?.[0] || "",
+      image_url: activity.image_urls?.[0] || "https://images.unsplash.com/photo-1563492065-1a83e8c6b8d8",
       image_urls: activity.image_urls,
       location: activity.location,
       duration: activity.duration,
