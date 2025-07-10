@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client"
 import { SupabaseActivity } from "@/types/activity"
 
@@ -105,7 +104,7 @@ export const supabaseActivityService = {
         .select('*')
         .eq('activity_id', id)
         .eq('is_active', true)
-        .eq('status', 'active')
+        .in('status', ['active', 'available'])
         .gte('scheduled_date', new Date().toISOString().split('T')[0])
         .order('scheduled_date', { ascending: true })
 

@@ -39,17 +39,17 @@ export function AvailabilityCalendar({
 
   // Convert string dates to Date objects, ensuring proper parsing
   const availableDateObjects = availableDates.map(dateStr => {
-    // Handle YYYY-MM-DD format by splitting and creating a UTC date
+    // Handle YYYY-MM-DD format by splitting and creating a local date
     if (typeof dateStr === 'string' && dateStr.includes('-')) {
       const [year, month, day] = dateStr.split('-').map(Number);
-      // Create date in UTC to avoid timezone issues
-      return new Date(Date.UTC(year, month - 1, day));
+      // Create date in local timezone
+      return new Date(year, month - 1, day);
     }
     // Fallback for other formats, though YYYY-MM-DD is expected
     return new Date(dateStr);
   });
 
-  console.log("Converted available date objects (UTC):", availableDateObjects);
+  console.log("Converted available date objects (local):", availableDateObjects);
   console.log("Available dates as strings:", availableDateObjects.map(d => d.toDateString()));
 
   // Check if a date is available by comparing year, month, and day
@@ -70,7 +70,7 @@ export function AvailabilityCalendar({
   // Disable dates that are not available or in the past
   const disabledDates = (date: Date) => {
     const today = new Date()
-    today.setUTCHours(0, 0, 0, 0) // Compare in UTC
+    today.setHours(0, 0, 0, 0) // Use local time instead of UTC
     
     const isPast = date < today;
     const isNotAvailable = !isDateAvailable(date);
