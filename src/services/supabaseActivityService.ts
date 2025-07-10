@@ -89,8 +89,21 @@ export const supabaseActivityService = {
             recurrence_pattern,
             recurrence_interval
           ),
+          activity_schedule_instances(
+            id,
+            scheduled_date,
+            start_time,
+            end_time,
+            capacity,
+            booked_count,
+            available_spots,
+            price,
+            is_active,
+            status
+          ),
           activity_selected_options(
             id,
+            option_id,
             activity_options(
               id,
               label,
@@ -315,6 +328,37 @@ export const supabaseActivityService = {
     // Ensure numeric values are properly converted
     const rating = data.average_rating ? parseFloat(data.average_rating) : 0
     const price = data.base_price_thb ? parseFloat(data.base_price_thb) : 0
+    const duration = data.duration ? (typeof data.duration === 'string' ? parseInt(data.duration) : data.duration) : null
+
+    // Process schedule instances for calendar
+    const scheduleInstances = data.activity_schedule_instances || []
+    const availableDates = scheduleInstances
+      .filter((instance: any) => instance.is_active && instance.status === 'active')
+      .map((instance: any) => ({
+        date: instance.scheduled_date,
+        startTime: instance.start_time,
+        endTime: instance.end_time,
+        capacity: instance.capacity,
+        booked: instance.booked_count || 0,
+        available: instance.available_spots || (instance.capacity - (instance.booked_count || 0)),
+        price: instance.price || price
+      }))
+
+    // Process activity schedules as fallback
+    const activitySchedules = data.activity_schedules || []
+    const fallbackDates = activitySchedules
+      .filter((schedule: any) => schedule.is_active)
+      .map((schedule: any) => ({
+        date: schedule.availability_start_date,
+        startTime: schedule.start_time,
+        endTime: schedule.end_time,
+        capacity: schedule.capacity,
+        booked: schedule.booked_count || 0,
+        available: schedule.capacity - (schedule.booked_count || 0)
+      }))
+
+    // Combine both sources, prioritizing schedule instances
+    const allAvailableDates = [...availableDates, ...fallbackDates]
 
     return {
       id: String(data.id),
@@ -325,7 +369,7 @@ export const supabaseActivityService = {
       category_name: data.category || "",
       price: price,
       max_participants: data.max_participants || 10,
-      duration: data.duration,
+      duration: duration,
       min_age: data.min_age || null,
       max_age: data.max_age || null,
       physical_effort_level: data.physical_effort_level || null,
@@ -349,21 +393,14 @@ export const supabaseActivityService = {
       created_at: data.created_at || "",
       updated_at: data.updated_at || "",
       schedules: {
-        availableDates: data.activity_schedules?.map((schedule: any) => ({
-          date: schedule.availability_start_date,
-          startTime: schedule.start_time,
-          endTime: schedule.end_time,
-          capacity: schedule.capacity,
-          booked: schedule.booked_count || 0,
-          available: schedule.capacity - (schedule.booked_count || 0)
-        })) || []
+        availableDates: allAvailableDates
       },
-      selectedOptions: data.activity_selected_options?.map((option: any) => ({
-        id: option.id,
-        label: option.activity_options.label,
-        icon: option.activity_options.icon,
-        type: option.activity_options.type,
-        category: option.activity_options.category
+      selectedOptions: data.activity_selected_options?.map((selectedOption: any) => ({
+        id: selectedOption.id,
+        label: selectedOption.activity_options?.label || "",
+        icon: selectedOption.activity_options?.icon || "",
+        type: selectedOption.activity_options?.type || "",
+        category: selectedOption.activity_options?.category || ""
       })) || []
     }
   },
