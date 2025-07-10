@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client"
 import { SupabaseActivity, ActivityForHomepage, Booking, Earning } from "@/types/activity"
 
@@ -306,7 +305,7 @@ export const supabaseActivityService = {
     return Promise.resolve({ total: 0, monthly: [], pending: 0 })
   },
 
-  transformActivity( any): SupabaseActivity {
+  transformActivity(data: any): SupabaseActivity {
     const imageUrls = data.activity_media
       ?.filter((media: any) => media.media_type === "image")
       ?.map((media: any) => media.media_url) || []
@@ -356,7 +355,7 @@ export const supabaseActivityService = {
     }
   },
 
-  transformActivities( any[]): SupabaseActivity[] {
+  transformActivities(data: any[]): SupabaseActivity[] {
     return data.map(item => this.transformActivity(item))
   },
 
@@ -389,6 +388,39 @@ export const supabaseActivityService = {
       }
     }
     return field
+  },
+
+  async getActivities(filters: any = {}): Promise<SupabaseActivity[]> {
+    try {
+      let query = supabase
+        .from("activities")
+        .select(`
+          *,
+          activity_media(media_url, media_type, thumbnail_url)
+        `)
+        .eq("is_active", true)
+        .order("created_at", { ascending: false })
+
+      if (filters.category) {
+        query = query.eq("category", filters.category)
+      }
+
+      if (filters.limit) {
+        query = query.limit(filters.limit)
+      }
+
+      const { data, error } = await query
+
+      if (error) {
+        console.error("Error fetching activities:", error)
+        throw error
+      }
+
+      return this.transformActivities(data || [])
+    } catch (error) {
+      console.error("Error fetching activities:", error)
+      throw error
+    }
   }
 }
 
