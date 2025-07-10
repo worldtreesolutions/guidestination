@@ -422,6 +422,28 @@ export const supabaseActivityService = {
       })
       .filter((opt): opt is NonNullable<typeof opt> => opt !== null && opt.id);
 
+    // Parse languages field to ensure it's always an array
+    let languages: string[] = ['English'];
+    if (data.languages) {
+      if (Array.isArray(data.languages)) {
+        languages = data.languages;
+      } else if (typeof data.languages === 'string') {
+        try {
+          // Try to parse as JSON first
+          const parsed = JSON.parse(data.languages);
+          languages = Array.isArray(parsed) ? parsed : [data.languages];
+        } catch {
+          // If JSON parsing fails, treat as comma-separated string
+          languages = data.languages.split(',').map((lang: string) => lang.trim()).filter(Boolean);
+        }
+      }
+    }
+
+    // Parse other JSON fields
+    const highlights = this.parseJsonField(data.highlights) || [];
+    const included = this.parseJsonField(data.included) || [];
+    const not_included = this.parseJsonField(data.not_included) || [];
+
     const transformed: SupabaseActivity = {
       id: data.id,
       title: data.title || data.name || '',
@@ -451,12 +473,12 @@ export const supabaseActivityService = {
         .map((media: any) => media.media_url),
       video_url: (data.activity_media || [])
         .find((media: any) => media.media_type === 'video')?.media_url || null,
-      languages: data.languages || ['English'],
+      languages: languages,
       rating: data.rating ?? data.average_rating ?? null,
       review_count: data.review_count || 0,
-      highlights: data.highlights || [],
-      included: data.included || [],
-      not_included: data.not_included || [],
+      highlights: highlights,
+      included: included,
+      not_included: not_included,
       selectedOptions: selectedOptions,
       schedules: {
         availableDates: availableDates,
