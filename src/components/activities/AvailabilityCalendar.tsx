@@ -54,14 +54,15 @@ export function AvailabilityCalendar({
   const availableDateObjects = validAvailableDates.map(dateStr => {
     console.log("Processing date string:", dateStr);
     try {
-      // Handle YYYY-MM-DD format by splitting and creating a UTC date
+      // Handle YYYY-MM-DD format by creating a local date
       // This prevents timezone-related off-by-one-day errors
       const parts = dateStr.split('-').map(Number);
       if (parts.length !== 3 || parts.some(isNaN)) {
         console.warn("Invalid date format:", dateStr);
         return null;
       }
-      const dateObj = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
+      // Create date in local timezone to match calendar component expectations
+      const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
       console.log("Converted to date object:", dateObj);
       return dateObj;
     } catch (error) {
@@ -70,16 +71,16 @@ export function AvailabilityCalendar({
     }
   }).filter(date => date !== null) as Date[];
 
-  console.log("Converted available date objects (UTC):", availableDateObjects);
-  console.log("Available dates as strings:", availableDateObjects.map(d => d.toUTCString()));
+  console.log("Converted available date objects:", availableDateObjects);
+  console.log("Available dates as strings:", availableDateObjects.map(d => d.toDateString()));
   console.log("Available dates as ISO strings:", availableDateObjects.map(d => d.toISOString().split('T')[0]));
 
-  // Check if a date is available by comparing year, month, and day in UTC
+  // Check if a date is available by comparing year, month, and day
   const isDateAvailable = (date: Date) => {
     const result = availableDateObjects.some(availableDate => 
-      availableDate.getUTCFullYear() === date.getUTCFullYear() &&
-      availableDate.getUTCMonth() === date.getUTCMonth() &&
-      availableDate.getUTCDate() === date.getUTCDate()
+      availableDate.getFullYear() === date.getFullYear() &&
+      availableDate.getMonth() === date.getMonth() &&
+      availableDate.getDate() === date.getDate()
     );
     console.log(`Checking if date ${date.toDateString()} is available:`, result);
     return result;
@@ -88,10 +89,10 @@ export function AvailabilityCalendar({
   // Disable dates that are not available or in the past
   const disabledDates = (date: Date) => {
     const today = new Date();
-    // Compare dates at midnight UTC to avoid timezone issues
-    const todayUTC = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
+    // Compare dates at midnight to avoid timezone issues
+    const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     
-    const isPast = date < todayUTC;
+    const isPast = date < todayMidnight;
     const isNotAvailable = !isDateAvailable(date);
     
     console.log(`Date ${date.toDateString()}: isPast=${isPast}, isNotAvailable=${isNotAvailable}`);
@@ -120,9 +121,9 @@ export function AvailabilityCalendar({
     if (!selectedDate) return null
     
     // Format selectedDate to YYYY-MM-DD to match scheduleData date format
-    const year = selectedDate.getUTCFullYear();
-    const month = (selectedDate.getUTCMonth() + 1).toString().padStart(2, '0');
-    const day = selectedDate.getUTCDate().toString().padStart(2, '0');
+    const year = selectedDate.getFullYear();
+    const month = (selectedDate.getMonth() + 1).toString().padStart(2, '0');
+    const day = selectedDate.getDate().toString().padStart(2, '0');
     const dateStr = `${year}-${month}-${day}`;
     
     return scheduleData.find(schedule => schedule.date === dateStr)
