@@ -72,6 +72,8 @@ export const supabaseActivityService = {
 
   async getActivityById(id: number): Promise<SupabaseActivity> {
     try {
+      console.log("Fetching activity with ID:", id)
+      
       const { data, error } = await supabase
         .from("activities")
         .select(`
@@ -115,19 +117,23 @@ export const supabaseActivityService = {
           )
         `)
         .eq("id", id)
-        .eq("is_active", true)
         .single()
 
       if (error) {
-        console.error("Error fetching activity by ID:", error)
-        throw error
+        console.error("Database error fetching activity by ID:", error)
+        throw new Error(`Database error: ${error.message}`)
       }
 
       if (!data) {
+        console.error("No activity found with ID:", id)
         throw new Error("Activity not found")
       }
 
-      return this.transformActivity(data)
+      console.log("Raw activity data:", data)
+      const transformedActivity = this.transformActivity(data)
+      console.log("Transformed activity:", transformedActivity)
+      
+      return transformedActivity
     } catch (error) {
       console.error("Error fetching activity by ID:", error)
       throw error
