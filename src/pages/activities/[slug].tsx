@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/router"
 import Head from "next/head"
 import Image from "next/image"
@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
+import { useAuth } from "@/contexts/AuthContext"
+import { useToast } from "@/hooks/use-toast"
 import { 
   Heart, 
   Share2, 
@@ -20,10 +22,7 @@ import {
   CheckCircle, 
   XCircle,
   Calendar,
-  Play,
-  Camera,
-  ChevronLeft,
-  ChevronRight
+  MessageCircle
 } from "lucide-react"
 import { ActivityGallery } from "@/components/activities/ActivityGallery"
 import { AvailabilityCalendar } from "@/components/activities/AvailabilityCalendar"
@@ -31,34 +30,140 @@ import { BookingForm } from "@/components/activities/BookingForm"
 import { ActivityReviews } from "@/components/activities/ActivityReviews"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { supabaseActivityService } from "@/services/supabaseActivityService"
+import customerService from "@/services/customerService"
 import { SupabaseActivity } from "@/types/activity"
 
 export default function ActivityPage() {
   const router = useRouter()
   const { slug } = router.query
+  const { user, isAuthenticated } = useAuth()
+  const { toast } = useToast()
   const [activity, setActivity] = useState<SupabaseActivity | null>(null)
   const [loading, setLoading] = useState(true)
   const [selectedDate, setSelectedDate] = useState<Date>()
   const [selectedParticipants, setSelectedParticipants] = useState(1)
+  const [isInWishlist, setIsInWishlist] = useState(false)
+  const [wishlistLoading, setWishlistLoading] = useState(false)
   const isMobile = useIsMobile()
 
+  const fetchActivity = useCallback(async () => {
+    if (!slug || typeof slug !== "string") return
+    
+    try {
+      setLoading(true)
+      const activityData = await supabaseActivityService.getActivityById(slug)
+      setActivity(activityData)
+    } catch (error) {
+      console.error("Error fetching activity:", error)
+      toast({
+        title: "Error",
+        description: "Failed to load activity details. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
+    }
+  }, [slug, toast])
+
   useEffect(() => {
-    const fetchActivity = async () => {
-      if (!slug || typeof slug !== "string") return
-      
-      try {
-        setLoading(true)
-        const activityData = await supabaseActivityService.getActivityById(slug)
-        setActivity(activityData)
-      } catch (error) {
-        console.error("Error fetching activity:", error)
-      } finally {
-        setLoading(false)
-      }
+    fetchActivity()
+  }, [fetchActivity])
+
+  const checkWishlistStatus = useCallback(async () => {
+    if (!user || !activity) return
+    try {
+      const wishlist = await customerService.getWishlist(user.id)
+      setIsInWishlist(wishlist.some(item => item.activity_id === activity.id))
+    } catch (error) {
+      console.error("Error checking wishlist status:", error)
+    }
+  }, [user, activity])
+
+  useEffect(() => {
+    if (user && activity) {
+      checkWishlistStatus()
+    }
+  }, [user, activity, checkWishlistStatus])
+
+  const handleWishlistToggle = async () => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to add activities to your wishlist.",
+        variant: "destructive",
+      })
+      router.push("/auth/login")
+      return
     }
 
-    fetchActivity()
-  }, [slug])
+    if (!user || !activity) return
+
+    setWishlistLoading(true)
+    try {
+      if (isInWishlist) {
+        await customerService.removeFromWishlist(user.id, activity.id)
+        setIsInWishlist(false)
+        toast({
+          title: "Removed from wishlist",
+          description: "Activity removed from your wishlist.",
+        })
+      } else {
+        await customerService.addToWishlist(user.id, activity.id)
+        setIsInWishlist(true)
+        toast({
+          title: "Added to wishlist",
+          description: "Activity added to your wishlist.",
+        })
+      }
+    } catch (error) {
+      console.error("Error updating wishlist:", error)
+      toast({
+        title: "Error",
+        description: "Failed to update wishlist. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setWishlistLoading(false)
+    }
+  }
+
+  const handleChatWithOwner = () => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to chat with activity owners.",
+        variant: "destructive",
+      })
+      router.push("/auth/login")
+      return
+    }
+    // TODO: Implement chat functionality
+    toast({
+      title: "Coming Soon",
+      description: "Chat functionality will be available soon.",
+    })
+  }
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: activity?.title,
+          text: activity?.description,
+          url: window.location.href,
+        })
+      } catch (error) {
+        console.error("Error sharing:", error)
+      }
+    } else {
+      // Fallback: copy to clipboard
+      navigator.clipboard.writeText(window.location.href)
+      toast({
+        title: "Link copied",
+        description: "Activity link copied to clipboard.",
+      })
+    }
+  }
 
   if (loading) {
     return (
@@ -101,7 +206,7 @@ export default function ActivityPage() {
   }
 
   const formatDuration = (duration: number | null) => {
-    if (duration === null) return "";
+    if (duration === null) return ""
     const durationMap: { [key: number]: string } = {
       2: "2 hours",
       4: "Half day (4-5 hours)",
@@ -171,10 +276,26 @@ export default function ActivityPage() {
                   <span className="text-muted-foreground">per person</span>
                 </div>
                 <div className="flex gap-2">
-                  <Button size="icon" variant="outline">
-                    <Heart className="h-4 w-4" />
+                  <Button 
+                    size="icon" 
+                    variant="outline"
+                    onClick={handleWishlistToggle}
+                    disabled={wishlistLoading}
+                  >
+                    <Heart className={`h-4 w-4 ${isInWishlist ? "fill-red-500 text-red-500" : ""}`} />
                   </Button>
-                  <Button size="icon" variant="outline">
+                  <Button 
+                    size="icon" 
+                    variant="outline"
+                    onClick={handleChatWithOwner}
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    size="icon" 
+                    variant="outline"
+                    onClick={handleShare}
+                  >
                     <Share2 className="h-4 w-4" />
                   </Button>
                 </div>
@@ -187,7 +308,7 @@ export default function ActivityPage() {
                 {/* Image Gallery */}
                 <ActivityGallery 
                   images={activity.image_urls || []}
-                  videos={[]} // Add video support later
+                  videos={[]}
                   title={activity.title}
                 />
 
@@ -212,21 +333,23 @@ export default function ActivityPage() {
                       </CardContent>
                     </Card>
 
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Highlights</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <ul className="space-y-2">
-                          {(activity.highlights || []).map((highlight, index) => (
-                            <li key={index} className="flex items-start gap-2">
-                              <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                              <span>{highlight}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </CardContent>
-                    </Card>
+                    {activity.highlights && Array.isArray(activity.highlights) && activity.highlights.length > 0 && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Highlights</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <ul className="space-y-2">
+                            {activity.highlights.map((highlight, index) => (
+                              <li key={index} className="flex items-start gap-2">
+                                <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                                <span>{highlight}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </CardContent>
+                      </Card>
+                    )}
                   </TabsContent>
 
                   <TabsContent value="itinerary" className="space-y-6">
@@ -279,41 +402,60 @@ export default function ActivityPage() {
                         </CardContent>
                       </Card>
                     )}
+
+                    {activity.languages && Array.isArray(activity.languages) && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Languages</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="flex gap-2 flex-wrap">
+                            {activity.languages.map((language: string, index: number) => (
+                              <Badge key={index} variant="outline">{language}</Badge>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
                   </TabsContent>
 
                   <TabsContent value="included" className="space-y-6">
                     <div className="grid md:grid-cols-2 gap-6">
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-green-600">What's Included</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <ul className="space-y-2">
-                            {(activity.included || []).map((item, index) => (
-                              <li key={index} className="flex items-start gap-2">
-                                <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                                <span className="text-sm">{item}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </CardContent>
-                      </Card>
+                      {activity.included && Array.isArray(activity.included) && activity.included.length > 0 && (
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-green-600">What's Included</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <ul className="space-y-2">
+                              {activity.included.map((item, index) => (
+                                <li key={index} className="flex items-start gap-2">
+                                  <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                                  <span className="text-sm">{item}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </CardContent>
+                        </Card>
+                      )}
 
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-red-600">What's Not Included</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <ul className="space-y-2">
-                            {(activity.not_included || []).map((item, index) => (
-                              <li key={index} className="flex items-start gap-2">
-                                <XCircle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
-                                <span className="text-sm">{item}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </CardContent>
-                      </Card>
+                      {activity.not_included && Array.isArray(activity.not_included) && activity.not_included.length > 0 && (
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-red-600">What's Not Included</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <ul className="space-y-2">
+                              {activity.not_included.map((item, index) => (
+                                <li key={index} className="flex items-start gap-2">
+                                  <XCircle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
+                                  <span className="text-sm">{item}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </CardContent>
+                        </Card>
+                      )}
                     </div>
                   </TabsContent>
 
