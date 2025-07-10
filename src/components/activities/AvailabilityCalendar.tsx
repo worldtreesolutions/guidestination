@@ -43,19 +43,36 @@ export function AvailabilityCalendar({
   console.log("Type of availableDates:", typeof availableDates);
   console.log("Is availableDates an array?", Array.isArray(availableDates));
 
+  // Ensure availableDates is an array and filter out any invalid entries
+  const validAvailableDates = Array.isArray(availableDates) 
+    ? availableDates.filter(date => date && typeof date === 'string' && date.length > 0)
+    : [];
+
+  console.log("Valid available dates after filtering:", validAvailableDates);
+
   // Convert string dates to Date objects, ensuring proper parsing
-  const availableDateObjects = availableDates.map(dateStr => {
+  const availableDateObjects = validAvailableDates.map(dateStr => {
     console.log("Processing date string:", dateStr);
-    // Handle YYYY-MM-DD format by splitting and creating a UTC date
-    // This prevents timezone-related off-by-one-day errors
-    const parts = dateStr.split('-').map(Number);
-    const dateObj = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
-    console.log("Converted to date object:", dateObj);
-    return dateObj;
-  });
+    try {
+      // Handle YYYY-MM-DD format by splitting and creating a UTC date
+      // This prevents timezone-related off-by-one-day errors
+      const parts = dateStr.split('-').map(Number);
+      if (parts.length !== 3 || parts.some(isNaN)) {
+        console.warn("Invalid date format:", dateStr);
+        return null;
+      }
+      const dateObj = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
+      console.log("Converted to date object:", dateObj);
+      return dateObj;
+    } catch (error) {
+      console.error("Error parsing date:", dateStr, error);
+      return null;
+    }
+  }).filter(date => date !== null) as Date[];
 
   console.log("Converted available date objects (UTC):", availableDateObjects);
   console.log("Available dates as strings:", availableDateObjects.map(d => d.toUTCString()));
+  console.log("Available dates as ISO strings:", availableDateObjects.map(d => d.toISOString().split('T')[0]));
 
   // Check if a date is available by comparing year, month, and day in UTC
   const isDateAvailable = (date: Date) => {
