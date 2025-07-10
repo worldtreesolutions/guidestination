@@ -463,9 +463,9 @@ export const supabaseActivityService = {
       : []
 
     // Categorize options based on type
-    const highlightOptions = selectedOptions.filter(option => option.type === 'highlight')
-    const includedOptions = selectedOptions.filter(option => option.type === 'included')
-    const notIncludedOptions = selectedOptions.filter(option => option.type === 'not_included')
+    const highlightOptions = selectedOptions.filter((option: any) => option.type === 'highlight')
+    const includedOptions = selectedOptions.filter((option: any) => option.type === 'included')
+    const notIncludedOptions = selectedOptions.filter((option: any) => option.type === 'not_included')
 
     // Merge with existing data
     const existingHighlights = this.parseJsonField(data.highlights) || []
@@ -475,17 +475,17 @@ export const supabaseActivityService = {
     // Combine options with existing data
     const combinedHighlights = [
       ...existingHighlights,
-      ...highlightOptions.map(option => `${option.icon} ${option.label}`)
+      ...highlightOptions.map((option: any) => `${option.icon} ${option.label}`)
     ]
     
     const combinedIncluded = [
       ...existingIncluded,
-      ...includedOptions.map(option => `${option.icon} ${option.label}`)
+      ...includedOptions.map((option: any) => `${option.icon} ${option.label}`)
     ]
     
     const combinedNotIncluded = [
       ...existingNotIncluded,
-      ...notIncludedOptions.map(option => `${option.icon} ${option.label}`)
+      ...notIncludedOptions.map((option: any) => `${option.icon} ${option.label}`)
     ]
 
     return {
