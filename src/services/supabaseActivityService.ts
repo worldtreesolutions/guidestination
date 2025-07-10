@@ -300,10 +300,10 @@ export const supabaseActivityService = {
     return Promise.resolve([])
   },
 
-  async fetchEarningsForOwner(ownerId: string): Promise<Earning[]> {
+  async fetchEarningsForOwner(ownerId: string): Promise<any> {
     // This is a placeholder implementation.
     console.log("Fetching earnings for owner:", ownerId)
-    return Promise.resolve([])
+    return Promise.resolve({ total: 0, monthly: [], pending: 0 })
   },
 
   transformActivity( any): SupabaseActivity {
