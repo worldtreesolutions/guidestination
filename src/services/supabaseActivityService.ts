@@ -311,7 +311,7 @@ export const supabaseActivityService = {
   },
 
   async fetchBookingsForOwner(ownerId: string): Promise<Booking[]> {
-    const {  activitiesData, error: activitiesError } = await supabase
+    const { data: activitiesData, error: activitiesError } = await supabase
       .from('activities')
       .select('id')
       .eq('provider_id', ownerId);
@@ -394,7 +394,7 @@ export const supabaseActivityService = {
     return { total, pending, monthly };
   },
 
-  transformActivity( any): SupabaseActivity {
+  transformActivity(data: any): SupabaseActivity {
     const scheduleInstances: any[] = data.activity_schedule_instances || [];
     const availableDates: SupabaseActivity['schedules']['availableDates'] = scheduleInstances
       .filter((instance: any) => instance.is_active && instance.status === 'available')
