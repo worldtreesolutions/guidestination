@@ -8,6 +8,10 @@ export interface SupabaseActivity {
   price: number | null;
   max_participants: number | null;
   duration: number | null;
+  min_age: number | null;
+  max_age: number | null;
+  physical_effort_level: string | null;
+  technical_skill_level: string | null;
   location: string | null;
   meeting_point: string | null;
   includes_pickup: boolean;
@@ -36,6 +40,13 @@ export interface SupabaseActivity {
       available: number;
     }[];
   };
+  selectedOptions?: {
+    id: number;
+    label: string;
+    icon: string;
+    type: string;
+    category: string;
+  }[];
 }
 
 export interface ActivityForHomepage {
