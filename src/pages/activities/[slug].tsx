@@ -58,6 +58,10 @@ export default function ActivityPage() {
       }
       
       const activityData = await supabaseActivityService.getActivityById(activityId)
+      console.log("Fetched activity data:", activityData)
+      console.log("Activity schedules:", activityData?.schedules)
+      console.log("Available dates:", activityData?.schedules?.availableDates)
+      console.log("Selected options:", activityData?.selectedOptions)
       setActivity(activityData)
     } catch (error) {
       console.error("Error fetching activity:", error)
@@ -238,6 +242,11 @@ export default function ActivityPage() {
     ...(activity.not_included || []),
     ...(activity.selectedOptions?.filter(opt => opt.type === 'not_included' || opt.type === 'exclude' || opt.type === 'not included').map(opt => opt.icon ? `${opt.icon} ${opt.label}` : opt.label) || [])
   ];
+
+  console.log("All highlights:", allHighlights)
+  console.log("All included:", allIncluded)
+  console.log("All not included:", allNotIncluded)
+  console.log("Calendar available dates:", activity?.schedules?.availableDates)
 
   return (
     <>
