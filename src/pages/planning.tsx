@@ -13,6 +13,19 @@ export default function PlanningPage() {
   const { selectedActivities, scheduledActivities } = usePlanning()
   const [activities, setActivities] = useState<SupabaseActivity[]>([])
   const [loading, setLoading] = useState(true)
+  const [allActivities, setAllActivities] = useState<SupabaseActivity[]>([])
+
+  useEffect(() => {
+    const fetchInitialActivities = async () => {
+      try {
+        const activities = await supabaseActivityService.getAllActivities();
+        setAllActivities(activities);
+      } catch (error) {
+        console.error("Error fetching activities:", error);
+      }
+    }
+    fetchInitialActivities()
+  }, [])
 
   useEffect(() => {
     const fetchActivities = async () => {

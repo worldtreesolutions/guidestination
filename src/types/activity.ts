@@ -1,80 +1,72 @@
+
 export interface SupabaseActivity {
-  id: number;
+  id: string;
   title: string;
   name: string;
   description: string | null;
-  price: number | null;
-  location: string | null;
-  image_urls: string[] | null;
-  category_id: number;
-  owner_id: string;
-  created_at: string;
-  updated_at: string;
-  duration: number | null;
-  max_participants: number | null;
-  min_participants: number | null;
-  is_active: boolean | null;
-  languages: string[] | null;
-  inclusions: string[] | null;
-  exclusions: string[] | null;
-  additional_info: string | null;
-  booking_type: string | null;
+  category: string;
   category_name: string;
-  review_count: number | null;
-  rating: number | null;
+  price: number | null;
+  max_participants: number | null;
+  duration: number | null;
+  location: string | null;
+  meeting_point: string | null;
+  includes_pickup: boolean;
+  pickup_locations: string | null;
+  includes_meal: boolean;
+  meal_description: string | null;
+  highlights: string[] | null;
   included: string[] | null;
   not_included: string[] | null;
-  highlights: string[] | null;
-  meeting_point: string | null;
-  includes_pickup: boolean | null;
-  pickup_locations: string | null;
-  includes_meal: boolean | null;
-  meal_description: string | null;
-  schedule: {
-    availableDates?: string[];
-    availableDays?: string[];
-    startTime?: string;
-    endTime?: string;
-    operatingHours?: { day: string; time: string }[];
-  } | null;
-  schedules?: {
-    availableDates?: string[];
-  };
-  activity_owners?: {
-    business_name: string;
-    contact_email: string;
-    contact_phone: string;
-  };
-}
-
-export interface SupabaseBooking {
-  id: string;
-  activity_id: number;
-  user_id: string;
-  booking_date: string;
-  participants: number;
-  total_price: number;
-  status: "pending" | "confirmed" | "cancelled" | "completed";
+  languages: string[] | null;
+  rating: number | null;
+  review_count: number | null;
+  image_urls: string[] | null;
+  video_url: string | null;
+  provider_id: string;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
-  activityTitle: string;
-  customerName: string;
-  customerEmail: string;
-  date: string;
-  bookingTime: string;
-  providerAmount: number;
-  platformFee: number;
-  totalAmount: number;
+  schedules: {
+    availableDates: {
+      date: string;
+      startTime: string;
+      endTime: string;
+      capacity: number;
+      booked: number;
+      available: number;
+    }[];
+  };
 }
 
 export interface ActivityForHomepage {
-  id: number;
+  id: string;
   title: string;
-  image_url: string | null;
-  price: number;
-  location: string | null;
+  name: string;
+  description: string | null;
+  category: string;
+  category_name: string;
+  price: number | null;
   rating: number | null;
   review_count: number | null;
-  category_name: string | null;
+  image_url: string;
+  image_urls: string[] | null;
+  location: string | null;
+  duration: number | null;
+  provider_id: string;
 }
-  
+
+export interface Booking {
+  id: string;
+  created_at: string;
+  activity_id: string;
+  user_id: string;
+  status: string;
+  total_price: number;
+  activities: SupabaseActivity;
+}
+
+export interface Earning {
+  total: number;
+  month: string;
+}

@@ -1,30 +1,33 @@
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Users, Calendar, MapPin, Languages, Check, X } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from 'react';
-import { getActivityById } from '@/services/supabaseActivityService';
-import { SupabaseActivity } from '@/types/activity';
+import { supabaseActivityService } from "@/services/supabaseActivityService";
+import { SupabaseActivity } from "@/types/activity";
 
 interface ActivityPreviewProps {
-  activityId: number | null;
-  isOpen: boolean;
-  onClose: () => void;
+  activityId: string;
 }
 
-export function ActivityPreview({ activityId, isOpen, onClose }: ActivityPreviewProps) {
-  const [supabaseActivity, setSupabaseActivity] = useState<SupabaseActivity | null>(null);
+export function ActivityPreview({ activityId }: ActivityPreviewProps) {
+  const [activity, setActivity] = useState<SupabaseActivity | null>(null);
 
   useEffect(() => {
-    if (activityId) {
-      getActivityById(String(activityId)).then((activity) => {
-        setSupabaseActivity(activity);
-      });
-    }
+    const fetchActivity = async () => {
+      if (activityId) {
+        try {
+          const fetchedActivity = await supabaseActivityService.getActivityById(activityId);
+          setActivity(fetchedActivity);
+        } catch (error) {
+          console.error("Error fetching activity preview:", error);
+        }
+      }
+    };
+    fetchActivity();
   }, [activityId]);
 
-  if (!supabaseActivity) return null;
+  if (!activity) return null;
 
   const formatDuration = (duration: number | null) => {
     if (duration === null) return "N/A";
@@ -43,7 +46,7 @@ export function ActivityPreview({ activityId, isOpen, onClose }: ActivityPreview
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={true} onOpenChange={() => {}}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl sm:text-2xl">Activity Preview</DialogTitle>
@@ -54,10 +57,10 @@ export function ActivityPreview({ activityId, isOpen, onClose }: ActivityPreview
 
         <div className="space-y-6 pt-4">
           <div className="relative h-64 sm:h-80 w-full rounded-lg overflow-hidden">
-            {supabaseActivity.image_urls && supabaseActivity.image_urls.length > 0 ? (
+            {activity.image_urls && activity.image_urls.length > 0 ? (
               <Image
-                src={supabaseActivity.image_urls[0]}
-                alt={supabaseActivity.title}
+                src={activity.image_urls[0]}
+                alt={activity.title}
                 fill
                 className="object-cover"
               />
@@ -68,47 +71,47 @@ export function ActivityPreview({ activityId, isOpen, onClose }: ActivityPreview
             )}
             <div className="absolute bottom-4 right-4">
               <Badge className="text-sm px-3 py-1">
-                {supabaseActivity.category_name}
+                {activity.category_name}
               </Badge>
             </div>
           </div>
 
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <h1 className="text-2xl font-bold">{supabaseActivity.title}</h1>
+            <h1 className="text-2xl font-bold">{activity.title}</h1>
             <div className="text-xl font-bold">
-              ฿{supabaseActivity.price?.toLocaleString()} <span className="text-sm text-muted-foreground">per person</span>
+              ฿{activity.price?.toLocaleString()} <span className="text-sm text-muted-foreground">per person</span>
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <div className="flex items-center gap-2">
               <Clock className="h-5 w-5 text-muted-foreground" />
-              <span>{formatDuration(supabaseActivity.duration)}</span>
+              <span>{formatDuration(activity.duration)}</span>
             </div>
             <div className="flex items-center gap-2">
               <Users className="h-5 w-5 text-muted-foreground" />
-              <span>Max {supabaseActivity.max_participants} people</span>
+              <span>Max {activity.max_participants} people</span>
             </div>
             <div className="flex items-center gap-2">
               <Calendar className="h-5 w-5 text-muted-foreground" />
-              <span>{formatDates(supabaseActivity.schedule?.availableDates)}</span>
+              <span>{formatDates(activity.schedule?.availableDates)}</span>
             </div>
             <div className="flex items-center gap-2">
               <MapPin className="h-5 w-5 text-muted-foreground" />
-              <span>{supabaseActivity.meeting_point}</span>
+              <span>{activity.meeting_point}</span>
             </div>
           </div>
 
           <div>
             <h2 className="text-xl font-semibold mb-2">Description</h2>
-            <p className="text-muted-foreground whitespace-pre-line">{supabaseActivity.description}</p>
+            <p className="text-muted-foreground whitespace-pre-line">{activity.description}</p>
           </div>
 
-          {supabaseActivity.highlights && supabaseActivity.highlights.length > 0 && (
+          {activity.highlights && activity.highlights.length > 0 && (
             <div>
               <h2 className="text-xl font-semibold mb-2">Highlights</h2>
               <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {supabaseActivity.highlights.map((highlight, index) => (
+                {activity.highlights.map((highlight, index) => (
                   <li key={index} className="flex items-start gap-2">
                     <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                     <span>{highlight}</span>
@@ -118,21 +121,21 @@ export function ActivityPreview({ activityId, isOpen, onClose }: ActivityPreview
             </div>
           )}
 
-          {supabaseActivity.languages && (
+          {activity.languages && (
             <div>
               <h2 className="text-xl font-semibold mb-2">Languages</h2>
               <div className="flex items-center gap-2">
                 <Languages className="h-5 w-5 text-muted-foreground" />
-                <span>{supabaseActivity.languages.join(", ")}</span>
+                <span>{activity.languages.join(", ")}</span>
               </div>
             </div>
           )}
 
-          {supabaseActivity.included && (
+          {activity.included && (
             <div>
               <h2 className="text-xl font-semibold mb-2">What's Included</h2>
               <ul className="space-y-2">
-                {supabaseActivity.included.map((item, index) => (
+                {activity.included.map((item, index) => (
                   <li key={index} className="flex items-start gap-2">
                     <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                     <span>{item}</span>
@@ -142,11 +145,11 @@ export function ActivityPreview({ activityId, isOpen, onClose }: ActivityPreview
             </div>
           )}
 
-          {supabaseActivity.not_included && supabaseActivity.not_included.length > 0 && (
+          {activity.not_included && activity.not_included.length > 0 && (
             <div>
               <h2 className="text-xl font-semibold mb-2">What's Not Included</h2>
               <ul className="space-y-2">
-                {supabaseActivity.not_included.map((item, index) => (
+                {activity.not_included.map((item, index) => (
                   <li key={index} className="flex items-start gap-2">
                     <X className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
                     <span>{item}</span>
@@ -157,46 +160,46 @@ export function ActivityPreview({ activityId, isOpen, onClose }: ActivityPreview
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {supabaseActivity.includes_pickup && (
+            {activity.includes_pickup && (
               <div className="border rounded-lg p-4">
                 <h3 className="font-semibold mb-2">Pickup Information</h3>
-                <p>{supabaseActivity.pickup_locations}</p>
+                <p>{activity.pickup_locations}</p>
               </div>
             )}
 
-            {supabaseActivity.includes_meal && (
+            {activity.includes_meal && (
               <div className="border rounded-lg p-4">
                 <h3 className="font-semibold mb-2">Meal Information</h3>
-                <p>{supabaseActivity.meal_description}</p>
+                <p>{activity.meal_description}</p>
               </div>
             )}
           </div>
 
-          {supabaseActivity.schedule && (
+          {activity.schedule && (
             <div>
               <h2 className="text-xl font-semibold mb-2">Schedule</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="border rounded-lg p-4">
                   <h3 className="font-semibold mb-2">Start Time</h3>
-                  <p>{supabaseActivity.schedule?.startTime || "Not specified"}</p>
+                  <p>{activity.schedule?.startTime || "Not specified"}</p>
                 </div>
                 <div className="border rounded-lg p-4">
                   <h3 className="font-semibold mb-2">End Time</h3>
-                  <p>{supabaseActivity.schedule?.endTime || "Not specified"}</p>
+                  <p>{activity.schedule?.endTime || "Not specified"}</p>
                 </div>
               </div>
             </div>
           )}
 
-          {supabaseActivity.image_urls && supabaseActivity.image_urls.length > 1 && (
+          {activity.image_urls && activity.image_urls.length > 1 && (
             <div>
               <h2 className="text-xl font-semibold mb-2">Gallery</h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                {supabaseActivity.image_urls.slice(1).map((image, index) => (
+                {activity.image_urls.slice(1).map((image, index) => (
                   <div key={index} className="relative aspect-square rounded-lg overflow-hidden">
                     <Image
                       src={image}
-                      alt={`${supabaseActivity.title} - image ${index + 2}`}
+                      alt={`${activity.title} - image ${index + 2}`}
                       fill
                       className="object-cover"
                     />

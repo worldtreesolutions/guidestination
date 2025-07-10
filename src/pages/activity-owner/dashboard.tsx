@@ -9,8 +9,8 @@ import { DashboardHeader } from "@/components/activity-owner/dashboard/Dashboard
 import { EarningsChart } from "@/components/activity-owner/dashboard/EarningsChart"
 import { RecentBookings } from "@/components/activity-owner/dashboard/RecentBookings"
 import { ActivityList } from "@/components/activity-owner/dashboard/ActivityList"
-import { fetchActivitiesByOwner, fetchRecentBookingsForOwner, fetchEarningsForOwner, deleteActivity } from "@/services/supabaseActivityService"
-import { SupabaseActivity, SupabaseBooking } from "@/types/activity"
+import { supabaseActivityService } from "@/services/supabaseActivityService"
+import { SupabaseActivity } from "@/types/activity"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast"
 import { useIsMobile } from "@/hooks/use-mobile"
@@ -35,6 +35,7 @@ export default function DashboardPage() {
   })
   const [loading, setLoading] = useState(true)
   const [activityToDelete, setActivityToDelete] = useState<number | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -42,52 +43,37 @@ export default function DashboardPage() {
       return
     }
 
-    const fetchData = async () => {
-      if (!user) return
-      
-      try {
-        const [activitiesData, bookingsData, earningsData] = await Promise.all([
-          fetchActivitiesByOwner(user.id),
-          fetchRecentBookingsForOwner(user.id),
-          fetchEarningsForOwner(user.id)
-        ])
-        
-        setActivities(activitiesData)
-        setBookings(bookingsData)
-        setEarnings(earningsData)
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error)
-        toast({
-          title: t("form.error.title") || "Error",
-          description: t("form.error.unexpected") || "Failed to load dashboard data. Please try again.",
-          variant: "destructive"
-        })
-      } finally {
-        setLoading(false)
+    const fetchDashboardData = async () => {
+      if (user) {
+        try {
+          setLoading(true);
+          const [activities, recentBookings, earnings] = await Promise.all([
+            supabaseActivityService.fetchActivitiesByOwner(user.id),
+            supabaseActivityService.fetchRecentBookingsForOwner(user.id),
+            supabaseActivityService.fetchEarningsForOwner(user.id),
+          ]);
+          setActivities(activities);
+          setBookings(recentBookings as any);
+          setEarnings(earnings as any);
+        } catch (err: any) {
+          setError(err.message);
+        } finally {
+          setLoading(false);
+        }
       }
     }
 
-    fetchData()
+    fetchDashboardData()
   }, [user, isAuthenticated, router, toast, t])
 
-  const handleDeleteActivity = async () => {
-    if (!activityToDelete) return
-    
-    try {
-      await deleteActivity(activityToDelete)
-      setActivities(activities.filter(activity => activity.id !== activityToDelete))
-      toast({
-        title: t("form.success.title") || "Activity deleted",
-        description: "The activity has been successfully deleted."
-      })
-    } catch (error) {
-      toast({
-        title: t("form.error.title") || "Error",
-        description: t("form.error.unexpected") || "Failed to delete activity. Please try again.",
-        variant: "destructive"
-      })
-    } finally {
-      setActivityToDelete(null)
+  const handleDelete = async (activityId: string) => {
+    if (window.confirm("Are you sure you want to delete this activity?")) {
+      try {
+        await supabaseActivityService.deleteActivity(activityId);
+        setActivities(activities.filter((a) => a.id !== activityId));
+      } catch (err: any) {
+        setError(err.message);
+      }
     }
   }
 

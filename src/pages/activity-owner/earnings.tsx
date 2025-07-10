@@ -3,20 +3,20 @@ import { useRouter } from "next/router";
 import Head from "next/head";
 import { useAuth } from "@/contexts/AuthContext";
 import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout";
-import { SupabaseBooking } from "@/types/activity";
+import { supabaseActivityService } from "@/services/supabaseActivityService";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Line, LineChart } from "recharts";
 import { CreditCard, TrendingUp, DollarSign, Calendar } from "lucide-react";
-import { fetchBookingsForOwner, fetchEarningsForOwner } from '@/services/supabaseActivityService';
+import { Booking, Earning } from "@/types/activity";
 
 export default function EarningsPage() {
   const { user, isAuthenticated } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-  const [bookings, setBookings] = useState<SupabaseBooking[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [earnings, setEarnings] = useState<{
     total: number;
     monthly: { month: string; amount: number }[];
@@ -27,38 +27,28 @@ export default function EarningsPage() {
     pending: 0
   });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.push("/activity-owner/login");
-      return;
-    }
-
     const fetchData = async () => {
-      if (!user) return;
-      
-      try {
-        const [bookingsData, earningsData] = await Promise.all([
-          fetchBookingsForOwner(user.id),
-          fetchEarningsForOwner(user.id)
-        ]);
-        
-        setBookings(bookingsData);
-        setEarnings(earningsData);
-      } catch (error) {
-        console.error("Error fetching earnings data:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load earnings data. Please try again.",
-          variant: "destructive"
-        });
-      } finally {
-        setLoading(false);
+      if (user?.id) {
+        setLoading(true);
+        try {
+          const [ownerBookings, ownerEarnings] = await Promise.all([
+            supabaseActivityService.fetchBookingsForOwner(user.id),
+            supabaseActivityService.fetchEarningsForOwner(user.id)
+          ]);
+          setBookings(ownerBookings);
+          setEarnings(ownerEarnings);
+        } catch (err: any) {
+          setError(err.message);
+        } finally {
+          setLoading(false);
+        }
       }
     };
-
     fetchData();
-  }, [user, isAuthenticated, router, toast]);
+  }, [user]);
 
   // Generate daily earnings data for the current month
   const generateDailyData = () => {
@@ -85,6 +75,16 @@ export default function EarningsPage() {
       <DashboardLayout>
         <div className="flex items-center justify-center h-full">
           <p>Loading earnings data...</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-full">
+          <p>{error}</p>
         </div>
       </DashboardLayout>
     );

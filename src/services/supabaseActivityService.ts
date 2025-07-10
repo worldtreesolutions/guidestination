@@ -1,6 +1,6 @@
+
 import { supabase } from "@/integrations/supabase/client"
-import { SupabaseActivity } from "@/types/activity"
-import { ActivityForHomepage } from "@/types/activity"
+import { SupabaseActivity, ActivityForHomepage, Booking, Earning } from "@/types/activity"
 
 export const supabaseActivityService = {
   async getFeaturedActivities(limit: number = 4): Promise<SupabaseActivity[]> {
@@ -12,7 +12,7 @@ export const supabaseActivityService = {
           activity_media(media_url, media_type, thumbnail_url)
         `)
         .eq("is_active", true)
-        .order("average_rating", { ascending: false, nullsLast: true })
+        .order("average_rating", { ascending: false, nullsFirst: false })
         .limit(limit)
 
       if (error) {
@@ -167,7 +167,7 @@ export const supabaseActivityService = {
     }
   },
 
-  async getActivitiesByProvider(providerId: string): Promise<SupabaseActivity[]> {
+  async fetchActivitiesByOwner(providerId: string): Promise<SupabaseActivity[]> {
     try {
       const { data, error } = await supabase
         .from("activities")
@@ -288,7 +288,25 @@ export const supabaseActivityService = {
     }
   },
 
-  transformActivity(data: any): SupabaseActivity {
+  async fetchBookingsForOwner(ownerId: string): Promise<Booking[]> {
+    // This is a placeholder implementation.
+    console.log("Fetching bookings for owner:", ownerId)
+    return Promise.resolve([])
+  },
+
+  async fetchRecentBookingsForOwner(ownerId: string): Promise<Booking[]> {
+    // This is a placeholder implementation.
+    console.log("Fetching recent bookings for owner:", ownerId)
+    return Promise.resolve([])
+  },
+
+  async fetchEarningsForOwner(ownerId: string): Promise<Earning[]> {
+    // This is a placeholder implementation.
+    console.log("Fetching earnings for owner:", ownerId)
+    return Promise.resolve([])
+  },
+
+  transformActivity( any): SupabaseActivity {
     const imageUrls = data.activity_media
       ?.filter((media: any) => media.media_type === "image")
       ?.map((media: any) => media.media_url) || []
@@ -338,7 +356,7 @@ export const supabaseActivityService = {
     }
   },
 
-  transformActivities(data: any[]): SupabaseActivity[] {
+  transformActivities( any[]): SupabaseActivity[] {
     return data.map(item => this.transformActivity(item))
   },
 
@@ -349,10 +367,11 @@ export const supabaseActivityService = {
       name: activity.name,
       description: activity.description,
       category: activity.category,
+      category_name: activity.category_name,
       price: activity.price,
       rating: activity.rating,
       review_count: activity.review_count,
-      image_url: activity.image_urls[0] || "",
+      image_url: activity.image_urls?.[0] || "",
       image_urls: activity.image_urls,
       location: activity.location,
       duration: activity.duration,

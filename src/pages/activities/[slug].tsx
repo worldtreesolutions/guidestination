@@ -221,6 +221,11 @@ export default function ActivityPage() {
         <title>{activity.title} - Guidestination</title>
         <meta name="description" content={activity.description || ""} />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+        <meta property="og:image" content={activity.image_urls?.[0] || "/placeholder.jpg"} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={activity.title} />
+        <meta name="twitter:description" content={activity.description || ""} />
+        <meta name="twitter:image" content={activity.image_urls?.[0] || "/placeholder.jpg"} />
       </Head>
 
       <div className="min-h-screen flex flex-col">

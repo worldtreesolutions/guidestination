@@ -11,17 +11,18 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 import { Search } from "lucide-react"
-import { fetchBookingsForOwner } from "@/services/supabaseActivityService";
-import { SupabaseBooking } from "@/types/activity";
+import { supabaseActivityService } from "@/services/supabaseActivityService";
+import { Booking } from "@/types/activity";
 
 export default function BookingsPage() {
   const { user, isAuthenticated } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-  const [bookings, setBookings] = useState<SupabaseBooking[]>([]);
-  const [filteredBookings, setFilteredBookings] = useState<SupabaseBooking[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -30,21 +31,16 @@ export default function BookingsPage() {
     }
 
     const fetchBookings = async () => {
-      if (!user) return;
-      
-      try {
-        const data = await fetchBookingsForOwner(user.id);
-        setBookings(data);
-        setFilteredBookings(data);
-      } catch (error) {
-        console.error("Error fetching bookings:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load bookings. Please try again.",
-          variant: "destructive"
-        });
-      } finally {
-        setLoading(false);
+      if (user?.id) {
+        try {
+          setLoading(true);
+          const ownerBookings = await supabaseActivityService.fetchBookingsForOwner(user.id);
+          setBookings(ownerBookings);
+        } catch (error: any) {
+          setError(error.message);
+        } finally {
+          setLoading(false);
+        }
       }
     };
 
@@ -93,6 +89,17 @@ export default function BookingsPage() {
       <DashboardLayout>
         <div className="flex items-center justify-center h-full">
           <p>Loading bookings...</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      // Use DashboardLayout instead of ProviderLayout
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-full">
+          <p>{error}</p>
         </div>
       </DashboardLayout>
     );
@@ -179,7 +186,7 @@ export default function BookingsPage() {
 }
 
 interface BookingTableProps {
-  bookings: SupabaseBooking[];
+  bookings: Booking[];
   getStatusColor: (status: string) => string;
 }
 
