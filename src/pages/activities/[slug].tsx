@@ -620,15 +620,7 @@ export default function ActivityPage() {
 
                       <AvailabilityCalendar
                         availableDates={activity.schedules?.availableDates?.map((d: any) => d.date) || []}
-                        scheduleData={activity.schedules?.availableDates?.map((d: any) => ({
-                          date: d.date,
-                          startTime: d.startTime,
-                          endTime: d.endTime,
-                          capacity: d.capacity,
-                          booked: d.booked,
-                          available: d.available,
-                          price: d.price
-                        })) || []}
+                        scheduleData={activity.schedules?.availableDates || []}
                         selectedDate={selectedDate}
                         onDateSelect={setSelectedDate}
                       />

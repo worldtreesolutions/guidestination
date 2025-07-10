@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client"
 import { SupabaseActivity, Earning } from "@/types/activity"
 
@@ -68,9 +67,9 @@ export const supabaseActivityService = {
 
   async getActivityById(id: number): Promise<SupabaseActivity | null> {
     try {
-      console.log("Fetching activity with ID:", id)
+      console.log(`[Service] Fetching activity with ID: ${id}`);
       
-      const { data: activity, error: activityError } = await supabase
+      const {  activity, error: activityError } = await supabase
         .from("activities")
         .select(`
           *,
@@ -78,50 +77,50 @@ export const supabaseActivityService = {
         `)
         .eq("id", id)
         .eq("is_active", true)
-        .single()
+        .single();
 
       if (activityError) {
-        console.error("Error fetching activity:", activityError.message)
-        throw activityError
+        console.error("[Service] Error fetching activity:", activityError.message);
+        throw activityError;
       }
 
       if (!activity) {
-        return null
+        console.warn(`[Service] Activity with ID ${id} not found.`);
+        return null;
       }
 
-      console.log("Activity fetched:", activity)
+      console.log("[Service] Raw activity data fetched:", activity);
 
-      // Fetch schedule data separately
-      const { data: scheduleData, error: scheduleError } = await supabase
+      // Fetch schedule data
+      const {  scheduleData, error: scheduleError } = await supabase
         .from("activity_schedule")
         .select("*")
         .eq("activity_id", id)
-        .eq("is_active", true)
+        .eq("is_active", true);
 
       if (scheduleError) {
-        console.warn("Error fetching schedule data:", scheduleError.message)
+        console.error("[Service] Error fetching schedule ", scheduleError.message);
       }
+      console.log("[Service] Raw schedule ", scheduleData);
 
-      // Fetch selected options separately
-      const { data: optionsData, error: optionsError } = await supabase
-        .from("activity_options")
+      // Fetch selected options
+      const {  optionsData, error: optionsError } = await supabase
+        .from('activity_selected_options')
         .select(`
-          id,
-          label,
-          type,
-          icon,
-          category,
-          activity_selected_options!inner (
-            is_selected,
-            activity_id
+          is_selected,
+          activity_options (
+            id,
+            label,
+            type
           )
         `)
-        .eq("activity_selected_options.activity_id", id)
-        .eq("activity_selected_options.is_selected", true)
+        .eq('activity_id', id)
+        .eq('is_selected', true);
 
       if (optionsError) {
-        console.warn("Error fetching options data:", optionsError.message)
+        console.error("[Service] Error fetching options ", optionsError.message);
       }
+      console.log("[Service] Raw options ", optionsData);
 
       const formattedSchedules = scheduleData
         ?.filter((schedule: any) => schedule.is_active)
@@ -133,18 +132,18 @@ export const supabaseActivityService = {
           booked: schedule.booked_count || 0,
           available: (schedule.capacity || 10) - (schedule.booked_count || 0),
           price: parseFloat(schedule.price || activity.price || 0)
-        })) || []
+        })) || [];
 
-      console.log("Formatted schedules:", formattedSchedules)
+      console.log("[Service] Formatted schedules (availableDates):", formattedSchedules);
 
-      const formattedOptions = optionsData?.map((option: any) => ({
-        id: option.id.toString(),
-        option_name: option.label,
-        option_type: option.type,
-        is_selected: true
-      })) || []
+      const formattedOptions = optionsData?.map((selectedOption: any) => ({
+        id: selectedOption.activity_options.id.toString(),
+        option_name: selectedOption.activity_options.label,
+        option_type: selectedOption.activity_options.type,
+        is_selected: selectedOption.is_selected
+      })) || [];
 
-      console.log("Formatted options:", formattedOptions)
+      console.log("[Service] Formatted options:", formattedOptions);
 
       const result: SupabaseActivity = {
         ...activity,
@@ -160,15 +159,15 @@ export const supabaseActivityService = {
           availableDates: formattedSchedules
         },
         activity_selected_options: formattedOptions
-      }
+      };
 
-      console.log("Final result:", result)
-      console.log("Available dates in result:", result.schedules.availableDates)
+      console.log("[Service] Final activity object to be returned:", result);
+      console.log("[Service] Final available dates in result:", result.schedules.availableDates.map(d => d.date));
 
-      return result
+      return result;
     } catch (error) {
-      console.error("Error in getActivityById:", error)
-      throw error
+      console.error("[Service] Critical error in getActivityById:", error);
+      throw error;
     }
   },
 
