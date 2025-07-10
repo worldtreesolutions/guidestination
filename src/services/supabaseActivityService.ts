@@ -405,7 +405,7 @@ export const supabaseActivityService = {
     const price = data.base_price_thb ? Number(data.base_price_thb) : 0
     const duration = data.duration ? Number(data.duration) : null
 
-    // Process schedule data safely
+    // Process schedule data safely - prioritize schedule instances first
     const scheduleInstances = Array.isArray(data.activity_schedule_instances) ? data.activity_schedule_instances : []
     const availableDates = scheduleInstances
       .filter((instance: any) => instance?.is_active && instance?.status === 'active')
@@ -419,47 +419,68 @@ export const supabaseActivityService = {
         price: instance.price || price
       }))
 
-    // Process activity schedules as fallback and generate dates
+    // Process activity schedules and generate dates for the next 60 days
     const activitySchedules = Array.isArray(data.activity_schedules) ? data.activity_schedules : []
     const fallbackDates: any[] = []
     
-    activitySchedules
-      .filter((schedule: any) => schedule?.is_active)
-      .forEach((schedule: any) => {
-        // Generate dates for the next 30 days based on schedule
-        const startDate = new Date(schedule.availability_start_date || new Date())
-        const endDate = new Date(schedule.availability_end_date || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))
-        
-        for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-          const dayOfWeek = d.getDay()
-          const daysOfWeek = schedule.days_of_week || [0, 1, 2, 3, 4, 5, 6] // Default to all days
+    if (availableDates.length === 0 && activitySchedules.length > 0) {
+      activitySchedules
+        .filter((schedule: any) => schedule?.is_active)
+        .forEach((schedule: any) => {
+          // Generate dates for the next 60 days based on schedule
+          const startDate = new Date(schedule.availability_start_date || new Date())
+          const endDate = new Date(schedule.availability_end_date || new Date(Date.now() + 60 * 24 * 60 * 60 * 1000))
           
-          if (daysOfWeek.includes(dayOfWeek)) {
-            fallbackDates.push({
-              date: d.toISOString().split('T')[0],
-              startTime: schedule.start_time,
-              endTime: schedule.end_time,
-              capacity: schedule.capacity || 10,
-              booked: schedule.booked_count || 0,
-              available: (schedule.capacity || 10) - (schedule.booked_count || 0),
-              price: price
-            })
+          for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+            const dayOfWeek = d.getDay()
+            const daysOfWeek = Array.isArray(schedule.days_of_week) ? schedule.days_of_week : [0, 1, 2, 3, 4, 5, 6]
+            
+            if (daysOfWeek.includes(dayOfWeek)) {
+              fallbackDates.push({
+                date: d.toISOString().split('T')[0],
+                startTime: schedule.start_time || "09:00",
+                endTime: schedule.end_time || "17:00",
+                capacity: schedule.capacity || 10,
+                booked: schedule.booked_count || 0,
+                available: (schedule.capacity || 10) - (schedule.booked_count || 0),
+                price: price
+              })
+            }
           }
-        }
-      })
+        })
+    }
+
+    // If no schedules exist, create some default availability for the next 30 days
+    if (availableDates.length === 0 && fallbackDates.length === 0) {
+      for (let i = 1; i <= 30; i++) {
+        const date = new Date()
+        date.setDate(date.getDate() + i)
+        fallbackDates.push({
+          date: date.toISOString().split('T')[0],
+          startTime: "09:00",
+          endTime: "17:00",
+          capacity: 10,
+          booked: 0,
+          available: 10,
+          price: price
+        })
+      }
+    }
 
     // Combine schedule data
     const allAvailableDates = [...availableDates, ...fallbackDates]
 
     // Process selected options safely and categorize them
     const selectedOptions = Array.isArray(data.activity_selected_options) 
-      ? data.activity_selected_options.map((selectedOption: any) => ({
-          id: selectedOption.id,
-          label: selectedOption.activity_options?.label || "",
-          icon: selectedOption.activity_options?.icon || "",
-          type: selectedOption.activity_options?.type || "",
-          category: selectedOption.activity_options?.category || ""
-        }))
+      ? data.activity_selected_options
+          .filter((selectedOption: any) => selectedOption?.activity_options)
+          .map((selectedOption: any) => ({
+            id: selectedOption.id,
+            label: selectedOption.activity_options.label || "",
+            icon: selectedOption.activity_options.icon || "",
+            type: selectedOption.activity_options.type || "",
+            category: selectedOption.activity_options.category || ""
+          }))
       : []
 
     // Categorize options based on type
@@ -467,26 +488,26 @@ export const supabaseActivityService = {
     const includedOptions = selectedOptions.filter((option: any) => option.type === 'included')
     const notIncludedOptions = selectedOptions.filter((option: any) => option.type === 'not_included')
 
-    // Merge with existing data
+    // Parse existing data from JSON fields
     const existingHighlights = this.parseJsonField(data.highlights) || []
     const existingIncluded = this.parseJsonField(data.included) || []
     const existingNotIncluded = this.parseJsonField(data.not_included) || []
 
-    // Combine options with existing data
+    // Combine options with existing data - prioritize selected options
     const combinedHighlights = [
-      ...existingHighlights,
-      ...highlightOptions.map((option: any) => `${option.icon} ${option.label}`)
-    ]
+      ...highlightOptions.map((option: any) => option.icon ? `${option.icon} ${option.label}` : option.label),
+      ...existingHighlights
+    ].filter(Boolean)
     
     const combinedIncluded = [
-      ...existingIncluded,
-      ...includedOptions.map((option: any) => `${option.icon} ${option.label}`)
-    ]
+      ...includedOptions.map((option: any) => option.icon ? `${option.icon} ${option.label}` : option.label),
+      ...existingIncluded
+    ].filter(Boolean)
     
     const combinedNotIncluded = [
-      ...existingNotIncluded,
-      ...notIncludedOptions.map((option: any) => `${option.icon} ${option.label}`)
-    ]
+      ...notIncludedOptions.map((option: any) => option.icon ? `${option.icon} ${option.label}` : option.label),
+      ...existingNotIncluded
+    ].filter(Boolean)
 
     return {
       id: data.id,
@@ -502,7 +523,7 @@ export const supabaseActivityService = {
       max_age: data.max_age || null,
       physical_effort_level: data.physical_effort_level || null,
       technical_skill_level: data.technical_skill_level || null,
-      location: data.address || data.meeting_point_formatted_address || "",
+      location: data.address || data.meeting_point_formatted_address || data.location || "",
       meeting_point: data.meeting_point || "",
       includes_pickup: Boolean(data.includes_pickup),
       pickup_locations: data.pickup_locations || data.pickup_location || "",

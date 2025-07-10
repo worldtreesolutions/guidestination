@@ -415,7 +415,7 @@ export default function ActivityPage() {
                       </Card>
                     )}
 
-                    {/* Activity Features */}
+                    {/* Activity Features from Selected Options */}
                     {activity.selectedOptions && activity.selectedOptions.length > 0 && (
                       <Card>
                         <CardHeader>
@@ -429,6 +429,31 @@ export default function ActivityPage() {
                                 <span className="text-sm font-medium">{option.label}</span>
                               </div>
                             ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* Schedule Information */}
+                    {activity.schedules?.availableDates && activity.schedules.availableDates.length > 0 && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Schedule & Availability</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="border rounded-lg p-4">
+                              <h4 className="font-semibold mb-2">Available Times</h4>
+                              <p className="text-sm text-muted-foreground">
+                                {activity.schedules.availableDates[0]?.startTime} - {activity.schedules.availableDates[0]?.endTime}
+                              </p>
+                            </div>
+                            <div className="border rounded-lg p-4">
+                              <h4 className="font-semibold mb-2">Capacity</h4>
+                              <p className="text-sm text-muted-foreground">
+                                Up to {activity.schedules.availableDates[0]?.capacity || activity.max_participants} participants
+                              </p>
+                            </div>
                           </div>
                         </CardContent>
                       </Card>
