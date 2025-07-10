@@ -37,22 +37,26 @@ export function AvailabilityCalendar({
     scheduleDataLength: scheduleData.length
   });
 
-  // Convert string dates to Date objects, ensuring UTC parsing
+  // Convert string dates to Date objects, ensuring proper parsing
   const availableDateObjects = availableDates.map(dateStr => {
-    const [year, month, day] = dateStr.split('-').map(Number);
-    return new Date(Date.UTC(year, month - 1, day));
+    // Handle both YYYY-MM-DD and other date formats
+    if (typeof dateStr === 'string' && dateStr.includes('-')) {
+      const [year, month, day] = dateStr.split('-').map(Number);
+      // Create date in local timezone to match calendar component
+      return new Date(year, month - 1, day);
+    }
+    return new Date(dateStr);
   });
 
   console.log("Converted available date objects:", availableDateObjects);
+  console.log("Available dates as strings:", availableDateObjects.map(d => d.toDateString()));
 
   // Check if a date is available by comparing year, month, and day
   const isDateAvailable = (date: Date) => {
-    // The date from the calendar is in local time. We compare its components
-    // with the UTC components of our available dates.
     const isAvailable = availableDateObjects.some(availableDate => 
-      availableDate.getUTCFullYear() === date.getFullYear() &&
-      availableDate.getUTCMonth() === date.getMonth() &&
-      availableDate.getUTCDate() === date.getDate()
+      availableDate.getFullYear() === date.getFullYear() &&
+      availableDate.getMonth() === date.getMonth() &&
+      availableDate.getDate() === date.getDate()
     );
     
     if (isAvailable) {
@@ -67,8 +71,31 @@ export function AvailabilityCalendar({
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     
-    return date < today || !isDateAvailable(date)
+    const isPast = date < today;
+    const isNotAvailable = !isDateAvailable(date);
+    
+    if (isPast) {
+      console.log(`Date ${date.toDateString()} is in the past`);
+    }
+    if (isNotAvailable) {
+      console.log(`Date ${date.toDateString()} is not available`);
+    }
+    
+    return isPast || isNotAvailable;
   }
+
+  // Custom modifiers for the calendar to highlight available dates
+  const modifiers = {
+    available: availableDateObjects,
+  };
+
+  const modifiersStyles = {
+    available: {
+      backgroundColor: 'hsl(var(--primary))',
+      color: 'hsl(var(--primary-foreground))',
+      fontWeight: 'bold'
+    }
+  };
 
   // Get schedule info for selected date
   const getSelectedDateSchedule = () => {
@@ -123,6 +150,8 @@ export function AvailabilityCalendar({
         selected={selectedDate}
         onSelect={onDateSelect}
         disabled={disabledDates}
+        modifiers={modifiers}
+        modifiersStyles={modifiersStyles}
         className="rounded-md border"
         month={currentMonth}
         onMonthChange={setCurrentMonth}

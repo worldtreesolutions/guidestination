@@ -2,7 +2,51 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 
-export const ActivityDetails = () => {
+interface ActivityOption {
+  id: string
+  option_name: string
+  option_type: 'highlight' | 'included' | 'not_included' | 'not_allowed'
+  is_selected: boolean
+}
+
+interface Activity {
+  id: string
+  title: string
+  description: string
+  activity_selected_options?: ActivityOption[]
+}
+
+interface ActivityDetailsProps {
+  activity: Activity
+}
+
+export const ActivityDetails = ({ activity }: ActivityDetailsProps) => {
+  // Filter options by type and only show selected ones
+  const highlights = activity.activity_selected_options?.filter(
+    option => option.option_type === 'highlight' && option.is_selected
+  ) || []
+
+  const included = activity.activity_selected_options?.filter(
+    option => option.option_type === 'included' && option.is_selected
+  ) || []
+
+  const notIncluded = activity.activity_selected_options?.filter(
+    option => option.option_type === 'not_included' && option.is_selected
+  ) || []
+
+  const notAllowed = activity.activity_selected_options?.filter(
+    option => option.option_type === 'not_allowed' && option.is_selected
+  ) || []
+
+  console.log("ActivityDetails received:", {
+    activity: activity.title,
+    totalOptions: activity.activity_selected_options?.length || 0,
+    highlights: highlights.length,
+    included: included.length,
+    notIncluded: notIncluded.length,
+    notAllowed: notAllowed.length
+  })
+
   return (
     <div className="space-y-8">
       <Card>
@@ -11,54 +55,73 @@ export const ActivityDetails = () => {
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground">
-            Go on this full-day tour of Doi Inthanon from Chiang Mai and reach Thailand's highest peak. See 
-            the Twin Pagodas and Wachirathan Waterfall, and meet the Karen Hill Tribe.
+            {activity.description || "No description available for this activity."}
           </p>
 
-          <Separator className="my-6" />
+          {highlights.length > 0 && (
+            <>
+              <Separator className="my-6" />
+              <div className="space-y-4">
+                <h4 className="font-semibold">Highlights</h4>
+                <ul className="list-disc list-inside space-y-2 text-muted-foreground">
+                  {highlights.map((highlight) => (
+                    <li key={highlight.id}>{highlight.option_name}</li>
+                  ))}
+                </ul>
+              </div>
+            </>
+          )}
 
-          <div className="space-y-4">
-            <h4 className="font-semibold">Highlights</h4>
-            <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-              <li>Visit Doi Inthanon National Park, up a fun tour from Chiang Mai</li>
-              <li>Learn about the Karen hill tribes by visiting a local village</li>
-              <li>Walk through mountain paths, see waterfalls and Thailand's highest peak</li>
-              <li>Explore responsibly with a GOTC-certified tour</li>
-            </ul>
-          </div>
-
-          <Separator className="my-6" />
-
-          <div className="space-y-4">
-            <h4 className="font-semibold">Includes</h4>
-            <ul className="space-y-2 text-muted-foreground">
-              <li>✓ Hotel pickup and drop-off (if option selected)</li>
-              <li>✓ Doi Inthanon National Park entrance fee (if option selected)</li>
-              <li>✓ Transportation by air-conditioned vehicle</li>
-              <li>✓ Tour guide</li>
-              <li>✓ 500ml bottle of drinking water</li>
-              <li>✗ Food and extra drinks</li>
-            </ul>
-          </div>
+          {(included.length > 0 || notIncluded.length > 0) && (
+            <>
+              <Separator className="my-6" />
+              <div className="space-y-4">
+                <h4 className="font-semibold">What's included</h4>
+                <ul className="space-y-2 text-muted-foreground">
+                  {included.map((item) => (
+                    <li key={item.id}>✓ {item.option_name}</li>
+                  ))}
+                  {notIncluded.map((item) => (
+                    <li key={item.id}>✗ {item.option_name}</li>
+                  ))}
+                </ul>
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Important information</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <h4 className="font-semibold">Not allowed</h4>
-            <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-              <li>Pets</li>
-              <li>Alcohol and drugs</li>
-              <li>Electric wheelchairs</li>
-              <li>Firework</li>
-            </ul>
-          </div>
-        </CardContent>
-      </Card>
+      {notAllowed.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Important information</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <h4 className="font-semibold">Not allowed</h4>
+              <ul className="list-disc list-inside space-y-2 text-muted-foreground">
+                {notAllowed.map((item) => (
+                  <li key={item.id}>{item.option_name}</li>
+                ))}
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Fallback content if no options are available */}
+      {(!activity.activity_selected_options || activity.activity_selected_options.length === 0) && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Important information</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground">
+              Activity details are being updated. Please check back later for more information.
+            </p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }
