@@ -1,5 +1,6 @@
+
 import { supabase } from "@/integrations/supabase/client"
-import { SupabaseActivity, ActivityForHomepage, Booking, Earning } from "@/types/activity"
+import { SupabaseActivity, ActivityForHomepage, SupabaseBooking, Earning } from "@/types/activity"
 
 export const supabaseActivityService = {
   async getFeaturedActivities(limit: number = 4): Promise<SupabaseActivity[]> {
@@ -193,22 +194,22 @@ export const supabaseActivityService = {
       const { data, error } = await supabase
         .from("activities")
         .insert([{
-          title: activityData.title,
-          description: activityData.description,
-          category: activityData.category,
-          base_price_thb: activityData.price,
-          max_participants: activityData.max_participants,
-          duration: activityData.duration,
-          meeting_point: activityData.meeting_point,
+          title: activityData.title || "",
+          description: activityData.description || null,
+          category: activityData.category || "",
+          base_price_thb: activityData.price || 0,
+          max_participants: activityData.max_participants || 0,
+          duration: activityData.duration || 0,
+          meeting_point: activityData.meeting_point || null,
           includes_pickup: activityData.includes_pickup || false,
-          pickup_locations: activityData.pickup_locations,
+          pickup_locations: activityData.pickup_locations || null,
           includes_meal: activityData.includes_meal || false,
-          meal_description: activityData.meal_description,
+          meal_description: activityData.meal_description || null,
           highlights: activityData.highlights ? JSON.stringify(activityData.highlights) : null,
           included: activityData.included ? JSON.stringify(activityData.included) : null,
           not_included: activityData.not_included ? JSON.stringify(activityData.not_included) : null,
           languages: activityData.languages ? JSON.stringify(activityData.languages) : null,
-          provider_id: activityData.provider_id,
+          provider_id: activityData.provider_id || "",
           is_active: true
         }])
         .select()
@@ -286,13 +287,13 @@ export const supabaseActivityService = {
     }
   },
 
-  async fetchBookingsForOwner(ownerId: string): Promise<Booking[]> {
+  async fetchBookingsForOwner(ownerId: string): Promise<SupabaseBooking[]> {
     // This is a placeholder implementation.
     console.log("Fetching bookings for owner:", ownerId)
     return Promise.resolve([])
   },
 
-  async fetchRecentBookingsForOwner(ownerId: string): Promise<Booking[]> {
+  async fetchRecentBookingsForOwner(ownerId: string): Promise<SupabaseBooking[]> {
     // This is a placeholder implementation.
     console.log("Fetching recent bookings for owner:", ownerId)
     return Promise.resolve([])
@@ -304,7 +305,7 @@ export const supabaseActivityService = {
     return Promise.resolve({ total: 0, monthly: [], pending: 0 })
   },
 
-  transformActivity(data: any): SupabaseActivity {
+  transformActivity( any): SupabaseActivity {
     const imageUrls = data.activity_media
       ?.filter((media: any) => media.media_type === "image")
       ?.map((media: any) => media.media_url) || []
@@ -354,7 +355,7 @@ export const supabaseActivityService = {
     }
   },
 
-  transformActivities(data: any[]): SupabaseActivity[] {
+  transformActivities( any[]): SupabaseActivity[] {
     return data.map(item => this.transformActivity(item))
   },
 
@@ -422,5 +423,3 @@ export const supabaseActivityService = {
     }
   }
 }
-
-export default supabaseActivityService

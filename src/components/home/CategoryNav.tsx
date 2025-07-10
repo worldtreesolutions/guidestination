@@ -1,28 +1,16 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import categoryService, { type Category } from "@/services/categoryService";
+import { type Category } from "@/services/categoryService";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CategoryNavProps {
+  categories: Category[];
   selectedCategory: string | null;
   onSelectCategory: (categoryName: string | null) => void;
 }
 
-export function CategoryNav({ selectedCategory, onSelectCategory }: CategoryNavProps) {
-  const [categories, setCategories] = useState<Category[]>([]);
+export function CategoryNav({ categories, selectedCategory, onSelectCategory }: CategoryNavProps) {
   const { t } = useLanguage();
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const fetchedCategories = await categoryService.getAllCategories();
-        setCategories(fetchedCategories);
-      } catch (error) {
-        console.error("Failed to fetch categories", error);
-      }
-    };
-    fetchCategories();
-  }, []);
 
   return (
     <div className="flex flex-col items-center justify-center w-full overflow-x-auto">

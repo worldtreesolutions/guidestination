@@ -121,6 +121,7 @@ export default function HomePage() {
         <section className="bg-gray-50 py-8">
           <div className="container mx-auto px-4">
             <CategoryNav 
+              categories={categories}
               selectedCategory={selectedCategory} 
               onSelectCategory={handleSelectCategory} 
             />
