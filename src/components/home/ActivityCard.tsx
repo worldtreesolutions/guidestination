@@ -2,17 +2,21 @@ import { Card, CardContent } from "@/components/ui/card"
 import Image from "next/image"
 import { Star, MapPin } from "lucide-react"
 import { ActivityForHomepage } from "@/types/activity"
+import { useRouter } from "next/router"
 
 interface ActivityCardProps {
   activity?: ActivityForHomepage
 }
 
 export function ActivityCard({ activity }: ActivityCardProps) {
+  const router = useRouter()
+
   if (!activity) {
     return null
   }
 
   const {
+    id,
     title,
     image_url,
     price,
@@ -26,8 +30,14 @@ export function ActivityCard({ activity }: ActivityCardProps) {
   const safeLocation = location || "Location not specified"
   const safeImageUrl = image_url || "https://images.unsplash.com/photo-1563492065-1a83e8c6b8d8"
 
+  const handleClick = () => {
+    if (id) {
+      router.push(`/activities/${id}`)
+    }
+  }
+
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
+    <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer" onClick={handleClick}>
       <div className="relative aspect-video">
         <Image
           src={safeImageUrl}
