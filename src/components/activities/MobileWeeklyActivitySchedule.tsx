@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useMemo } from "react"
 import { useDroppable, useDraggable } from "@dnd-kit/core"
 import { CSS } from "@dnd-kit/utilities"
@@ -48,7 +47,7 @@ const RemoveButton = ({
 const ActivityCard = ({ activity, onRemove }: { activity: ScheduledActivity; onRemove: (id: string) => void }) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: activity.id,
-     activity
+     { activity }
   })
 
   const style = transform ? {
