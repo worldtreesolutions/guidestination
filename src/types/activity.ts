@@ -1,72 +1,64 @@
-import { Database } from "@/integrations/supabase/types"
-
-// Ensure Activity type aligns with Database["public"]["Tables"]["activities"]["Row"]
-export type Activity = Database["public"]["Tables"]["activities"]["Row"] & {
-  // These are additional client-side properties or aliases
-  price?: number; // Alias for b_price or final_price for card components
-  video_url?: string | null;
-  video_duration?: number | null;
-  video_size?: number | null;
-  video_thumbnail_url?: string | null;
-  // meeting_point is already in Database["public"]["Tables"]["activities"]["Row"]
-  // languages is already in Database["public"]["Tables"]["activities"]["Row"]
-  // highlights is already in Database["public"]["Tables"]["activities"]["Row"]
-  // included is already in Database["public"]["Tables"]["activities"]["Row"]
-  // not_included is already in Database["public"]["Tables"]["activities"]["Row"]
-  // latitude and longitude might be location_lat, location_lng from DB
-  // id is already in Database["public"]["Tables"]["activities"]["Row"] as number (PK)
-  // final_price is already in Database["public"]["Tables"]["activities"]["Row"] as final_price (number | null)
-}
-
-export type ActivityStatus = "draft" | "published" | "archived" // This can be used for string representations if needed
-
-export interface ActivitySchedule {
-  id?: number;
-  activity_id: number | null;
-  start_time: string;
-  end_time: string;
-  capacity: number;
-  created_at?: string;
-  created_by?: string | null;
-  updated_by?: string | null;
-  availability_start_date: string | null;
-  availability_end_date: string | null;
+export interface SupabaseActivity {
+  id: number;
+  title: string;
+  name: string;
+  description: string | null;
+  price: number | null;
+  location: string | null;
+  image_url: string[] | null;
+  image_urls: string[] | null;
+  category_id: number;
+  owner_id: string;
+  created_at: string;
+  updated_at: string;
+  duration: number | null;
+  max_participants: number | null;
+  min_participants: number | null;
   is_active: boolean | null;
-  status: string | null;
+  languages: string[] | null;
+  inclusions: string[] | null;
+  exclusions: string[] | null;
+  additional_info: string | null;
+  booking_type: string | null;
+  category_name: string;
+  review_count: number | null;
+  rating: number | null;
+  included: string[] | null;
+  not_included: string[] | null;
+  highlights: string[] | null;
+  meeting_point: string | null;
+  includes_pickup: boolean | null;
+  pickup_locations: string | null;
+  includes_meal: boolean | null;
+  meal_description: string | null;
+  schedule: {
+    availableDates?: string[];
+    availableDays?: string[];
+    startTime?: string;
+    endTime?: string;
+    operatingHours?: { day: string; time: string }[];
+  } | null;
+  schedules?: {
+    availableDates?: string[];
+  };
 }
 
-export interface ActivityFilters {
-  status?: ActivityStatus; // Can use the string status type here
-  category?: string;
-  minPrice?: number;
-  maxPrice?: number;
-  location?: string;
+export interface SupabaseBooking {
+  id: string;
+  activity_id: number;
+  user_id: string;
+  booking_date: string;
+  participants: number;
+  total_price: number;
+  status: "pending" | "confirmed" | "cancelled" | "completed";
+  created_at: string;
+  updated_at: string;
+  activityTitle: string;
+  customerName: string;
+  customerEmail: string;
+  date: string;
+  time: string;
+  providerAmount: number;
+  platformFee: number;
+  totalAmount: number;
 }
-
-export interface ActivityMedia {
-  url: string;
-  type: "image" | "video";
-  thumbnail_url?: string;
-  duration?: number;
-  size?: number;
-}
-
-// REMOVE THE DUPLICATE Activity INTERFACE
-// export interface Activity {
-//   id: number
-//   activity_id: number
-//   title: string
-//   name: string
-//   description: string
-//   final_price: number
-//   price: number
-//   b_price: number
-//   Final_Price: number
-//   category_id: number
-//   is_active: boolean
-//   status: "draft" | "published" | "archived"
-//   duration: string
-//   image_url: string
-//   created_at: string
-//   updated_at: string
-// }

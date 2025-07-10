@@ -1,98 +1,9 @@
 import { supabase } from "@/integrations/supabase/client"
+import { Database } from "@/integrations/supabase/types";
+import { SupabaseActivity, SupabaseBooking } from "@/types/activity";
 
-export interface SupabaseActivity {
-  id: number
-  title: string
-  description: string | null
-  image_url: string | null
-  pickup_location: string | null
-  dropoff_location: string | null
-  discounts: number | null
-  max_participants: number | null
-  highlights: string[] | null
-  included: string[] | null
-  not_included: string[] | null
-  meeting_point: string | null
-  languages: string[] | null
-  is_active: boolean | null
-  created_at: string | null
-  updated_at: string | null
-  b_price: number | null
-  status: number | null
-  location_lat: number | null
-  location_lng: number | null
-  place_id: string | null
-  address: string | null
-  provider_id: string | null
-  final_price: number | null
-  video_url: string | null
-  video_duration: number | null
-  video_size: number | null
-  video_thumbnail_url: string | null
-  duration: string | null
-  min_age: number | null
-  max_age: number | null
-  activity_name: string | null
-  technical_skill_level: string | null
-  physical_effort_level: string | null
-  category: string | null
-  average_rating: number | null
-  review_count: number | null
-  includes_pickup: boolean | null
-  pickup_locations: string | null
-  includes_meal: boolean | null
-  meal_description: string | null
-  name: string | null
-  requires_approval: boolean
-  instant_booking: boolean | null
-  cancellation_policy: string | null
-  base_price_thb: number | null
-  currency_code: string | null
-  country_code: string | null
-  created_by: string | null
-  updated_by: string | null
-  meeting_point_place_id: string | null
-  meeting_point_lat: number | null
-  meeting_point_lng: number | null
-  meeting_point_formatted_address: string | null
-  dropoff_location_place_id: string | null
-  dropoff_location_lat: number | null
-  dropoff_location_lng: number | null
-  dropoff_location_formatted_address: string | null
-  pickup_location_place_id: string | null
-  pickup_location_lat: number | null
-  pickup_location_lng: number | null
-  pickup_location_formatted_address: string | null
-  // Add computed properties
-  location?: string
-  price?: number
-  rating?: number
-  activity_owners?: {
-    id: string
-    business_name: string
-    contact_email?: string
-    contact_phone?: string
-  }
-  schedule?: {
-    available_dates: string[]
-    start_time?: string
-    end_time?: string
-  }
-}
-
-export interface ActivityForHomepage {
-  id: number
-  title: string
-  image_url: string | null
-  price: number
-  location: string | null
-  rating?: number
-  review_count?: number
-  category?: string
-}
-
-const supabaseActivityService = {
-  async getActivityById(id: number): Promise<SupabaseActivity | null> {
+export const supabaseActivityService = {
+  async getActivityById(id: string): Promise<SupabaseActivity | null> {
     const { data, error } = await supabase
       .from("activities")
       .select(`
@@ -380,7 +291,205 @@ const supabaseActivityService = {
     }
 
     return data
-  }
+  },
+
+  async getActivities(filters: any): Promise<SupabaseActivity[]> {
+    const { data, error } = await supabase
+      .from("activities")
+      .select("*")
+      .eq("is_active", true)
+      .limit(10)
+
+    if (error) {
+      console.error("Error fetching activities:", error)
+      return []
+    }
+
+    return data.map(activity => ({
+      ...activity,
+      image_url: activity.image_urls?.[0] || null,
+      pickup_location: activity.location || null,
+      dropoff_location: null,
+      discounts: null,
+      b_price: activity.price,
+      status: null,
+      location_lat: null,
+      location_lng: null,
+      place_id: null,
+      address: activity.location,
+      provider_id: activity.owner_id,
+      final_price: null,
+      video_url: null,
+      video_duration: null,
+      video_size: null,
+      video_thumbnail_url: null,
+      min_age: null,
+      max_age: null,
+      activity_name: null,
+      technical_skill_level: null,
+      physical_effort_level: null,
+      category: null,
+      average_rating: activity.rating,
+      includes_pickup: null,
+      pickup_locations: null,
+      includes_meal: null,
+      meal_description: null,
+      requires_approval: false,
+      instant_booking: null,
+      cancellation_policy: null,
+      base_price_thb: null,
+      currency_code: null,
+      country_code: null,
+      created_by: null,
+      updated_by: null,
+      meeting_point_place_id: null,
+      meeting_point_lat: null,
+      meeting_point_lng: null,
+      meeting_point_formatted_address: null,
+      dropoff_location_place_id: null,
+      dropoff_location_lat: null,
+      dropoff_location_lng: null,
+      dropoff_location_formatted_address: null,
+      pickup_location_place_id: null,
+      pickup_location_lat: null,
+      pickup_location_lng: null,
+      pickup_location_formatted_address: null,
+      location: activity.location,
+      price: activity.price,
+      rating: activity.rating,
+    }))
+  },
+
+  async getActivitiesForHomepage() {
+    const { data, error } = await supabase
+      .from("activities")
+      .select("*")
+      .eq("is_active", true)
+      .limit(10)
+
+    if (error) {
+      console.error("Error fetching activities for homepage:", error)
+      return []
+    }
+
+    return data.map(activity => ({
+      id: activity.id,
+      title: activity.title,
+      image_url: activity.image_urls?.[0] || null,
+      price: activity.price || 0,
+      location: activity.location,
+      rating: activity.rating,
+      review_count: activity.review_count,
+      category: activity.category
+    }))
+  },
 }
 
 export { supabaseActivityService }
+
+export const fetchActivitiesByOwner = async (ownerId: string): Promise<SupabaseActivity[]> => {
+  const { data, error } = await supabase
+    .from("activities")
+    .select("*, categories(name)")
+    .eq("owner_id", ownerId);
+
+  if (error) {
+    console.error("Error fetching activities by owner:", error);
+    throw error;
+  }
+
+  return data.map((activity: any) => ({
+    ...activity,
+    category_name: activity.categories.name,
+  })) as SupabaseActivity[];
+};
+
+export const fetchRecentBookingsForOwner = async (ownerId: string): Promise<SupabaseBooking[]> => {
+  const { data, error } = await supabase
+    .from("bookings")
+    .select("*, activities(title)")
+    .eq("activities.owner_id", ownerId)
+    .order("created_at", { ascending: false })
+    .limit(5);
+
+  if (error) {
+    console.error("Error fetching recent bookings:", error);
+    throw error;
+  }
+
+  return data.map((booking: any) => ({
+    ...booking,
+    id: booking.id,
+    activityTitle: booking.activities.title,
+    customerName: "Customer Name", // Placeholder
+    customerEmail: "customer@example.com", // Placeholder
+    date: booking.booking_date,
+    time: "10:00", // Placeholder
+    participants: booking.participants,
+    providerAmount: booking.total_price * 0.9, // Placeholder
+    platformFee: booking.total_price * 0.1, // Placeholder
+    totalAmount: booking.total_price,
+    status: booking.status,
+  })) as SupabaseBooking[];
+};
+
+export const fetchBookingsForOwner = async (ownerId: string): Promise<SupabaseBooking[]> => {
+  const { data, error } = await supabase
+    .from("bookings")
+    .select("*, activities(title, owner_id)")
+    .eq("activities.owner_id", ownerId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching bookings:", error);
+    throw error;
+  }
+
+  return data.map((booking: any) => ({
+    ...booking,
+    id: booking.id,
+    activityTitle: booking.activities.title,
+    customerName: "Customer Name", // Placeholder
+    customerEmail: "customer@example.com", // Placeholder
+    date: booking.booking_date,
+    time: "10:00", // Placeholder
+    participants: booking.participants,
+    providerAmount: booking.total_price * 0.9, // Placeholder
+    platformFee: booking.total_price * 0.1, // Placeholder
+    totalAmount: booking.total_price,
+    status: booking.status,
+  })) as SupabaseBooking[];
+};
+
+export const fetchEarningsForOwner = async (ownerId: string) => {
+  // This is a placeholder. You'll need to implement the actual logic.
+  return {
+    total: 50000,
+    monthly: [
+      { month: "Jan", amount: 5000 },
+      { month: "Feb", amount: 7000 },
+      { month: "Mar", amount: 6000 },
+      { month: "Apr", amount: 8000 },
+    ],
+    pending: 2000,
+  };
+};
+
+export const getActivityById = async (id: string): Promise<SupabaseActivity | null> => {
+  const { data, error } = await supabase
+    .from('activities')
+    .select('*, categories(name)')
+    .eq('id', id)
+    .single();
+
+  if (error) {
+    console.error('Error fetching activity by id:', error);
+    return null;
+  }
+  if (!data) return null;
+
+  return {
+    ...data,
+    category_name: data.categories?.name || 'N/A',
+  } as SupabaseActivity;
+};

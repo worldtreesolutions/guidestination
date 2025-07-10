@@ -1,26 +1,22 @@
-import { useEffect, useState } from "react"
-import { useRouter } from "next/router"
-import Head from "next/head"
-import { useAuth } from "@/contexts/AuthContext"
-import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout" // Add DashboardLayout import
-import { activityService, Booking } from "@/services/activityService"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { useToast } from "@/hooks/use-toast"
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Line, LineChart } from "recharts"
-import { CreditCard, TrendingUp, DollarSign, Calendar } from "lucide-react"
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { fetchEarningsForOwner } from '@/services/supabaseActivityService';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import Head from "next/head";
+import { useAuth } from "@/contexts/AuthContext";
+import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout";
+import { SupabaseBooking } from "@/types/activity";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useToast } from "@/hooks/use-toast";
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Line, LineChart } from "recharts";
+import { CreditCard, TrendingUp, DollarSign, Calendar } from "lucide-react";
+import { fetchBookingsForOwner, fetchEarningsForOwner } from '@/services/supabaseActivityService';
 
 export default function EarningsPage() {
   const { user, isAuthenticated } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [bookings, setBookings] = useState<SupabaseBooking[]>([]);
   const [earnings, setEarnings] = useState<{
     total: number;
     monthly: { month: string; amount: number }[];
@@ -43,8 +39,8 @@ export default function EarningsPage() {
       
       try {
         const [bookingsData, earningsData] = await Promise.all([
-          activityService.getBookingsByProvider(user.id),
-          activityService.getProviderEarnings(user.id)
+          fetchBookingsForOwner(user.id),
+          fetchEarningsForOwner(user.id)
         ]);
         
         setBookings(bookingsData);
@@ -86,7 +82,6 @@ export default function EarningsPage() {
 
   if (loading) {
     return (
-      // Use DashboardLayout instead of ProviderLayout
       <DashboardLayout>
         <div className="flex items-center justify-center h-full">
           <p>Loading earnings data...</p>
@@ -102,7 +97,6 @@ export default function EarningsPage() {
         <meta name="description" content="Track your earnings from activities" />
       </Head>
 
-      {/* Use DashboardLayout instead of ProviderLayout */}
       <DashboardLayout>
         <div className="space-y-6">
           <div>
@@ -132,7 +126,7 @@ export default function EarningsPage() {
                 <Calendar className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">฿{earnings.monthly[3].amount.toLocaleString()}</div>
+                <div className="text-2xl font-bold">฿{earnings.monthly.length > 0 ? earnings.monthly[earnings.monthly.length - 1].amount.toLocaleString() : 0}</div>
                 <p className="text-xs text-muted-foreground">
                   +12% from last month
                 </p>
@@ -285,11 +279,11 @@ export default function EarningsPage() {
                     <TableBody>
                       {bookings
                         .filter(b => b.status === "confirmed" || b.status === "completed")
-                        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
                         .slice(0, 10)
                         .map((booking) => (
                           <TableRow key={booking.id}>
-                            <TableCell>{new Date(booking.createdAt).toLocaleDateString()}</TableCell>
+                            <TableCell>{new Date(booking.created_at).toLocaleDateString()}</TableCell>
                             <TableCell className="font-medium">{booking.activityTitle}</TableCell>
                             <TableCell>{booking.customerName}</TableCell>
                             <TableCell>{booking.participants}</TableCell>

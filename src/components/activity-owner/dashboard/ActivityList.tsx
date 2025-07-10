@@ -1,30 +1,20 @@
-import { Activity } from "@/services/activityService"
+import { SupabaseActivity } from "@/types/activity"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Edit, Eye, Trash2 } from "lucide-react"
 import Link from "next/link"
-import { fetchActivitiesByOwner } from '@/services/supabaseActivityService';
-import { SupabaseActivity } from '@/types/activity';
 
 interface ActivityListProps {
-  activities: Activity[];
-  onDelete: (id: string) => void;
+  activities: SupabaseActivity[];
+  onDelete: (id: number) => void;
 }
 
 export function ActivityList({ activities, onDelete }: ActivityListProps) {
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "published":
-        return "bg-green-100 text-green-800 hover:bg-green-100/80";
-      case "draft":
-        return "bg-yellow-100 text-yellow-800 hover:bg-yellow-100/80";
-      case "archived":
-        return "bg-gray-100 text-gray-800 hover:bg-gray-100/80";
-      default:
-        return "";
-    }
+  const getStatusColor = (status: boolean | null) => {
+    if (status === null) return "";
+    return status ? "bg-green-100 text-green-800 hover:bg-green-100/80" : "bg-yellow-100 text-yellow-800 hover:bg-yellow-100/80";
   };
 
   return (
@@ -56,11 +46,11 @@ export function ActivityList({ activities, onDelete }: ActivityListProps) {
             {activities.map((activity) => (
               <TableRow key={activity.id}>
                 <TableCell className="font-medium">{activity.title}</TableCell>
-                <TableCell className="capitalize">{activity.category.replace('_', ' ')}</TableCell>
-                <TableCell>฿{activity.basePrice.toLocaleString()}</TableCell>
+                <TableCell className="capitalize">{activity.category_name?.replace('_', ' ')}</TableCell>
+                <TableCell>฿{activity.price?.toLocaleString()}</TableCell>
                 <TableCell>
-                  <Badge className={getStatusColor(activity.status)} variant="outline">
-                    {activity.status.charAt(0).toUpperCase() + activity.status.slice(1)}
+                  <Badge className={getStatusColor(activity.is_active)} variant="outline">
+                    {activity.is_active ? "Published" : "Draft"}
                   </Badge>
                 </TableCell>
                 <TableCell>
@@ -69,7 +59,7 @@ export function ActivityList({ activities, onDelete }: ActivityListProps) {
                       <span className="mr-1">{activity.rating}</span>
                       <span className="text-yellow-500">★</span>
                       <span className="text-xs text-muted-foreground ml-1">
-                        ({activity.reviewCount})
+                        ({activity.review_count})
                       </span>
                     </div>
                   ) : (
