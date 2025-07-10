@@ -102,10 +102,10 @@ export const supabaseActivityService = {
             is_active,
             status
           ),
-          activity_selected_options(
+          activity_selected_options!inner(
             id,
             option_id,
-            activity_options(
+            activity_options!inner(
               id,
               label,
               icon,
@@ -405,39 +405,41 @@ export const supabaseActivityService = {
     const price = data.base_price_thb ? Number(data.base_price_thb) : 0
     const duration = data.duration ? Number(data.duration) : null
 
-    // Process schedule data safely - prioritize schedule instances first
+    // Process schedule instances first (most specific)
     const scheduleInstances = Array.isArray(data.activity_schedule_instances) ? data.activity_schedule_instances : []
-    const availableDates = scheduleInstances
+    const instanceDates = scheduleInstances
       .filter((instance: any) => instance?.is_active && instance?.status === 'active')
       .map((instance: any) => ({
         date: instance.scheduled_date,
         startTime: instance.start_time,
         endTime: instance.end_time,
-        capacity: instance.capacity || 0,
+        capacity: instance.capacity || 10,
         booked: instance.booked_count || 0,
         available: instance.available_spots || (instance.capacity - (instance.booked_count || 0)),
         price: instance.price || price
       }))
 
-    // Process activity schedules and generate dates for the next 60 days
+    // Process activity schedules (recurring patterns)
     const activitySchedules = Array.isArray(data.activity_schedules) ? data.activity_schedules : []
-    const fallbackDates: any[] = []
+    const scheduleDates: any[] = []
     
-    if (availableDates.length === 0 && activitySchedules.length > 0) {
-      activitySchedules
-        .filter((schedule: any) => schedule?.is_active)
-        .forEach((schedule: any) => {
-          // Generate dates for the next 60 days based on schedule
-          const startDate = new Date(schedule.availability_start_date || new Date())
-          const endDate = new Date(schedule.availability_end_date || new Date(Date.now() + 60 * 24 * 60 * 60 * 1000))
+    activitySchedules
+      .filter((schedule: any) => schedule?.is_active)
+      .forEach((schedule: any) => {
+        // Generate dates for the next 60 days based on schedule
+        const startDate = new Date(schedule.availability_start_date || new Date())
+        const endDate = new Date(schedule.availability_end_date || new Date(Date.now() + 60 * 24 * 60 * 60 * 1000))
+        
+        for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+          const dayOfWeek = d.getDay()
+          const daysOfWeek = Array.isArray(schedule.days_of_week) ? schedule.days_of_week : [0, 1, 2, 3, 4, 5, 6]
           
-          for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-            const dayOfWeek = d.getDay()
-            const daysOfWeek = Array.isArray(schedule.days_of_week) ? schedule.days_of_week : [0, 1, 2, 3, 4, 5, 6]
-            
-            if (daysOfWeek.includes(dayOfWeek)) {
-              fallbackDates.push({
-                date: d.toISOString().split('T')[0],
+          if (daysOfWeek.includes(dayOfWeek)) {
+            const dateStr = d.toISOString().split('T')[0]
+            // Don't add if we already have a specific instance for this date
+            if (!instanceDates.some(inst => inst.date === dateStr)) {
+              scheduleDates.push({
+                date: dateStr,
                 startTime: schedule.start_time || "09:00",
                 endTime: schedule.end_time || "17:00",
                 capacity: schedule.capacity || 10,
@@ -447,15 +449,16 @@ export const supabaseActivityService = {
               })
             }
           }
-        })
-    }
+        }
+      })
 
-    // If no schedules exist, create some default availability for the next 30 days
-    if (availableDates.length === 0 && fallbackDates.length === 0) {
+    // If no schedules exist, create default availability for the next 30 days
+    const defaultDates: any[] = []
+    if (instanceDates.length === 0 && scheduleDates.length === 0) {
       for (let i = 1; i <= 30; i++) {
         const date = new Date()
         date.setDate(date.getDate() + i)
-        fallbackDates.push({
+        defaultDates.push({
           date: date.toISOString().split('T')[0],
           startTime: "09:00",
           endTime: "17:00",
@@ -467,10 +470,10 @@ export const supabaseActivityService = {
       }
     }
 
-    // Combine schedule data
-    const allAvailableDates = [...availableDates, ...fallbackDates]
+    // Combine all available dates
+    const allAvailableDates = [...instanceDates, ...scheduleDates, ...defaultDates]
 
-    // Process selected options safely and categorize them
+    // Process selected options and categorize them
     const selectedOptions = Array.isArray(data.activity_selected_options) 
       ? data.activity_selected_options
           .filter((selectedOption: any) => selectedOption?.activity_options)
