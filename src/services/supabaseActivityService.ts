@@ -1,5 +1,4 @@
 
-    
 import { supabase } from "@/integrations/supabase/client"
 import { SupabaseActivity, Earning } from "@/types/activity"
 
@@ -25,8 +24,7 @@ export const supabaseActivityService = {
           address,
           duration,
           provider_id,
-          categories (name),
-          activity_media (media_url)
+          categories (name)
         `)
         .eq("is_active", true)
 
@@ -49,19 +47,16 @@ export const supabaseActivityService = {
         throw error
       }
       
-      const activities = data?.map((activity: any) => {
-        const imageUrls = activity.activity_media?.map((m: any) => m.media_url) || []
-        return {
-          ...activity,
-          category_name: activity.categories?.name || "Uncategorized",
-          image_urls: imageUrls,
-          image_url: imageUrls[0] || null,
-          price: activity.price || 0,
-          rating: activity.average_rating || 0,
-          review_count: activity.review_count || 0,
-          location: activity.address || "Location TBD"
-        }
-      }) || []
+      const activities = data?.map((activity: any) => ({
+        ...activity,
+        category_name: activity.categories?.name || "Uncategorized",
+        image_urls: activity.image_urls || [],
+        image_url: activity.image_urls?.[0] || null,
+        price: activity.price || 0,
+        rating: activity.average_rating || 0,
+        review_count: activity.review_count || 0,
+        location: activity.address || "Location TBD"
+      })) || []
 
       return activities;
 
@@ -75,24 +70,11 @@ export const supabaseActivityService = {
     try {
       console.log("Fetching activity with ID:", id)
       
-      const {  activity, error: activityError } = await supabase
+      const { data: activity, error: activityError } = await supabase
         .from("activities")
         .select(`
           *,
-          categories (name),
-          activity_schedule_instances (*),
-          activity_selected_options (
-            id,
-            is_selected,
-            activity_options (
-              id,
-              label,
-              type,
-              icon,
-              category
-            )
-          ),
-          activity_media (media_url)
+          categories (name)
         `)
         .eq("id", id)
         .eq("is_active", true)
@@ -109,30 +91,58 @@ export const supabaseActivityService = {
 
       console.log("Activity fetched:", activity)
 
-      const imageUrls = activity.activity_media?.map((m: any) => m.media_url) || []
+      // Fetch schedule data separately
+      const { data: scheduleData, error: scheduleError } = await supabase
+        .from("activity_schedule")
+        .select("*")
+        .eq("activity_id", id)
+        .eq("is_active", true)
 
-      const formattedSchedules = activity.activity_schedule_instances
-        ?.filter((inst: any) => inst.is_active && ['active', 'available'].includes(inst.status))
-        .map((instance: any) => ({
-          date: instance.scheduled_date,
-          startTime: instance.start_time,
-          endTime: instance.end_time,
-          capacity: instance.capacity,
-          booked: instance.booked_count,
-          available: instance.available_spots,
-          price: parseFloat(instance.price)
+      if (scheduleError) {
+        console.warn("Error fetching schedule data:", scheduleError.message)
+      }
+
+      // Fetch selected options separately
+      const { data: optionsData, error: optionsError } = await supabase
+        .from("activity_options")
+        .select(`
+          id,
+          label,
+          type,
+          icon,
+          category,
+          activity_selected_options!inner (
+            is_selected,
+            activity_id
+          )
+        `)
+        .eq("activity_selected_options.activity_id", id)
+        .eq("activity_selected_options.is_selected", true)
+
+      if (optionsError) {
+        console.warn("Error fetching options data:", optionsError.message)
+      }
+
+      const formattedSchedules = scheduleData
+        ?.filter((schedule: any) => schedule.is_active)
+        .map((schedule: any) => ({
+          date: schedule.scheduled_date,
+          startTime: schedule.start_time,
+          endTime: schedule.end_time,
+          capacity: schedule.capacity || 10,
+          booked: schedule.booked_count || 0,
+          available: (schedule.capacity || 10) - (schedule.booked_count || 0),
+          price: parseFloat(schedule.price || activity.price || 0)
         })) || []
 
       console.log("Formatted schedules:", formattedSchedules)
 
-      const formattedOptions = activity.activity_selected_options
-        ?.filter((opt: any) => opt.is_selected)
-        .map((option: any) => ({
-          id: option.id.toString(),
-          option_name: option.activity_options?.label || "",
-          option_type: option.activity_options?.type || "included",
-          is_selected: option.is_selected
-        })) || []
+      const formattedOptions = optionsData?.map((option: any) => ({
+        id: option.id.toString(),
+        option_name: option.label,
+        option_type: option.type,
+        is_selected: true
+      })) || []
 
       console.log("Formatted options:", formattedOptions)
 
@@ -140,8 +150,8 @@ export const supabaseActivityService = {
         ...activity,
         category: activity.categories?.name || "Uncategorized",
         category_name: activity.categories?.name || "Uncategorized",
-        image_urls: imageUrls,
-        image_url: imageUrls[0] || null,
+        image_urls: activity.image_urls || [],
+        image_url: activity.image_urls?.[0] || null,
         price: activity.price || 0,
         rating: activity.average_rating || 0,
         review_count: activity.review_count || 0,
@@ -237,7 +247,7 @@ export const supabaseActivityService = {
   },
 
   async updateActivityRating(activityId: number) {
-    const {  reviews, error } = await supabase
+    const { data: reviews, error } = await supabase
         .from("reviews")
         .select("rating")
         .eq("activity_id", activityId)
@@ -263,4 +273,3 @@ export const supabaseActivityService = {
 }
 
 export default supabaseActivityService
-  

@@ -7,11 +7,19 @@ import { Button } from "@/components/ui/button"
 import { ScheduledActivity } from "./ExcursionPlanner"
 import { useLanguage } from "@/contexts/LanguageContext"
 
+interface ScheduledActivity {
+  id: number;
+  title: string;
+  day?: string;
+  hour?: number;
+  imageUrl?: string;
+  participants?: number;
+}
+
 interface MobileWeeklyActivityScheduleProps {
   scheduledActivities: ScheduledActivity[]
-  draggedActivity: ScheduledActivity | null
-  onActivitySelect: (activityId: string, updatedActivity: ScheduledActivity) => void
-  onActivityRemove: (activityId: string) => void
+  onActivityDrop: (activityId: number, day: string, hour: number) => void
+  onActivityClick: (activity: ScheduledActivity) => void
 }
 
 const HOUR_HEIGHT = 80

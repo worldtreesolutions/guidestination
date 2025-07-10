@@ -1,4 +1,3 @@
-
 import { useDroppable, useDraggable } from "@dnd-kit/core"
 import { CSS } from "@dnd-kit/utilities"
 import Image from "next/image"
@@ -8,11 +7,19 @@ import { ScheduledActivity } from "./ExcursionPlanner"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { useMemo, useCallback, useState } from "react"
 
+interface ScheduledActivity {
+  id: number;
+  title: string;
+  day?: string;
+  hour?: number;
+  imageUrl?: string;
+  participants?: number;
+}
+
 interface WeeklyActivityScheduleProps {
   scheduledActivities: ScheduledActivity[]
-  draggedActivity: ScheduledActivity | null
-  onActivitySelect: (activityId: string, updatedActivity: ScheduledActivity) => void
-  onActivityRemove: (activityId: string) => void
+  onActivityDrop: (activityId: number, day: string, hour: number) => void
+  onActivityClick: (activity: ScheduledActivity) => void
 }
 
 const HOUR_HEIGHT = 100
@@ -156,9 +163,8 @@ const DroppableCell = ({
 
 export const WeeklyActivitySchedule = ({
   scheduledActivities,
-  draggedActivity,
-  onActivitySelect,
-  onActivityRemove
+  onActivityDrop,
+  onActivityClick
 }: WeeklyActivityScheduleProps) => {
   const { t } = useLanguage()
   
@@ -239,46 +245,6 @@ export const WeeklyActivitySchedule = ({
 
   const isSlotAvailable = (day: string, hour: number) => {
     if (hour > 17) return false
-
-    if (draggedActivity) {
-      // Check if there's enough continuous slots for the activity duration
-      for (let i = 0; i < draggedActivity.duration; i++) {
-        const currentHour = hour + i
-        if (currentHour > 17) return false
-        
-        const existingActivity = scheduledActivities.find(activity => {
-          if (activity.day !== day || activity.id === draggedActivity.id) return false
-          const activityEnd = activity.hour + activity.duration
-          
-          // Allow consecutive placement (end-to-start or start-to-end)
-          const isConsecutive = currentHour === activityEnd || 
-                               (currentHour + draggedActivity.duration) === activity.hour
-          
-          // Check for overlap
-          const hasOverlap = currentHour >= activity.hour && currentHour < activityEnd
-          
-          return hasOverlap && !isConsecutive
-        })
-        
-        if (existingActivity) return false
-      }
-
-      const providerUnavailability = {
-        monday: [13, 14, 15],
-        wednesday: [9, 10, 11],
-        friday: [16, 17, 18],
-      }
-
-      // Check if any hour in the activity duration is in provider unavailability
-      for (let i = 0; i < draggedActivity.duration; i++) {
-        const currentHour = hour + i
-        if (providerUnavailability[day as keyof typeof providerUnavailability]?.includes(currentHour)) {
-          return false
-        }
-      }
-
-      return true
-    }
 
     // Check if this slot is part of an existing activity
     return !scheduledActivities.some(
