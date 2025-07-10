@@ -89,8 +89,7 @@ export const supabaseActivityService = {
             end_time,
             is_active,
             recurrence_pattern,
-            recurrence_interval,
-            days_of_week
+            recurrence_interval
           ),
           activity_schedule_instances(
             id,
