@@ -1,68 +1,56 @@
 import { Card, CardContent } from "@/components/ui/card"
+import Link from "next/link"
 import Image from "next/image"
 import { Star, MapPin } from "lucide-react"
-import { ActivityForHomepage } from "@/types/activity"
-import { useRouter } from "next/router"
+import { SupabaseActivity, ActivityForHomepage } from "@/types/activity"
 
 interface ActivityCardProps {
-  activity?: ActivityForHomepage
+  activity: ActivityForHomepage
 }
 
-export function ActivityCard({ activity }: ActivityCardProps) {
-  const router = useRouter()
-
-  if (!activity) {
-    return null
-  }
-
-  const {
-    id,
-    title,
-    image_url,
-    price,
-    location,
-    rating
-  } = activity
-
-  // Provide fallback values to prevent undefined errors
-  const safePrice = typeof price === 'number' ? price : 0
-  const safeLocation = location || "Location not specified"
-  const safeImageUrl = image_url || "https://images.unsplash.com/photo-1563492065-1a83e8c6b8d8"
-
-  const handleClick = () => {
-    if (id) {
-      // Use the ID directly since the route expects [slug] which can be an ID
-      router.push(`/activities/${id}`)
-    }
+export const ActivityCard = ({ activity }: ActivityCardProps) => {
+  const formatPrice = (price: number | null) => {
+    // Provide fallback values to prevent undefined errors
+    const safePrice = typeof price === 'number' ? price : 0
+    return safePrice.toLocaleString()
   }
 
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer" onClick={handleClick}>
-      <div className="relative aspect-video">
-        <Image
-          src={safeImageUrl}
-          alt={title || "Activity image"}
-          fill
-          className="object-cover"
-        />
-      </div>
-      <CardContent className="p-4">
-        <h3 className="font-semibold text-lg mb-2 line-clamp-2">{title}</h3>
-        <div className="flex items-center text-gray-600 mb-2">
-          <MapPin className="h-4 w-4 mr-1" />
-          <span className="text-sm truncate">{safeLocation}</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
-            <span className="text-sm">{(activity?.rating || 0).toFixed(1)}</span>
-          </div>
-          <div className="text-lg font-bold text-blue-600">
-            ฿{safePrice.toLocaleString()}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+    <Link href={`/activities/${activity.id}`} legacyBehavior>
+      <a className="block group">
+        <Card className="overflow-hidden">
+          <CardContent className="p-0">
+            <div className="relative h-48 w-full">
+              <Image
+                src={activity.image_url || "/placeholder.jpg"}
+                alt={activity.title}
+                layout="fill"
+                objectFit="cover"
+                className="transition-transform duration-300 group-hover:scale-105"
+              />
+            </div>
+            <div className="p-4 space-y-2">
+              <div className="flex justify-between items-start">
+                <h3 className="font-semibold text-lg mb-2 line-clamp-2">{activity.title}</h3>
+                <div className="flex items-center text-gray-600 mb-2">
+                  <MapPin className="h-4 w-4 mr-1" />
+                  <span className="text-sm truncate">{activity.location || "Location not specified"}</span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
+                  <span className="text-sm">{(activity.rating || 0).toFixed(1)}</span>
+                </div>
+                <div className="text-lg font-bold text-blue-600">
+                  ฿{formatPrice(activity.price)}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </a>
+    </Link>
   )
 }
   

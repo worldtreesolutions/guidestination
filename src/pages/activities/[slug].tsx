@@ -394,7 +394,7 @@ export default function ActivityPage() {
                   <TabsContent value="overview" className="space-y-6">
                     <ActivityDetails activity={{
                       ...activity,
-                      activity_selected_options: activity.activity_selected_options as ActivitySelectedOption[] | undefined
+                      activity_selected_options: activity.activity_selected_options as any
                     }} />
                   </TabsContent>
 

@@ -1,7 +1,7 @@
 export interface ActivitySelectedOption {
   id: string;
   option_name: string;
-  option_type: string;
+  option_type: 'highlight' | 'included' | 'not_included' | 'not_allowed' | string;
   is_selected: boolean;
 }
 
@@ -71,7 +71,7 @@ export interface ActivityForHomepage {
   price: number | null;
   rating: number | null;
   review_count: number | null;
-  image_url: string;
+  image_url: string | null;
   image_urls: string[] | null;
   location: string | null;
   duration: number | null;
