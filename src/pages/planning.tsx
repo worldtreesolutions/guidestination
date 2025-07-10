@@ -7,33 +7,33 @@ import { useLanguage } from "@/contexts/LanguageContext"
 import { supabaseActivityService } from "@/services/supabaseActivityService"
 import { SupabaseActivity } from "@/types/activity"
 import { usePlanning } from "@/contexts/PlanningContext"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useContext, useCallback } from "react"
 
 export default function PlanningPage() {
-  const { selectedActivities, scheduledActivities } = usePlanning()
+  const { toast } = useToast()
   const [activities, setActivities] = useState<SupabaseActivity[]>([])
   const [loading, setLoading] = useState(true)
-  const [allActivities, setAllActivities] = useState<SupabaseActivity[]>([])
+  const { selectedActivities, addActivity, removeActivity, clearActivities } =
+    useContext(PlanningContext)
 
-  useEffect(() => {
-    const fetchInitialActivities = async () => {
-      try {
-        const activities = await supabaseActivityService.getAllActivities();
-        setAllActivities(activities);
-      } catch (error) {
-        console.error("Error fetching activities:", error);
-      }
-    }
-    fetchInitialActivities()
-  }, [])
-
-  useEffect(() => {
-    const fetchActivities = async () => {
+  const fetchActivities = useCallback(async () => {
+    try {
       setLoading(true)
-      const activitiesData = await supabaseActivityService.getActivities({})
-      setActivities(activitiesData)
+      const data = await supabaseActivityService.getActivities()
+      setActivities(data as SupabaseActivity[])
+    } catch (error) {
+      console.error("Error fetching activities:", error)
+      toast({
+        title: "Error",
+        description: "Failed to fetch activities.",
+        variant: "destructive",
+      })
+    } finally {
       setLoading(false)
     }
+  }, [toast])
+
+  useEffect(() => {
     fetchActivities()
   }, [])
 

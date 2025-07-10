@@ -11,7 +11,7 @@ interface ActivityOption {
 interface Activity {
   id: number
   title: string
-  description: string
+  description: string | null
   activity_selected_options?: ActivityOption[]
 }
 

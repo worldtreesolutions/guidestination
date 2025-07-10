@@ -8,85 +8,21 @@ import { SearchBar } from "@/components/home/SearchBar"
 import { BottomActionButtons } from "@/components/layout/BottomActionButtons"
 import { FloatingCart } from "@/components/layout/FloatingCart"
 import { supabaseActivityService } from "@/services/supabaseActivityService"
-import { ActivityForHomepage } from "@/types/activity"
-import categoryService, { type Category } from "@/services/categoryService"
+import categoryService from "@/services/categoryService"
 
-export default function HomePage() {
-  const [activitiesByCategory, setActivitiesByCategory] = useState<Record<string, ActivityForHomepage[]>>({})
-  const [categories, setCategories] = useState<Category[]>([])
-  const [loading, setLoading] = useState(true)
+export default function HomePage({
+  featuredActivities,
+  recommendedActivities,
+  activitiesByCategory,
+  categories,
+}: HomePageProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true)
-        
-        // Fetch categories first
-        const fetchedCategories = await categoryService.getAllCategories()
-        setCategories(fetchedCategories)
-
-        // Fetch activities for each category
-        const categoryActivities: Record<string, ActivityForHomepage[]> = {}
-        
-        // Add featured activities
-        try {
-          const featured = await supabaseActivityService.getFeaturedActivities(8)
-          categoryActivities["Featured"] = supabaseActivityService.convertToHomepageFormat(featured)
-        } catch (error) {
-          console.error("Error fetching featured activities:", error)
-          categoryActivities["Featured"] = []
-        }
-
-        // Add recommended activities
-        try {
-          const recommended = await supabaseActivityService.getRecommendedActivities(8)
-          categoryActivities["Recommended"] = supabaseActivityService.convertToHomepageFormat(recommended)
-        } catch (error) {
-          console.error("Error fetching recommended activities:", error)
-          categoryActivities["Recommended"] = []
-        }
-
-        // Fetch activities for each category
-        for (const category of fetchedCategories) {
-          if (category.name) {
-            try {
-              const activities = await supabaseActivityService.getActivitiesByCategory(category.name, 8)
-              const homepageActivities = supabaseActivityService.convertToHomepageFormat(activities)
-              if (homepageActivities.length > 0) {
-                categoryActivities[category.name] = homepageActivities
-              }
-            } catch (error) {
-              console.error(`Error fetching activities for category ${category.name}:`, error)
-            }
-          }
-        }
-
-        setActivitiesByCategory(categoryActivities)
-      } catch (error) {
-        console.error("Error fetching categories and activities:", error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchData()
-  }, []) // Empty dependency array to prevent infinite re-renders
 
   const handleSelectCategory = (categoryName: string | null) => {
     setSelectedCategory(categoryName)
   }
 
   const renderActivityRows = () => {
-    if (loading) {
-      return (
-        <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading activities...</p>
-        </div>
-      )
-    }
-
     if (selectedCategory) {
       const activities = activitiesByCategory[selectedCategory] || []
       return (
@@ -155,4 +91,43 @@ export default function HomePage() {
       <Footer />
     </>
   )
+}
+
+export async function getServerSideProps() {
+  try {
+    const featuredActivitiesData = await supabaseActivityService.getFeaturedActivities()
+    const recommendedActivitiesData = await supabaseActivityService.getRecommendedActivities()
+
+    const categories = await categoryService.getCategories()
+    const activitiesByCategory = await Promise.all(
+      categories.slice(0, 4).map(async (category) => {
+        const activities = await supabaseActivityService.getActivitiesByCategory(
+          category.name
+        )
+        return {
+          categoryName: category.name,
+          activities: activities,
+        }
+      })
+    )
+
+    return {
+      props: {
+        featuredActivities: featuredActivitiesData,
+        recommendedActivities: recommendedActivitiesData,
+        activitiesByCategory,
+        categories,
+      },
+    }
+  } catch (error) {
+    console.error("Error fetching data for homepage:", error)
+    return {
+      props: {
+        featuredActivities: [],
+        recommendedActivities: [],
+        activitiesByCategory: [],
+        categories: [],
+      },
+    }
+  }
 }
