@@ -89,7 +89,19 @@ export const supabaseActivityService = {
             availability_end_date,
             start_time,
             end_time,
-            is_active
+            is_active,
+            recurrence_pattern,
+            recurrence_interval
+          ),
+          activity_selected_options(
+            id,
+            activity_options(
+              id,
+              label,
+              icon,
+              type,
+              category
+            )
           )
         `)
         .eq("id", id)
@@ -354,7 +366,14 @@ export const supabaseActivityService = {
           booked: schedule.booked_count || 0,
           available: schedule.capacity - (schedule.booked_count || 0)
         })) || []
-      }
+      },
+      selectedOptions: data.activity_selected_options?.map((option: any) => ({
+        id: option.id,
+        label: option.activity_options.label,
+        icon: option.activity_options.icon,
+        type: option.activity_options.type,
+        category: option.activity_options.category
+      })) || []
     }
   },
 
