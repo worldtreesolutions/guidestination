@@ -7,9 +7,8 @@ import { ActivityRow } from "@/components/home/ActivityRow"
 import { SearchBar } from "@/components/home/SearchBar"
 import { BottomActionButtons } from "@/components/layout/BottomActionButtons"
 import { FloatingCart } from "@/components/layout/FloatingCart"
-import supabaseActivityService from "@/services/supabaseActivityService"
+import { supabaseActivityService } from "@/services/supabaseActivityService"
 import { ActivityForHomepage } from "@/types/activity"
-import categoryService, { type Category } from "@/services/categoryService"
 
 export default function HomePage() {
   const [activities, setActivities] = useState<ActivityForHomepage[]>([])
@@ -30,7 +29,7 @@ export default function HomePage() {
         
         setFeaturedActivities(supabaseActivityService.convertToHomepageFormat(featured))
         setRecommendedActivities(supabaseActivityService.convertToHomepageFormat(recommended))
-        setActivities(supabaseActivityService.convertToHomepageFormat(recommended)); // Initially show recommended
+        setActivities(supabaseActivityService.convertToHomepageFormat(recommended))
 
       } catch (error) {
         console.error("Error fetching initial activities:", error)
@@ -44,26 +43,25 @@ export default function HomePage() {
 
   useEffect(() => {
     const fetchActivities = async () => {
-      setLoading(true);
+      setLoading(true)
       try {
-        let fetchedActivities;
+        let fetchedActivities
         if (selectedCategory) {
-          fetchedActivities = await supabaseActivityService.getActivitiesByCategory(selectedCategory);
+          fetchedActivities = await supabaseActivityService.getActivitiesByCategory(selectedCategory)
         } else {
-          // When 'All' is selected, fetch recommended or all activities
-          fetchedActivities = await supabaseActivityService.getRecommendedActivities(8);
+          fetchedActivities = await supabaseActivityService.getRecommendedActivities(8)
         }
-        setActivities(supabaseActivityService.convertToHomepageFormat(fetchedActivities));
+        setActivities(supabaseActivityService.convertToHomepageFormat(fetchedActivities))
       } catch (error) {
-        console.error(`Error fetching activities for category ${selectedCategory}:`, error);
-        setActivities([]);
+        console.error(`Error fetching activities for category ${selectedCategory}:`, error)
+        setActivities([])
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    fetchActivities();
-  }, [selectedCategory]);
+    fetchActivities()
+  }, [selectedCategory])
 
 
   const handleSelectCategory = (categoryName: string | null) => {
