@@ -21,7 +21,7 @@ export const supabaseActivityService = {
         throw error
       }
 
-      return data.map(this.transformActivity.bind(this))
+      return data.map((item: any) => this.transformActivity(item))
     } catch (error) {
       console.error("Error fetching featured activities:", error)
       throw error
@@ -42,7 +42,7 @@ export const supabaseActivityService = {
         throw error
       }
 
-      return data.map(this.transformActivity.bind(this))
+      return data.map((item: any) => this.transformActivity(item))
     } catch (error) {
       console.error("Error fetching recommended activities:", error)
       throw error
@@ -63,7 +63,7 @@ export const supabaseActivityService = {
         throw error
       }
 
-      return data.map(this.transformActivity.bind(this))
+      return data.map((item: any) => this.transformActivity(item))
     } catch (error) {
       console.error("Error fetching activities by category:", error)
       throw error
@@ -317,6 +317,7 @@ export const supabaseActivityService = {
   },
 
   transformActivity(data: any): SupabaseActivity {
+    // Handle image URLs
     const imageUrls = data.activity_media
       ?.filter((media: any) => media.media_type === "image")
       ?.map((media: any) => media.media_url) || []
@@ -325,40 +326,51 @@ export const supabaseActivityService = {
       imageUrls.unshift(data.image_url)
     }
 
-    // Ensure numeric values are properly converted
-    const rating = data.average_rating ? parseFloat(data.average_rating) : 0
-    const price = data.base_price_thb ? parseFloat(data.base_price_thb) : 0
-    const duration = data.duration ? (typeof data.duration === 'string' ? parseInt(data.duration) : data.duration) : null
+    // Safe numeric conversions
+    const rating = data.average_rating ? Number(data.average_rating) : 0
+    const price = data.base_price_thb ? Number(data.base_price_thb) : 0
+    const duration = data.duration ? Number(data.duration) : null
 
-    // Process schedule instances for calendar
-    const scheduleInstances = data.activity_schedule_instances || []
+    // Process schedule data safely
+    const scheduleInstances = Array.isArray(data.activity_schedule_instances) ? data.activity_schedule_instances : []
     const availableDates = scheduleInstances
-      .filter((instance: any) => instance.is_active && instance.status === 'active')
+      .filter((instance: any) => instance?.is_active && instance?.status === 'active')
       .map((instance: any) => ({
         date: instance.scheduled_date,
         startTime: instance.start_time,
         endTime: instance.end_time,
-        capacity: instance.capacity,
+        capacity: instance.capacity || 0,
         booked: instance.booked_count || 0,
         available: instance.available_spots || (instance.capacity - (instance.booked_count || 0)),
         price: instance.price || price
       }))
 
     // Process activity schedules as fallback
-    const activitySchedules = data.activity_schedules || []
+    const activitySchedules = Array.isArray(data.activity_schedules) ? data.activity_schedules : []
     const fallbackDates = activitySchedules
-      .filter((schedule: any) => schedule.is_active)
+      .filter((schedule: any) => schedule?.is_active)
       .map((schedule: any) => ({
         date: schedule.availability_start_date,
         startTime: schedule.start_time,
         endTime: schedule.end_time,
-        capacity: schedule.capacity,
+        capacity: schedule.capacity || 0,
         booked: schedule.booked_count || 0,
-        available: schedule.capacity - (schedule.booked_count || 0)
+        available: (schedule.capacity || 0) - (schedule.booked_count || 0)
       }))
 
-    // Combine both sources, prioritizing schedule instances
+    // Combine schedule data
     const allAvailableDates = [...availableDates, ...fallbackDates]
+
+    // Process selected options safely
+    const selectedOptions = Array.isArray(data.activity_selected_options) 
+      ? data.activity_selected_options.map((selectedOption: any) => ({
+          id: selectedOption.id,
+          label: selectedOption.activity_options?.label || "",
+          icon: selectedOption.activity_options?.icon || "",
+          type: selectedOption.activity_options?.type || "",
+          category: selectedOption.activity_options?.category || ""
+        }))
+      : []
 
     return {
       id: String(data.id),
@@ -376,9 +388,9 @@ export const supabaseActivityService = {
       technical_skill_level: data.technical_skill_level || null,
       location: data.address || data.meeting_point_formatted_address || "",
       meeting_point: data.meeting_point || "",
-      includes_pickup: data.includes_pickup || false,
+      includes_pickup: Boolean(data.includes_pickup),
       pickup_locations: data.pickup_locations || data.pickup_location || "",
-      includes_meal: data.includes_meal || false,
+      includes_meal: Boolean(data.includes_meal),
       meal_description: data.meal_description || "",
       highlights: this.parseJsonField(data.highlights),
       included: this.parseJsonField(data.included),
@@ -389,19 +401,13 @@ export const supabaseActivityService = {
       image_urls: imageUrls,
       video_url: data.video_url || "",
       provider_id: data.provider_id || "",
-      is_active: data.is_active || false,
+      is_active: Boolean(data.is_active),
       created_at: data.created_at || "",
       updated_at: data.updated_at || "",
       schedules: {
         availableDates: allAvailableDates
       },
-      selectedOptions: data.activity_selected_options?.map((selectedOption: any) => ({
-        id: selectedOption.id,
-        label: selectedOption.activity_options?.label || "",
-        icon: selectedOption.activity_options?.icon || "",
-        type: selectedOption.activity_options?.type || "",
-        category: selectedOption.activity_options?.category || ""
-      })) || []
+      selectedOptions: selectedOptions
     }
   },
 
