@@ -91,9 +91,9 @@ export const supabaseActivityService = {
 
       console.log("[Service] Raw activity data fetched:", activity);
 
-      // Fetch schedule data with correct destructuring
+      // Fetch schedule data with correct table name
       const { data: scheduleData, error: scheduleError } = await supabase
-        .from("activity_schedule")
+        .from("activity_schedules")
         .select("*")
         .eq("activity_id", id)
         .eq("is_active", true);
@@ -122,19 +122,56 @@ export const supabaseActivityService = {
       }
       console.log("[Service] Raw options data:", optionsData);
 
+      // Generate schedule instances from recurring schedules
+      const generateScheduleInstances = (schedules: any[]) => {
+        const instances: any[] = [];
+        
+        schedules.forEach(schedule => {
+          if (schedule.recurrence_pattern === 'once') {
+            // For one-time schedules, create a single instance for today or availability start date
+            const scheduleDate = schedule.availability_start_date || new Date().toISOString().split('T')[0];
+            instances.push({
+              date: scheduleDate,
+              startTime: schedule.start_time.substring(0, 5), // Convert "09:00:00" to "09:00"
+              endTime: schedule.end_time.substring(0, 5),
+              capacity: schedule.capacity,
+              booked: schedule.booked_count || 0,
+              available: schedule.capacity - (schedule.booked_count || 0),
+              price: parseFloat(schedule.price_override || activity.price || 0)
+            });
+          } else if (schedule.recurrence_pattern === 'weekly' && schedule.recurrence_day_of_week) {
+            // For weekly recurring schedules, generate instances for the next 3 months
+            const startDate = new Date(schedule.availability_start_date || new Date());
+            const endDate = new Date(schedule.availability_end_date || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)); // 3 months from now
+            
+            const currentDate = new Date(startDate);
+            while (currentDate <= endDate) {
+              const dayOfWeek = currentDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
+              
+              // Check if this day is in the recurrence pattern
+              if (schedule.recurrence_day_of_week.includes(dayOfWeek)) {
+                instances.push({
+                  date: currentDate.toISOString().split('T')[0],
+                  startTime: schedule.start_time.substring(0, 5),
+                  endTime: schedule.end_time.substring(0, 5),
+                  capacity: schedule.capacity,
+                  booked: schedule.booked_count || 0,
+                  available: schedule.capacity - (schedule.booked_count || 0),
+                  price: parseFloat(schedule.price_override || activity.price || 0)
+                });
+              }
+              
+              currentDate.setDate(currentDate.getDate() + 1);
+            }
+          }
+        });
+        
+        return instances;
+      };
+
       // Format schedules with better error handling
       const formattedSchedules = scheduleData && Array.isArray(scheduleData)
-        ? scheduleData
-            .filter((schedule: any) => schedule.is_active)
-            .map((schedule: any) => ({
-              date: schedule.scheduled_date,
-              startTime: schedule.start_time,
-              endTime: schedule.end_time,
-              capacity: schedule.capacity || 10,
-              booked: schedule.booked_count || 0,
-              available: (schedule.capacity || 10) - (schedule.booked_count || 0),
-              price: parseFloat(schedule.price || activity.price || 0)
-            }))
+        ? generateScheduleInstances(scheduleData.filter((schedule: any) => schedule.is_active))
         : [];
 
       console.log("[Service] Formatted schedules (availableDates):", formattedSchedules);
