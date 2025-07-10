@@ -1,7 +1,8 @@
 import { supabase } from "@/integrations/supabase/client"
-import { createClient } from "@supabase/supabase-js"
+import { getAdminClient } from "@/integrations/supabase/admin"
 import type { Database } from "@/integrations/supabase/types"
 import Stripe from "stripe"
+import emailService from "./emailService"
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
@@ -12,6 +13,16 @@ const getSupabaseClient = () => {
     return null
   }
   return supabase
+}
+
+// Get admin client for webhook operations
+const getAdminSupabaseClient = () => {
+  const adminClient = getAdminClient()
+  if (!adminClient) {
+    console.error("Supabase admin client not initialized")
+    return null
+  }
+  return adminClient
 }
 
 export const stripeService = {
@@ -105,9 +116,9 @@ export const stripeService = {
   },
 
   async handleWebhookEvent(event: Stripe.Event) {
-    const client = getSupabaseClient()
+    const client = getAdminSupabaseClient()
     if (!client) {
-      console.error("Supabase client not available for webhook processing")
+      console.error("Supabase admin client not available for webhook processing")
       return
     }
 
@@ -129,12 +140,13 @@ export const stripeService = {
   },
 
   async handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
-    const client = getSupabaseClient()
+    const client = getAdminSupabaseClient()
     if (!client) return
 
     const { activityId, participants, customerName, establishmentId } = session.metadata!
 
     try {
+      // Create the booking
       const { data: booking, error: bookingError } = await client
         .from("bookings")
         .insert({
@@ -157,13 +169,145 @@ export const stripeService = {
       }
 
       console.log("Booking created successfully:", booking.id)
+
+      // Process commission and send confirmation emails
+      await this.processBookingConfirmation(booking, client)
+
     } catch (error) {
       console.error("Error in handleCheckoutSessionCompleted:", error)
     }
   },
 
+  async processBookingConfirmation(booking: any, client: any) {
+    try {
+      // Get activity and owner details
+      const { data: activity, error: activityError } = await client
+        .from("activities")
+        .select(`
+          *,
+          activity_owners (
+            id,
+            email,
+            business_name,
+            provider_id
+          )
+        `)
+        .eq("id", booking.activity_id)
+        .single()
+
+      if (activityError || !activity) {
+        console.error("Error fetching activity details:", activityError)
+        return
+      }
+
+      // Calculate platform commission (20%)
+      const platformCommissionRate = 0.20
+      const platformCommission = booking.total_amount * platformCommissionRate
+
+      // Get establishment and partner details if booking was made through establishment
+      let establishmentData = null
+      let partnerData = null
+      let partnerCommission = 0
+
+      if (booking.establishment_id) {
+        const { data: establishment, error: establishmentError } = await client
+          .from("establishments")
+          .select(`
+            *,
+            partner_registrations (
+              id,
+              email,
+              owner_name,
+              business_name,
+              commission_package
+            )
+          `)
+          .eq("id", booking.establishment_id)
+          .single()
+
+        if (!establishmentError && establishment) {
+          establishmentData = establishment
+          partnerData = establishment.partner_registrations
+
+          // Calculate partner commission based on package
+          const partnerCommissionRate = partnerData.commission_package === "premium" ? 0.15 : 0.10
+          partnerCommission = booking.total_amount * partnerCommissionRate
+
+          // Create establishment commission record
+          await client
+            .from("establishment_commissions")
+            .insert({
+              establishment_id: booking.establishment_id,
+              booking_id: booking.id,
+              activity_id: booking.activity_id,
+              commission_rate: partnerCommissionRate,
+              booking_amount: booking.total_amount,
+              commission_amount: partnerCommission,
+              commission_status: "pending",
+              booking_source: "website"
+            })
+        }
+      }
+
+      // Create commission invoice for activity owner
+      const invoiceNumber = `INV-${Date.now()}-${booking.id}`
+      const dueDate = new Date()
+      dueDate.setDate(dueDate.getDate() + 30) // 30 days from now
+
+      await client
+        .from("commission_invoices")
+        .insert({
+          booking_id: booking.id,
+          provider_id: activity.activity_owners.id,
+          invoice_number: invoiceNumber,
+          total_booking_amount: booking.total_amount,
+          platform_commission_rate: platformCommissionRate,
+          platform_commission_amount: platformCommission,
+          partner_commission_rate: partnerCommission > 0 ? (partnerCommission / booking.total_amount) : null,
+          partner_commission_amount: partnerCommission > 0 ? partnerCommission : null,
+          establishment_id: booking.establishment_id,
+          is_qr_booking: false,
+          invoice_status: "pending",
+          due_date: dueDate.toISOString()
+        })
+
+      // Update booking to mark commission invoice as generated
+      await client
+        .from("bookings")
+        .update({ commission_invoice_generated: true })
+        .eq("id", booking.id)
+
+      // Prepare email data
+      const emailData = {
+        bookingId: booking.id,
+        customerName: booking.customer_name,
+        customerEmail: booking.customer_email,
+        activityTitle: activity.title,
+        activityDescription: activity.description,
+        totalAmount: booking.total_amount,
+        participants: booking.participants,
+        bookingDate: booking.booking_date,
+        activityOwnerEmail: activity.activity_owners.email,
+        activityOwnerName: activity.activity_owners.business_name || "Activity Provider",
+        platformCommission: platformCommission,
+        partnerEmail: partnerData?.email,
+        partnerName: partnerData?.owner_name,
+        partnerCommission: partnerCommission > 0 ? partnerCommission : undefined,
+        establishmentName: establishmentData?.name
+      }
+
+      // Send confirmation emails
+      await emailService.sendBookingConfirmationEmails(emailData)
+
+      console.log(`Booking confirmation process completed for booking ${booking.id}`)
+
+    } catch (error) {
+      console.error("Error processing booking confirmation:", error)
+    }
+  },
+
   async handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent) {
-    const client = getSupabaseClient()
+    const client = getAdminSupabaseClient()
     if (!client) return
 
     console.log("Payment succeeded:", paymentIntent.id)

@@ -23,7 +23,6 @@ const recordStripeEvent = async (event: Stripe.Event) => {
     return
   }
   try {
-    // Log the event instead of storing in non-existent table
     console.log(`Stripe event received: ${event.type} - ${event.id}`)
   } catch (error) {
     console.error("Error recording Stripe event:", error)
@@ -56,18 +55,18 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       switch (event.type) {
         case "checkout.session.completed":
           const session = event.data.object as Stripe.Checkout.Session
-          // await stripeService.handleCheckoutSession(session)
+          await stripeService.handleCheckoutSessionCompleted(session)
           break
 
         case "checkout.session.async_payment_succeeded":
           const asyncPaymentSession = event.data.object as Stripe.Checkout.Session
-          // await stripeService.handleCheckoutSession(asyncPaymentSession)
+          await stripeService.handleCheckoutSessionCompleted(asyncPaymentSession)
           break
 
         case "checkout.session.async_payment_failed":
           const failedSession = event.data.object as Stripe.Checkout.Session
           if (failedSession.metadata?.bookingId) {
-            // await stripeService.updateBookingStatus(failedSession.metadata.bookingId, "cancelled")
+            console.log(`Payment failed for session: ${failedSession.id}`)
           }
           break
 
@@ -103,4 +102,3 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 }
 
 export default handler
-  
