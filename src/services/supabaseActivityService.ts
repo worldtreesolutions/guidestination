@@ -205,7 +205,8 @@ export const supabaseActivityService = {
       };
 
       console.log("[Service] Final activity object to be returned:", result);
-      console.log("[Service] Final available dates in result:", result.schedules.availableDates.map(d => d.date));
+      console.log("[Service] Final available dates in result:", result.schedules.availableDates);
+      console.log("[Service] Available dates as date strings:", result.schedules.availableDates.map(d => d.date));
 
       return result;
     } catch (error) {
