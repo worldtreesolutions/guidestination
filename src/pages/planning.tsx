@@ -6,16 +6,15 @@ import { useIsMobile } from "@/hooks/use-mobile"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { supabaseActivityService } from "@/services/supabaseActivityService"
 import { SupabaseActivity } from "@/types/activity"
-import { PlanningContext, usePlanning } from "@/contexts/PlanningContext"
+import { PlanningProvider, usePlanning } from "@/contexts/PlanningContext"
 import { useState, useEffect, useContext, useCallback } from "react"
 import { useToast } from "@/hooks/use-toast"
 
-export default function PlanningPage() {
+function Planner() {
   const { toast } = useToast()
   const [activities, setActivities] = useState<SupabaseActivity[]>([])
   const [loading, setLoading] = useState(true)
-  const { selectedActivities, addActivity, removeActivity, clearActivities } =
-    useContext(PlanningContext)
+  const planningContext = usePlanning()
 
   const fetchActivities = useCallback(async () => {
     try {
@@ -43,12 +42,21 @@ export default function PlanningPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      <main className="py-8">
-        <ExcursionPlanner activities={activities} onPlanComplete={(plan) => console.log(plan)} />
-      </main>
-      <Footer />
-    </div>
+    <ExcursionPlanner activities={activities} onPlanComplete={(plan) => console.log(plan)} />
+  )
+}
+
+
+export default function PlanningPage() {
+  return (
+    <PlanningProvider>
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <main className="py-8">
+          <Planner />
+        </main>
+        <Footer />
+      </div>
+    </PlanningProvider>
   )
 }
