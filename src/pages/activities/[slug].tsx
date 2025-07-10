@@ -32,6 +32,7 @@ import { useIsMobile } from "@/hooks/use-mobile"
 import { supabaseActivityService } from "@/services/supabaseActivityService"
 import customerService from "@/services/customerService"
 import { SupabaseActivity } from "@/types/activity"
+import { ActivityDetails } from "@/components/activities/ActivityDetails"
 
 export default function ActivityPage() {
   const router = useRouter()
@@ -61,7 +62,13 @@ export default function ActivityPage() {
       console.log("Fetched activity data:", activityData)
       console.log("Activity schedules:", activityData?.schedules)
       console.log("Available dates:", activityData?.schedules?.availableDates)
-      console.log("Selected options:", activityData?.selectedOptions)
+      console.log("Selected options:", activityData?.activity_selected_options)
+      console.log("Activity selected options structure:", activityData?.activity_selected_options?.map(opt => ({
+        id: opt.id,
+        name: opt.option_name,
+        type: opt.option_type,
+        selected: opt.is_selected
+      })))
       setActivity(activityData)
     } catch (error) {
       console.error("Error fetching activity:", error)
@@ -228,20 +235,45 @@ export default function ActivityPage() {
     return durationMap[duration] || `${duration} hours`
   }
 
+  // Get selected options from the database
+  const selectedHighlights = activity.activity_selected_options?.filter(
+    opt => opt.option_type === 'highlight' && opt.is_selected
+  ).map(opt => opt.option_name) || []
+
+  const selectedIncluded = activity.activity_selected_options?.filter(
+    opt => opt.option_type === 'included' && opt.is_selected
+  ).map(opt => opt.option_name) || []
+
+  const selectedNotIncluded = activity.activity_selected_options?.filter(
+    opt => opt.option_type === 'not_included' && opt.is_selected
+  ).map(opt => opt.option_name) || []
+
+  // Combine with any legacy data (fallback)
   const allHighlights = [
-    ...(activity.highlights || []),
-    ...(activity.selectedOptions?.filter(opt => opt.type === 'highlight' || opt.type === 'highlights').map(opt => opt.icon ? `${opt.icon} ${opt.label}` : opt.label) || [])
+    ...selectedHighlights,
+    ...(activity.highlights || [])
   ];
 
   const allIncluded = [
-    ...(activity.included || []),
-    ...(activity.selectedOptions?.filter(opt => opt.type === 'included' || opt.type === 'include').map(opt => opt.icon ? `${opt.icon} ${opt.label}` : opt.label) || [])
+    ...selectedIncluded,
+    ...(activity.included || [])
   ];
 
   const allNotIncluded = [
-    ...(activity.not_included || []),
-    ...(activity.selectedOptions?.filter(opt => opt.type === 'not_included' || opt.type === 'exclude' || opt.type === 'not included').map(opt => opt.icon ? `${opt.icon} ${opt.label}` : opt.label) || [])
+    ...selectedNotIncluded,
+    ...(activity.not_included || [])
   ];
+
+  console.log("Database selected options:", {
+    highlights: selectedHighlights,
+    included: selectedIncluded,
+    notIncluded: selectedNotIncluded
+  })
+  console.log("Combined data:", {
+    allHighlights,
+    allIncluded,
+    allNotIncluded
+  })
 
   console.log("All highlights:", allHighlights)
   console.log("All included:", allIncluded)
@@ -360,16 +392,7 @@ export default function ActivityPage() {
                   </TabsList>
 
                   <TabsContent value="overview" className="space-y-6">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>About This Experience</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-muted-foreground leading-relaxed">
-                          {activity.description}
-                        </p>
-                      </CardContent>
-                    </Card>
+                    <ActivityDetails activity={activity} />
 
                     {allHighlights.length > 0 && (
                       <Card>
