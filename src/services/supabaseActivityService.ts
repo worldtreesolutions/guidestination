@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client"
 import { SupabaseActivity, SupabaseBooking, ActivityForHomepage } from "@/types/activity";
 
@@ -18,7 +17,7 @@ const getActivityById = async (id: string): Promise<SupabaseActivity | null> => 
   return {
     ...data,
     category_name: data.categories?.name || 'N/A',
-  } as SupabaseActivity;
+  } as unknown as SupabaseActivity;
 };
 
 const supabaseActivityService = {
@@ -197,12 +196,12 @@ const fetchActivitiesByOwner = async (ownerId: string): Promise<SupabaseActivity
   return data.map((activity: any) => ({
     ...activity,
     category_name: activity.categories.name,
-  })) as SupabaseActivity[];
+  })) as unknown as SupabaseActivity[];
 };
 
 const fetchRecentBookingsForOwner = async (ownerId: string): Promise<SupabaseBooking[]> => {
   const { data, error } = await supabase
-    .rpc('get_recent_bookings_for_owner', { owner_id_param: ownerId })
+    .rpc('get_recent_bookings_for_owner' as any, { owner_id_param: ownerId })
 
   if (error) {
     console.error("Error fetching recent bookings:", error);
@@ -214,7 +213,7 @@ const fetchRecentBookingsForOwner = async (ownerId: string): Promise<SupabaseBoo
 
 const fetchBookingsForOwner = async (ownerId: string): Promise<SupabaseBooking[]> => {
   const { data, error } = await supabase
-    .rpc('get_bookings_for_owner', { owner_id_param: ownerId })
+    .rpc('get_bookings_for_owner' as any, { owner_id_param: ownerId })
 
   if (error) {
     console.error("Error fetching bookings:", error);
@@ -226,7 +225,7 @@ const fetchBookingsForOwner = async (ownerId: string): Promise<SupabaseBooking[]
 
 const fetchEarningsForOwner = async (ownerId: string) => {
   const { data, error } = await supabase
-    .rpc('get_earnings_for_owner', { owner_id_param: ownerId })
+    .rpc('get_earnings_for_owner' as any, { owner_id_param: ownerId })
 
   if (error) {
     console.error("Error fetching earnings for owner:", error);

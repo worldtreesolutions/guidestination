@@ -20,7 +20,7 @@ export interface RecommendedPlan {
 }
 
 export class RecommendationService {
-  private fetchRecommendedActivities(preferences: UserPreferences): SupabaseActivity[] {
+  private async fetchRecommendedActivities(preferences: UserPreferences): Promise<SupabaseActivity[]> {
     const { travelStyle, budget, unavailableDays, travelDates } = preferences;
     const { start, end } = travelDates;
 
@@ -36,15 +36,15 @@ export class RecommendationService {
       return [];
     }
 
-    return data.map(a => ({...a, category_name: a.categories.name})) as SupabaseActivity[];
+    return data.map(a => ({...a, category_name: a.categories.name})) as unknown as SupabaseActivity[];
   }
 
   private calculateTotalPrice(activities: SupabaseActivity[]): number {
     return activities.reduce((total, activity) => total + (activity.price || 0), 0);
   }
 
-  public getRecommendations(preferences: UserPreferences): RecommendedPlan {
-    const activities = this.fetchRecommendedActivities(preferences);
+  public async getRecommendations(preferences: UserPreferences): Promise<RecommendedPlan> {
+    const activities = await this.fetchRecommendedActivities(preferences);
 
     // Mock assigning day and timeslot
     const recommendedActivities: RecommendedActivity[] = activities.map((act, index) => ({

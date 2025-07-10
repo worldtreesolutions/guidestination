@@ -1,4 +1,3 @@
-
 export interface SupabaseActivity {
   id: number;
   title: string;
@@ -40,6 +39,11 @@ export interface SupabaseActivity {
   } | null;
   schedules?: {
     availableDates?: string[];
+  };
+  activity_owners?: {
+    business_name: string;
+    contact_email: string;
+    contact_phone: string;
   };
 }
 

@@ -2,7 +2,6 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ActivityCard } from "./ActivityCard";
 import { useRef } from "react";
-import { SupabaseActivity } from "@/services/supabaseActivityService";
 import Link from "next/link"
 import { ActivityForHomepage } from "@/types/activity"
 

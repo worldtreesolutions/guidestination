@@ -67,7 +67,7 @@ export function ActivityList({ activities, onEdit, onView }: ActivityListProps) 
               <div className="flex items-center space-x-4">
                 <div className="flex items-center gap-3">
                   <Image
-                    src={activity.image_url?.[0] || '/placeholder.svg'}
+                    src={activity.image_urls?.[0] || '/placeholder.svg'}
                     alt={activity.title}
                     width={40}
                     height={40}

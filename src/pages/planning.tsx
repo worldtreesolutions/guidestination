@@ -17,8 +17,8 @@ export default function PlanningPage() {
   useEffect(() => {
     const fetchActivities = async () => {
       setLoading(true)
-      const featuredActivities = await supabaseActivityService.getFeaturedActivities()
-      setActivities(featuredActivities)
+      const activitiesData = await supabaseActivityService.getActivities({})
+      setActivities(activitiesData)
       setLoading(false)
     }
     fetchActivities()

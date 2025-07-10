@@ -27,7 +27,8 @@ import { AvailabilityCalendar } from "@/components/activities/AvailabilityCalend
 import { BookingForm } from "@/components/activities/BookingForm"
 import { ActivityReviews } from "@/components/activities/ActivityReviews"
 import { useIsMobile } from "@/hooks/use-mobile"
-import { supabaseActivityService, SupabaseActivity } from "@/services/supabaseActivityService"
+import { supabaseActivityService } from "@/services/supabaseActivityService"
+import { SupabaseActivity } from "@/types/activity"
 
 export default function ActivityBookingPage() {
   const router = useRouter()

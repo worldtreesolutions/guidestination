@@ -80,7 +80,7 @@ export function ActivityCard({ activity, onEdit, onDelete, onView }: ActivityCar
       <div className="aspect-video relative">
         <Link href={`/dashboard/activities/${activity.id}`}>
           <Image
-            src={activity.image_url?.[0] || '/placeholder.svg'}
+            src={activity.image_urls?.[0] || '/placeholder.svg'}
             alt={activity.title}
             width={300}
             height={169}
@@ -88,8 +88,8 @@ export function ActivityCard({ activity, onEdit, onDelete, onView }: ActivityCar
           />
         </Link>
         <div className="absolute top-2 right-2">
-          <Badge className={getStatusColor(activity.is_active)}>
-            {getStatusText(activity.is_active)}
+          <Badge className={getStatusColor(activity.is_active ?? false)}>
+            {getStatusText(activity.is_active ?? false)}
           </Badge>
         </div>
       </div>

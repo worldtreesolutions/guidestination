@@ -48,7 +48,7 @@ export function BulkBookingWidget({ activities, onClearSelection }: BulkBookingW
         {activities.map((activity) => (
           <div key={activity.id} className="flex items-center space-x-3 p-3 border rounded-lg">
             <Image
-              src={isScheduledActivity(activity) ? activity.imageUrl : (activity.image_url?.[0] || "/placeholder.svg")}
+              src={isScheduledActivity(activity) ? activity.imageUrl : (activity.image_urls?.[0] || "/placeholder.svg")}
               alt={activity.title}
               width={80}
               height={80}

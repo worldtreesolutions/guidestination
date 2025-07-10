@@ -63,7 +63,7 @@ export function ExcursionPlanner({ activities, onPlanComplete }: ExcursionPlanne
       const activity: ScheduledActivity = {
         id: selected.id.toString(),
         title: selected.title,
-        imageUrl: selected.image_url?.[0] || "",
+        imageUrl: selected.image_urls?.[0] || "",
         day: "",
         hour: 0,
         duration: selected.duration || 2,

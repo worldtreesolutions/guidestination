@@ -62,7 +62,7 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
         const newScheduledActivity: ScheduledActivity = {
           id: activityToSchedule.id.toString(),
           title: activityToSchedule.title,
-          imageUrl: activityToSchedule.image_url?.[0] || "",
+          imageUrl: activityToSchedule.image_urls?.[0] || "",
           day,
           hour,
           duration: activityToSchedule.duration || 2,

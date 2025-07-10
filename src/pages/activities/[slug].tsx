@@ -114,7 +114,7 @@ export default function ActivityPage() {
     <>
       <Head>
         <title>{activity.title} - Guidestination</title>
-        <meta name="description" content={activity.description} />
+        <meta name="description" content={activity.description || ""} />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </Head>
 

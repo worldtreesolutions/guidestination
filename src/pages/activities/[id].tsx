@@ -26,8 +26,6 @@ import { supabaseActivityService } from "@/services/supabaseActivityService"
 import { SupabaseActivity } from "@/types/activity"
 import customerService from "@/services/customerService"
 import Image from "next/image"
-import ActivitySchedule from "@/components/activities/ActivitySchedule"
-import ChatModal from "@/components/activities/ChatModal"
 import { ActivityReviews } from "@/components/activities/ActivityReviews"
 import { useIsMobile } from "@/hooks/use-mobile"
 
@@ -43,12 +41,12 @@ export default function ActivityPage() {
   const [wishlistLoading, setWishlistLoading] = useState(false)
   const [isChatOpen, setIsChatOpen] = useState(false)
 
-  const fetchActivity = async () => {
+  const fetchActivity = useCallback(async () => {
     if (!id || typeof id !== "string") return
     
     try {
       setLoading(true)
-      const activityData = await supabaseActivityService.getActivityById(id)
+      const activityData = await supabaseActivityService.getActivityById(id as string)
       setActivity(activityData)
     } catch (error) {
       console.error("Error fetching activity:", error)
@@ -60,11 +58,11 @@ export default function ActivityPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [id, toast])
 
   useEffect(() => {
     fetchActivity()
-  }, [id, fetchActivity])
+  }, [fetchActivity])
 
   const checkWishlistStatus = useCallback(async () => {
     if (!user || !activity) return
@@ -187,7 +185,7 @@ export default function ActivityPage() {
           <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-8">
             <div className="relative aspect-video">
               <Image
-                src={activity.image_url || "https://images.unsplash.com/photo-1563492065599-3520f775eeed"}
+                src={activity.image_urls?.[0] || "https://images.unsplash.com/photo-1563492065599-3520f775eeed"}
                 alt={activity.title}
                 fill
                 className="object-cover"
@@ -201,7 +199,7 @@ export default function ActivityPage() {
                   <div className="flex items-center gap-4 text-gray-600 mb-4">
                     <div className="flex items-center gap-1">
                       <MapPin className="h-4 w-4" />
-                      <span>{activity.location || activity.pickup_location || "Location TBD"}</span>
+                      <span>{activity.location || activity.pickup_locations || "Location TBD"}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <Clock className="h-4 w-4" />
@@ -222,7 +220,7 @@ export default function ActivityPage() {
                     )}
                   </div>
                   <Badge variant="secondary" className="mb-4">
-                    {activity.category || "General"}
+                    {activity.category_name || "General"}
                   </Badge>
                 </div>
                 
@@ -261,11 +259,10 @@ export default function ActivityPage() {
 
           {/* Activity Details Tabs */}
           <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="schedule">Schedule</TabsTrigger>
               <TabsTrigger value="details">Details</TabsTrigger>
-              <TabsTrigger value="contact">Contact</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="space-y-6">
@@ -298,7 +295,14 @@ export default function ActivityPage() {
             </TabsContent>
 
             <TabsContent value="schedule">
-              <ActivitySchedule activity={activity} />
+              <Card>
+                <CardHeader>
+                  <CardTitle>Schedule</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>Schedule information will be available here.</p>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="details" className="space-y-6">
@@ -353,7 +357,7 @@ export default function ActivityPage() {
                   {activity.includes_pickup && (
                     <div>
                       <h4 className="font-medium mb-2">Pickup Information</h4>
-                      <p className="text-gray-600">{activity.pickup_location || "Pickup details to be confirmed"}</p>
+                      <p className="text-gray-600">{activity.pickup_locations || "Pickup details to be confirmed"}</p>
                     </div>
                   )}
 
@@ -377,65 +381,16 @@ export default function ActivityPage() {
                 </CardContent>
               </Card>
             </TabsContent>
-
-            <TabsContent value="contact">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Contact Activity Owner</CardTitle>
-                  <CardDescription>
-                    Get in touch with the activity provider for questions or special requests
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {activity.activity_owners && (
-                    <div className="space-y-4">
-                      <div>
-                        <h4 className="font-medium mb-2">Business Name</h4>
-                        <p className="text-gray-600">{activity.activity_owners.business_name}</p>
-                      </div>
-                      
-                      <div className="flex gap-4">
-                        {activity.activity_owners.contact_email && (
-                          <div className="flex items-center gap-2">
-                            <Mail className="h-4 w-4 text-blue-600" />
-                            <span className="text-gray-600">{activity.activity_owners.contact_email}</span>
-                          </div>
-                        )}
-                        
-                        {activity.activity_owners.contact_phone && (
-                          <div className="flex items-center gap-2">
-                            <Phone className="h-4 w-4 text-blue-600" />
-                            <span className="text-gray-600">{activity.activity_owners.contact_phone}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                  
-                  <div className="pt-4">
-                    <Button onClick={handleChatWithOwner} className="flex items-center gap-2">
-                      <MessageCircle className="h-4 w-4" />
-                      Start Chat
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
           </Tabs>
         </div>
       </div>
 
       {/* Chat Modal */}
-      {activity && (
-        <ChatModal
-          isOpen={isChatOpen}
-          onClose={() => setIsChatOpen(false)}
-          activity={activity}
-          currentUser={user}
-        />
+      {activity && user && (
+        <div />
       )}
 
-      <ActivityReviews activity={activity} />
+      <ActivityReviews activityId={activity.id.toString()} rating={activity.rating || 0} reviewCount={activity.review_count || 0} />
 
       <Footer />
     </>
