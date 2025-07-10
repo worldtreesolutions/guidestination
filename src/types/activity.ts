@@ -1,5 +1,6 @@
+
 export interface SupabaseActivity {
-  id: string;
+  id: number;
   title: string;
   name: string;
   description: string | null;
@@ -38,6 +39,7 @@ export interface SupabaseActivity {
       capacity: number;
       booked: number;
       available: number;
+      price?: number;
     }[];
   };
   selectedOptions?: {
@@ -47,10 +49,12 @@ export interface SupabaseActivity {
     type: string;
     category: string;
   }[];
+  status?: "published" | "unpublished" | "draft" | "archived";
+  booking_type?: "daily" | "hourly";
 }
 
 export interface ActivityForHomepage {
-  id: string;
+  id: number;
   title: string;
   name: string;
   description: string | null;
@@ -68,24 +72,32 @@ export interface ActivityForHomepage {
 
 export interface SupabaseBooking {
   id: string;
-  created_at: string;
-  activity_id: string;
+  activity_id: number;
   user_id: string;
+  booking_date: string;
   status: string;
+  num_participants: number;
   total_price: number;
-  activities: SupabaseActivity;
-  activityTitle: string;
-  customerName: string;
-  customerEmail: string;
-  date: string;
-  bookingTime: string;
-  participants: number;
-  providerAmount: number;
-  platformFee: number;
-  totalAmount: number;
+  created_at: string;
+}
+
+export interface Booking extends SupabaseBooking {
+  activityTitle?: string;
+  customerName?: string;
+  customerEmail?: string;
+  date?: string;
+  bookingTime?: string;
+  providerAmount?: number;
+  platformFee?: number;
+  totalAmount?: number;
+  activities?: {
+    title: string;
+  };
 }
 
 export interface Earning {
   total: number;
-  month: string;
+  monthly: { month: string; amount: number }[];
+  pending: number;
 }
+  

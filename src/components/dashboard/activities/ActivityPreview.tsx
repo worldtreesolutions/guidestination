@@ -17,7 +17,7 @@ export function ActivityPreview({ activityId }: ActivityPreviewProps) {
     const fetchActivity = async () => {
       if (activityId) {
         try {
-          const fetchedActivity = await supabaseActivityService.getActivityById(activityId);
+          const fetchedActivity = await supabaseActivityService.getActivityById(parseInt(activityId));
           setActivity(fetchedActivity);
         } catch (error) {
           console.error("Error fetching activity preview:", error);

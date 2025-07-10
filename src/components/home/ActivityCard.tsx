@@ -54,7 +54,7 @@ export function ActivityCard({ activity }: ActivityCardProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
-            <span className="text-sm">{(rating || 0).toFixed(1)}</span>
+            <span className="text-sm">{(activity?.rating || 0).toFixed(1)}</span>
           </div>
           <div className="text-lg font-bold text-blue-600">
             ฿{safePrice.toLocaleString()}

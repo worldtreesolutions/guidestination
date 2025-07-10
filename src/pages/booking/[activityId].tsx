@@ -47,7 +47,7 @@ export default function ActivityBookingPage() {
       
       try {
         setLoading(true)
-        const activityData = await supabaseActivityService.getActivityById(activityId)
+        const activityData = await supabaseActivityService.getActivityById(parseInt(activityId as string))
         setActivity(activityData)
       } catch (error) {
         console.error("Error fetching activity:", error)
@@ -324,7 +324,7 @@ export default function ActivityBookingPage() {
                       <div>
                         <h3 className="font-semibold mb-3">Select Date</h3>
                         <AvailabilityCalendar
-                          availableDates={activity.schedules?.availableDates || []}
+                          availableDates={activity.schedules?.availableDates?.map((d: any) => d.date) || []}
                           selectedDate={selectedDate}
                           onDateSelect={setSelectedDate}
                         />
@@ -412,15 +412,15 @@ export default function ActivityBookingPage() {
 
         <div className="mt-8">
           <h2 className="text-2xl font-bold mb-4">Schedule</h2>
-          {activity.schedule && (
+          {activity.schedules && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="border rounded-lg p-4">
                 <h3 className="font-semibold mb-2">Start Time</h3>
-                <p>{activity.schedule.startTime || "Not specified"}</p>
+                <p>{activity.schedules?.availableDates[0]?.startTime || "Not specified"}</p>
               </div>
               <div className="border rounded-lg p-4">
                 <h3 className="font-semibold mb-2">End Time</h3>
-                <p>{activity.schedule.endTime || "Not specified"}</p>
+                <p>{activity.schedules?.availableDates[0]?.endTime || "Not specified"}</p>
               </div>
             </div>
           )}

@@ -6,18 +6,18 @@ import { useLanguage } from "@/contexts/LanguageContext"
 import { LanguageSelector } from "@/components/layout/LanguageSelector"
 import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout"
 import { DashboardHeader } from "@/components/activity-owner/dashboard/DashboardHeader"
-import { EarningsChart } from "@/components/activity-owner/dashboard/EarningsChart"
-import { RecentBookings } from "@/components/activity-owner/dashboard/RecentBookings"
 import { ActivityList } from "@/components/activity-owner/dashboard/ActivityList"
+import { RecentBookings } from "@/components/activity-owner/dashboard/RecentBookings"
+import { EarningsChart } from "@/components/activity-owner/dashboard/EarningsChart"
 import { supabaseActivityService } from "@/services/supabaseActivityService"
-import { SupabaseActivity, Booking } from "@/types/activity"
+import { SupabaseActivity, Booking, Earning } from "@/types/activity"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 
-export default function DashboardPage() {
-  const { user, isAuthenticated } = useAuth()
+export default function ActivityOwnerDashboard() {
+  const { user } = useAuth()
   const { t } = useLanguage()
   const router = useRouter()
   const { toast } = useToast()
@@ -38,7 +38,7 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!user) {
       router.push("/activity-owner/login")
       return
     }
@@ -64,13 +64,13 @@ export default function DashboardPage() {
     }
 
     fetchDashboardData()
-  }, [user, isAuthenticated, router, toast, t])
+  }, [user, router, toast, t])
 
   const handleDeleteActivity = async () => {
     if (!activityToDelete) return;
     try {
-      await supabaseActivityService.deleteActivity(activityToDelete);
-      setActivities(activities.filter((a) => a.id !== activityToDelete));
+      await supabaseActivityService.deleteActivity(parseInt(activityToDelete));
+      setActivities(activities.filter((a) => a.id.toString() !== activityToDelete));
       toast({
         title: "Success",
         description: "Activity deleted successfully.",
@@ -127,7 +127,7 @@ export default function DashboardPage() {
 
           <ActivityList
             activities={activities}
-            onDelete={(id) => setActivityToDelete(id)}
+            onDelete={(id) => setActivityToDelete(id.toString())}
           />
 
           <RecentBookings bookings={bookings.slice(0, 5)} />

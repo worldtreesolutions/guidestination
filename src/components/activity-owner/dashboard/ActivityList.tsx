@@ -81,7 +81,7 @@ export function ActivityList({ activities, onDelete }: ActivityListProps) {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => onDelete(activity.id)}
+                      onClick={() => onDelete(activity.id.toString())}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

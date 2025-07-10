@@ -4,16 +4,17 @@ import Head from "next/head";
 import { useAuth } from "@/contexts/AuthContext";
 import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout";
 import { supabaseActivityService } from "@/services/supabaseActivityService";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Line, LineChart } from "recharts";
 import { CreditCard, TrendingUp, DollarSign, Calendar } from "lucide-react";
 import { Booking, Earning } from "@/types/activity";
+import { Badge } from "@/components/ui/badge";
 
 export default function EarningsPage() {
-  const { user, isAuthenticated } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -154,7 +155,7 @@ export default function EarningsPage() {
               <CardContent>
                 <div className="text-2xl font-bold">
                   ฿{bookings.length > 0 
-                    ? Math.round(bookings.reduce((sum, b) => sum + b.providerAmount, 0) / bookings.length).toLocaleString() 
+                    ? Math.round(bookings.reduce((sum, b) => sum + (b.providerAmount || 0), 0) / bookings.length).toLocaleString() 
                     : 0}
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -286,10 +287,10 @@ export default function EarningsPage() {
                             <TableCell>{new Date(booking.created_at).toLocaleDateString()}</TableCell>
                             <TableCell className="font-medium">{booking.activityTitle}</TableCell>
                             <TableCell>{booking.customerName}</TableCell>
-                            <TableCell>{booking.participants}</TableCell>
-                            <TableCell>฿{booking.totalAmount.toLocaleString()}</TableCell>
-                            <TableCell>฿{booking.platformFee.toLocaleString()}</TableCell>
-                            <TableCell className="font-medium">฿{booking.providerAmount.toLocaleString()}</TableCell>
+                            <TableCell>{booking.num_participants}</TableCell>
+                            <TableCell>฿{(booking.totalAmount || 0).toLocaleString()}</TableCell>
+                            <TableCell>฿{(booking.platformFee || 0).toLocaleString()}</TableCell>
+                            <TableCell className="font-medium">฿{(booking.providerAmount || 0).toLocaleString()}</TableCell>
                           </TableRow>
                         ))}
                     </TableBody>

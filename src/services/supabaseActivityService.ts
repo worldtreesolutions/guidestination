@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client"
-import { SupabaseActivity, ActivityForHomepage, SupabaseBooking, Earning } from "@/types/activity"
+import { SupabaseActivity, ActivityForHomepage, SupabaseBooking, Earning, Booking } from "@/types/activity"
 
 export const supabaseActivityService = {
   baseActivitySelect: `
@@ -13,7 +13,7 @@ export const supabaseActivityService = {
         .from("activities")
         .select(this.baseActivitySelect)
         .eq("is_active", true)
-        .order("average_rating", { ascending: false, nulls: "last" })
+        .order("average_rating", { ascending: false, nullsFirst: false })
         .limit(limit)
 
       if (error) {
@@ -34,7 +34,7 @@ export const supabaseActivityService = {
         .from("activities")
         .select(this.baseActivitySelect)
         .eq("is_active", true)
-        .order("average_rating", { ascending: false, nulls: "last" })
+        .order("average_rating", { ascending: false, nullsFirst: false })
         .limit(limit)
 
       if (error) {
@@ -70,7 +70,7 @@ export const supabaseActivityService = {
     }
   },
 
-  async getActivityById(id: string): Promise<SupabaseActivity> {
+  async getActivityById(id: number): Promise<SupabaseActivity> {
     try {
       const { data, error } = await supabase
         .from("activities")
@@ -204,25 +204,13 @@ export const supabaseActivityService = {
     try {
       const { data, error } = await supabase
         .from("activities")
-        .insert([{
-          title: activityData.title || "",
-          description: activityData.description || null,
-          category: activityData.category || "",
-          base_price_thb: activityData.price || 0,
-          max_participants: activityData.max_participants || 0,
-          duration: activityData.duration || 0,
-          meeting_point: activityData.meeting_point || null,
-          includes_pickup: activityData.includes_pickup || false,
-          pickup_locations: activityData.pickup_locations || null,
-          includes_meal: activityData.includes_meal || false,
-          meal_description: activityData.meal_description || null,
+        .insert({
+          ...activityData,
           highlights: activityData.highlights ? JSON.stringify(activityData.highlights) : null,
           included: activityData.included ? JSON.stringify(activityData.included) : null,
           not_included: activityData.not_included ? JSON.stringify(activityData.not_included) : null,
           languages: activityData.languages ? JSON.stringify(activityData.languages) : null,
-          provider_id: activityData.provider_id || "",
-          is_active: true
-        }])
+        })
         .select()
         .single()
 
@@ -238,7 +226,7 @@ export const supabaseActivityService = {
     }
   },
 
-  async updateActivity(id: string, activityData: Partial<SupabaseActivity>): Promise<SupabaseActivity> {
+  async updateActivity(id: number, activityData: Partial<SupabaseActivity>): Promise<SupabaseActivity> {
     try {
       const updateData: any = {
         updated_at: new Date().toISOString()
@@ -279,7 +267,7 @@ export const supabaseActivityService = {
     }
   },
 
-  async deleteActivity(id: string): Promise<boolean> {
+  async deleteActivity(id: number): Promise<boolean> {
     try {
       const { error } = await supabase
         .from("activities")
@@ -298,22 +286,88 @@ export const supabaseActivityService = {
     }
   },
 
-  async fetchBookingsForOwner(ownerId: string): Promise<SupabaseBooking[]> {
-    // This is a placeholder implementation.
-    console.log("Fetching bookings for owner:", ownerId)
-    return Promise.resolve([])
+  async fetchBookingsForOwner(ownerId: string): Promise<Booking[]> {
+    const { data: activitiesData, error: activitiesError } = await supabase
+      .from('activities')
+      .select('id')
+      .eq('provider_id', ownerId);
+
+    if (activitiesError) {
+      console.error('Error fetching activities for owner:', activitiesError);
+      throw activitiesError;
+    }
+
+    if (!activitiesData) {
+      return [];
+    }
+
+    const activityIds = activitiesData.map((a: { id: number }) => a.id);
+
+    if (activityIds.length === 0) {
+      return [];
+    }
+
+    const { data, error } = await supabase
+      .from('bookings')
+      .select(`
+        *,
+        activities:activity_id (
+          title
+        ),
+        profiles:user_id (
+          full_name,
+          email
+        )
+      `)
+      .in('activity_id', activityIds);
+
+    if (error) {
+      console.error("Error fetching bookings for owner:", error);
+      throw error;
+    }
+
+    return data.map((b: any) => ({
+      ...b,
+      activityTitle: b.activities?.title,
+      customerName: b.profiles?.full_name,
+      customerEmail: b.profiles?.email,
+      date: b.booking_date,
+      bookingTime: new Date(b.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      participants: b.num_participants,
+      totalAmount: b.total_price,
+      platformFee: b.total_price * 0.1, // Assuming 10% fee
+      providerAmount: b.total_price * 0.9,
+    })) as Booking[];
   },
 
-  async fetchRecentBookingsForOwner(ownerId: string): Promise<SupabaseBooking[]> {
-    // This is a placeholder implementation.
-    console.log("Fetching recent bookings for owner:", ownerId)
-    return Promise.resolve([])
+  async fetchRecentBookingsForOwner(ownerId: string): Promise<Booking[]> {
+    const bookings = await this.fetchBookingsForOwner(ownerId);
+    return bookings
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .slice(0, 5);
   },
 
-  async fetchEarningsForOwner(ownerId: string): Promise<any> {
-    // This is a placeholder implementation.
-    console.log("Fetching earnings for owner:", ownerId)
-    return Promise.resolve({ total: 0, monthly: [], pending: 0 })
+  async fetchEarningsForOwner(ownerId: string): Promise<Earning> {
+    const bookings = await this.fetchBookingsForOwner(ownerId);
+    
+    const total = bookings.reduce((sum, b) => sum + (b.providerAmount || 0), 0);
+    const pending = bookings
+      .filter(b => b.status === 'confirmed')
+      .reduce((sum, b) => sum + (b.providerAmount || 0), 0);
+
+    const monthly: { month: string; amount: number }[] = [];
+    bookings.forEach(b => {
+      if (!b.created_at) return;
+      const month = new Date(b.created_at).toLocaleString('default', { month: 'short', year: 'numeric' });
+      const existing = monthly.find(m => m.month === month);
+      if (existing) {
+        existing.amount += (b.providerAmount || 0);
+      } else {
+        monthly.push({ month, amount: (b.providerAmount || 0) });
+      }
+    });
+
+    return { total, pending, monthly };
   },
 
   transformActivity(data: any): SupabaseActivity {
@@ -373,7 +427,7 @@ export const supabaseActivityService = {
       : []
 
     return {
-      id: String(data.id),
+      id: data.id,
       title: data.title || data.name || data.activity_name || "",
       name: data.name || data.title || data.activity_name || "",
       description: data.description || "",
@@ -413,7 +467,7 @@ export const supabaseActivityService = {
 
   convertToHomepageFormat(activities: SupabaseActivity[]): ActivityForHomepage[] {
     return activities.map(activity => ({
-      id: String(activity.id),
+      id: activity.id,
       title: activity.title,
       name: activity.name,
       description: activity.description,

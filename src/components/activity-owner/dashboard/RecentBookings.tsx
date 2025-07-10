@@ -1,10 +1,10 @@
-import { SupabaseBooking } from "@/types/activity"
+import { SupabaseBooking, Booking } from "@/types/activity"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 
 interface RecentBookingsProps {
-  bookings: SupabaseBooking[];
+  bookings: Booking[];
 }
 
 export function RecentBookings({ bookings }: RecentBookingsProps) {
@@ -48,9 +48,9 @@ export function RecentBookings({ bookings }: RecentBookingsProps) {
               <TableRow key={booking.id}>
                 <TableCell className="font-medium">{booking.activityTitle}</TableCell>
                 <TableCell>{booking.customerName}</TableCell>
-                <TableCell>{new Date(booking.date).toLocaleDateString()} at {booking.bookingTime}</TableCell>
-                <TableCell>{booking.participants}</TableCell>
-                <TableCell>฿{booking.providerAmount.toLocaleString()}</TableCell>
+                <TableCell>{new Date(booking.date || booking.created_at).toLocaleDateString()} at {booking.bookingTime}</TableCell>
+                <TableCell>{booking.num_participants}</TableCell>
+                <TableCell>฿{(booking.providerAmount || 0).toLocaleString()}</TableCell>
                 <TableCell>
                   <Badge className={getStatusColor(booking.status)} variant="outline">
                     {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}

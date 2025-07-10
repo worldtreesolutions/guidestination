@@ -51,7 +51,7 @@ export default function ActivityPage() {
     
     try {
       setLoading(true)
-      const activityData = await supabaseActivityService.getActivityById(slug)
+      const activityData = await supabaseActivityService.getActivityById(parseInt(slug))
       setActivity(activityData)
     } catch (error) {
       console.error("Error fetching activity:", error)
@@ -75,7 +75,7 @@ export default function ActivityPage() {
     if (!user || !activity) return
     try {
       const wishlist = await customerService.getWishlist(user.id)
-      setIsInWishlist(wishlist.some(item => item.activity_id === Number(activity.id)))
+      setIsInWishlist(wishlist.some(item => item.activity_id === activity.id))
     } catch (error) {
       console.error("Error checking wishlist status:", error)
     }
@@ -103,14 +103,14 @@ export default function ActivityPage() {
     setWishlistLoading(true)
     try {
       if (isInWishlist) {
-        await customerService.removeFromWishlist(user.id, Number(activity.id))
+        await customerService.removeFromWishlist(user.id, activity.id)
         setIsInWishlist(false)
         toast({
           title: "Removed from wishlist",
           description: "Activity removed from your wishlist.",
         })
       } else {
-        await customerService.addToWishlist(user.id, Number(activity.id))
+        await customerService.addToWishlist(user.id, activity.id)
         setIsInWishlist(true)
         toast({
           title: "Added to wishlist",

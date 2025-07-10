@@ -3,12 +3,13 @@ import { useRouter } from "next/router";
 import Head from "next/head";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { SupabaseActivity } from "@/types/activity";
+import { SupabaseActivity, Booking } from "@/types/activity";
 import { useToast } from "@/hooks/use-toast";
 import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout";
 import { ActivityCard } from "@/components/dashboard/activities/ActivityCard";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
+import { supabaseActivityService } from "@/services/supabaseActivityService";
 
 export default function ActivitiesPage() {
   const { user } = useAuth();
@@ -16,69 +17,30 @@ export default function ActivitiesPage() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [activities, setActivities] = useState<SupabaseActivity[]>([]);
+  const [activityBookings, setActivityBookings] = useState<Record<string, Booking[]>>({});
 
   useEffect(() => {
-    const fetchActivities = async () => {
-      if (!user) {
-        router.push("/activity-owner/login");
-        return;
+    const fetchActivitiesAndBookings = async () => {
+      if (user) {
+        const ownerId = user.id
+        const [fetchedActivities, fetchedBookings] = await Promise.all([
+          supabaseActivityService.fetchActivitiesByOwner(ownerId),
+          supabaseActivityService.fetchBookingsForOwner(ownerId),
+        ])
+        setActivities(fetchedActivities)
+
+        const bookingsByActivity: Record<string, Booking[]> = {}
+        fetchedActivities.forEach((activity: SupabaseActivity) => {
+          bookingsByActivity[activity.id] = fetchedBookings.filter(
+            (booking: Booking) => booking.activity_id === activity.id
+          )
+        })
+        setActivityBookings(bookingsByActivity)
+        setLoading(false)
       }
-
-      setLoading(true);
-
-      try {
-        const { data: ownerData, error: ownerError } = await supabase
-          .from("activity_owners")
-          .select("id")
-          .eq("user_id", user.id)
-          .single();
-
-        if (ownerError || !ownerData) {
-          console.error("Error fetching activity owner:", ownerError);
-          toast({
-            title: "Error",
-            description: "Could not find activity owner profile.",
-            variant: "destructive",
-          });
-          setLoading(false);
-          return;
-        }
-
-        const { data, error } = await supabase
-          .from("activities")
-          .select("*, categories(name)")
-          .eq("owner_id", ownerData.id);
-
-        if (error) {
-          throw error;
-        }
-        
-        const mappedData = data.map(d => ({
-            ...d,
-            category_name: d.categories?.name || "Uncategorized",
-            name: d.title,
-            min_participants: d.max_participants || 1,
-            inclusions: d.included || [],
-            exclusions: d.not_included || [],
-            additional_info: null,
-            booking_type: "instant"
-        })) as unknown as SupabaseActivity[];
-
-        setActivities(mappedData);
-      } catch (error) {
-        console.error("Error fetching activities:", error);
-        toast({
-          title: "Error",
-          description: "Failed to fetch your activities.",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
+    }
     if (user) {
-      fetchActivities();
+      fetchActivitiesAndBookings()
     }
   }, [user, router, toast]);
 

@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client"
 
 export interface CustomerProfile {
@@ -154,14 +153,8 @@ const customerService = {
   async addToWishlist(userId: string, activityId: number) {
     const { data, error } = await supabase
       .from("wishlist")
-      .insert({ customer_id: userId, activity_id: activityId })
-      .select()
-      .single()
-
-    if (error) {
-      console.error("Error adding to wishlist:", error)
-      throw error
-    }
+      .insert([{ customer_id: userId, activity_id: activityId }])
+    if (error) throw error
     return data
   },
 

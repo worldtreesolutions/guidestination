@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { 
@@ -28,9 +28,10 @@ interface ActivityCardProps {
   onEdit?: (activity: SupabaseActivity) => void;
   onDelete?: (activityId: number) => void;
   onView?: (activity: SupabaseActivity) => void;
+  onTogglePublish?: (activityId: number) => void;
 }
 
-export function ActivityCard({ activity, onEdit, onDelete, onView }: ActivityCardProps) {
+export function ActivityCard({ activity, onEdit, onDelete, onView, onTogglePublish }: ActivityCardProps) {
   const [isDeleting, setIsDeleting] = useState(false)
 
   const handleEdit = () => {
@@ -73,6 +74,37 @@ export function ActivityCard({ activity, onEdit, onDelete, onView }: ActivityCar
 
   const getStatusText = (isActive: boolean) => {
     return isActive ? "Active" : "Inactive"
+  }
+
+  const getStatusPill = (
+    status: "published" | "unpublished" | "draft" | "archived"
+  ) => {
+    switch (status) {
+      case "published":
+        return (
+          <Badge variant="outline" className="bg-green-100 text-green-800">
+            Published
+          </Badge>
+        )
+      case "unpublished":
+        return (
+          <Badge variant="outline" className="bg-red-100 text-red-800">
+            Unpublished
+          </Badge>
+        )
+      case "draft":
+        return (
+          <Badge variant="outline" className="bg-yellow-100 text-yellow-800">
+            Draft
+          </Badge>
+        )
+      case "archived":
+        return (
+          <Badge variant="outline" className="bg-gray-100 text-gray-600">
+            Archived
+          </Badge>
+        )
+    }
   }
 
   return (
@@ -159,7 +191,19 @@ export function ActivityCard({ activity, onEdit, onDelete, onView }: ActivityCar
             {activity.booking_type === "daily" ? "Daily" : "Hourly"} booking
           </div>
         </div>
+
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-gray-500">
+            {activity.max_participants} participants
+          </p>
+          <p className="text-lg font-semibold">
+            ฿{activity.price?.toLocaleString()}
+          </p>
+        </div>
       </CardContent>
+      <CardFooter className="flex justify-end gap-2 bg-gray-50 p-4">
+        {activity.status && getStatusPill(activity.status)}
+      </CardFooter>
     </Card>
   )
 }
