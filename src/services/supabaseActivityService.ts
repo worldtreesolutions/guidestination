@@ -464,7 +464,7 @@ export const supabaseActivityService = {
       max_participants: data.max_participants || 10,
       location: data.location || '',
       meeting_point: data.meeting_point || '',
-      category_id: data.category_id,
+      category: data.category || '',
       category_name: data.category_name || '',
       provider_id: data.provider_id,
       is_active: data.is_active || false,
@@ -487,9 +487,9 @@ export const supabaseActivityService = {
       image_urls: (data.activity_media || [])
         .filter((media: any) => media.media_type === 'image')
         .map((media: any) => media.media_url),
-      video_urls: (data.activity_media || [])
+      video_url: (data.activity_media || [])
         .filter((media: any) => media.media_type === 'video')
-        .map((media: any) => media.media_url),
+        .map((media: any) => media.media_url)?.[0] || null,
       
       // Languages
       languages: data.languages || ['English'],
