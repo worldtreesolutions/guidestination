@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { categoryService, Category } from "@/services/categoryService";
+import categoryService, { type Category } from "@/services/categoryService";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CategoryNavProps {

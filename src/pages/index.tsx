@@ -1,4 +1,3 @@
-
 import Head from "next/head"
 import { useState, useEffect } from "react"
 import { Navbar } from "@/components/layout/Navbar"
@@ -8,9 +7,9 @@ import { ActivityRow } from "@/components/home/ActivityRow"
 import { SearchBar } from "@/components/home/SearchBar"
 import { BottomActionButtons } from "@/components/layout/BottomActionButtons"
 import { FloatingCart } from "@/components/layout/FloatingCart"
-import { supabaseActivityService } from "@/services/supabaseActivityService"
+import supabaseActivityService from "@/services/supabaseActivityService"
 import { ActivityForHomepage } from "@/types/activity"
-import { categoryService, Category } from "@/services/categoryService"
+import categoryService, { type Category } from "@/services/categoryService"
 
 export default function HomePage() {
   const [activities, setActivities] = useState<ActivityForHomepage[]>([])
