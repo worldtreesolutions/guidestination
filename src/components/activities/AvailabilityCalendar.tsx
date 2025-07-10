@@ -59,11 +59,13 @@ export function AvailabilityCalendar({
 
   // Check if a date is available by comparing year, month, and day in UTC
   const isDateAvailable = (date: Date) => {
-    return availableDateObjects.some(availableDate => 
+    const result = availableDateObjects.some(availableDate => 
       availableDate.getUTCFullYear() === date.getUTCFullYear() &&
       availableDate.getUTCMonth() === date.getUTCMonth() &&
       availableDate.getUTCDate() === date.getUTCDate()
     );
+    console.log(`Checking if date ${date.toDateString()} is available:`, result);
+    return result;
   };
 
   // Disable dates that are not available or in the past
@@ -74,6 +76,8 @@ export function AvailabilityCalendar({
     
     const isPast = date < todayUTC;
     const isNotAvailable = !isDateAvailable(date);
+    
+    console.log(`Date ${date.toDateString()}: isPast=${isPast}, isNotAvailable=${isNotAvailable}`);
     
     return isPast || isNotAvailable;
   }
@@ -90,6 +94,9 @@ export function AvailabilityCalendar({
       fontWeight: 'bold'
     }
   };
+
+  console.log("Calendar modifiers:", modifiers);
+  console.log("Available date objects for modifiers:", availableDateObjects);
 
   // Get schedule info for selected date
   const getSelectedDateSchedule = () => {
