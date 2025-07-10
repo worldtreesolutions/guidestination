@@ -1,4 +1,3 @@
-
 import { useState } from "react"
 import { Calendar } from "@/components/ui/calendar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -30,21 +29,37 @@ export function AvailabilityCalendar({
 }: AvailabilityCalendarProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date())
 
+  // Debug logging
+  console.log("AvailabilityCalendar received:", {
+    availableDates,
+    scheduleData,
+    availableDatesLength: availableDates.length,
+    scheduleDataLength: scheduleData.length
+  });
+
   // Convert string dates to Date objects, ensuring UTC parsing
   const availableDateObjects = availableDates.map(dateStr => {
     const [year, month, day] = dateStr.split('-').map(Number);
     return new Date(Date.UTC(year, month - 1, day));
   });
 
+  console.log("Converted available date objects:", availableDateObjects);
+
   // Check if a date is available by comparing year, month, and day
   const isDateAvailable = (date: Date) => {
     // The date from the calendar is in local time. We compare its components
     // with the UTC components of our available dates.
-    return availableDateObjects.some(availableDate => 
+    const isAvailable = availableDateObjects.some(availableDate => 
       availableDate.getUTCFullYear() === date.getFullYear() &&
       availableDate.getUTCMonth() === date.getMonth() &&
       availableDate.getUTCDate() === date.getDate()
     );
+    
+    if (isAvailable) {
+      console.log(`Date ${date.toDateString()} is available`);
+    }
+    
+    return isAvailable;
   };
 
   // Disable dates that are not available or in the past

@@ -498,10 +498,11 @@ export const supabaseActivityService = {
         const isActive = instance.is_active !== false; // Default to true if undefined
         const isAvailable = !instance.status || instance.status === 'available' || instance.status === 'active';
         const hasValidDate = instance.scheduled_date;
+        const isFutureDate = new Date(instance.scheduled_date) >= new Date().setHours(0, 0, 0, 0);
         
-        console.log(`Instance ${instance.id}: active=${isActive}, available=${isAvailable}, hasDate=${hasValidDate}, status=${instance.status}`);
+        console.log(`Instance ${instance.id}: active=${isActive}, available=${isAvailable}, hasDate=${hasValidDate}, isFuture=${isFutureDate}, status=${instance.status}, date=${instance.scheduled_date}`);
         
-        return isActive && isAvailable && hasValidDate;
+        return isActive && isAvailable && hasValidDate && isFutureDate;
       })
       .map((instance: any) => {
         const availableDate = {
