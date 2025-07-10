@@ -8,7 +8,7 @@ import Link from "next/link"
 
 interface ActivityListProps {
   activities: SupabaseActivity[];
-  onDelete: (id: number) => void;
+  onDelete: (id: string) => void;
 }
 
 export function ActivityList({ activities, onDelete }: ActivityListProps) {
@@ -78,8 +78,8 @@ export function ActivityList({ activities, onDelete }: ActivityListProps) {
                         <Edit className="h-4 w-4" />
                       </Button>
                     </Link>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="ghost"
                       size="icon"
                       onClick={() => onDelete(activity.id)}
                     >

@@ -10,7 +10,7 @@ import { EarningsChart } from "@/components/activity-owner/dashboard/EarningsCha
 import { RecentBookings } from "@/components/activity-owner/dashboard/RecentBookings"
 import { ActivityList } from "@/components/activity-owner/dashboard/ActivityList"
 import { supabaseActivityService } from "@/services/supabaseActivityService"
-import { SupabaseActivity } from "@/types/activity"
+import { SupabaseActivity, Booking } from "@/types/activity"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast"
 import { useIsMobile } from "@/hooks/use-mobile"
@@ -23,7 +23,7 @@ export default function DashboardPage() {
   const { toast } = useToast()
   const isMobile = useIsMobile()
   const [activities, setActivities] = useState<SupabaseActivity[]>([])
-  const [bookings, setBookings] = useState<SupabaseBooking[]>([])
+  const [bookings, setBookings] = useState<Booking[]>([])
   const [earnings, setEarnings] = useState<{
     total: number
     monthly: { month: string; amount: number }[]
@@ -34,7 +34,7 @@ export default function DashboardPage() {
     pending: 0
   })
   const [loading, setLoading] = useState(true)
-  const [activityToDelete, setActivityToDelete] = useState<number | null>(null)
+  const [activityToDelete, setActivityToDelete] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -53,7 +53,7 @@ export default function DashboardPage() {
             supabaseActivityService.fetchEarningsForOwner(user.id),
           ]);
           setActivities(activities);
-          setBookings(recentBookings as any);
+          setBookings(recentBookings);
           setEarnings(earnings as any);
         } catch (err: any) {
           setError(err.message);
@@ -66,16 +66,26 @@ export default function DashboardPage() {
     fetchDashboardData()
   }, [user, isAuthenticated, router, toast, t])
 
-  const handleDelete = async (activityId: string) => {
-    if (window.confirm("Are you sure you want to delete this activity?")) {
-      try {
-        await supabaseActivityService.deleteActivity(activityId);
-        setActivities(activities.filter((a) => a.id !== activityId));
-      } catch (err: any) {
-        setError(err.message);
-      }
+  const handleDeleteActivity = async () => {
+    if (!activityToDelete) return;
+    try {
+      await supabaseActivityService.deleteActivity(activityToDelete);
+      setActivities(activities.filter((a) => a.id !== activityToDelete));
+      toast({
+        title: "Success",
+        description: "Activity deleted successfully.",
+      });
+    } catch (err: any) {
+      setError(err.message);
+      toast({
+        title: "Error",
+        description: "Could not delete activity.",
+        variant: "destructive",
+      });
+    } finally {
+      setActivityToDelete(null);
     }
-  }
+  };
 
   if (loading || !user) {
     return (

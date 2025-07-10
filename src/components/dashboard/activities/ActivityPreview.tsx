@@ -94,7 +94,7 @@ export function ActivityPreview({ activityId }: ActivityPreviewProps) {
             </div>
             <div className="flex items-center gap-2">
               <Calendar className="h-5 w-5 text-muted-foreground" />
-              <span>{formatDates(activity.schedule?.availableDates)}</span>
+              <span>{formatDates(activity.schedules?.availableDates?.map(d => d.date))}</span>
             </div>
             <div className="flex items-center gap-2">
               <MapPin className="h-5 w-5 text-muted-foreground" />
@@ -175,17 +175,17 @@ export function ActivityPreview({ activityId }: ActivityPreviewProps) {
             )}
           </div>
 
-          {activity.schedule && (
+          {activity.schedules && (
             <div>
               <h2 className="text-xl font-semibold mb-2">Schedule</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="border rounded-lg p-4">
                   <h3 className="font-semibold mb-2">Start Time</h3>
-                  <p>{activity.schedule?.startTime || "Not specified"}</p>
+                  <p>{activity.schedules?.availableDates?.[0]?.startTime || "Not specified"}</p>
                 </div>
                 <div className="border rounded-lg p-4">
                   <h3 className="font-semibold mb-2">End Time</h3>
-                  <p>{activity.schedule?.endTime || "Not specified"}</p>
+                  <p>{activity.schedules?.availableDates?.[0]?.endTime || "Not specified"}</p>
                 </div>
               </div>
             </div>

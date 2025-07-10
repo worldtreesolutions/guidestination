@@ -1,4 +1,3 @@
-
 export interface SupabaseActivity {
   id: string;
   title: string;
@@ -64,6 +63,15 @@ export interface Booking {
   status: string;
   total_price: number;
   activities: SupabaseActivity;
+  activityTitle: string;
+  customerName: string;
+  customerEmail: string;
+  date: string;
+  bookingTime: string;
+  participants: number;
+  providerAmount: number;
+  platformFee: number;
+  totalAmount: number;
 }
 
 export interface Earning {

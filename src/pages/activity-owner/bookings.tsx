@@ -55,9 +55,8 @@ export default function BookingsPage() {
 
     const query = searchQuery.toLowerCase();
     const filtered = bookings.filter(booking => 
-      booking.activityTitle.toLowerCase().includes(query) ||
-      booking.customerName.toLowerCase().includes(query) ||
-      booking.customerEmail.toLowerCase().includes(query)
+      booking.activities.title.toLowerCase().includes(query) ||
+      booking.user_id.toLowerCase().includes(query)
     );
     
     setFilteredBookings(filtered);
@@ -217,7 +216,7 @@ function BookingTable({ bookings, getStatusColor }: BookingTableProps) {
           <TableBody>
             {bookings.map((booking) => (
               <TableRow key={booking.id}>
-                <TableCell className="font-medium">{booking.activityTitle}</TableCell>
+                <TableCell className="font-medium">{booking.activities.title}</TableCell>
                 <TableCell>
                   <div>{booking.customerName}</div>
                   <div className="text-xs text-muted-foreground">{booking.customerEmail}</div>
