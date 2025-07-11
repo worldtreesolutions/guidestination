@@ -24,12 +24,7 @@ export function AvailabilityCalendar({
     const now = new Date()
     return new Date(now.getFullYear(), now.getMonth(), 1)
   })
-  const [localSelectedDate, setLocalSelectedDate] = useState<Date | undefined>(selectedDate)
-
-  // Sync with external selectedDate prop changes
-  useEffect(() => {
-    setLocalSelectedDate(selectedDate)
-  }, [selectedDate])
+  const [localSelectedDate, setLocalSelectedDate] = useState<Date | undefined>()
 
   // Handle date selection
   const handleDateSelect = (date: Date | undefined) => {
