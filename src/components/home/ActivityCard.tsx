@@ -1,38 +1,33 @@
-
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Star, MapPin } from "lucide-react";
 import { ActivityForHomepage } from "@/types/activity";
 import { currencyService } from "@/services/currencyService";
 import { useEffect, useState } from "react";
-import Image from "next/image";
 
 interface ActivityCardProps {
   activity: ActivityForHomepage;
 }
 
 export default function ActivityCard({ activity }: ActivityCardProps) {
-  const [userCurrency, setUserCurrency] = useState(activity.currency || "USD");
+  const [userCurrency, setUserCurrency] = useState("USD");
 
   useEffect(() => {
-    if (!activity.currency) {
-      currencyService.getUserCurrency().then(setUserCurrency);
-    }
-  }, [activity.currency]);
+    currencyService.getUserCurrency().then(setUserCurrency);
+  }, []);
 
   const formatPrice = (price: number | null) => {
-    if (price === null) return "Price on request";
+    if (!price) return "Price on request";
     return currencyService.formatCurrency(price, userCurrency);
   };
 
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow">
       <div className="aspect-video relative">
-        <Image
+        <img
           src={activity.image_url || "/placeholder-activity.jpg"}
           alt={activity.title}
-          fill
-          className="object-cover"
+          className="w-full h-full object-cover"
         />
         {activity.category_name && (
           <Badge className="absolute top-2 left-2">

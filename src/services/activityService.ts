@@ -19,13 +19,8 @@ export const activityService = {
       throw error;
     }
 
-    // Get user's currency and convert prices with fallback
-    let userCurrency = "USD";
-    try {
-      userCurrency = await currencyService.getUserCurrency();
-    } catch (error) {
-      console.warn("Currency detection failed, using USD:", error);
-    }
+    // Get user's currency and convert prices
+    const userCurrency = await currencyService.getUserCurrency();
     
     return (data || []).map(activity => ({
       ...activity,
@@ -43,7 +38,6 @@ export const activityService = {
       .from("activities")
       .select(`
         id,
-        slug,
         title,
         price,
         b_price,
@@ -62,13 +56,8 @@ export const activityService = {
       throw error;
     }
 
-    // Get user's currency and convert prices with fallback
-    let userCurrency = "USD";
-    try {
-      userCurrency = await currencyService.getUserCurrency();
-    } catch (error) {
-      console.warn("Currency detection failed, using USD:", error);
-    }
+    // Get user's currency and convert prices
+    const userCurrency = await currencyService.getUserCurrency();
 
     return (data || []).map(activity => ({
       ...activity,
