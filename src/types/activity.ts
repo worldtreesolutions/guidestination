@@ -119,7 +119,8 @@ export interface CommissionInvoice {
     };
     is_qr_booking?: boolean;
     partner_commission_amount?: number;
-    booking_id?: string; // Added
+    booking_id?: string;
+    partner_commission_rate?: number;
 }
 
 export interface Provider {
@@ -134,7 +135,6 @@ export interface CommissionStats {
     total_commission: number;
     pending_commission: number;
     paid_commission: number;
-    // Add missing fields
     totalInvoices: number;
     paidInvoices: number;
     pendingInvoices: number;
