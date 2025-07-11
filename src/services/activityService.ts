@@ -145,15 +145,16 @@ export const activityService = {
       
       console.log("Fetching activity with ID:", activityId);
       
+      // First try with optional activity_selected_options join
       const { data, error } = await supabase
         .from("activities")
         .select(`
           *,
           activity_schedules(*),
           activity_schedule_instances(*),
-          activity_selected_options!inner(
+          activity_selected_options(
             option_id,
-            activity_options!inner(
+            activity_options(
               id,
               label,
               icon,
@@ -167,37 +168,11 @@ export const activityService = {
 
       if (error) {
         console.error("Supabase error fetching activity by slug:", error);
-        
-        // Try fallback query without activity_selected_options if the join fails
-        console.log("Trying fallback query without options...");
-        const { data: fallbackData, error: fallbackError } = await supabase
-          .from("activities")
-          .select(`
-            *,
-            activity_schedules(*),
-            activity_schedule_instances(*)
-          `)
-          .eq("id", activityId)
-          .eq("is_active", true)
-          .single();
-
-        if (fallbackError) {
-          console.error("Fallback query also failed:", fallbackError);
-          return null;
-        }
-
-        if (!fallbackData) {
-          console.log("No activity found with ID:", activityId);
-          return null;
-        }
-
-        console.log("Using fallback data without options");
-        const userCurrency = currencyService.getUserCurrency();
-        return toActivity(fallbackData, userCurrency);
+        return null;
       }
 
       if (!data) {
-        console.log("No activity data returned for ID:", activityId);
+        console.log("No activity found with ID:", activityId);
         return null;
       }
 
@@ -215,15 +190,16 @@ export const activityService = {
     try {
       console.log("Fetching activity by ID:", activityId);
       
+      // First try with optional activity_selected_options join
       const { data, error } = await supabase
         .from("activities")
         .select(`
           *,
           activity_schedules(*),
           activity_schedule_instances(*),
-          activity_selected_options!inner(
+          activity_selected_options(
             option_id,
-            activity_options!inner(
+            activity_options(
               id,
               label,
               icon,
@@ -237,33 +213,7 @@ export const activityService = {
 
       if (error) {
         console.error("Supabase error fetching activity by ID:", error);
-        
-        // Try fallback query without activity_selected_options if the join fails
-        console.log("Trying fallback query without options...");
-        const { data: fallbackData, error: fallbackError } = await supabase
-          .from("activities")
-          .select(`
-            *,
-            activity_schedules(*),
-            activity_schedule_instances(*)
-          `)
-          .eq("id", activityId)
-          .eq("is_active", true)
-          .single();
-
-        if (fallbackError) {
-          console.error("Fallback query also failed:", fallbackError);
-          return null;
-        }
-
-        if (!fallbackData) {
-          console.log("No activity found with ID:", activityId);
-          return null;
-        }
-
-        console.log("Using fallback data without options");
-        const userCurrency = currencyService.getUserCurrency();
-        return toActivity(fallbackData, userCurrency);
+        return null;
       }
 
       if (!data) {
