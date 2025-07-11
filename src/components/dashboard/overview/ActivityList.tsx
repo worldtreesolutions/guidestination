@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { SupabaseActivity } from "@/types/activity"
 import Image from "next/image"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 interface ActivityListProps {
   activities: SupabaseActivity[];
@@ -58,55 +59,62 @@ export function ActivityList({ activities, onEdit, onView }: ActivityListProps) 
         <CardTitle>Recent Activities</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          {activities.map((activity) => (
-            <div
-              key={activity.id}
-              className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-            >
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center gap-3">
-                  <Image
-                    src={activity.image_urls?.[0] || '/placeholder.svg'}
-                    alt={activity.title}
-                    width={40}
-                    height={40}
-                    className="w-10 h-10 rounded-lg object-cover"
-                  />
-                  <div>
-                    <h3 className="font-medium">{activity.title}</h3>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge className={getStatusColor(activity.is_active)}>
-                        {getStatusText(activity.is_active)}
-                      </Badge>
-                      <span className="text-sm text-muted-foreground">
-                        {formatPrice(activity.price)}
-                      </span>
-                    </div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Activity</TableHead>
+              <TableHead>Location</TableHead>
+              <TableHead>Price</TableHead>
+              <TableHead>Status</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {activities.map((activity) => (
+              <TableRow key={activity.id}>
+                <TableCell>
+                  <div className="flex items-center gap-4">
+                    <Image
+                      src={activity.image_url || "/placeholder.svg"}
+                      alt={activity.title}
+                      width={64}
+                      height={64}
+                      className="rounded-md object-cover"
+                    />
+                    <div className="font-medium">{activity.title}</div>
                   </div>
-                </div>
-              </div>
-              
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => onView?.(activity)}>
-                    <Eye className="h-4 w-4 mr-2" />
-                    View
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onEdit?.(activity)}>
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          ))}
-        </div>
+                </TableCell>
+                <TableCell>{activity.location}</TableCell>
+                <TableCell>
+                  {activity.b_price
+                    ? `฿${activity.b_price.toLocaleString()}`
+                    : "N/A"}
+                </TableCell>
+                <TableCell>
+                  <Badge variant="outline">{activity.status}</Badge>
+                </TableCell>
+                <TableCell>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => onView?.(activity)}>
+                        <Eye className="h-4 w-4 mr-2" />
+                        View
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onEdit?.(activity)}>
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </CardContent>
     </Card>
   )

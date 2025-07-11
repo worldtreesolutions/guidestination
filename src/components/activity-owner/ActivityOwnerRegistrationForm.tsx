@@ -21,7 +21,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { InfoIcon, MapPin } from 'lucide-react'
 import { PlacesAutocomplete, PlaceData } from "@/components/ui/places-autocomplete"
 import { useLanguage } from "@/contexts/LanguageContext"
-import FileUploader, { UploadedFile } from "@/components/ui/file-uploader"
+import FileUploader from "@/components/ui/file-uploader"
 import { TermsOfServiceModal } from "./TermsOfServiceModal"
 import uploadService from "@/services/uploadService"
 import authService from "@/services/authService"
@@ -60,7 +60,7 @@ export const ActivityOwnerRegistrationForm = () => {
     isNewUser?: boolean;
   }>({ type: null, message: null })
   const [locationData, setLocationData] = useState<PlaceData | null>(null)
-  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
   const { toast } = useToast()
   
   const formSchema = createFormSchema(t)
@@ -92,7 +92,7 @@ export const ActivityOwnerRegistrationForm = () => {
     form.setValue('address', placeData.address, { shouldValidate: true, shouldDirty: true })
   }, [form])
 
-  const handleFilesChange = useCallback((files: UploadedFile[]) => {
+  const handleFilesChange = useCallback((files: File[]) => {
     setUploadedFiles(files)
   }, [])
 
@@ -122,7 +122,7 @@ export const ActivityOwnerRegistrationForm = () => {
           description: "Uploading documents...",
         });
         
-        const filesToUpload: File[] = uploadedFiles.map(upFile => upFile.file).filter((f): f is File => f instanceof File);
+        const filesToUpload: File[] = uploadedFiles;
         
         if (filesToUpload.length > 0) {
             documentUrls = await uploadService.uploadActivityOwnerDocuments(filesToUpload, newUserId);

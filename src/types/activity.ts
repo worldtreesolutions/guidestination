@@ -34,7 +34,7 @@ export interface ActivityOption {
   type: string;
 }
 
-export interface Activity extends Omit<SupabaseActivity, "highlights" | "languages" | "included" | "not_included"> {
+export interface Activity extends Omit<SupabaseActivity, "highlights" | "languages" | "included" | "not_included" | "status"> {
   slug?: string;
   category_name?: string;
   price?: number | null;
@@ -53,6 +53,12 @@ export interface Activity extends Omit<SupabaseActivity, "highlights" | "languag
   schedule_instances?: ActivityScheduleInstance[];
   includes_guide?: boolean | null;
   includes_equipment?: boolean | null;
+  location?: string | null;
+  status?: string;
+  review_count?: number;
+  average_rating?: number | null;
+  duration?: number | null;
+  booking_type_id?: number | null;
 }
 
 export interface Booking extends Omit<SupabaseBooking, "status"> {
@@ -62,6 +68,10 @@ export interface Booking extends Omit<SupabaseBooking, "status"> {
   provider_amount?: number;
   activity_schedules?: ActivitySchedule[];
   schedule_instances?: ActivityScheduleInstance[];
+  customer_name?: string | null;
+  booking_date: string;
+  total_price: number | null;
+  participants?: number;
 }
 
 export interface ActivityForHomepage {

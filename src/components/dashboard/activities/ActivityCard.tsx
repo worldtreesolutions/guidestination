@@ -22,21 +22,21 @@ import {
 import { SupabaseActivity } from "@/types/activity"
 import Image from "next/image"
 import Link from "next/link"
+import { Activity } from "@/types/activity"
 
 interface ActivityCardProps {
-  activity: SupabaseActivity;
-  onEdit?: (activity: SupabaseActivity) => void;
-  onDelete?: (activityId: number) => void;
-  onView?: (activity: SupabaseActivity) => void;
-  onTogglePublish?: (activityId: number) => void;
+  activity: Activity
+  onEdit: (id: number) => void
+  onDelete: (id: number) => void
+  onPreview: (id: number) => void
 }
 
-export function ActivityCard({ activity, onEdit, onDelete, onView, onTogglePublish }: ActivityCardProps) {
+export function ActivityCard({ activity, onEdit, onDelete, onPreview }: ActivityCardProps) {
   const [isDeleting, setIsDeleting] = useState(false)
 
   const handleEdit = () => {
     if (onEdit) {
-      onEdit(activity)
+      onEdit(activity.id)
     }
   }
 
@@ -54,8 +54,8 @@ export function ActivityCard({ activity, onEdit, onDelete, onView, onTogglePubli
   }
 
   const handleView = () => {
-    if (onView) {
-      onView(activity)
+    if (onPreview) {
+      onPreview(activity.id)
     }
   }
 
@@ -74,6 +74,12 @@ export function ActivityCard({ activity, onEdit, onDelete, onView, onTogglePubli
 
   const getStatusText = (isActive: boolean) => {
     return isActive ? "Active" : "Inactive"
+  }
+
+  const getStatusVariant = (
+    status: "published" | "draft" | "unpublished" | "archived" | null | undefined
+  ): "outline" => {
+    return "outline"
   }
 
   const getStatusPill = (
@@ -122,6 +128,11 @@ export function ActivityCard({ activity, onEdit, onDelete, onView, onTogglePubli
         <div className="absolute top-2 right-2">
           <Badge className={getStatusColor(activity.is_active ?? false)}>
             {getStatusText(activity.is_active ?? false)}
+          </Badge>
+        </div>
+        <div className="absolute top-4 right-4">
+          <Badge variant={getStatusVariant(activity.status as any)}>
+            {activity.status}
           </Badge>
         </div>
       </div>
@@ -179,10 +190,10 @@ export function ActivityCard({ activity, onEdit, onDelete, onView, onTogglePubli
 
         <div className="flex items-center justify-between pt-2 border-t">
           <Badge variant="outline">
-            Uncategorized
+            {activity.category_name || "Uncategorized"}
           </Badge>
           <div className="text-xs text-muted-foreground">
-            {activity.booking_type_id === 1 ? "Daily" : "Hourly"} booking
+            {activity.duration ? `${activity.duration} hours` : ''}
           </div>
         </div>
 

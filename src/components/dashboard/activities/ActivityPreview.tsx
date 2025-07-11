@@ -22,7 +22,7 @@ export function ActivityPreview({ activityId }: ActivityPreviewProps) {
       const fetchActivity = async () => {
         setLoading(true);
         try {
-          const data = await activityService.getActivityById(Number(activityId));
+          const data = await activityService.getActivityById(activityId);
           setActivity(data);
         } catch (err) {
           setError((err as Error).message);
@@ -33,6 +33,12 @@ export function ActivityPreview({ activityId }: ActivityPreviewProps) {
       fetchActivity();
     }
   }, [activityId]);
+
+  const handleDelete = () => {
+    if (window.confirm("Are you sure you want to delete this activity?")) {
+      // onDelete(activity.id);
+    }
+  };
 
   if (!activity) return null;
 

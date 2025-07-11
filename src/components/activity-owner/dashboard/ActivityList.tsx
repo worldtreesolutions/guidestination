@@ -1,4 +1,3 @@
-
 import { Activity } from "@/types/activity"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -59,8 +58,8 @@ export function ActivityList({ activities, onDelete }: ActivityListProps) {
                   <TableCell>{activity.location || "Not specified"}</TableCell>
                   <TableCell>฿{activity.price?.toLocaleString()}</TableCell>
                   <TableCell>
-                    <Badge className={getStatusColor(activity.status)} variant="outline">
-                      {activity.status}
+                    <Badge className={getStatusColor(activity.status || "draft")} variant="outline">
+                      {activity.status || "draft"}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -69,7 +68,7 @@ export function ActivityList({ activities, onDelete }: ActivityListProps) {
                         <span className="mr-1">{activity.average_rating.toFixed(1)}</span>
                         <span className="text-yellow-500">★</span>
                         <span className="text-xs text-muted-foreground ml-1">
-                          ({activity.reviews_count || 0})
+                          ({activity.review_count || 0})
                         </span>
                       </div>
                     ) : (

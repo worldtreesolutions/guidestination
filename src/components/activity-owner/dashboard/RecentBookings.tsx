@@ -1,4 +1,3 @@
-
 import {
   Card,
   CardHeader,
@@ -44,11 +43,13 @@ export default function RecentBookings({ bookings }: RecentBookingsProps) {
                 </p>
                 <p className="text-sm text-muted-foreground">
                   {booking.activities?.title || "Activity"} -{" "}
-                  {format(new Date(booking.booking_date), "PPP")}
+                  {booking.booking_date
+                    ? format(new Date(booking.booking_date), "PPP")
+                    : "N/A"}
                 </p>
               </div>
               <div className="ml-auto font-medium">
-                +${booking.total_price.toFixed(2)}
+                +${(booking.total_price ?? 0).toFixed(2)}
               </div>
             </div>
           ))
