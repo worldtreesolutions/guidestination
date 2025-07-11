@@ -14,86 +14,220 @@ export type Database = {
         Row: {
           id: number
           title: string
-          description: string
-          price: number
-          location: string
-          image_urls: string[]
-          category_id: number
-          owner_id: string
-          created_at: string
-          updated_at: string
-          is_active: boolean
-          duration: number
-          booking_type: "daily" | "hourly"
+          description: string | null
+          image_url: string | null
+          pickup_location: string | null
+          dropoff_location: string | null
+          discounts: number | null
           max_participants: number | null
-          rating: number | null
-          review_count: number | null
-          languages: string[] | null
-          highlights: string[] | null
+          highlights: string | null
+          included: string | null
+          not_included: string | null
           meeting_point: string | null
-          included: string[] | null
-          not_included: string[] | null
-          name?: string
+          languages: string | null
+          is_active: boolean | null
+          created_at: string | null
+          updated_at: string | null
+          b_price: number | null
+          status: number | null
+          location_lat: number | null
+          location_lng: number | null
+          place_id: string | null
+          address: string | null
+          location_geom: unknown | null
+          provider_id: string | null
+          final_price: number | null
+          video_url: string | null
+          video_duration: number | null
+          video_size: number | null
+          video_thumbnail_url: string | null
+          duration: string | null
+          min_age: number | null
+          max_age: number | null
+          activity_name: string | null
+          technical_skill_level: string | null
+          physical_effort_level: string | null
+          category: string | null
+          average_rating: number | null
+          review_count: number | null
+          includes_pickup: boolean | null
+          pickup_locations: string | null
+          includes_meal: boolean | null
+          meal_description: string | null
+          name: string | null
+          requires_approval: boolean
+          instant_booking: boolean | null
+          cancellation_policy: string | null
+          base_price_thb: number | null
+          currency_code: string | null
+          country_code: string | null
+          created_by: string | null
+          updated_by: string | null
+          meeting_point_place_id: string | null
+          meeting_point_lat: number | null
+          meeting_point_lng: number | null
+          meeting_point_formatted_address: string | null
+          dropoff_location_place_id: string | null
+          dropoff_location_lat: number | null
+          dropoff_location_lng: number | null
+          dropoff_location_formatted_address: string | null
+          pickup_location_place_id: string | null
+          pickup_location_lat: number | null
+          pickup_location_lng: number | null
+          pickup_location_formatted_address: string | null
         }
         Insert: {
           id?: number
           title: string
-          description: string
-          price: number
-          location: string
-          image_urls: string[]
-          category_id: number
-          owner_id: string
-          created_at?: string
-          updated_at?: string
-          is_active?: boolean
-          duration: number
-          booking_type?: "daily" | "hourly"
+          description?: string | null
+          image_url?: string | null
+          pickup_location?: string | null
+          dropoff_location?: string | null
+          discounts?: number | null
           max_participants?: number | null
-          rating?: number | null
-          review_count?: number | null
-          languages?: string[] | null
-          highlights?: string[] | null
+          highlights?: string | null
+          included?: string | null
+          not_included?: string | null
           meeting_point?: string | null
-          included?: string[] | null
-          not_included?: string[] | null
+          languages?: string | null
+          is_active?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
+          b_price?: number | null
+          status?: number | null
+          location_lat?: number | null
+          location_lng?: number | null
+          place_id?: string | null
+          address?: string | null
+          location_geom?: unknown | null
+          provider_id?: string | null
+          final_price?: number | null
+          video_url?: string | null
+          video_duration?: number | null
+          video_size?: number | null
+          video_thumbnail_url?: string | null
+          duration?: string | null
+          min_age?: number | null
+          max_age?: number | null
+          activity_name?: string | null
+          technical_skill_level?: string | null
+          physical_effort_level?: string | null
+          category?: string | null
+          average_rating?: number | null
+          review_count?: number | null
+          includes_pickup?: boolean | null
+          pickup_locations?: string | null
+          includes_meal?: boolean | null
+          meal_description?: string | null
+          name?: string | null
+          requires_approval?: boolean
+          instant_booking?: boolean | null
+          cancellation_policy?: string | null
+          base_price_thb?: number | null
+          currency_code?: string | null
+          country_code?: string | null
+          created_by?: string | null
+          updated_by?: string | null
+          meeting_point_place_id?: string | null
+          meeting_point_lat?: number | null
+          meeting_point_lng?: number | null
+          meeting_point_formatted_address?: string | null
+          dropoff_location_place_id?: string | null
+          dropoff_location_lat?: number | null
+          dropoff_location_lng?: number | null
+          dropoff_location_formatted_address?: string | null
+          pickup_location_place_id?: string | null
+          pickup_location_lat?: number | null
+          pickup_location_lng?: number | null
+          pickup_location_formatted_address?: string | null
         }
         Update: {
           id?: number
           title?: string
-          description?: string
-          price?: number
-          location?: string
-          image_urls?: string[]
-          category_id?: number
-          owner_id?: string
-          created_at?: string
-          updated_at?: string
-          is_active?: boolean
-          duration?: number
-          booking_type?: "daily" | "hourly"
+          description?: string | null
+          image_url?: string | null
+          pickup_location?: string | null
+          dropoff_location?: string | null
+          discounts?: number | null
           max_participants?: number | null
-          rating?: number | null
-          review_count?: number | null
-          languages?: string[] | null
-          highlights?: string[] | null
+          highlights?: string | null
+          included?: string | null
+          not_included?: string | null
           meeting_point?: string | null
-          included?: string[] | null
-          not_included?: string[] | null
+          languages?: string | null
+          is_active?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
+          b_price?: number | null
+          status?: number | null
+          location_lat?: number | null
+          location_lng?: number | null
+          place_id?: string | null
+          address?: string | null
+          location_geom?: unknown | null
+          provider_id?: string | null
+          final_price?: number | null
+          video_url?: string | null
+          video_duration?: number | null
+          video_size?: number | null
+          video_thumbnail_url?: string | null
+          duration?: string | null
+          min_age?: number | null
+          max_age?: number | null
+          activity_name?: string | null
+          technical_skill_level?: string | null
+          physical_effort_level?: string | null
+          category?: string | null
+          average_rating?: number | null
+          review_count?: number | null
+          includes_pickup?: boolean | null
+          pickup_locations?: string | null
+          includes_meal?: boolean | null
+          meal_description?: string | null
+          name?: string | null
+          requires_approval?: boolean
+          instant_booking?: boolean | null
+          cancellation_policy?: string | null
+          base_price_thb?: number | null
+          currency_code?: string | null
+          country_code?: string | null
+          created_by?: string | null
+          updated_by?: string | null
+          meeting_point_place_id?: string | null
+          meeting_point_lat?: number | null
+          meeting_point_lng?: number | null
+          meeting_point_formatted_address?: string | null
+          dropoff_location_place_id?: string | null
+          dropoff_location_lat?: number | null
+          dropoff_location_lng?: number | null
+          dropoff_location_formatted_address?: string | null
+          pickup_location_place_id?: string | null
+          pickup_location_lat?: number | null
+          pickup_location_lng?: number | null
+          pickup_location_formatted_address?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "activities_category_id_fkey"
-            columns: ["category_id"]
-            referencedRelation: "categories"
+            foreignKeyName: "activities_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "activities_owner_id_fkey"
-            columns: ["owner_id"]
+            foreignKeyName: "activities_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
             referencedRelation: "activity_owners"
+            referencedColumns: ["provider_id"]
+          },
+          {
+            foreignKeyName: "activities_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
-          }
+          },
         ]
       }
       activity_owners: {
@@ -981,6 +1115,111 @@ export type Database = {
             referencedRelation: "customer_profiles"
             referencedColumns: ["customer_id"]
           }
+        ]
+      }
+      activity_selected_options: {
+        Row: {
+          id: number
+          activity_id: number | null
+          option_id: number | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: number
+          activity_id?: number | null
+          option_id?: number | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: number
+          activity_id?: number | null
+          option_id?: number | null
+          created_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_selected_options_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_selected_options_option_id_fkey"
+            columns: ["option_id"]
+            isOneToOne: false
+            referencedRelation: "activity_options"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      activity_schedule_instances: {
+        Row: {
+          id: number
+          schedule_id: number
+          activity_id: number
+          scheduled_date: string
+          start_time: string
+          end_time: string
+          capacity: number
+          booked_count: number | null
+          price_override: number | null
+          is_active: boolean | null
+          status: string | null
+          created_at: string | null
+          updated_at: string | null
+          available_spots: number
+          price: number
+        }
+        Insert: {
+          id?: number
+          schedule_id: number
+          activity_id: number
+          scheduled_date: string
+          start_time: string
+          end_time: string
+          capacity?: number
+          booked_count?: number | null
+          price_override?: number | null
+          is_active?: boolean | null
+          status?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+          available_spots?: number
+          price?: number
+        }
+        Update: {
+          id?: number
+          schedule_id?: number
+          activity_id?: number
+          scheduled_date?: string
+          start_time?: string
+          end_time?: string
+          capacity?: number
+          booked_count?: number | null
+          price_override?: number | null
+          is_active?: boolean | null
+          status?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+          available_spots?: number
+          price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_schedule_instances_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_schedule_instances_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "activity_schedules"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }
