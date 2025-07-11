@@ -25,13 +25,11 @@ import {
 } from "lucide-react"
 import { ActivityGallery } from "@/components/activities/ActivityGallery"
 import { AvailabilityCalendar } from "@/components/activities/AvailabilityCalendar"
-import { BookingForm } from "@/components/activities/BookingForm"
 import { ActivityReviews } from "@/components/activities/ActivityReviews"
 import { useIsMobile } from "@/hooks/use-mobile"
 import activityService from "@/services/activityService"
 import customerService from "@/services/customerService"
 import { Activity } from "@/types/activity"
-import { ActivityDetails } from "@/components/activities/ActivityDetails"
 
 export default function ActivityPage() {
   const router = useRouter()
@@ -140,7 +138,6 @@ export default function ActivityPage() {
       router.push("/auth/login")
       return
     }
-    // TODO: Implement chat functionality
     toast({
       title: "Coming Soon",
       description: "Chat functionality will be available soon.",
@@ -159,7 +156,6 @@ export default function ActivityPage() {
         console.error("Error sharing:", error)
       }
     } else {
-      // Fallback: copy to clipboard
       navigator.clipboard.writeText(window.location.href)
       toast({
         title: "Link copied",
@@ -203,7 +199,7 @@ export default function ActivityPage() {
     if (!price) return "Free"
     return new Intl.NumberFormat("en-US", {
       style: "currency",
-      currency: "THB",
+      currency: activity.currency || "THB",
       minimumFractionDigits: 0,
     }).format(price)
   }
@@ -212,35 +208,6 @@ export default function ActivityPage() {
     if (!duration) return ""
     return duration
   }
-
-  // Get selected options from the database
-  const selectedHighlights = activity.selected_options?.filter(
-    opt => opt.activity_options?.type === 'highlight'
-  ).map(opt => opt.activity_options?.name).filter(Boolean) || []
-
-  const selectedIncluded = activity.selected_options?.filter(
-    opt => opt.activity_options?.type === 'included'
-  ).map(opt => opt.activity_options?.name).filter(Boolean) || []
-
-  const selectedNotIncluded = activity.selected_options?.filter(
-    opt => opt.activity_options?.type === 'not_included'
-  ).map(opt => opt.activity_options?.name).filter(Boolean) || []
-
-  // Combine with any legacy data (fallback)
-  const allHighlights = [
-    ...selectedHighlights,
-    ...(activity.highlights ? activity.highlights.split(',').map(h => h.trim()) : [])
-  ];
-
-  const allIncluded = [
-    ...selectedIncluded,
-    ...(activity.included ? activity.included.split(',').map(i => i.trim()) : [])
-  ];
-
-  const allNotIncluded = [
-    ...selectedNotIncluded,
-    ...(activity.not_included ? activity.not_included.split(',').map(n => n.trim()) : [])
-  ];
 
   return (
     <>
@@ -260,7 +227,6 @@ export default function ActivityPage() {
         
         <main className="flex-1">
           <div className="container py-4 sm:py-8 px-4 sm:px-6 max-w-7xl">
-            {/* Header Section */}
             <div className="mb-6">
               <div className="flex items-center gap-2 mb-4">
                 <Badge variant="secondary" className="capitalize">
@@ -278,7 +244,7 @@ export default function ActivityPage() {
               </div>
 
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4">
-                {activity.title || activity.name}
+                {activity.title}
               </h1>
 
               <div className="flex flex-wrap items-center gap-4 mb-4">
@@ -303,7 +269,7 @@ export default function ActivityPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="text-2xl sm:text-3xl font-bold text-primary">
-                    {formatPrice(activity.final_price || activity.b_price)}
+                    {formatPrice(activity.price || activity.b_price)}
                   </span>
                   <span className="text-muted-foreground">per person</span>
                 </div>
@@ -335,16 +301,13 @@ export default function ActivityPage() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Main Content */}
               <div className="lg:col-span-2 space-y-8">
-                {/* Image Gallery */}
                 <ActivityGallery 
                   images={activity.image_url ? [activity.image_url] : []}
                   videos={activity.video_url ? [activity.video_url] : []}
                   title={activity.title}
                 />
 
-                {/* Tabs Content */}
                 <Tabs defaultValue="overview" className="w-full">
                   <TabsList className="grid w-full grid-cols-4">
                     <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -354,7 +317,16 @@ export default function ActivityPage() {
                   </TabsList>
 
                   <TabsContent value="overview" className="space-y-6">
-                    <ActivityDetails activity={activity} />
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>About This Activity</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-muted-foreground">
+                          {activity.description || "No description available."}
+                        </p>
+                      </CardContent>
+                    </Card>
                   </TabsContent>
 
                   <TabsContent value="itinerary" className="space-y-6">
@@ -452,71 +424,18 @@ export default function ActivityPage() {
                         </CardContent>
                       </Card>
                     )}
-
-                    {activity.includes_pickup && (
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>Pickup Information</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="flex items-start gap-2">
-                            <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
-                            <div>
-                              <p className="font-medium">Hotel pickup included</p>
-                              <p className="text-muted-foreground text-sm">
-                                {activity.pickup_locations || "Pickup details TBD"}
-                              </p>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
-
-                    {activity.includes_meal && (
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>Meals</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="flex items-start gap-2">
-                            <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
-                            <div>
-                              <p className="font-medium">Meal included</p>
-                              <p className="text-muted-foreground text-sm">
-                                {activity.meal_description || "Meal details TBD"}
-                              </p>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
-
-                    {activity.languages && typeof activity.languages === 'string' && (
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>Languages</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="flex gap-2 flex-wrap">
-                            {activity.languages.split(',').map((language: string, index: number) => (
-                              <Badge key={index} variant="outline">{language.trim()}</Badge>
-                            ))}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
                   </TabsContent>
 
                   <TabsContent value="included" className="space-y-6">
                     <div className="grid md:grid-cols-2 gap-6">
-                      {allIncluded.length > 0 && (
+                      {activity.included && (
                         <Card>
                           <CardHeader>
                             <CardTitle className="text-green-600">What's Included</CardTitle>
                           </CardHeader>
                           <CardContent>
                             <ul className="space-y-2">
-                              {allIncluded.map((item, index) => (
+                              {activity.included.map((item, index) => (
                                 <li key={index} className="flex items-start gap-2">
                                   <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
                                   <span className="text-sm">{item}</span>
@@ -527,14 +446,14 @@ export default function ActivityPage() {
                         </Card>
                       )}
 
-                      {allNotIncluded.length > 0 && (
+                      {activity.not_included && (
                         <Card>
                           <CardHeader>
                             <CardTitle className="text-red-600">What's Not Included</CardTitle>
                           </CardHeader>
                           <CardContent>
                             <ul className="space-y-2">
-                              {allNotIncluded.map((item, index) => (
+                              {activity.not_included.map((item, index) => (
                                 <li key={index} className="flex items-start gap-2">
                                   <XCircle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
                                   <span className="text-sm">{item}</span>
@@ -557,7 +476,6 @@ export default function ActivityPage() {
                 </Tabs>
               </div>
 
-              {/* Booking Sidebar */}
               <div className="lg:col-span-1">
                 <div className={isMobile ? "mt-6" : "sticky top-20"}>
                   <Card>
@@ -570,7 +488,7 @@ export default function ActivityPage() {
                     <CardContent className="space-y-6">
                       <div className="text-center">
                         <div className="text-2xl font-bold text-primary">
-                          {formatPrice(activity.final_price || activity.b_price)}
+                          {formatPrice(activity.price || activity.b_price)}
                         </div>
                         <div className="text-sm text-muted-foreground">per person</div>
                       </div>
