@@ -209,26 +209,26 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "activities_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
+            foreignKeyName: "activities_created_by_fkey",
+            columns: ["created_by"],
+            isOneToOne: false,
+            referencedRelation: "users",
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "activities_provider_id_fkey"
-            columns: ["provider_id"]
-            isOneToOne: false
-            referencedRelation: "activity_owners"
+            foreignKeyName: "activities_provider_id_fkey",
+            columns: ["provider_id"],
+            isOneToOne: false,
+            referencedRelation: "activity_owners",
             referencedColumns: ["provider_id"]
           },
           {
-            foreignKeyName: "activities_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "users"
+            foreignKeyName: "activities_updated_by_fkey",
+            columns: ["updated_by"],
+            isOneToOne: false,
+            referencedRelation: "users",
             referencedColumns: ["id"]
-          },
+          }
         ]
       },
       activity_owners: {
@@ -267,9 +267,9 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "activity_owners_user_id_fkey"
-            columns: ["user_id"]
-            referencedRelation: "users"
+            foreignKeyName: "activity_owners_user_id_fkey",
+            columns: ["user_id"],
+            referencedRelation: "users",
             referencedColumns: ["id"]
           }
         ]
@@ -349,39 +349,39 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "bookings_activity_id_fkey"
-            columns: ["activity_id"]
-            referencedRelation: "activities"
+            foreignKeyName: "bookings_activity_id_fkey",
+            columns: ["activity_id"],
+            referencedRelation: "activities",
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "bookings_customer_id_fkey"
-            columns: ["customer_id"]
-            referencedRelation: "customers"
+            foreignKeyName: "bookings_customer_id_fkey",
+            columns: ["customer_id"],
+            referencedRelation: "customers",
             referencedColumns: ["cus_id"]
           },
           {
-            foreignKeyName: "bookings_establishment_id_fkey"
-            columns: ["establishment_id"]
-            referencedRelation: "establishments"
+            foreignKeyName: "bookings_establishment_id_fkey",
+            columns: ["establishment_id"],
+            referencedRelation: "establishments",
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "bookings_qr_establishment_id_fkey"
-            columns: ["qr_establishment_id"]
-            referencedRelation: "establishments"
+            foreignKeyName: "bookings_qr_establishment_id_fkey",
+            columns: ["qr_establishment_id"],
+            referencedRelation: "establishments",
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "bookings_referral_visit_id_fkey"
-            columns: ["referral_visit_id"]
-            referencedRelation: "referral_visits"
+            foreignKeyName: "bookings_referral_visit_id_fkey",
+            columns: ["referral_visit_id"],
+            referencedRelation: "referral_visits",
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "bookings_updated_by_fkey"
-            columns: ["updated_by"]
-            referencedRelation: "users"
+            foreignKeyName: "bookings_updated_by_fkey",
+            columns: ["updated_by"],
+            referencedRelation: "users",
             referencedColumns: ["id"]
           }
         ]
@@ -419,21 +419,21 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "chat_messages_activity_id_fkey"
-            columns: ["activity_id"]
-            referencedRelation: "activities"
+            foreignKeyName: "chat_messages_activity_id_fkey",
+            columns: ["activity_id"],
+            referencedRelation: "activities",
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "chat_messages_receiver_id_fkey"
-            columns: ["receiver_id"]
-            referencedRelation: "users"
+            foreignKeyName: "chat_messages_receiver_id_fkey",
+            columns: ["receiver_id"],
+            referencedRelation: "users",
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "chat_messages_sender_id_fkey"
-            columns: ["sender_id"]
-            referencedRelation: "users"
+            foreignKeyName: "chat_messages_sender_id_fkey",
+            columns: ["sender_id"],
+            referencedRelation: "users",
             referencedColumns: ["id"]
           }
         ]
@@ -525,21 +525,21 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "commission_invoices_booking_id_fkey"
-            columns: ["booking_id"]
-            referencedRelation: "bookings"
+            foreignKeyName: "commission_invoices_booking_id_fkey",
+            columns: ["booking_id"],
+            referencedRelation: "bookings",
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "commission_invoices_establishment_id_fkey"
-            columns: ["establishment_id"]
-            referencedRelation: "establishments"
+            foreignKeyName: "commission_invoices_establishment_id_fkey",
+            columns: ["establishment_id"],
+            referencedRelation: "establishments",
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "commission_invoices_provider_id_fkey"
-            columns: ["provider_id"]
-            referencedRelation: "activity_owners"
+            foreignKeyName: "commission_invoices_provider_id_fkey",
+            columns: ["provider_id"],
+            referencedRelation: "activity_owners",
             referencedColumns: ["id"]
           }
         ]
@@ -583,9 +583,9 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "commission_payments_invoice_id_fkey"
-            columns: ["invoice_id"]
-            referencedRelation: "commission_invoices"
+            foreignKeyName: "commission_payments_invoice_id_fkey",
+            columns: ["invoice_id"],
+            referencedRelation: "commission_invoices",
             referencedColumns: ["id"]
           }
         ]
@@ -629,9 +629,9 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "customer_profiles_user_id_fkey"
-            columns: ["user_id"]
-            referencedRelation: "users"
+            foreignKeyName: "customer_profiles_user_id_fkey",
+            columns: ["user_id"],
+            referencedRelation: "users",
             referencedColumns: ["id"]
           }
         ]
@@ -651,15 +651,15 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "establishment_activities_activity_id_fkey"
-            columns: ["activity_id"]
-            referencedRelation: "activities"
+            foreignKeyName: "establishment_activities_activity_id_fkey",
+            columns: ["activity_id"],
+            referencedRelation: "activities",
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "establishment_activities_establishment_id_fkey"
-            columns: ["establishment_id"]
-            referencedRelation: "establishments"
+            foreignKeyName: "establishment_activities_establishment_id_fkey",
+            columns: ["establishment_id"],
+            referencedRelation: "establishments",
             referencedColumns: ["id"]
           }
         ]
@@ -709,21 +709,21 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "establishment_commissions_activity_id_fkey"
-            columns: ["activity_id"]
-            referencedRelation: "activities"
+            foreignKeyName: "establishment_commissions_activity_id_fkey",
+            columns: ["activity_id"],
+            referencedRelation: "activities",
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "establishment_commissions_booking_id_fkey"
-            columns: ["booking_id"]
-            referencedRelation: "bookings"
+            foreignKeyName: "establishment_commissions_booking_id_fkey",
+            columns: ["booking_id"],
+            referencedRelation: "bookings",
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "establishment_commissions_establishment_id_fkey"
-            columns: ["establishment_id"]
-            referencedRelation: "establishments"
+            foreignKeyName: "establishment_commissions_establishment_id_fkey",
+            columns: ["establishment_id"],
+            referencedRelation: "establishments",
             referencedColumns: ["id"]
           }
         ]
@@ -758,9 +758,9 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "establishments_partner_id_fkey"
-            columns: ["partner_id"]
-            referencedRelation: "partner_registrations"
+            foreignKeyName: "establishments_partner_id_fkey",
+            columns: ["partner_id"],
+            referencedRelation: "partner_registrations",
             referencedColumns: ["id"]
           }
         ]
@@ -825,9 +825,9 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "partner_registrations_user_id_fkey"
-            columns: ["user_id"]
-            referencedRelation: "users"
+            foreignKeyName: "partner_registrations_user_id_fkey",
+            columns: ["user_id"],
+            referencedRelation: "users",
             referencedColumns: ["id"]
           }
         ]
@@ -856,9 +856,9 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "qr_scans_establishment_id_fkey"
-            columns: ["establishment_id"]
-            referencedRelation: "establishments"
+            foreignKeyName: "qr_scans_establishment_id_fkey",
+            columns: ["establishment_id"],
+            referencedRelation: "establishments",
             referencedColumns: ["id"]
           }
         ]
@@ -890,9 +890,9 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "referral_visits_establishment_id_fkey"
-            columns: ["establishment_id"]
-            referencedRelation: "establishments"
+            foreignKeyName: "referral_visits_establishment_id_fkey",
+            columns: ["establishment_id"],
+            referencedRelation: "establishments",
             referencedColumns: ["id"]
           }
         ]
@@ -924,15 +924,15 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "reviews_activity_id_fkey"
-            columns: ["activity_id"]
-            referencedRelation: "activities"
+            foreignKeyName: "reviews_activity_id_fkey",
+            columns: ["activity_id"],
+            referencedRelation: "activities",
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "reviews_user_id_fkey"
-            columns: ["user_id"]
-            referencedRelation: "users"
+            foreignKeyName: "reviews_user_id_fkey",
+            columns: ["user_id"],
+            referencedRelation: "users",
             referencedColumns: ["id"]
           }
         ]
@@ -1105,15 +1105,15 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "wishlist_activity_id_fkey"
-            columns: ["activity_id"]
-            referencedRelation: "activities"
+            foreignKeyName: "wishlist_activity_id_fkey",
+            columns: ["activity_id"],
+            referencedRelation: "activities",
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "wishlist_customer_id_fkey"
-            columns: ["customer_id"]
-            referencedRelation: "customer_profiles"
+            foreignKeyName: "wishlist_customer_id_fkey",
+            columns: ["customer_id"],
+            referencedRelation: "customer_profiles",
             referencedColumns: ["customer_id"]
           }
         ]
@@ -1139,17 +1139,17 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "activity_selected_options_activity_id_fkey"
-            columns: ["activity_id"]
-            isOneToOne: false
-            referencedRelation: "activities"
+            foreignKeyName: "activity_selected_options_activity_id_fkey",
+            columns: ["activity_id"],
+            isOneToOne: false,
+            referencedRelation: "activities",
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "activity_selected_options_option_id_fkey"
-            columns: ["option_id"]
-            isOneToOne: false
-            referencedRelation: "activity_options"
+            foreignKeyName: "activity_selected_options_option_id_fkey",
+            columns: ["option_id"],
+            isOneToOne: false,
+            referencedRelation: "activity_options",
             referencedColumns: ["id"]
           }
         ]
@@ -1208,17 +1208,17 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "activity_schedule_instances_activity_id_fkey"
-            columns: ["activity_id"]
-            isOneToOne: false
-            referencedRelation: "activities"
+            foreignKeyName: "activity_schedule_instances_activity_id_fkey",
+            columns: ["activity_id"],
+            isOneToOne: false,
+            referencedRelation: "activities",
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "activity_schedule_instances_schedule_id_fkey"
-            columns: ["schedule_id"]
-            isOneToOne: false
-            referencedRelation: "activity_schedules"
+            foreignKeyName: "activity_schedule_instances_schedule_id_fkey",
+            columns: ["schedule_id"],
+            isOneToOne: false,
+            referencedRelation: "activity_schedules",
             referencedColumns: ["id"]
           }
         ]
