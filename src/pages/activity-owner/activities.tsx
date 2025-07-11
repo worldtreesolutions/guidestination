@@ -34,16 +34,16 @@ export default function ActivitiesPage() {
 
           const bookingsByActivity: Record<string, Booking[]> = {}
           fetchedActivities.forEach((activity: SupabaseActivity) => {
-            bookingsByActivity[activity.id] = fetchedBookings.filter(
+            bookingsByActivity[activity.id.toString()] = fetchedBookings.filter(
               (booking: Booking) => booking.activity_id === activity.id
             )
           })
           setActivityBookings(bookingsByActivity)
-        } catch(e) {
-            console.error(e);
+        } catch(error: any) {
+            console.error("Error fetching activities and bookings:", error);
             toast({
                 title: "Error",
-                description: "Failed to fetch activities and bookings.",
+                description: error.message || "Failed to fetch activities and bookings.",
                 variant: "destructive",
             });
         } finally {
