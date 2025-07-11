@@ -77,7 +77,7 @@ export function ActivityList({ activities, onEdit, onView, onStatusChange }: Act
                       height={64}
                       className="rounded-md object-cover"
                     />
-                    <Link href={`/dashboard/activities/${activity.id.toString()}`} className="font-medium hover:underline">
+                    <Link href={`/dashboard/activities/${String(activity.id)}`} className="font-medium hover:underline">
                       {activity.title}
                     </Link>
                   </div>
@@ -100,7 +100,7 @@ export function ActivityList({ activities, onEdit, onView, onStatusChange }: Act
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem asChild>
-                        <Link href={`/dashboard/activities/${activity.id.toString()}`}>
+                        <Link href={`/dashboard/activities/${String(activity.id)}`}>
                           View Details
                         </Link>
                       </DropdownMenuItem>
@@ -115,7 +115,7 @@ export function ActivityList({ activities, onEdit, onView, onStatusChange }: Act
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
-                  <Link href={`/dashboard/activities/${activity.id.toString()}`}>
+                  <Link href={`/dashboard/activities/${String(activity.id)}`}>
                     <Button variant="outline" size="sm">
                       Edit
                     </Button>

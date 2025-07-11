@@ -1,21 +1,16 @@
+
 import { supabase } from "@/integrations/supabase/client"
-import type {
-  User,
-  Session,
-  UserAttributes,
-  PostgrestSingleResponse,
-} from "@supabase/supabase-js"
 
 export interface SignInResponse {
-  user: User | null;
-  session: Session | null;
+  user: any | null;
+  session: any | null;
   provider_id?: string;
   error: Error | null;
 }
 
 export interface SignUpResponse {
-  user: User | null;
-  session: Session | null;
+  user: any | null;
+  session: any | null;
   error: Error | null;
 }
 
@@ -33,11 +28,9 @@ const authService = {
 
       if (error) throw error
 
-      // If login successful, check if user is an activity owner and fetch provider_id
       let provider_id: string | undefined = undefined;
       if (data.user) {
         try {
-          // Check if user is an activity owner
           const ownerResult = await supabase
             .from('activity_owners')
             .select('provider_id')
@@ -45,7 +38,7 @@ const authService = {
             .maybeSingle()
 
           if (ownerResult && !ownerResult.error && ownerResult.data) {
-            provider_id = (ownerResult.data as any).provider_id;
+            provider_id = ownerResult.data.provider_id;
             console.log("Found provider_id:", provider_id);
           }
         } catch (ownerErr) {
@@ -90,7 +83,6 @@ const authService = {
       if (data.user && data.session) {
         return { user: data.user, session: data.session, error: null };
       }
-      // If user or session is null, it's an unexpected state.
       return { user: null, session: null, error: new Error("User or session data is missing after sign up.") };
     } catch (error) {
       return { user: null, session: null, error: error as Error };

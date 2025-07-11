@@ -83,7 +83,7 @@ const chatService = {
     }
   },
 
-  async getUnreadMessages(userId: string): Promise<ChatMessage[]> {
+  async getUnreadMessages(userId: string): Promise<{ id: string }[]> {
     if (!supabase) {
       throw new Error("Supabase client not initialized");
     }
@@ -97,7 +97,7 @@ const chatService = {
       console.error("Error fetching unread messages:", error);
       return [];
     }
-    return data;
+    return data || [];
   },
 
   async subscribeToMessages(

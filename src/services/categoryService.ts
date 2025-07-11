@@ -1,5 +1,5 @@
+
 import { supabase } from "@/integrations/supabase/client";
-import type { PostgrestResponse } from "@supabase/supabase-js";
 import type { Activity } from "@/types/activity";
 
 export interface Category {
@@ -34,15 +34,13 @@ export const categoryService = {
 
   async getCategoryById(id: string): Promise<Category | null> {
     if (!supabase) {
-      const err = { message: "Supabase client not initialized", details: "Check environment variables", hint: "Ensure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set", code: "CLIENT_ERROR" };
-      console.error(err.message, err.details);
+      console.error("Supabase client not initialized");
       return null;
     }
 
     const numericId = parseInt(id, 10);
     if (isNaN(numericId)) {
-      const err = { message: "Invalid category ID format. ID must be a number.", details: `Received: ${id}`, hint: "Ensure ID is a numeric string.", code: "22P02" };
-      console.error(err.message, err.details);
+      console.error("Invalid category ID format. ID must be a number.");
       return null;
     }
 
@@ -57,7 +55,7 @@ export const categoryService = {
       return null;
     }
     
-    const d = result.data as any;
+    const d = result.data;
     const categoryData = d ? {
       id: d.id,
       name: d.name,
@@ -67,13 +65,13 @@ export const categoryService = {
       updated_at: d.updated_at || undefined,
     } : null;
     
-    return categoryData as Category | null;
+    return categoryData;
   },
 
   async getActivitiesByCategoryId(categoryId: number): Promise<{ activities: Activity[] | null; error: any | null }> {
     if (!supabase) {
-      const err = { message: "Supabase client not initialized", details: "Check environment variables", hint: "Ensure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set", code: "CLIENT_ERROR" };
-      console.error(err.message, err.details);
+      const err = { message: "Supabase client not initialized" };
+      console.error(err.message);
       return { activities: null, error: err };
     }
 
@@ -112,9 +110,8 @@ export const categoryService = {
       return [];
     }
 
-    // Sort categories by creation date, newest first
-    const sortedCategories = (response.data as any[]).sort(
-      (a, b) =>
+    const sortedCategories = response.data.sort(
+      (a: any, b: any) =>
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
 
@@ -158,4 +155,3 @@ export const categoryService = {
 };
 
 export default categoryService;
-  
