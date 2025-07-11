@@ -22,7 +22,11 @@ export function ActivityPreview({ activityId }: ActivityPreviewProps) {
       const fetchActivity = async () => {
         setLoading(true);
         try {
-          const data = await activityService.getActivityById(activityId);
+          const activityIdAsNumber = parseInt(activityId, 10);
+          if (isNaN(activityIdAsNumber)) {
+            throw new Error("Invalid activity ID");
+          }
+          const data = await activityService.getActivityById(activityIdAsNumber);
           setActivity(data);
         } catch (err) {
           setError((err as Error).message);

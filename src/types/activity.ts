@@ -34,7 +34,7 @@ export interface ActivityOption {
   type: string;
 }
 
-export interface Activity extends Omit<SupabaseActivity, "highlights" | "languages" | "included" | "not_included" | "status"> {
+export interface Activity extends Omit<SupabaseActivity, "highlights" | "languages" | "included" | "not_included" | "status" | "duration"> {
   slug?: string;
   category_name?: string;
   price?: number | null;

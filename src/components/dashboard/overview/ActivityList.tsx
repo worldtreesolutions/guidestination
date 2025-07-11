@@ -83,7 +83,7 @@ export function ActivityList({ activities, onEdit, onView }: ActivityListProps) 
                     <div className="font-medium">{activity.title}</div>
                   </div>
                 </TableCell>
-                <TableCell>{activity.location}</TableCell>
+                <TableCell>{activity.meeting_point}</TableCell>
                 <TableCell>
                   {activity.b_price
                     ? `฿${activity.b_price.toLocaleString()}`

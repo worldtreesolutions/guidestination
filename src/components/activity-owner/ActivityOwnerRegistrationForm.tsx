@@ -60,7 +60,7 @@ export const ActivityOwnerRegistrationForm = () => {
     isNewUser?: boolean;
   }>({ type: null, message: null })
   const [locationData, setLocationData] = useState<PlaceData | null>(null)
-  const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
+  const [uploadedFiles, setUploadedFiles] = useState<any[]>([])
   const { toast } = useToast()
   
   const formSchema = createFormSchema(t)
@@ -92,7 +92,7 @@ export const ActivityOwnerRegistrationForm = () => {
     form.setValue('address', placeData.address, { shouldValidate: true, shouldDirty: true })
   }, [form])
 
-  const handleFilesChange = useCallback((files: File[]) => {
+  const handleFilesChange = useCallback((files: any[]) => {
     setUploadedFiles(files)
   }, [])
 
