@@ -147,27 +147,22 @@ CDN URLs generated for secure access and fast delivery.`)
       console.error("Error submitting partner registration:", error)
       setUploadProgress("")
       
-      // Handle specific error cases
-      if (error.message?.includes("User already registered")) {
-        alert(t("form.error.accountExists"))
+      // Handle specific error cases with better user feedback
+      if (error.message?.includes("Too many registration attempts")) {
+        alert(`Rate Limit: ${error.message}`)
+      } else if (error.message?.includes("User already registered") || error.message?.includes("already exists")) {
+        alert("An account with this email already exists. Please use a different email address or contact support.")
       } else if (error.message?.includes("Invalid email")) {
-        alert(t("form.validation.email"))
+        alert("Please enter a valid email address.")
       } else if (error.message?.includes("upload") || error.message?.includes("Failed to process file")) {
         alert(`Upload Error: ${error.message}`)
       } else {
-        alert(t("partner.form.error.message"))
+        alert(`Registration Error: ${error.message || "An unexpected error occurred. Please try again."}`)
       }
     } finally {
       setIsSubmitting(false)
       setUploadProgress("")
     }
-  }
-
-  // Handle form submission with proper event prevention
-  const handleFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    event.stopPropagation()
-    return false
   }
 
   const handleFileUpload = (files: UploadedFile[]) => {
@@ -186,7 +181,15 @@ CDN URLs generated for secure access and fast delivery.`)
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8" noValidate>
+      <form 
+        onSubmit={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          form.handleSubmit(onSubmit)(e)
+        }} 
+        className="space-y-8" 
+        noValidate
+      >
         {uploadProgress && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <p className="text-blue-800 font-medium">{uploadProgress}</p>
