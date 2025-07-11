@@ -208,7 +208,7 @@ export function ActivityCard({ activity, onEdit, onDelete, onPreview }: Activity
         </div>
       </CardContent>
       <CardFooter className="flex justify-end gap-2 bg-gray-50 p-4">
-        {activity.status && getStatusPill(activity.status as "published" | "unpublished" | "draft" | "archived")}
+        {activity.status && getStatusPill(activity.status as any)}
       </CardFooter>
     </Card>
   )

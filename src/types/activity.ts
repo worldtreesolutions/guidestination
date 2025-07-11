@@ -63,7 +63,7 @@ export type ActivityForHomepage = Pick<
 // Add properties that are not in the base table but are needed in the app
 export type Booking = BaseBooking & {
   activities?: Activity;
-  customer_id?: string; // As seen in profile.tsx error
+  customer_id: string; // As seen in profile.tsx error
 };
 
 export interface ScheduledActivity {
