@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,7 +15,7 @@ export default function CommissionSystemTest() {
     setTestResults(prev => [...prev, `${new Date().toLocaleTimeString()}: ${message}`]);
   };
 
-  const testCommissionCalculation = () => {
+  const testCommissionCalculation = useCallback(() => {
     addResult("Testing commission calculation...");
     
     // Test regular booking
@@ -25,9 +25,9 @@ export default function CommissionSystemTest() {
     // Test QR booking
     const qrBooking = commissionService.calculateCommission(1000, true);
     addResult(`QR booking (€1000): Platform gets €${qrBooking.platformCommissionAmount}, Partner gets €${qrBooking.partnerCommissionAmount}, Provider gets €${qrBooking.providerReceives}`);
-  };
+  }, []);
 
-  const testInvoiceGeneration = async () => {
+  const testInvoiceGeneration = useCallback(async () => {
     setLoading(true);
     addResult("Testing invoice generation...");
     
@@ -49,7 +49,7 @@ export default function CommissionSystemTest() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const clearResults = () => {
     setTestResults([]);

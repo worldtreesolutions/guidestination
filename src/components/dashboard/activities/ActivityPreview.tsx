@@ -21,7 +21,7 @@ export function ActivityPreview({ activityId }: ActivityPreviewProps) {
       const fetchActivity = async () => {
         setLoading(true);
         try {
-          const data = await activityService.getActivityById(activityId);
+          const data = await activityService.getActivityById(Number(activityId));
           setActivity(data);
         } catch (err) {
           setError((err as Error).message);
@@ -102,12 +102,7 @@ export function ActivityPreview({ activityId }: ActivityPreviewProps) {
               <span>Max {activity.max_participants} people</span>
             </div>
             <div className="flex items-center gap-2">
-              <Calendar
-                mode="multiple"
-                selected={selectedDates}
-                onSelect={setSelectedDates}
-                className="p-0"
-              />
+              <Calendar className="h-5 w-5 text-muted-foreground" />
               <span>{formatDates(activity.schedules?.map(s => ({ date: s.start_time })))}</span>
             </div>
             <div className="flex items-center gap-2">

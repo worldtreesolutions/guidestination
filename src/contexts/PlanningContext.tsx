@@ -1,5 +1,4 @@
-
-    import { createContext, useContext, useState, useCallback, ReactNode } from "react"
+import { createContext, useContext, useState, useCallback, ReactNode } from "react"
 import { SupabaseActivity } from "@/types/activity"
 
 // Define the shape of a scheduled activity
@@ -19,7 +18,7 @@ interface PlanningContextType {
   isActivitySelected: (activityId: number) => boolean
 }
 
-const PlanningContext = createContext<PlanningContextType | undefined>(undefined)
+export const PlanningContext = createContext<PlanningContextType | undefined>(undefined)
 
 export function usePlanning() {
   const context = useContext(PlanningContext)

@@ -289,7 +289,7 @@ export default function EarningsPage() {
                             <TableCell>{booking.activity_title}</TableCell>
                             <TableCell>{booking.customer_name}</TableCell>
                             <TableCell>{booking.participants}</TableCell>
-                            <TableCell>฿{booking.total_price.toFixed(2)}</TableCell>
+                            <TableCell>฿{(booking.total_price || 0).toFixed(2)}</TableCell>
                             <TableCell>฿{booking.platform_fee?.toFixed(2) ?? '0.00'}</TableCell>
                             <TableCell>฿{booking.provider_amount?.toFixed(2) ?? '0.00'}</TableCell>
                           </TableRow>

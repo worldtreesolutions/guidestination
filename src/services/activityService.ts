@@ -1,104 +1,127 @@
 
-import { supabase } from "@/integrations/supabase/client"
-import { Database } from "@/integrations/supabase/types"
+import { supabase } from "@/integrations/supabase/client";
 import {
   Activity,
   SupabaseActivity,
-  ActivityScheduleInstance,
+  ActivityForHomepage,
   ActivitySelectedOption,
-} from "@/types/activity"
+  ActivityScheduleInstance,
+} from "@/types/activity";
 
-const ACTIVITIES_TABLE = "activities"
-const ACTIVITY_SELECTED_OPTIONS_TABLE = "activity_selected_options"
-const ACTIVITY_SCHEDULE_INSTANCES_TABLE = "activity_schedule_instances"
-
-type ActivityWithOptionsAndSchedule = Database["public"]["Tables"]["activities"]["Row"] & {
-  activity_selected_options?: any[]
-  activity_schedule_instances?: any[]
-}
-
-const activityService = {
-  async getAllActivities(): Promise<SupabaseActivity[]> {
-    const { data, error } = await supabase.from("activities").select("*")
+export const activityService = {
+  // Fetch all active activities with their category name
+  async getActivities(): Promise<Activity[]> {
+    const { data, error } = await supabase
+      .from("activities")
+      .select(
+        `
+        *,
+        categories (
+          name
+        )
+      `
+      )
+      .eq("is_active", true);
 
     if (error) {
-      console.error("Error fetching activities:", error)
-      return []
+      console.error("Error fetching activities:", error);
+      throw error;
     }
 
-    return data || []
+    return data.map((activity: any) => ({
+      ...activity,
+      category_name: activity.categories?.name,
+    })) as Activity[];
   },
 
+  // Fetch a single activity by its ID, ensuring it's active
   async getActivityById(id: number): Promise<Activity | null> {
     const { data, error } = await supabase
       .from("activities")
-      .select("*")
+      .select(
+        `
+        *,
+        categories (
+          name
+        ),
+        activity_schedules (*)
+      `
+      )
       .eq("id", id)
-      .single()
+      .eq("is_active", true)
+      .single();
 
     if (error) {
-      console.error("Error fetching activity:", error)
-      return null
+      console.error(`Error fetching activity with id ${id}:`, error);
+      return null;
     }
+    if (!data) return null;
 
-    return data as Activity
+    return {
+      ...data,
+      category_name: (data.categories as any)?.name,
+      schedules: data.activity_schedules,
+    } as Activity;
   },
 
-  async getSelectedOptionsByActivityId(
-    activityId: number
+  // Fetch selected options for a booking
+  async getSelectedOptionsForBooking(
+    bookingId: string
   ): Promise<ActivitySelectedOption[]> {
     const { data, error } = await supabase
       .from("activity_selected_options")
       .select("*")
-      .eq("activity_id", activityId)
+      .eq("booking_id", bookingId);
 
-    if (error) {
-      console.error("Error fetching selected options:", error)
-      return []
-    }
-    return data as ActivitySelectedOption[]
+    if (error) throw error;
+    return data as ActivitySelectedOption[];
   },
 
-  async getScheduleInstancesByActivityId(
+  // Fetch schedule instances for an activity
+  async getScheduleInstances(
     activityId: number
   ): Promise<ActivityScheduleInstance[]> {
     const { data, error } = await supabase
       .from("activity_schedule_instances")
       .select("*")
-      .eq("activity_id", activityId)
-      .order("instance_date", { ascending: true })
+      .eq("activity_id", activityId);
 
-    if (error) {
-      console.error("Error fetching schedule instances:", error)
-      return []
-    }
-    return data as ActivityScheduleInstance[]
+    if (error) throw error;
+    return data as ActivityScheduleInstance[];
   },
 
-  async fetchActivitiesByOwner(ownerId: string): Promise<SupabaseActivity[]> {
+  // Fetch activities for the homepage (slimmed down version)
+  async getHomepageActivities(): Promise<ActivityForHomepage[]> {
     const { data, error } = await supabase
       .from("activities")
-      .select("*")
-      .eq("owner_id", ownerId)
+      .select(
+        `
+        id,
+        title,
+        price,
+        b_price,
+        location,
+        address,
+        average_rating,
+        image_url,
+        categories (
+          name
+        )
+      `
+      )
+      .eq("is_active", true)
+      .limit(10);
 
     if (error) {
-      console.error("Error fetching activities by owner:", error)
-      return []
+      console.error("Error fetching homepage activities:", error);
+      throw error;
     }
-    return data || []
+
+    return data.map((activity: any) => ({
+      ...activity,
+      category_name: activity.categories?.name,
+    })) as ActivityForHomepage[];
   },
+};
 
-  async deleteActivity(activityId: number): Promise<void> {
-    const { error } = await supabase
-      .from("activities")
-      .delete()
-      .eq("id", activityId)
-
-    if (error) {
-      console.error("Error deleting activity:", error)
-      throw new Error("Failed to delete activity")
-    }
-  },
-}
-
-export default activityService
+export default activityService;

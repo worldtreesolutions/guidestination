@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react"
-import { CommissionInvoice } from "@/types/activity"
+
+import { useState, useEffect } from "react";
+import { CommissionInvoice } from "@/types/activity";
 import {
   Table,
   TableBody,
@@ -7,48 +8,56 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { format } from "date-fns"
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { format } from "date-fns";
+import { commissionService } from "@/services/commissionService";
 
 interface CommissionInvoiceListProps {
-  providerId?: string
+  providerId?: string;
+  status?: "all" | "pending" | "overdue" | "paid";
 }
 
 export function CommissionInvoiceList({
   providerId,
+  status = "all",
 }: CommissionInvoiceListProps) {
-  const [invoices, setInvoices] = useState<CommissionInvoice[]>([])
-  const [loading, setLoading] = useState(true)
+  const [invoices, setInvoices] = useState<CommissionInvoice[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchInvoices = async () => {
-      setLoading(true)
+      setLoading(true);
       try {
-        // NOTE: The service function to fetch invoices is missing.
-        // Using empty data to allow the component to render.
-        setInvoices([]) 
+        // This function needs to be created in commissionService
+        const fetchedInvoices = await commissionService.getCommissionInvoices({
+          providerId,
+          status,
+        });
+        setInvoices(fetchedInvoices);
       } catch (error) {
-        console.error("Failed to fetch invoices:", error)
+        console.error("Failed to fetch invoices:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
-    fetchInvoices()
-  }, [providerId])
+    };
+    fetchInvoices();
+  }, [providerId, status]);
 
   if (loading) {
-    return <p>Loading invoices...</p>
+    return <p>Loading invoices...</p>;
   }
 
   return (
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Invoice ID</TableHead>
-          <TableHead>Provider</TableHead>
+          <TableHead>Invoice #</TableHead>
+          <TableHead>Provider ID</TableHead>
+          <TableHead>Booking ID</TableHead>
           <TableHead>Amount</TableHead>
+          <TableHead>Commission</TableHead>
           <TableHead>Status</TableHead>
           <TableHead>Due Date</TableHead>
           <TableHead>Actions</TableHead>
@@ -58,11 +67,17 @@ export function CommissionInvoiceList({
         {invoices.length > 0 ? (
           invoices.map((invoice) => (
             <TableRow key={invoice.id}>
-              <TableCell>{invoice.id}</TableCell>
-              <TableCell>{invoice.provider_name || "N/A"}</TableCell>
-              <TableCell>${invoice.amount.toFixed(2)}</TableCell>
+              <TableCell>{invoice.invoice_number}</TableCell>
+              <TableCell>{invoice.provider_id}</TableCell>
+              <TableCell>{invoice.booking_id}</TableCell>
               <TableCell>
-                <Badge>{invoice.status}</Badge>
+                ฿{invoice.total_booking_amount.toFixed(2)}
+              </TableCell>
+              <TableCell>
+                ฿{invoice.platform_commission_amount.toFixed(2)}
+              </TableCell>
+              <TableCell>
+                <Badge>{invoice.invoice_status}</Badge>
               </TableCell>
               <TableCell>{format(new Date(invoice.due_date), "PPP")}</TableCell>
               <TableCell>
@@ -72,13 +87,13 @@ export function CommissionInvoiceList({
           ))
         ) : (
           <TableRow>
-            <TableCell colSpan={6} className="text-center">
+            <TableCell colSpan={8} className="text-center">
               No invoices found.
             </TableCell>
           </TableRow>
         )}
       </TableBody>
     </Table>
-  )
+  );
 }
   

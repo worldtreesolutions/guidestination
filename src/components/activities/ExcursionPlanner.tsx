@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { activityService } from "@/services/activityService";
+import activityService from "@/services/activityService";
 import { Activity, ScheduledActivity as ImportedScheduledActivity, SupabaseActivitySchedule } from "../../types/activity";
 import { PlanningContext } from "@/contexts/PlanningContext";
 import { useToast } from "@/hooks/use-toast";

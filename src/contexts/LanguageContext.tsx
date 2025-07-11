@@ -1,163 +1,111 @@
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { useRouter } from "next/router";
+import { currencyService } from "@/services/currencyService";
 
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
-
-// Define available languages
-export type Language = "en" | "th" | "fr";
-
-// Define a type for potentially nested translations using a proper recursive interface
-interface TranslationValue {
-  [key: string]: string | TranslationValue;
-}
-
-export type Translations = TranslationValue;
-
-// Define the context type
 interface LanguageContextType {
-  language: Language;
-  setLanguage: (language: Language) => void;
-  t: (key: string) => string;
-  isLoading: boolean;
+  language: string;
+  setLanguage: (language: string) => void;
+  translations: any;
+  currency: string;
+  setCurrency: (currency: string) => void;
+  formatCurrency: (amount: number) => string;
 }
 
-// Create the context with default values
-const LanguageContext = createContext<LanguageContextType>({
-  language: "en",
-  setLanguage: () => {},
-  t: (key: string) => key,
-  isLoading: false,
-});
+export const LanguageContext = createContext<LanguageContextType | undefined>(
+  undefined
+);
 
-// Define props for the provider
-interface LanguageProviderProps {
-  children: React.ReactNode;
-}
-
-export function LanguageProvider({ children }: LanguageProviderProps) {
-  const [language, setLanguageState] = useState<Language>("en");
-  const [translations, setTranslations] = useState<Translations>({});
-  const [isLoading, setIsLoading] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  const loadingRef = useRef(false);
-  const currentLanguageRef = useRef<Language>("en");
-
-  // Initialize on mount
-  useEffect(() => {
-    setMounted(true);
-    
-    // Load saved language from localStorage
-    if (typeof window !== "undefined") {
-      const savedLanguage = localStorage.getItem("preferredLanguage") as Language;
-      if (savedLanguage && ["en", "th", "fr"].includes(savedLanguage)) {
-        setLanguageState(savedLanguage);
-        currentLanguageRef.current = savedLanguage;
-      }
-    }
-  }, []);
-
-  // Load translations when language changes - Fixed to prevent infinite loops
-  useEffect(() => {
-    if (!mounted || loadingRef.current || currentLanguageRef.current === language) {
-      return;
-    }
-
-    const loadTranslations = async () => {
-      if (loadingRef.current) return;
-      
-      loadingRef.current = true;
-      setIsLoading(true);
-      currentLanguageRef.current = language;
-      
-      try {
-        const response = await fetch(`/translations/${language}.json`);
-        if (response.ok) {
-          const data = await response.json();
-          setTranslations(data);
-        } else {
-          // Fallback to English
-          const enResponse = await fetch(`/translations/en.json`);
-          if (enResponse.ok) {
-            const enData = await enResponse.json();
-            setTranslations(enData);
-          }
-        }
-      } catch (error) {
-        console.error("Failed to load translations:", error);
-        setTranslations({});
-      } finally {
-        setIsLoading(false);
-        loadingRef.current = false;
-      }
-    };
-
-    loadTranslations();
-  }, [language, mounted]);
-
-  // Set language and save to localStorage - Fixed: Remove language dependency
-  const setLanguage = useCallback((newLanguage: Language) => {
-    if (newLanguage === currentLanguageRef.current) return;
-    
-    setLanguageState(newLanguage);
-    
-    if (typeof window !== "undefined") {
-      try {
-        localStorage.setItem("preferredLanguage", newLanguage);
-      } catch (error) {
-        console.error("Error saving language to localStorage:", error);
-      }
-    }
-  }, []);
-
-  // Translation function - Memoized to prevent unnecessary re-renders
-  const t = useCallback((key: string): string => {
-    if (!mounted || isLoading || Object.keys(translations).length === 0) {
-      return key;
-    }
-
-    const keys = key.split(".");
-    let current: any = translations;
-
-    for (const k of keys) {
-      if (current && typeof current === "object" && k in current) {
-        current = current[k];
-      } else {
-        return key;
-      }
-    }
-
-    return typeof current === "string" ? current : key;
-  }, [translations, isLoading, mounted]);
-
-  // Show loading state until mounted
-  if (!mounted) {
-    return (
-      <LanguageContext.Provider value={{
-        language: "en",
-        setLanguage: () => {},
-        t: (key: string) => key,
-        isLoading: true
-      }}>
-        {children}
-      </LanguageContext.Provider>
-    );
-  }
-
-  return (
-    <LanguageContext.Provider value={{
-      language,
-      setLanguage,
-      t,
-      isLoading
-    }}>
-      {children}
-    </LanguageContext.Provider>
-  );
-}
-
-// Custom hook to use the language context
 export function useLanguage() {
   const context = useContext(LanguageContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error("useLanguage must be used within a LanguageProvider");
   }
   return context;
+}
+
+export function LanguageProvider({ children }: { children: ReactNode }) {
+  const [language, setLanguageState] = useState("en");
+  const [translations, setTranslations] = useState({});
+  const [currency, setCurrency] = useState("THB");
+  const router = useRouter();
+
+  const fetchTranslations = async (lang: string) => {
+    try {
+      const response = await fetch(`/translations/${lang}.json`);
+      if (!response.ok) {
+        console.error(`Failed to load ${lang}.json`);
+        // Fallback to English if the language file is not found
+        if (lang !== "en") {
+          fetchTranslations("en");
+        }
+        return;
+      }
+      const data = await response.json();
+      setTranslations(data);
+    } catch (error) {
+      console.error("Error fetching translations:", error);
+      if (lang !== "en") {
+        fetchTranslations("en");
+      }
+    }
+  };
+
+  useEffect(() => {
+    const savedLanguage = localStorage.getItem("language");
+    const initialLanguage = savedLanguage || "en";
+    setLanguageState(initialLanguage);
+    
+    // Set currency based on language
+    if (initialLanguage === 'fr') {
+      setCurrency('EUR');
+    } else if (initialLanguage === 'en') {
+      setCurrency('USD');
+    } else {
+      setCurrency('THB');
+    }
+
+    fetchTranslations(initialLanguage);
+  }, []);
+
+  const setLanguage = (lang: string) => {
+    setLanguageState(lang);
+    localStorage.setItem("language", lang);
+    fetchTranslations(lang);
+    
+    // Update currency when language changes
+    if (lang === 'fr') {
+      setCurrency('EUR');
+    } else if (lang === 'en') {
+      setCurrency('USD');
+    } else {
+      setCurrency('THB');
+    }
+
+    // Optional: force a reload to ensure all components re-render with the new language
+    router.push(router.pathname, router.asPath, { locale: lang });
+  };
+
+  const formatCurrency = (amountInThb: number) => {
+    const convertedAmount = currencyService.convert(amountInThb, "THB", currency);
+    const symbol = currencyService.getCurrencySymbol(currency);
+    return `${symbol}${convertedAmount.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+  };
+
+  const value = {
+    language,
+    setLanguage,
+    translations,
+    currency,
+    setCurrency,
+    formatCurrency,
+  };
+
+  return (
+    <LanguageContext.Provider value={value}>
+      {children}
+    </LanguageContext.Provider>
+  );
 }
