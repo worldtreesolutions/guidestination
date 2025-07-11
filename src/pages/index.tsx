@@ -26,19 +26,41 @@ export default function HomePage() {
         setLoading(true);
         setError(null);
         
-        // Check if services are available
-        if (!activityService || !categoryService) {
-          throw new Error("Services not properly initialized. Please check your configuration.");
+        // Check if services are available and have required methods
+        if (!activityService || typeof activityService.getActivitiesForHomepage !== 'function') {
+          throw new Error("Activity service not properly initialized. Please check your Supabase configuration.");
         }
         
-        // Fetch both activities and categories
-        const [activitiesData, categoriesData] = await Promise.all([
-          activityService.getActivitiesForHomepage(),
-          categoryService.getAllCategories()
-        ]);
+        if (!categoryService || typeof categoryService.getAllCategories !== 'function') {
+          throw new Error("Category service not properly initialized. Please check your Supabase configuration.");
+        }
+        
+        // Fetch both activities and categories with individual error handling
+        let activitiesData: ActivityForHomepage[] = [];
+        let categoriesData: Category[] = [];
+        
+        try {
+          activitiesData = await activityService.getActivitiesForHomepage();
+        } catch (activityError) {
+          console.error("Failed to fetch activities:", activityError);
+          activitiesData = [];
+        }
+        
+        try {
+          categoriesData = await categoryService.getAllCategories();
+        } catch (categoryError) {
+          console.error("Failed to fetch categories:", categoryError);
+          categoriesData = [];
+        }
         
         setActivities(activitiesData || []);
         setCategories(categoriesData || []);
+        
+        // If both failed, show error
+        if (activitiesData.length === 0 && categoriesData.length === 0) {
+          setError("Unable to load data. Please check your Supabase configuration.");
+        }
+        
       } catch (err) {
         console.error("Error fetching data:", err);
         setError(`Failed to load data: ${err instanceof Error ? err.message : 'Unknown error'}`);
@@ -102,6 +124,9 @@ export default function HomePage() {
             <div className="text-center py-20">
               <p className="text-red-500 mb-4">{error}</p>
               <p className="text-gray-500">Please check your Supabase configuration and try again.</p>
+              <p className="text-sm text-gray-400 mt-2">
+                Make sure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set in your environment variables.
+              </p>
             </div>
           )}
           {!loading && !error && (
@@ -139,6 +164,9 @@ export default function HomePage() {
                       ? `No activities available in ${categories.find(c => c.id === selectedCategoryId)?.name || 'this category'}.`
                       : 'No activities available at the moment.'
                     }
+                  </p>
+                  <p className="text-sm text-gray-400 mt-2">
+                    This might be due to Supabase configuration issues or no data in the database.
                   </p>
                 </div>
               )}
