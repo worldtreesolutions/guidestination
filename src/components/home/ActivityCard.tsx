@@ -1,56 +1,70 @@
-import { Card, CardContent } from "@/components/ui/card"
-import Link from "next/link"
-import Image from "next/image"
-import { Star, MapPin } from "lucide-react"
-import { SupabaseActivity, ActivityForHomepage } from "@/types/activity"
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Star, MapPin } from "lucide-react";
+import { ActivityForHomepage } from "@/types/activity";
+import { currencyService } from "@/services/currencyService";
+import { useEffect, useState } from "react";
 
 interface ActivityCardProps {
-  activity: ActivityForHomepage
+  activity: ActivityForHomepage;
 }
 
-export const ActivityCard = ({ activity }: ActivityCardProps) => {
+export default function ActivityCard({ activity }: ActivityCardProps) {
+  const [userCurrency, setUserCurrency] = useState("USD");
+
+  useEffect(() => {
+    currencyService.getUserCurrency().then(setUserCurrency);
+  }, []);
+
   const formatPrice = (price: number | null) => {
-    // Provide fallback values to prevent undefined errors
-    const safePrice = typeof price === 'number' ? price : 0
-    return safePrice.toLocaleString()
-  }
+    if (!price) return "Price on request";
+    return currencyService.formatCurrency(price, userCurrency);
+  };
 
   return (
-    <Link href={`/activities/${activity.id}`} legacyBehavior>
-      <a className="block group">
-        <Card className="overflow-hidden">
-          <CardContent className="p-0">
-            <div className="relative h-48 w-full">
-              <Image
-                src={activity.image_url || "/placeholder.jpg"}
-                alt={activity.title}
-                layout="fill"
-                objectFit="cover"
-                className="transition-transform duration-300 group-hover:scale-105"
-              />
-            </div>
-            <div className="p-4 space-y-2">
-              <div className="flex justify-between items-start">
-                <h3 className="font-semibold text-lg mb-2 line-clamp-2">{activity.title}</h3>
-                <div className="flex items-center text-gray-600 mb-2">
-                  <MapPin className="h-4 w-4 mr-1" />
-                  <span className="text-sm truncate">{activity.address || "Location not specified"}</span>
-                </div>
+    <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+      <div className="aspect-video relative">
+        <img
+          src={activity.image_url || "/placeholder-activity.jpg"}
+          alt={activity.title}
+          className="w-full h-full object-cover"
+        />
+        {activity.category_name && (
+          <Badge className="absolute top-2 left-2">
+            {activity.category_name}
+          </Badge>
+        )}
+      </div>
+      <CardContent className="p-4">
+        <h3 className="font-semibold text-lg mb-2 line-clamp-2">
+          {activity.title}
+        </h3>
+        
+        <div className="flex items-center gap-1 text-sm text-muted-foreground mb-2">
+          <MapPin className="w-4 h-4" />
+          <span className="line-clamp-1">{activity.location}</span>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1">
+            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+            <span className="text-sm font-medium">
+              {activity.average_rating?.toFixed(1) || "New"}
+            </span>
+          </div>
+          
+          <div className="text-right">
+            {activity.b_price && activity.b_price !== activity.price && (
+              <div className="text-sm text-muted-foreground line-through">
+                {formatPrice(activity.b_price)}
               </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
-                  <span className="text-sm">{(activity.average_rating || 0).toFixed(1)}</span>
-                </div>
-                <div className="text-lg font-bold text-blue-600">
-                  ฿{formatPrice(activity.b_price)}
-                </div>
-              </div>
+            )}
+            <div className="font-semibold text-lg">
+              {formatPrice(activity.price)}
             </div>
-          </CardContent>
-        </Card>
-      </a>
-    </Link>
-  )
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
 }
-  
