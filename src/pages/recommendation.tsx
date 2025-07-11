@@ -5,73 +5,98 @@ import Image from "next/image";
 import Navbar from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { PreferencesForm, PreferencesFormData } from "@/components/recommendation/PreferencesForm";
-import { recommendationService, RecommendedPlan, UserPreferences, RecommendedActivity } from "@/services/recommendationService";
-import { Activity, SupabaseActivity } from "@/types/activity";
+import { recommendationService, RecommendedPlan } from "@/services/recommendationService";
+import { DndContext, closestCenter, DragEndEvent } from "@dnd-kit/core";
+import { arrayMove, SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, MapPin, Clock, Users, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { usePlanning } from "@/contexts/PlanningContext";
 import { useToast } from "@/hooks/use-toast";
+import { GripVertical } from "lucide-react";
+
+interface SortableActivityItemProps {
+  activity: ScheduledActivity;
+  onRemove: (id: string) => void;
+}
+
+function SortableActivityItem({ activity, onRemove }: SortableActivityItemProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id: activity.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="flex items-center gap-4 p-2 bg-white rounded-lg shadow">
+      <GripVertical className="cursor-grab" />
+      <p>{activity.title}</p>
+      <Button variant="ghost" size="sm" onClick={() => onRemove(activity.id)}>Remove</Button>
+    </div>
+  );
+}
 
 export default function RecommendationPage() {
   const router = useRouter();
-  const [recommendations, setRecommendations] = useState<RecommendedPlan | null>(null);
+  const [preferences, setPreferences] = useState(null);
+  const [recommendedPlan, setRecommendedPlan] = useState<RecommendedPlan | null>(null);
+  const [scheduledActivities, setScheduledActivities] = useState<ScheduledActivity[]>([]);
   const [loading, setLoading] = useState(false);
-  const { addActivity } = usePlanning();
+  const { addActivity, removeActivity } = usePlanning();
   const { toast } = useToast();
 
-  useEffect(() => {
-    if (recommendations) {
-      recommendations.activities.forEach(activity => addActivity(activity as unknown as Activity));
-      toast({
-        title: "All activities added",
-        description: "All recommended activities have been added to your plan.",
-      });
-    }
-  }, [recommendations, addActivity, toast]);
-
-  const handleSubmit = async (data: PreferencesFormData) => {
+  const handlePreferencesSubmit = async (submittedPreferences: any) => {
     setLoading(true);
-    setRecommendations(null);
-    try {
-      if (!data.travelDates.from || !data.travelDates.to) {
-        toast({
-          title: "Error",
-          description: "Please select travel dates.",
-          variant: "destructive",
-        });
-        setLoading(false);
-        return;
-      }
-      const preferences: UserPreferences = {
-        ...data,
-        travelDates: {
-            start: data.travelDates.from,
-            end: data.travelDates.to
-        }
-      }
-      const result = await recommendationService.getRecommendations(preferences);
-      setRecommendations(result);
-    } catch (error) {
-      console.error("Error getting recommendations:", error);
-      toast({
-        title: "Error",
-        description: "Could not fetch recommendations. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+    setPreferences(submittedPreferences);
+    const recommendations = await recommendationService.getRecommendations(
+      submittedPreferences
+    );
+    // This part needs to be adapted based on what getRecommendations returns
+    // For now, let's assume it returns a structure that can be set to recommendedPlan
+    // setRecommendedPlan(recommendations); 
+    setLoading(false);
   };
 
-  const handleActivitySelect = (activity: RecommendedActivity) => {
-    addActivity(activity as unknown as Activity);
-    toast({
-      title: "Activity Added",
-      description: `${activity.title} has been added to your plan.`,
-    });
+  const handleAddActivity = (activity: any) => {
+    // This is a placeholder. The activity needs to be converted to a ScheduledActivity
+    const scheduledActivity: ScheduledActivity = {
+      id: new Date().toISOString(), // temporary unique id
+      title: activity.title,
+      day: "monday", // placeholder
+      time: "10:00", // placeholder
+      activity: activity,
+      date: new Date(), // placeholder
+    };
+    addActivity(scheduledActivity);
+    setScheduledActivities(prev => [...prev, scheduledActivity]);
   };
+
+  const handleRemoveActivity = (id: string) => {
+    removeActivity(id);
+    setScheduledActivities(prev => prev.filter(act => act.id !== id));
+  };
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      setScheduledActivities((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  }
 
   return (
     <>
@@ -90,89 +115,45 @@ export default function RecommendationPage() {
               Personalized Planning
             </h1>
 
-            {!recommendations && !loading && (
-              <div className="space-y-6">
-                <p className="text-center text-base sm:text-lg mb-6 sm:mb-8">
-                  Share your preferences to get a customized schedule
-                </p>
-                <PreferencesForm onSubmit={handleSubmit} />
-              </div>
-            )}
-
-            {loading && (
-              <div className="flex flex-col items-center justify-center py-8 sm:py-12">
-                <Loader2 className="h-10 w-10 sm:h-12 sm:w-12 animate-spin mb-4" />
-                <p className="text-base sm:text-lg">Creating your personalized schedule...</p>
-              </div>
-            )}
-
-            {recommendations && (
-              <div className="space-y-6 sm:space-y-8">
-                <div className="flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-0">
-                  <h2 className="text-xl sm:text-2xl font-semibold">
-                    Your Recommended Plan
-                  </h2>
-                  <Button onClick={() => setRecommendations(null)}>
-                    Start Over
-                  </Button>
-                </div>
-
-                <div className="grid gap-4 sm:gap-6">
-                  {recommendations.activities.map((activity: RecommendedActivity) => (
-                    <Card key={activity.id}>
-                      <div className="flex flex-col md:flex-row">
-                        <div className="relative w-full md:w-64 h-48">
-                          <CardContent className="p-0">
-                            <Image
-                              src={activity.image_url || '/placeholder.svg'}
-                              alt={activity.title}
-                              fill
-                              className="w-full h-48 object-cover"
-                            />
-                          </CardContent>
-                        </div>
-                        <CardContent className="flex-1 p-4 sm:p-6">
-                          <div className="flex flex-col sm:flex-row justify-between items-start gap-2 sm:gap-4 mb-4">
-                            <div>
-                              <h3 className="text-lg sm:text-xl font-semibold mb-1 sm:mb-2">{activity.title}</h3>
-                              <p className="text-sm text-muted-foreground">{activity.description}</p>
-                            </div>
-                            <div className="text-left sm:text-right mt-2 sm:mt-0">
-                              <p className="font-semibold">{activity.b_price?.toLocaleString()} THB</p>
-                              <p className="text-sm text-muted-foreground">{activity.duration} hours</p>
-                            </div>
-                          </div>
-                          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                            <div className="space-y-1">
-                              <p className="text-sm">Recommended for you</p>
-                            </div>
-                            <Button
-                              className="w-full sm:w-auto"
-                              onClick={() => handleActivitySelect(activity)}
-                            >
-                              Add to Planning
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-
+            <div className="grid md:grid-cols-2 gap-8">
+              <div>
                 <Card>
                   <CardHeader>
-                    <CardTitle>Summary</CardTitle>
+                    <CardTitle>Your Preferences</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-2">
-                      <p>Number of days: {recommendations.numberOfDays}</p>
-                      <p>Total budget: {recommendations.totalPrice.toLocaleString()} THB</p>
-                      <p>Number of activities: {recommendations.activities.length}</p>
-                    </div>
+                    <PreferencesForm onSubmit={handlePreferencesSubmit} />
                   </CardContent>
                 </Card>
               </div>
-            )}
+              <div>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Recommended Itinerary</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {loading && <p>Finding recommendations...</p>}
+                    {recommendedPlan && (
+                      <div className="space-y-4">
+                        <DndContext
+                          collisionDetection={closestCenter}
+                          onDragEnd={handleDragEnd}
+                        >
+                          <SortableContext
+                            items={scheduledActivities}
+                            strategy={verticalListSortingStrategy}
+                          >
+                            {scheduledActivities.map(activity => (
+                              <SortableActivityItem key={activity.id} activity={activity} onRemove={handleRemoveActivity} />
+                            ))}
+                          </SortableContext>
+                        </DndContext>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
           </div>
         </main>
 

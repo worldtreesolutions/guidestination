@@ -150,6 +150,45 @@ export const referralService = {
     if (typeof window === 'undefined') return
     sessionStorage.removeItem('referral_visit_id')
     sessionStorage.removeItem('establishment_id')
+  },
+
+  async createReferralCommission(commissionData: {
+    establishment_id: string;
+    booking_id: string;
+    activity_id: number;
+    customer_id: string;
+    referral_visit_id: string;
+    commission_rate: number;
+    booking_amount: number;
+    commission_amount: number;
+  }) {
+    if (!supabase) {
+      throw new Error("Supabase client is not initialized.");
+    }
+    const { data, error } = await supabase.from("referral_commissions").insert([
+      {
+        ...commissionData,
+        commission_status: "pending",
+        booking_source: "qr_code",
+      },
+    ]);
+
+    if (error) {
+      console.error("Error creating referral commission:", error);
+      throw error;
+    }
+    return data;
+  },
+
+  async getReferralStats(establishmentId: string) {
+    const { data, error } = await supabase
+      .from("referral_commissions")
+      .select(`*`)
+      .eq("establishment_id", establishmentId)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error
+    return data as unknown as EstablishmentCommission[]
   }
 }
 

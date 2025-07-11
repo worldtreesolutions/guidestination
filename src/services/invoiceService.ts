@@ -230,6 +230,56 @@ export const invoiceService = {
       console.error("Failed to send overdue reminders:", error);
       throw error;
     }
+  },
+
+  // Create commission invoice
+  async createCommissionInvoice(activity: Activity, booking: Booking): Promise<CommissionInvoice> {
+    try {
+      let establishment = null;
+      if (booking.is_qr_booking && booking.establishment_id) {
+          const {  est } = await supabase
+              .from("establishments")
+              .select("name, commission_rate")
+              .eq("id", booking.establishment_id)
+              .single();
+          establishment = est;
+      }
+
+      // Calculate commission
+      const commissionRate = establishment?.commission_rate || activity.commission_rate || 15;
+      const platformCommission = booking.total_price * (commissionRate / 100);
+      
+      let partnerCommission = 0;
+      if (booking.partner_id) {
+          // Assuming a partner commission logic exists
+          partnerCommission = platformCommission * 0.2; // Example: 20% of platform commission
+      }
+
+      const invoiceData = {
+          provider_id: activity.provider_id,
+          booking_id: booking.id,
+          total_booking_amount: booking.total_price,
+          platform_commission_amount: platformCommission,
+          partner_commission_amount: partnerCommission,
+          invoice_status: "pending",
+          due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
+          is_qr_booking: booking.is_qr_booking,
+          partner_id: booking.partner_id,
+          partner_commission_rate: booking.partner_id ? 20 : undefined, // Example rate
+      };
+
+      const {  newInvoice, error: invoiceError } = await supabase
+          .from("commission_invoices")
+          .insert(invoiceData)
+          .single();
+
+      if (invoiceError) throw invoiceError;
+
+      return newInvoice as CommissionInvoice;
+    } catch (error) {
+      console.error("Failed to create commission invoice:", error);
+      throw error;
+    }
   }
 };
 

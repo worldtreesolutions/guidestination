@@ -286,6 +286,24 @@ export const partnerService = {
 
     if (error) throw error
     return data
+  },
+
+  async registerPartner(partnerData: Omit<Tables<'partners'>, 'id' | 'created_at' | 'status'>): Promise<any> {
+    if (!supabase) {
+      throw new Error("Supabase client is not initialized.");
+    }
+    const { data, error } = await supabase
+      .from("partners")
+      .insert([{ ...partnerData, status: "pending" }])
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error registering partner:", error);
+      throw error;
+    }
+
+    return data;
   }
 }
 

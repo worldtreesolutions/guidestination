@@ -54,6 +54,22 @@ export const qrBookingService = {
     return data.id;
   },
 
+  // Record visit
+  async recordVisit(establishmentId: string, ipAddress: string, sessionId: string) {
+    if (!supabase) {
+      throw new Error("Supabase client is not initialized.");
+    }
+    const { data, error } = await supabase
+      .from("referral_visits")
+      .insert([{ establishment_id: establishmentId, ip_address: ipAddress, session_id: sessionId }]);
+
+    if (error) {
+      console.error("Error recording visit:", error);
+      throw error;
+    }
+    return data;
+  },
+
   // Create QR-linked booking
   async createQRBooking(bookingData: {
     activityId: number
@@ -110,12 +126,65 @@ export const qrBookingService = {
     return booking.id;
   },
 
+  // Create QR booking
+  async createQrBooking(bookingDetails: {
+    activity_id: number;
+    user_id: string;
+    customer_name: string;
+    customer_email: string;
+    participants: number;
+    total_price: number;
+    provider_id: string;
+    establishment_id: string;
+  }) {
+    if (!supabase) {
+      throw new Error("Supabase client is not initialized.");
+    }
+    const { data, error } = await supabase
+      .from("bookings")
+      .insert([
+        {
+          activity_id: bookingDetails.activity_id,
+          user_id: bookingDetails.user_id,
+          customer_name: bookingDetails.customer_name,
+          customer_email: bookingDetails.customer_email,
+          participants: bookingDetails.participants,
+          total_price: bookingDetails.total_price,
+          provider_id: bookingDetails.provider_id,
+          establishment_id: bookingDetails.establishment_id,
+          status: "confirmed", // Or "pending" if payment is needed
+          is_qr_booking: true,
+        },
+      ])
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error creating QR booking:", error);
+      throw error;
+    }
+    return data;
+  },
+
   // Get establishment details for QR booking
   async getEstablishmentForQr(establishmentId: string) {
     const { data, error } = await supabase
       .from("establishments")
       .select("*")
       .eq("id", establishmentId)
+      .eq("verification_status", "approved")
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  // Get establishment by domain
+  async getEstablishmentByDomain(domain: string) {
+    const { data, error } = await supabase
+      .from("establishments")
+      .select("*")
+      .eq("domain", domain)
       .eq("verification_status", "approved")
       .single();
 

@@ -25,7 +25,8 @@ import { BookingForm } from "@/components/activities/BookingForm";
 import { ActivityReviews } from "@/components/activities/ActivityReviews";
 import { useIsMobile } from "@/hooks/use-mobile";
 import activityService from "@/services/activityService";
-import { Activity, SupabaseActivity } from "@/types/activity";
+import { Activity, SupabaseActivity, ActivityWithDetails } from "@/types/activity";
+import { Check, X } from "lucide-react";
 
 export default function ActivityBookingPage() {
   const router = useRouter();
@@ -149,7 +150,7 @@ export default function ActivityBookingPage() {
             <div className="mb-8">
               <div className="flex items-center gap-2 mb-4">
                 <Badge variant="secondary" className="capitalize">
-                  {activity.category_name || "Uncategorized"}
+                  {activity.categories?.name || "Uncategorized"}
                 </Badge>
                 {activity.average_rating && (
                   <div className="flex items-center gap-1">
@@ -169,7 +170,7 @@ export default function ActivityBookingPage() {
               <div className="flex flex-wrap items-center gap-4 mb-4">
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-primary" />
-                  <span className="text-sm sm:text-base">{activity.address || "Location TBD"}</span>
+                  <span className="text-sm sm:text-base">{activity.meeting_point || "Location TBD"}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4" />
@@ -181,7 +182,7 @@ export default function ActivityBookingPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Globe className="h-4 w-4" />
-                  <span className="text-sm sm:text-base">{activity.languages?.join(", ") || "English"}</span>
+                  <span className="text-sm sm:text-base">{Array.isArray(activity.languages) ? activity.languages.join(", ") : (activity.languages || "English")}</span>
                 </div>
               </div>
             </div>
@@ -350,8 +351,8 @@ export default function ActivityBookingPage() {
                       <div>
                         <h3 className="font-semibold mb-3">Select Date</h3>
                         <AvailabilityCalendar
-                          availableDates={activity.schedule_instances?.map((d: any) => d.scheduled_date) || []}
-                          scheduleData={activity.schedule_instances || []}
+                          availableDates={activity.activity_schedules?.map((d: any) => d.scheduled_date) || []}
+                          scheduleData={activity.activity_schedules || []}
                           selectedDate={selectedDate}
                           onDateSelect={setSelectedDate}
                         />

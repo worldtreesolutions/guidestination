@@ -10,22 +10,35 @@ import invoiceService from "@/services/invoiceService";
 export default function CommissionSystemTest() {
   const [testResults, setTestResults] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [standardCommission, setStandardCommission] = useState<any>(null);
+  const [partnerCommission, setPartnerCommission] = useState<any>(null);
 
   const addResult = (message: string) => {
     setTestResults(prev => [...prev, `${new Date().toLocaleTimeString()}: ${message}`]);
   };
 
-  const testCommissionCalculation = useCallback(() => {
-    addResult("Testing commission calculation...");
-    
-    // Test regular booking
-    const regularBooking = commissionService.calculateCommission(1000, false);
-    addResult(`Regular booking (€1000): Platform gets €${regularBooking.platformCommissionAmount}, Provider gets €${regularBooking.providerReceives}`);
-    
-    // Test QR booking
-    const qrBooking = commissionService.calculateCommission(1000, true);
-    addResult(`QR booking (€1000): Platform gets €${qrBooking.platformCommissionAmount}, Partner gets €${qrBooking.partnerCommissionAmount}, Provider gets €${qrBooking.providerReceives}`);
-  }, []);
+  const testCommissionCalculation = async () => {
+    setLoading(true);
+    // Scenario 1: Standard booking
+    const standardBookingAmount = 1000;
+    const standardCommissionRate = 15;
+    const standardResult = await commissionService.calculateCommission(
+      standardBookingAmount,
+      standardCommissionRate
+    );
+    setStandardCommission(standardResult);
+
+    // Scenario 2: Booking with partner referral
+    const partnerBookingAmount = 2000;
+    const partnerCommissionRate = 20; // Higher rate for partners
+    const partnerResult = await commissionService.calculateCommission(
+      partnerBookingAmount,
+      partnerCommissionRate
+    );
+    setPartnerCommission(partnerResult);
+
+    setLoading(false);
+  };
 
   const testInvoiceGeneration = useCallback(async () => {
     setLoading(true);
@@ -171,6 +184,18 @@ export default function CommissionSystemTest() {
             </div>
           </div>
 
+          <div className="p-4 border rounded-lg">
+            <h3 className="font-semibold">Standard Booking Commission</h3>
+            <p>Booking Amount: 1000</p>
+            <p>Commission Rate: 15%</p>
+            <p>Calculated Commission: {standardCommission}</p>
+          </div>
+          <div className="p-4 border rounded-lg">
+            <h3 className="font-semibold">Partner Referral Commission</h3>
+            <p>Booking Amount: 2000</p>
+            <p>Commission Rate: 20%</p>
+            <p>Calculated Commission: {partnerCommission}</p>
+          </div>
         </CardContent>
       </Card>
     </div>

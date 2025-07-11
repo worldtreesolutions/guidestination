@@ -333,6 +333,50 @@ export const stripeService = {
       amount: amount ? Math.round(amount * 100) : undefined,
     })
   },
+
+  async createBooking(bookingDetails: any, userId: string) {
+    if (!supabase) {
+      throw new Error("Supabase client is not initialized.");
+    }
+    const { data, error } = await supabase
+      .from("bookings")
+      .insert([
+        {
+          ...bookingDetails,
+          user_id: userId,
+          status: "pending",
+        },
+      ])
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error creating booking:", error);
+      throw error;
+    }
+    return data;
+  },
+
+  async updateBookingStatus(bookingId: string, status: string, paymentIntentId?: string) {
+    if (!supabase) {
+      throw new Error("Supabase client is not initialized.");
+    }
+    const { data, error } = await supabase
+      .from("bookings")
+      .update({
+        status: status,
+        payment_intent_id: paymentIntentId,
+      })
+      .eq("id", bookingId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error updating booking status:", error);
+      throw error;
+    }
+    return data;
+  },
 }
 
 export default stripeService
