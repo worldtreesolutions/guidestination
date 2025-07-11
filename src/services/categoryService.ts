@@ -18,7 +18,7 @@ export const categoryService = {
       return [];
     }
     
-    const { data, error } = await supabase.from("categories").select("*");
+    const { data, error }: any = await supabase.from("categories").select("*");
     if (error) {
       console.error("Error fetching categories:", error.message);
       throw error;
@@ -45,7 +45,7 @@ export const categoryService = {
       return null;
     }
 
-    const { data, error } = await supabase
+    const { data, error }: any = await supabase
       .from("categories")
       .select("*")
       .eq("id", numericId)
@@ -75,7 +75,7 @@ export const categoryService = {
       return { activities: null, error: err };
     }
 
-    const { data, error } = await supabase
+    const { data, error }: any = await supabase
       .from("activities")
       .select("*")
       .eq("category_id", categoryId);
@@ -93,7 +93,7 @@ export const categoryService = {
       throw new Error("Supabase client not initialized");
     }
 
-    const { data, error } = await supabase
+    const { data, error }: any = await supabase
       .from("categories")
       .select("*")
       .eq("id", id)
@@ -117,7 +117,7 @@ export const categoryService = {
       throw new Error("Supabase client not initialized");
     }
 
-    const { data, error } = await supabase.from("categories").select("*");
+    const { data, error }: any = await supabase.from("categories").select("*");
     if (error) {
       throw error;
     }
@@ -143,7 +143,7 @@ export const categoryService = {
   async createCategory(
     category: Omit<Category, "id" | "created_at" | "updated_at">
   ) {
-    const { data, error } = await supabase
+    const { data, error }: any = await supabase
       .from("categories")
       .insert([category])
       .select();
@@ -157,7 +157,7 @@ export const categoryService = {
     id: number,
     updates: Partial<Omit<Category, "id" | "created_at" | "updated_at">>
   ) {
-    const { data, error } = await supabase
+    const { data, error }: any = await supabase
       .from("categories")
       .update(updates)
       .eq("id", id)

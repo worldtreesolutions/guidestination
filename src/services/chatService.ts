@@ -28,7 +28,7 @@ const chatService = {
     }
 
     try {
-      const queryResult = await supabase
+      const queryResult: any = await supabase
         .from("chat_messages")
         .select("*")
         .eq("activity_id", bookingId)
@@ -59,7 +59,7 @@ const chatService = {
       throw new Error("Supabase client not initialized");
     }
 
-    const result = await supabase
+    const result: any = await supabase
       .from("chat_messages")
       .insert([messageData])
       .select()
@@ -77,7 +77,7 @@ const chatService = {
       throw new Error("Supabase client not initialized");
     }
 
-    const { error } = await supabase
+    const { error }: any = await supabase
       .from("chat_messages")
       .update({ read_at: new Date().toISOString() })
       .eq("id", messageId)
@@ -92,7 +92,7 @@ const chatService = {
     if (!supabase) {
       throw new Error("Supabase client not initialized");
     }
-    const { data, error } = await supabase
+    const { data, error }: any = await supabase
       .from("chat_messages")
       .select("id")
       .eq("receiver_id", userId)
@@ -131,7 +131,7 @@ const chatService = {
   },
 
   async createMessage(message: NewMessage) {
-    const { data, error } = await supabase
+    const { data, error }: any = await supabase
       .from("chat_messages")
       .insert(message)
       .select()

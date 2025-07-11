@@ -31,7 +31,7 @@ const authService = {
       let provider_id: string | undefined = undefined;
       if (authResult.data.user) {
         try {
-          const ownerQuery = await supabase
+          const ownerQuery: any = await supabase
             .from('activity_owners')
             .select('provider_id')
             .eq('user_id', authResult.data.user.id)
@@ -118,7 +118,7 @@ const authService = {
     }
 
     try {
-      const { data, error } = await supabase
+      const { data, error }: any = await supabase
         .from("activity_owners")
         .select("id")
         .eq("user_id", userId)
@@ -142,7 +142,7 @@ const authService = {
     }
 
     try {
-      const { data, error } = await supabase
+      const { data, error }: any = await supabase
         .from("partner_registrations")
         .select("id")
         .eq("user_id", userId)
