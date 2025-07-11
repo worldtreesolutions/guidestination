@@ -18,12 +18,12 @@ export const categoryService = {
       return [];
     }
     
-    const result = await supabase.from("categories").select("*");
-    if (result.error) {
-      console.error("Error fetching categories:", result.error.message);
-      throw result.error;
+    const { data, error } = await supabase.from("categories").select("*");
+    if (error) {
+      console.error("Error fetching categories:", error.message);
+      throw error;
     }
-    return (result.data || []).map((item: any) => ({
+    return (data || []).map((item: any) => ({
       id: item.id,
       name: item.name,
       description: item.description || undefined,
@@ -45,26 +45,26 @@ export const categoryService = {
       return null;
     }
 
-    const result = await supabase
+    const { data, error } = await supabase
       .from("categories")
       .select("*")
       .eq("id", numericId)
       .single();
 
-    if (result.error && result.error.code !== "PGRST116") { 
-      console.error(`Error fetching category with ID ${numericId}:`, result.error.message);
+    if (error && error.code !== "PGRST116") { 
+      console.error(`Error fetching category with ID ${numericId}:`, error.message);
       return null;
     }
     
-    if (!result.data) return null;
+    if (!data) return null;
     
     return {
-      id: result.data.id,
-      name: result.data.name,
-      description: result.data.description || undefined,
-      image_url: result.data.image_url || undefined,
-      created_at: result.data.created_at || undefined,
-      updated_at: result.data.updated_at || undefined,
+      id: data.id,
+      name: data.name,
+      description: data.description || undefined,
+      image_url: data.image_url || undefined,
+      created_at: data.created_at || undefined,
+      updated_at: data.updated_at || undefined,
     };
   },
 
@@ -75,17 +75,17 @@ export const categoryService = {
       return { activities: null, error: err };
     }
 
-    const result = await supabase
+    const { data, error } = await supabase
       .from("activities")
       .select("*")
       .eq("category_id", categoryId);
 
-    if (result.error) {
-      console.error(`Error fetching activities for category ID ${categoryId}:`, result.error.message);
-      return { activities: null, error: result.error };
+    if (error) {
+      console.error(`Error fetching activities for category ID ${categoryId}:`, error.message);
+      return { activities: null, error };
     }
     
-    return { activities: result.data, error: null };
+    return { activities: data, error: null };
   },
 
   async getCategory(id: number): Promise<Category> {
@@ -117,15 +117,15 @@ export const categoryService = {
       throw new Error("Supabase client not initialized");
     }
 
-    const response = await supabase.from("categories").select("*");
-    if (response.error) {
-      throw response.error;
+    const { data, error } = await supabase.from("categories").select("*");
+    if (error) {
+      throw error;
     }
-    if (!response.data) {
+    if (!data) {
       return [];
     }
 
-    const sortedCategories = response.data.sort(
+    const sortedCategories = data.sort(
       (a: any, b: any) =>
         new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
     );
