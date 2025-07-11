@@ -24,8 +24,8 @@ export const activityService = {
     return (data || []).map(activity => ({
       ...activity,
       category_name: activity.category,
-      // Convert price from THB to user's currency
-      price: activity.price ? currencyService.convertFromTHB(activity.price, userCurrency) : null,
+      // Convert price from THB to user's currency - use b_price as the main price
+      price: activity.b_price ? currencyService.convertFromTHB(activity.b_price, userCurrency) : null,
       b_price: activity.b_price ? currencyService.convertFromTHB(activity.b_price, userCurrency) : null,
       // Add currency info for display
       currency: userCurrency
@@ -38,7 +38,6 @@ export const activityService = {
       .select(`
         id,
         title,
-        price,
         b_price,
         location,
         address,
@@ -62,8 +61,8 @@ export const activityService = {
       ...activity,
       slug: `activity-${activity.id}`, // Generate slug from ID since slug column doesn't exist
       category_name: activity.category,
-      // Convert price from THB to user's currency
-      price: activity.price ? currencyService.convertFromTHB(activity.price, userCurrency) : null,
+      // Convert price from THB to user's currency - use b_price as the main price
+      price: activity.b_price ? currencyService.convertFromTHB(activity.b_price, userCurrency) : null,
       b_price: activity.b_price ? currencyService.convertFromTHB(activity.b_price, userCurrency) : null,
       // Add currency info for display
       currency: userCurrency
@@ -98,8 +97,8 @@ export const activityService = {
       ...data,
       slug: `activity-${data.id}`, // Generate slug from ID
       category_name: data.category,
-      // Convert price from THB to user's currency
-      price: data.price ? currencyService.convertFromTHB(data.price, userCurrency) : null,
+      // Convert price from THB to user's currency - use b_price as the main price
+      price: data.b_price ? currencyService.convertFromTHB(data.b_price, userCurrency) : null,
       b_price: data.b_price ? currencyService.convertFromTHB(data.b_price, userCurrency) : null,
       // Add currency info for display
       currency: userCurrency
@@ -128,8 +127,8 @@ export const activityService = {
     return (data || []).map(activity => ({
       ...activity,
       category_name: activity.category,
-      // Convert price from THB to user's currency
-      price: activity.price ? currencyService.convertFromTHB(activity.price, userCurrency) : null,
+      // Convert price from THB to user's currency - use b_price as the main price
+      price: activity.b_price ? currencyService.convertFromTHB(activity.b_price, userCurrency) : null,
       b_price: activity.b_price ? currencyService.convertFromTHB(activity.b_price, userCurrency) : null,
       // Add currency info for display
       currency: userCurrency
@@ -158,8 +157,8 @@ export const activityService = {
     return (data || []).map(activity => ({
       ...activity,
       category_name: activity.category,
-      // Convert price from THB to user's currency
-      price: activity.price ? currencyService.convertFromTHB(activity.price, userCurrency) : null,
+      // Convert price from THB to user's currency - use b_price as the main price
+      price: activity.b_price ? currencyService.convertFromTHB(activity.b_price, userCurrency) : null,
       b_price: activity.b_price ? currencyService.convertFromTHB(activity.b_price, userCurrency) : null,
       // Add currency info for display
       currency: userCurrency
