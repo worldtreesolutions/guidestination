@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Navbar from "@/components/layout/Navbar";
@@ -103,7 +102,7 @@ export default function ActivityPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Quick Info</CardTitle>
-              </Header>
+              </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">Duration</span>
