@@ -61,9 +61,9 @@ export function ActivityPreview({ activityId }: ActivityPreviewProps) {
 
         <div className="space-y-6 pt-4">
           <div className="relative h-64 sm:h-80 w-full rounded-lg overflow-hidden">
-            {activity.image_urls && activity.image_urls.length > 0 ? (
+            {activity.image_url ? (
               <Image
-                src={activity.image_urls[0]}
+                src={activity.image_url}
                 alt={activity.title}
                 fill
                 className="object-cover"
@@ -74,7 +74,7 @@ export function ActivityPreview({ activityId }: ActivityPreviewProps) {
               </div>
             )}
             <div className="absolute bottom-4 right-4">
-              <Badge className="text-sm px-3 py-1">{activity.category_name}</Badge>
+              <Badge className="text-sm px-3 py-1">{activity.category_name || "Uncategorized"}</Badge>
             </div>
           </div>
 
@@ -201,27 +201,6 @@ export function ActivityPreview({ activityId }: ActivityPreviewProps) {
                       "Not specified"}
                   </p>
                 </div>
-              </div>
-            </div>
-          )}
-
-          {activity.image_urls && activity.image_urls.length > 1 && (
-            <div>
-              <h2 className="text-xl font-semibold mb-2">Gallery</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                {activity.image_urls.slice(1).map((image, index) => (
-                  <div
-                    key={index}
-                    className="relative aspect-square rounded-lg overflow-hidden"
-                  >
-                    <Image
-                      src={image}
-                      alt={`${activity.title} - image ${index + 2}`}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                ))}
               </div>
             </div>
           )}
