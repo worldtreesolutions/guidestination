@@ -1,5 +1,4 @@
 
-// @ts-nocheck
 import { supabase } from "@/integrations/supabase/client"
 
 export const supabaseActivityService = {
