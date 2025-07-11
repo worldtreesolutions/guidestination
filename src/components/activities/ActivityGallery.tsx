@@ -1,4 +1,3 @@
-
 import { useState } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
@@ -8,7 +7,7 @@ import { ChevronLeft, ChevronRight, Play, Camera, X } from "lucide-react"
 
 interface ActivityGalleryProps {
   images: string[]
-  videos?: { url: string; thumbnail?: string; duration?: number }[]
+  videos?: string[]
   title: string
 }
 
@@ -18,7 +17,7 @@ export function ActivityGallery({ images, videos = [], title }: ActivityGalleryP
 
   const allMedia = [
     ...images.map(url => ({ type: "image" as const, url })),
-    ...videos.map(video => ({ type: "video" as const, ...video }))
+    ...videos.map(url => ({ type: "video" as const, url }))
   ]
 
   const nextImage = () => {
