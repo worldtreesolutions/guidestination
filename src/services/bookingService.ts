@@ -36,16 +36,16 @@ export const bookingService = {
       throw new Error("Supabase client not initialized");
     }
 
-    const activitiesResult = await supabase
+    const { data: activitiesData, error: activitiesError } = await supabase
       .from(ACTIVITIES_TABLE)
       .select("id")
       .eq("owner_id", ownerId)
 
-    if (activitiesResult.error) {
-      throw new Error(activitiesResult.error.message)
+    if (activitiesError) {
+      throw new Error(activitiesError.message)
     }
 
-    const activityIds = activitiesResult.data?.map((a: any) => a.id) || []
+    const activityIds = activitiesData?.map((a: any) => a.id) || []
 
     if (activityIds.length === 0) {
       return {
@@ -56,17 +56,17 @@ export const bookingService = {
       }
     }
 
-    const bookingsResult = await supabase
+    const { data: bookingsData, error: bookingsError } = await supabase
       .from(BOOKINGS_TABLE)
       .select("total_amount, status")
       .in("activity_id", activityIds)
 
-    if (bookingsResult.error) {
-      console.error("Error fetching booking stats:", bookingsResult.error)
-      throw new Error(bookingsResult.error.message)
+    if (bookingsError) {
+      console.error("Error fetching booking stats:", bookingsError)
+      throw new Error(bookingsError.message)
     }
 
-    const stats = (bookingsResult.data || []).reduce(
+    const stats = (bookingsData || []).reduce(
       (acc: BookingStats, booking: { total_amount?: number; status: string }) => {
         if (booking.status === "confirmed") {
           acc.totalRevenue += booking.total_amount || 0
@@ -96,22 +96,22 @@ export const bookingService = {
       throw new Error("Supabase client not initialized");
     }
 
-    const activitiesResult = await supabase
+    const { data: activitiesData, error: activitiesError } = await supabase
       .from(ACTIVITIES_TABLE)
       .select("id")
       .eq("owner_id", ownerId)
 
-    if (activitiesResult.error) {
-      throw new Error(activitiesResult.error.message)
+    if (activitiesError) {
+      throw new Error(activitiesError.message)
     }
 
-    const activityIds = activitiesResult.data?.map((a: any) => a.id) || []
+    const activityIds = activitiesData?.map((a: any) => a.id) || []
 
     if (activityIds.length === 0) {
       return []
     }
 
-    const bookingsResult = await supabase
+    const { data: bookingsData, error: bookingsError } = await supabase
       .from(BOOKINGS_TABLE)
       .select(`
         id,
@@ -128,12 +128,12 @@ export const bookingService = {
       .order("created_at", { ascending: false })
       .limit(limit)
 
-    if (bookingsResult.error) {
-      console.error("Error fetching recent bookings:", bookingsResult.error)
-      throw new Error(bookingsResult.error.message)
+    if (bookingsError) {
+      console.error("Error fetching recent bookings:", bookingsError)
+      throw new Error(bookingsError.message)
     }
 
-    return (bookingsResult.data || []).map((item: any) => ({
+    return (bookingsData || []).map((item: any) => ({
       id: item.id,
       customer_id: item.customer_id,
       activity_id: item.activity_id,
@@ -151,22 +151,22 @@ export const bookingService = {
       throw new Error("Supabase client not initialized");
     }
 
-    const activitiesResult = await supabase
+    const { data: activitiesData, error: activitiesError } = await supabase
       .from(ACTIVITIES_TABLE)
       .select("id")
       .eq("owner_id", ownerId)
 
-    if (activitiesResult.error) {
-      throw new Error(activitiesResult.error.message)
+    if (activitiesError) {
+      throw new Error(activitiesError.message)
     }
 
-    const activityIds = activitiesResult.data?.map((a: any) => a.id) || []
+    const activityIds = activitiesData?.map((a: any) => a.id) || []
 
     if (activityIds.length === 0) {
       return []
     }
 
-    const bookingsResult = await supabase
+    const { data: bookingsData, error: bookingsError } = await supabase
       .from(BOOKINGS_TABLE)
       .select(`
         id,
@@ -182,12 +182,12 @@ export const bookingService = {
       .in("activity_id", activityIds)
       .order("created_at", { ascending: false })
 
-    if (bookingsResult.error) {
-      console.error("Error fetching bookings for owner:", bookingsResult.error)
-      throw new Error(bookingsResult.error.message)
+    if (bookingsError) {
+      console.error("Error fetching bookings for owner:", bookingsError)
+      throw new Error(bookingsError.message)
     }
 
-    return (bookingsResult.data || []).map((item: any) => ({
+    return (bookingsData || []).map((item: any) => ({
       id: item.id,
       customer_id: item.customer_id,
       activity_id: item.activity_id,
