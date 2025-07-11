@@ -33,9 +33,8 @@ export default function ActivityPage() {
         const data = await activityService.getActivityBySlug(slug);
         if (data) {
           setActivity(data);
-          // Fetch schedule data for this activity
-          const schedules = await activityService.getActivitySchedules(data.id);
-          setScheduleData(schedules);
+          // Use the schedule data that's already included in the activity object
+          setScheduleData(data.schedule_instances || []);
         } else {
           setError("Activity not found.");
         }
