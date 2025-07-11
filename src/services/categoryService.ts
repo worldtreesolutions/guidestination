@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { PostgrestResponse } from "@supabase/supabase-js";
+import type { Activity } from "@/types/activity";
 
 export interface Category {
   id: number;
@@ -8,13 +9,6 @@ export interface Category {
   created_at?: string;
   updated_at?: string;
   image_url?: string;
-}
-
-interface Activity {
-  id: number;
-  title: string;
-  category_id?: number;
-  [key: string]: any;
 }
 
 export const categoryService = {
@@ -76,24 +70,24 @@ export const categoryService = {
     return categoryData as Category | null;
   },
 
-  async getActivitiesByCategoryId(categoryId: number): Promise<{  Activity[] | null; error: any | null }> {
+  async getActivitiesByCategoryId(categoryId: number): Promise<{ activities: Activity[] | null; error: any | null }> {
     if (!supabase) {
       const err = { message: "Supabase client not initialized", details: "Check environment variables", hint: "Ensure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set", code: "CLIENT_ERROR" };
       console.error(err.message, err.details);
-      return {  null, error: err };
+      return { activities: null, error: err };
     }
 
-    const result: PostgrestResponse<Activity> = await supabase
+    const result: any = await supabase
       .from("activities")
       .select("*")
       .eq("category_id", categoryId);
 
     if (result.error) {
       console.error(`Error fetching activities for category ID ${categoryId}:`, result.error.message);
-      return {  null, error: result.error };
+      return { activities: null, error: result.error };
     }
     
-    return {  result.data as Activity[], error: null };
+    return { activities: result.data, error: null };
   },
 
   async getCategory(id: number): Promise<Category> {
@@ -139,7 +133,8 @@ export const categoryService = {
   ) {
     const { data, error } = await supabase
       .from("categories")
-      .insert(category);
+      .insert([category])
+      .select();
 
     if (error) throw error;
 
@@ -153,7 +148,8 @@ export const categoryService = {
     const { data, error } = await supabase
       .from("categories")
       .update(updates)
-      .eq("id", id);
+      .eq("id", id)
+      .select();
 
     if (error) throw error;
 
@@ -162,3 +158,4 @@ export const categoryService = {
 };
 
 export default categoryService;
+  

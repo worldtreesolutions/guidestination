@@ -94,7 +94,7 @@ export interface ScheduledActivity {
   hour?: string;
   image_url?: string | null;
   price?: number | null;
-  participants: number;
+  participants?: number;
 }
 
 export type ActivityScheduleInstance = ActivitySchedule;

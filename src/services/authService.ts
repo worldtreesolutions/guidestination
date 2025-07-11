@@ -38,7 +38,7 @@ const authService = {
       if (data.user) {
         try {
           // Check if user is an activity owner
-          const ownerResult: PostgrestSingleResponse<{ provider_id: string }> = await supabase
+          const ownerResult: any = await supabase
             .from('activity_owners')
             .select('provider_id')
             .eq('user_id', data.user.id)

@@ -27,7 +27,7 @@ const chatService = {
       throw new Error("Supabase client not initialized");
     }
 
-    const result: PostgrestResponse<ChatMessage> = await supabase
+    const result: any = await supabase
       .from("chat_messages")
       .select("*")
       .eq("activity_id", bookingId)
