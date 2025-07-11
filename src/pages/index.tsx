@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -48,7 +47,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-white text-black">
       <Navbar />
       <main className="relative">
-        <section className="w-full py-8 bg-gray-50 border-b">
+        <section className="w-full py-8 bg-white border-b">
           <div className="max-w-4xl mx-auto px-4">
             <SearchBar />
           </div>

@@ -15,16 +15,21 @@ export default function Navbar() {
 
   return (
     <header className="bg-white shadow-sm border-b sticky top-0 z-40">
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         <div className="flex items-center justify-between h-16">
-          <div className="flex-1 flex items-center"></div>
+          {/* Left section - can be empty or have nav links */}
+          <div className="flex-1 flex items-center">
+            {/* Placeholder for left-aligned items if needed in the future */}
+          </div>
 
-          <div className="flex-shrink-0">
+          {/* Centered Logo */}
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
             <Link href="/" className="text-2xl font-bold text-primary">
               Guidestination
             </Link>
           </div>
 
+          {/* Right section */}
           <div className="flex-1 flex items-center justify-end space-x-4">
             <div className="hidden md:flex items-center space-x-2">
               <LanguageSelector />
@@ -49,7 +54,7 @@ export default function Navbar() {
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               >
                 <span className="sr-only">Open menu</span>
-                {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                {isMobileMenu_instruction ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
               </Button>
             </div>
           </div>
