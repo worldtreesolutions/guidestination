@@ -1,4 +1,3 @@
-
 import { NextApiRequest, NextApiResponse } from "next";
 import { commissionService } from "@/services/commissionService";
 
@@ -21,11 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { start_date, end_date, provider_id } = req.query;
 
     // Get commission statistics
-    const stats = await commissionService.getCommissionStats({
-      startDate: start_date as string,
-      endDate: end_date as string,
-      providerId: provider_id as string
-    });
+    const stats = await commissionService.fetchCommissionStats();
 
     res.status(200).json({
       success: true,
