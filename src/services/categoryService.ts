@@ -1,17 +1,18 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export interface Category {
   id: number;
   name: string;
   description?: string;
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 interface Activity {
   id: number;
   title: string;
-  category_id: number;
+  category_id?: number;
   [key: string]: any;
 }
 
@@ -27,8 +28,10 @@ export const categoryService = {
       console.error("Error fetching categories:", error.message);
       throw error;
     }
-    return (data || []).map(item => ({
-      ...item,
+    return (data || []).map((item: any) => ({
+      id: item.id,
+      name: item.name,
+      description: item.description,
       created_at: item.created_at || new Date().toISOString(),
       updated_at: item.updated_at || new Date().toISOString()
     }));
@@ -60,7 +63,9 @@ export const categoryService = {
     }
     
     const categoryData = result.data ? {
-      ...result.data,
+      id: result.data.id,
+      name: result.data.name,
+      description: result.data.description,
       created_at: result.data.created_at || new Date().toISOString(),
       updated_at: result.data.updated_at || new Date().toISOString()
     } : null;
@@ -85,7 +90,7 @@ export const categoryService = {
       return { data: null, error: result.error };
     }
     
-    const activities = (result.data || []).map(item => ({
+    const activities = (result.data || []).map((item: any) => ({
       ...item,
       category_id: item.category_id || categoryId
     }));
