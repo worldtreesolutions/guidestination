@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react"
 import { useAuth } from "@/contexts/AuthContext"
-import { bookingService, Booking as ServiceBooking } from "@/services/bookingService"
+import { bookingService } from "@/services/bookingService"
 import { commissionService } from "@/services/commissionService"
 import activityService from "@/services/activityService"
-import { Earning, ActivityWithDetails } from "@/types/activity"
+import { Earning, ActivityWithDetails, Booking } from "@/types/activity"
 import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout"
 import { DashboardHeader } from "@/components/activity-owner/dashboard/DashboardHeader"
 import RecentBookings from "@/components/activity-owner/dashboard/RecentBookings"
@@ -22,7 +22,7 @@ export default function ActivityOwnerDashboard() {
     pendingEarnings: 0,
     totalActivities: 0,
   })
-  const [recentBookings, setRecentBookings] = useState<ServiceBooking[]>([])
+  const [recentBookings, setRecentBookings] = useState<Booking[]>([])
   const [earnings, setEarnings] = useState<{
     total: number
     monthly: Earning[]
@@ -57,7 +57,18 @@ export default function ActivityOwnerDashboard() {
           pendingEarnings: earningsData.pending,
           totalActivities: 0,
         })
-        setRecentBookings(recentBookingsData)
+        
+        // Map service bookings to type bookings
+        const mappedBookings: Booking[] = recentBookingsData.map(booking => ({
+          ...booking,
+          user_id: booking.user_id || booking.customer_id || "",
+          provider_id: booking.provider_id || "",
+          total_price: booking.total_price || booking.total_amount,
+          provider_amount: booking.provider_amount || 0,
+          platform_fee: booking.platform_fee || 0
+        }))
+        
+        setRecentBookings(mappedBookings)
         setEarnings(earningsData)
         const activitiesData = await activityService.fetchActivitiesByOwner(user.id);
         setActivities(activitiesData);

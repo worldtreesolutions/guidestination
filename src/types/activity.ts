@@ -69,10 +69,10 @@ export type Booking = BaseBooking & {
   establishment_id?: string;
   partner_id?: string;
   total_price?: number;
-  user_id?: string;
-  provider_id?: string;
-  provider_amount?: number;
-  platform_fee?: number;
+  user_id: string;
+  provider_id: string;
+  provider_amount: number;
+  platform_fee: number;
 };
 
 export interface ScheduledActivity {
