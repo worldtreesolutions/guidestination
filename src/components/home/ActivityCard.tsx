@@ -34,16 +34,16 @@ export const ActivityCard = ({ activity }: ActivityCardProps) => {
                 <h3 className="font-semibold text-lg mb-2 line-clamp-2">{activity.title}</h3>
                 <div className="flex items-center text-gray-600 mb-2">
                   <MapPin className="h-4 w-4 mr-1" />
-                  <span className="text-sm truncate">{activity.location || "Location not specified"}</span>
+                  <span className="text-sm truncate">{activity.address || "Location not specified"}</span>
                 </div>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
-                  <span className="text-sm">{(activity.rating || 0).toFixed(1)}</span>
+                  <span className="text-sm">{(activity.average_rating || 0).toFixed(1)}</span>
                 </div>
                 <div className="text-lg font-bold text-blue-600">
-                  ฿{formatPrice(activity.price)}
+                  ฿{formatPrice(activity.b_price)}
                 </div>
               </div>
             </div>
