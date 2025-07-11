@@ -212,7 +212,7 @@ export const stripeService = {
         .select()
         .single()
 
-      if (bookingError) {
+      if (bookingError || !booking) {
         console.error("Error creating booking:", bookingError)
         return
       }
@@ -276,7 +276,7 @@ export const stripeService = {
 
         if (!establishmentError && establishment) {
           establishmentData = establishment
-          partnerData = establishment.partner_registrations
+          partnerData = (establishment as any).partner_registrations
 
           // Calculate partner commission based on package
           const partnerCommissionRate = partnerData.commission_package === "premium" ? 0.15 : 0.10
@@ -307,7 +307,7 @@ export const stripeService = {
         .from("commission_invoices")
         .insert({
           booking_id: booking.id,
-          provider_id: activity.activity_owners.id,
+          provider_id: (activity as any).activity_owners.id,
           invoice_number: invoiceNumber,
           total_booking_amount: booking.total_amount,
           platform_commission_rate: platformCommissionRate,
@@ -336,13 +336,13 @@ export const stripeService = {
         totalAmount: booking.total_amount,
         participants: booking.participants,
         bookingDate: booking.booking_date,
-        activityOwnerEmail: activity.activity_owners.email,
-        activityOwnerName: activity.activity_owners.business_name || "Activity Provider",
+        activityOwnerEmail: (activity as any).activity_owners.email,
+        activityOwnerName: (activity as any).activity_owners.business_name || "Activity Provider",
         platformCommission: platformCommission,
         partnerEmail: partnerData?.email,
         partnerName: partnerData?.owner_name,
         partnerCommission: partnerCommission > 0 ? partnerCommission : undefined,
-        establishmentName: establishmentData?.name
+        establishmentName: (establishmentData as any)?.name
       }
 
       // Send confirmation emails
@@ -355,7 +355,7 @@ export const stripeService = {
     }
   },
 
-  async handlePaymentIntentSucceeded(paymentIntent: Stripe.Event.Data.Object) {
+  async handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent) {
     const client = getAdminSupabaseClient()
     if (!client) return
 
