@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Calendar } from "@/components/ui/calendar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -39,94 +39,90 @@ export function AvailabilityCalendar({
     }
   }
 
-  // Mock data when no real data is provided
-  const mockAvailableDates = [
+  // Mock data when no real data is provided - memoized to prevent re-creation
+  const mockAvailableDates = useMemo(() => [
     new Date(2025, 6, 15).toISOString().split('T')[0], // July 15, 2025
     new Date(2025, 6, 16).toISOString().split('T')[0], // July 16, 2025
     new Date(2025, 6, 18).toISOString().split('T')[0], // July 18, 2025
     new Date(2025, 6, 20).toISOString().split('T')[0], // July 20, 2025
     new Date(2025, 6, 22).toISOString().split('T')[0], // July 22, 2025
-  ]
+  ], [])
 
-  // Use provided dates or fallback to mock data
-  const datesToUse = availableDates.length > 0 ? availableDates : mockAvailableDates
+  // Use provided dates or fallback to mock data - memoized
+  const datesToUse = useMemo(() => 
+    availableDates.length > 0 ? availableDates : mockAvailableDates,
+    [availableDates, mockAvailableDates]
+  )
 
-  // Ensure availableDates is an array and filter out any invalid entries
-  const validAvailableDates = Array.isArray(datesToUse) 
-    ? datesToUse.filter(date => date && typeof date === 'string' && date.length > 0)
-    : [];
+  // Convert string dates to Date objects - memoized to prevent re-creation
+  const availableDateObjects = useMemo(() => {
+    const validAvailableDates = Array.isArray(datesToUse) 
+      ? datesToUse.filter(date => date && typeof date === 'string' && date.length > 0)
+      : [];
 
-  // Convert string dates to Date objects, ensuring proper parsing
-  const availableDateObjects = validAvailableDates.map(dateStr => {
-    try {
-      // Handle YYYY-MM-DD format by creating a local date
-      // This prevents timezone-related off-by-one-day errors
-      const parts = dateStr.split('-').map(Number);
-      if (parts.length !== 3 || parts.some(isNaN)) {
-        console.warn("Invalid date format:", dateStr);
+    return validAvailableDates.map(dateStr => {
+      try {
+        const parts = dateStr.split('-').map(Number);
+        if (parts.length !== 3 || parts.some(isNaN)) {
+          console.warn("Invalid date format:", dateStr);
+          return null;
+        }
+        const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
+        return dateObj;
+      } catch (error) {
+        console.error("Error parsing date:", dateStr, error);
         return null;
       }
-      // Create date in local timezone to match calendar component expectations
-      const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
-      return dateObj;
-    } catch (error) {
-      console.error("Error parsing date:", dateStr, error);
-      return null;
-    }
-  }).filter(date => date !== null) as Date[];
+    }).filter(date => date !== null) as Date[];
+  }, [datesToUse])
 
-  // Check if a date is available by comparing year, month, and day
-  const isDateAvailable = (date: Date) => {
-    const result = availableDateObjects.some(availableDate => 
+  // Check if a date is available - memoized callback
+  const isDateAvailable = useMemo(() => (date: Date) => {
+    return availableDateObjects.some(availableDate => 
       availableDate.getFullYear() === date.getFullYear() &&
       availableDate.getMonth() === date.getMonth() &&
       availableDate.getDate() === date.getDate()
     );
-    return result;
-  };
+  }, [availableDateObjects])
 
-  // Disable dates that are not available or in the past
-  const disabledDates = (date: Date) => {
+  // Disable dates that are not available or in the past - memoized callback
+  const disabledDates = useMemo(() => (date: Date) => {
     const today = new Date();
-    // Compare dates at midnight to avoid timezone issues
     const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     
     const isPast = date < todayMidnight;
     const isNotAvailable = !isDateAvailable(date);
     
     return isPast || isNotAvailable;
-  }
+  }, [isDateAvailable])
 
-  // Custom modifiers for the calendar to highlight available dates
-  const modifiers = {
+  // Custom modifiers for the calendar - memoized
+  const modifiers = useMemo(() => ({
     available: availableDateObjects,
-  };
+  }), [availableDateObjects]);
 
-  const modifiersStyles = {
+  const modifiersStyles = useMemo(() => ({
     available: {
       backgroundColor: 'hsl(var(--primary))',
       color: 'hsl(var(--primary-foreground))',
       fontWeight: 'bold'
     }
-  };
+  }), []);
 
-  // Get schedule info for selected date
-  const getSelectedDateSchedule = () => {
+  // Get schedule info for selected date - memoized
+  const selectedSchedule = useMemo(() => {
     if (!localSelectedDate || !scheduleData.length) return null
     
-    // Format selectedDate to YYYY-MM-DD to match scheduleData date format
     const year = localSelectedDate.getFullYear();
     const month = (localSelectedDate.getMonth() + 1).toString().padStart(2, '0');
     const day = localSelectedDate.getDate().toString().padStart(2, '0');
     const dateStr = `${year}-${month}-${day}`;
     
     return scheduleData.find(schedule => schedule.scheduled_date === dateStr)
-  }
+  }, [localSelectedDate, scheduleData])
 
-  const selectedSchedule = getSelectedDateSchedule()
-
-  // Get unique time slots from all schedule data
-  const getAvailableTimes = () => {
+  // Get unique time slots from all schedule data - memoized
+  const availableTimes = useMemo(() => {
     if (scheduleData.length === 0) {
       return [
         { startTime: "09:00", endTime: "12:00" },
@@ -134,7 +130,6 @@ export function AvailabilityCalendar({
       ]
     }
 
-    // Get unique time combinations from schedule instances
     const uniqueTimes = scheduleData.reduce((acc: any[], schedule) => {
       const timeSlot = `${schedule.start_time} - ${schedule.end_time}`
       if (!acc.find(t => `${t.startTime} - ${t.endTime}` === timeSlot)) {
@@ -146,10 +141,8 @@ export function AvailabilityCalendar({
       return acc
     }, [])
 
-    return uniqueTimes.slice(0, 4) // Limit to 4 time slots for display
-  }
-
-  const availableTimes = getAvailableTimes()
+    return uniqueTimes.slice(0, 4)
+  }, [scheduleData])
 
   return (
     <div className="space-y-4">
