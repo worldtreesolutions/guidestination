@@ -39,7 +39,6 @@ export const activityService = {
         id,
         title,
         b_price,
-        location,
         address,
         average_rating,
         image_url,
@@ -61,6 +60,7 @@ export const activityService = {
       ...activity,
       slug: `activity-${activity.id}`, // Generate slug from ID since slug column doesn't exist
       category_name: activity.category,
+      location: activity.address, // Use address as location since location column doesn't exist
       // Convert price from THB to user's currency - use b_price as the main price
       price: activity.b_price ? currencyService.convertFromTHB(activity.b_price, userCurrency) : null,
       b_price: activity.b_price ? currencyService.convertFromTHB(activity.b_price, userCurrency) : null,
