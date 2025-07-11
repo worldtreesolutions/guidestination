@@ -24,6 +24,28 @@ const activityService = {
     }));
   },
 
+  async getActivities(): Promise<ActivityWithDetails[]> {
+    if (!supabase) {
+      console.error("Supabase client is not initialized.");
+      return [];
+    }
+    const { data, error } = await supabase
+      .from("activities")
+      .select(
+        `*,
+        categories(*),
+        activity_schedules(*),
+        reviews(*, users(full_name, avatar_url))
+        `
+      );
+
+    if (error) {
+      console.error(`Error fetching activities:`, error);
+      return [];
+    }
+    return data as ActivityWithDetails[];
+  },
+
   async getActivityBySlug(slug: string): Promise<ActivityWithDetails | null> {
     if (!supabase) {
       console.error("Supabase client is not initialized.");

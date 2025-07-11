@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { DndProvider, useDrag, useDrop } from "react-dnd";
-import { HTML5Backend } from "react-dnd-html5-backend";
+
+import React, { useState, useEffect, useContext } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Trash2 } from "lucide-react";
 import activityService from "@/services/activityService";
 import { ActivityWithDetails, ScheduledActivity } from "@/types/activity";
+import { Calendar } from "@/components/ui/calendar";
+import { useToast } from "@/hooks/use-toast";
+import { PlanningContext } from "@/contexts/PlanningContext";
 
 interface ExcursionPlannerProps {
   activities: ActivityWithDetails[];
@@ -22,6 +23,8 @@ export function ExcursionPlanner({
   const [selectedActivity, setSelectedActivity] = useState<ScheduledActivity | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
+  const { addActivity } = useContext(PlanningContext);
 
   useEffect(() => {
     const fetchActivities = async () => {
@@ -57,9 +60,12 @@ export function ExcursionPlanner({
     }
 
     const scheduled: ScheduledActivity = {
-      ...activity,
-      date: selectedDate,
+      id: `${activity.id}-${selectedDate.toISOString()}-${time}`,
+      title: activity.title,
+      day: selectedDate.toLocaleDateString("en-US", { weekday: "long" }),
       time,
+      activity,
+      date: selectedDate,
     };
     setSelectedActivity(scheduled);
   };
@@ -76,11 +82,11 @@ export function ExcursionPlanner({
   };
 
   const getAvailableTimes = (activity: ActivityWithDetails): string[] => {
-    if (!selectedDate || !activity.schedules) return [];
+    if (!selectedDate || !activity.activity_schedules) return [];
     const dayOfWeek = selectedDate.getDay(); // Sunday is 0
-    const adjustedDayOfWeek = dayOfWeek === 0 ? 7 : dayOfWeek; // Adjust to Monday=1..Sunday=7
+    const adjustedDayOfWeek = dayOfWeek === 0 ? 7 : dayOfWeek;
 
-    return activity.schedules
+    return activity.activity_schedules
       .filter(s => s.day_of_week === adjustedDayOfWeek && s.is_active)
       .map(s => s.start_time);
   };

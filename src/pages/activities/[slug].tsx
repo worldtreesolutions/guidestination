@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Navbar from "@/components/layout/Navbar";
@@ -7,18 +8,17 @@ import { ActivityGallery } from "@/components/activities/ActivityGallery";
 import { ActivityReviews } from "@/components/activities/ActivityReviews";
 import { BookingWidget } from "@/components/activities/BookingWidget";
 import { AvailabilityCalendar } from "@/components/activities/AvailabilityCalendar";
-import { Activity, ActivityScheduleInstance } from "@/types/activity";
+import { ActivityWithDetails, ActivitySchedule } from "@/types/activity";
 import activityService from "@/services/activityService";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { MapPin, Clock, Users, Star, Shield, Utensils, Car } from "lucide-react";
 
 export default function ActivityPage() {
   const router = useRouter();
   const { slug } = router.query;
-  const [activity, setActivity] = useState<Activity | null>(null);
-  const [scheduleData, setScheduleData] = useState<ActivityScheduleInstance[]>([]);
+  const [activity, setActivity] = useState<ActivityWithDetails | null>(null);
+  const [scheduleData, setScheduleData] = useState<ActivitySchedule[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -70,7 +70,7 @@ export default function ActivityPage() {
       return <div>Activity not found</div>;
     }
 
-    const images = (activity.image_urls || []).map(url => ({ 
+    const images = (activity.image_url ? [activity.image_url] : (activity.image_urls || [])).map(url => ({ 
       url,
       thumbnail: url
     }));
@@ -79,7 +79,7 @@ export default function ActivityPage() {
       <div className="bg-white text-black">
         <div className="container py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
-            <ActivityGallery images={images} />
+            <ActivityGallery images={images} title={activity.title} videos={[]} />
             <ActivityDetails activity={activity} />
             <ActivityReviews reviews={activity.reviews || []} />
           </div>
@@ -103,7 +103,7 @@ export default function ActivityPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Quick Info</CardTitle>
-              </CardHeader>
+              </Header>
               <CardContent className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">Duration</span>
