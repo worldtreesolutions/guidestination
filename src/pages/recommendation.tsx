@@ -29,7 +29,7 @@ export default function RecommendationPage() {
         description: "All recommended activities have been added to your plan.",
       });
     }
-  }, [recommendations]);
+  }, [recommendations, addActivity, toast]);
 
   const handleSubmit = async (data: UserPreferences) => {
     setLoading(true);

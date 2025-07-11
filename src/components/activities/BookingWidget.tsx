@@ -1,4 +1,3 @@
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -10,7 +9,7 @@ interface BookingWidgetProps {
 }
 
 export const BookingWidget = ({ activity }: BookingWidgetProps) => {
-  const [participants, setParticipants] = useState(activity.min_participants || 1)
+  const [participants, setParticipants] = useState(1)
 
   const formatPrice = (price: number | null) => {
     if (price === null) return "N/A";
@@ -21,7 +20,7 @@ export const BookingWidget = ({ activity }: BookingWidgetProps) => {
   };
 
   const renderParticipantOptions = () => {
-    const min = activity.min_participants || 1;
+    const min = 1;
     const max = activity.max_participants || 10;
     const options = [];
     for (let i = min; i <= max; i++) {

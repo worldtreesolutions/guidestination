@@ -71,7 +71,6 @@ export const activityService = {
           max_age,
           description,
           max_participants,
-          min_participants,
           technical_skill_level,
           physical_effort_level,
           includes_pickup,

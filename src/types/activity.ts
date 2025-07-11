@@ -48,6 +48,8 @@ export interface Booking extends Omit<SupabaseBooking, "status"> {
   activities: SupabaseActivity | null;
   platform_fee?: number;
   provider_amount?: number;
+  activity_schedules?: ActivitySchedule[];
+  schedule_instances?: ActivityScheduleInstance[];
 }
 
 export interface ActivityForHomepage {
@@ -71,12 +73,13 @@ export interface ActivityForHomepage {
   physical_effort_level?: string | null;
   includes_pickup?: boolean | null;
   includes_meal?: boolean | null;
-  min_participants?: number | null;
 }
 
 export type Earning = {
   month: string;
   amount: number;
+  includes_pickup?: boolean | null;
+  includes_meal?: boolean | null;
 };
 
 export type EarningsData = {
