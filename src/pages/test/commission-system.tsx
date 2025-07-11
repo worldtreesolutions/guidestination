@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import commissionService from "@/services/commissionService";
+import { commissionService } from "@/services/commissionService";
 import invoiceService from "@/services/invoiceService";
 
 export default function CommissionSystemTest() {
@@ -58,7 +58,7 @@ export default function CommissionSystemTest() {
   useEffect(() => {
     testCommissionCalculation();
     testInvoiceGeneration();
-  }, []);
+  }, [testCommissionCalculation, testInvoiceGeneration]);
 
   return (
     <div className="container mx-auto p-6 max-w-4xl">

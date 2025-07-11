@@ -120,15 +120,23 @@ export type RecentBooking = Pick<
 // Utility type for booking status
 export type BookingStatus = "confirmed" | "pending" | "cancelled"
 
-export type CommissionInvoice = {
-  id: string;
-  provider_id: string;
-  provider_name?: string;
-  amount: number;
-  status: "pending" | "paid" | "overdue";
-  due_date: string;
-  paid_at: string | null;
-  invoice_period_start: string;
-  invoice_period_end: string;
-  created_at: string;
+export type CommissionInvoice = Tables<"commission_invoices">;
+export type CommissionPayment = Tables<"commission_payments">;
+export type Earning = { month: string; amount: number };
+export type Provider = Tables<"activity_owners">;
+export type CommissionStats = {
+  totalInvoices: number;
+  totalCommissionAmount: number;
+  paidInvoices: number;
+  totalPaidAmount: number;
+  pendingInvoices: number;
+  overdueInvoices: number;
+  totalPendingAmount: number;
+};
+
+export type ActivityOwner = Tables<"activity_owners">;
+
+export type ScheduledActivity = Activity & {
+  date: Date;
+  time: string;
 };

@@ -8,7 +8,7 @@ import { Activity, ScheduledActivity as ImportedScheduledActivity, SupabaseActiv
 import { PlanningContext } from "@/contexts/PlanningContext";
 import { useToast } from "@/hooks/use-toast";
 
-type PlannerScheduledActivity = ImportedScheduledActivity & {
+type PlannerScheduledActivity = Activity & {
   time: string;
   date: Date;
 };

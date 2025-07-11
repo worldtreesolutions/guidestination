@@ -21,7 +21,7 @@ export function ActivityPreview({ activityId }: ActivityPreviewProps) {
       const fetchActivity = async () => {
         setLoading(true);
         try {
-          const data = await activityService.getActivityById(parseInt(activityId as string, 10));
+          const data = await activityService.getActivityById(activityId);
           setActivity(data);
         } catch (err) {
           setError((err as Error).message);
@@ -107,10 +107,8 @@ export function ActivityPreview({ activityId }: ActivityPreviewProps) {
                 selected={selectedDates}
                 onSelect={setSelectedDates}
                 className="p-0"
-                // TODO: Fix this logic
-                // disabled={(date) => !activity.schedules.availableDates.includes(date.toISOString().split("T")[0])}
               />
-              <span>{formatDates(activity.schedules?.availableDates)}</span>
+              <span>{formatDates(activity.schedules?.map(s => ({ date: s.start_time })))}</span>
             </div>
             <div className="flex items-center gap-2">
               <MapPin className="h-5 w-5 text-muted-foreground" />
@@ -203,14 +201,14 @@ export function ActivityPreview({ activityId }: ActivityPreviewProps) {
                 <div className="border rounded-lg p-4">
                   <h3 className="font-semibold mb-2">Start Time</h3>
                   <p>
-                    {activity.schedules?.availableDates?.[0]?.startTime ||
+                    {activity.schedules?.[0]?.start_time ||
                       "Not specified"}
                   </p>
                 </div>
                 <div className="border rounded-lg p-4">
                   <h3 className="font-semibold mb-2">End Time</h3>
                   <p>
-                    {activity.schedules?.availableDates?.[0]?.endTime ||
+                    {activity.schedules?.[0]?.end_time ||
                       "Not specified"}
                   </p>
                 </div>

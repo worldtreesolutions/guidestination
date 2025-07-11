@@ -285,16 +285,13 @@ export default function EarningsPage() {
                         .slice(0, 10)
                         .map((booking) => (
                           <TableRow key={booking.id}>
-                            <TableCell>{booking.customer_name}</TableCell>
-                            <TableCell>{booking.activity_title}</TableCell>
                             <TableCell>{new Date(booking.booking_date).toLocaleDateString()}</TableCell>
-                            <TableCell>${booking.total_price.toFixed(2)}</TableCell>
-                            <TableCell>
-                              {booking.status === "pending" && <Badge variant="warning">Pending</Badge>}
-                              {booking.status === "cancelled" && <Badge variant="destructive">Cancelled</Badge>}
-                              {booking.status === "confirmed" && <Badge variant="default">Confirmed</Badge>}
-                              {booking.status === "completed" && <Badge variant="success">Paid</Badge>}
-                            </TableCell>
+                            <TableCell>{booking.activity_title}</TableCell>
+                            <TableCell>{booking.customer_name}</TableCell>
+                            <TableCell>{booking.participants}</TableCell>
+                            <TableCell>฿{booking.total_price.toFixed(2)}</TableCell>
+                            <TableCell>฿{booking.platform_fee?.toFixed(2) ?? '0.00'}</TableCell>
+                            <TableCell>฿{booking.provider_amount?.toFixed(2) ?? '0.00'}</TableCell>
                           </TableRow>
                         ))}
                     </TableBody>

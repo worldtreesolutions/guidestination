@@ -2,10 +2,11 @@ import { getAdminClient, isAdminAvailable } from "@/integrations/supabase/admin"
 import { supabase } from "@/integrations/supabase/client";
 import {
   Activity,
-  ActivityOwner,
   Booking,
   CommissionInvoice,
+  ActivityOwner,
 } from "@/types/activity";
+import { commissionService } from "./commissionService";
 
 export interface InvoiceEmailData {
   invoiceNumber: string;
