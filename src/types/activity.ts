@@ -40,7 +40,6 @@ export interface Activity extends Omit<SupabaseActivity, 'highlights' | 'languag
   not_included: string[] | null;
   activity_schedules?: ActivitySchedule[];
   schedule_instances?: ActivityScheduleInstance[];
-  min_participants?: number | null;
 }
 
 export interface Booking extends Omit<SupabaseBooking, "status"> {
