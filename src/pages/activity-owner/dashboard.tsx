@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { useAuth } from "@/contexts/AuthContext"
-import { bookingService } from "@/services/bookingService"
+import { bookingService, Booking as ServiceBooking } from "@/services/bookingService"
 import { commissionService } from "@/services/commissionService"
 import activityService from "@/services/activityService"
 import { Booking, Earning, Activity, ActivityWithDetails } from "@/types/activity"
@@ -22,7 +22,7 @@ export default function ActivityOwnerDashboard() {
     pendingEarnings: 0,
     totalActivities: 0,
   })
-  const [recentBookings, setRecentBookings] = useState<Booking[]>([])
+  const [recentBookings, setRecentBookings] = useState<ServiceBooking[]>([])
   const [earnings, setEarnings] = useState<{
     total: number
     monthly: Earning[]

@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client"
 
 export interface ChatMessage {
@@ -35,9 +36,14 @@ const chatService = {
       throw error
     }
 
-    return (data || []).map(item => ({
-      ...item,
-      activity_id: item.activity_id || activityId
+    return (data || []).map((item: any) => ({
+      id: item.id,
+      sender_id: item.sender_id,
+      receiver_id: item.receiver_id,
+      activity_id: activityId,
+      message: item.message,
+      created_at: item.created_at,
+      read_at: item.read_at
     }));
   },
 
@@ -58,8 +64,13 @@ const chatService = {
     }
 
     return {
-      ...data,
-      activity_id: data.activity_id || messageData.activity_id
+      id: data.id,
+      sender_id: data.sender_id,
+      receiver_id: data.receiver_id,
+      activity_id: messageData.activity_id,
+      message: data.message,
+      created_at: data.created_at,
+      read_at: data.read_at
     };
   },
 
