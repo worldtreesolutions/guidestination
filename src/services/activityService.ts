@@ -121,14 +121,17 @@ const activityService = {
       return null;
     }
     
+    console.log(`Attempting to fetch activity with slug: ${slug}`);
+    
     // Extract ID from slug (format: activity-{id})
     const idMatch = slug.match(/activity-(\d+)/);
     if (!idMatch) {
-      console.error(`Invalid slug format: ${slug}`);
+      console.error(`Invalid slug format: ${slug}. Expected format: activity-{id}`);
       return null;
     }
     
     const activityId = parseInt(idMatch[1], 10);
+    console.log(`Extracted activity ID: ${activityId}`);
     
     const { data, error } = await supabase
       .from("activities")
@@ -138,6 +141,7 @@ const activityService = {
         reviews(*, users(full_name, avatar_url))
       `)
       .eq("id", activityId)
+      .eq("is_active", true)
       .single();
 
     if (error) {
@@ -145,8 +149,11 @@ const activityService = {
       return null;
     }
     if (!data) {
+        console.error(`No activity found with ID ${activityId}`);
         return null;
     }
+
+    console.log(`Successfully found activity: ${data.title}`);
 
     // Get category details if category exists
     let categoryDetails = null;
