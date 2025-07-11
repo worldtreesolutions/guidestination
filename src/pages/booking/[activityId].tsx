@@ -400,7 +400,7 @@ export default function ActivityBookingPage() {
                       <div>
                         <h3 className="font-semibold mb-3">Select Date</h3>
                         <AvailabilityCalendar
-                          activityId={activity.id}
+                          activityId={activity.id.toString()}
                           availableDates={activity.activity_schedules?.map((d: any) => d.scheduled_date) || []}
                           scheduleData={activity.activity_schedules || []}
                           selectedDate={selectedDate}

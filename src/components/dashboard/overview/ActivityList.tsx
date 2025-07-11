@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+<![CDATA[import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Eye, Edit, MoreHorizontal } from "lucide-react"
@@ -99,7 +99,7 @@ export function ActivityList({ activities, onEdit, onView, onStatusChange }: Act
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
+                      <DropdownMenuItem asChild>
                         <Link href={`/dashboard/activities/${activity.id.toString()}`}>
                           View Details
                         </Link>
@@ -129,3 +129,4 @@ export function ActivityList({ activities, onEdit, onView, onStatusChange }: Act
     </Card>
   )
 }
+]]>

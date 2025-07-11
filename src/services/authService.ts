@@ -41,7 +41,7 @@ const authService = {
             .from('activity_owners')
             .select('provider_id')
             .eq('user_id', data.user.id)
-            .maybeSingle();
+            .maybeSingle<{ provider_id: string }>();
 
           if (!ownerResult.error && ownerResult.data) {
             provider_id = ownerResult.data.provider_id;

@@ -62,13 +62,14 @@ export const categoryService = {
       return null;
     }
     
-    const categoryData = result.data ? {
-      id: result.data.id,
-      name: result.data.name,
-      description: result.data.description || undefined,
-      image_url: result.data.image_url || undefined,
-      created_at: result.data.created_at || undefined,
-      updated_at: result.data.updated_at || undefined,
+    const d = result.data as any;
+    const categoryData = d ? {
+      id: d.id,
+      name: d.name,
+      description: d.description || undefined,
+      image_url: d.image_url || undefined,
+      created_at: d.created_at || undefined,
+      updated_at: d.updated_at || undefined,
     } : null;
     
     return categoryData as Category | null;
@@ -91,12 +92,7 @@ export const categoryService = {
       return { data: null, error: result.error };
     }
     
-    const activities = (result.data || []).map((item: any) => ({
-      ...item,
-      category_id: item.category_id || categoryId
-    }));
-    
-    return { data: activities, error: null };
+    return { data: result.data as Activity[], error: null };
   },
 
   async getCategory(id: number): Promise<Category> {

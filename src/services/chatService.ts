@@ -30,7 +30,6 @@ const chatService = {
       .from("chat_messages")
       .select("*")
       .eq("activity_id", bookingId)
-      .or(`and(sender_id.eq.${bookingId},receiver_id.eq.${bookingId}),and(sender_id.eq.${bookingId},receiver_id.eq.${bookingId})`)
       .order("created_at", { ascending: true })
 
     if (result.error) {
