@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -68,7 +67,7 @@ export function ActivityList({ activities, onEdit, onView, onStatusChange }: Act
           </TableHeader>
           <TableBody>
             {activities.map((activity) => {
-              const activityIdString = String(activity.id);
+              const activityId = String(activity.id);
               return (
                 <TableRow key={activity.id}>
                   <TableCell>
@@ -80,7 +79,7 @@ export function ActivityList({ activities, onEdit, onView, onStatusChange }: Act
                         height={64}
                         className="rounded-md object-cover"
                       />
-                      <Link href={`/dashboard/activities/${activityIdString}`} className="font-medium hover:underline">
+                      <Link href={`/dashboard/activities/${activityId}`} className="font-medium hover:underline">
                         {activity.title}
                       </Link>
                     </div>
@@ -103,14 +102,14 @@ export function ActivityList({ activities, onEdit, onView, onStatusChange }: Act
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem asChild>
-                          <Link href={`/dashboard/activities/${activityIdString}`}>
+                          <Link href={`/dashboard/activities/${activityId}`}>
                             View Details
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => {
                             if (onStatusChange) {
-                              onStatusChange(activityIdString, "archived")
+                              onStatusChange(activityId, "archived")
                             }
                           }}
                         >
@@ -118,7 +117,7 @@ export function ActivityList({ activities, onEdit, onView, onStatusChange }: Act
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                    <Link href={`/dashboard/activities/${activityIdString}`}>
+                    <Link href={`/dashboard/activities/${activityId}`}>
                       <Button variant="outline" size="sm">
                         Edit
                       </Button>
