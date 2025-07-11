@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface Category {
@@ -96,6 +95,55 @@ export const categoryService = {
     }));
     
     return { data: activities, error: null };
+  },
+
+  async getCategory(id: number): Promise<Category> {
+    const { data, error } = await supabase
+      .from("categories")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error) throw error;
+    if (!data) throw new Error("Category not found");
+
+    return data;
+  },
+
+  async getCategories(): Promise<Category[]> {
+    const { data, error } = await supabase
+      .from("categories")
+      .select("*");
+
+    if (error) throw error;
+
+    return data || [];
+  },
+
+  async createCategory(
+    category: Omit<Category, "id" | "created_at" | "updated_at">
+  ) {
+    const { data, error } = await supabase
+      .from("categories")
+      .insert(category);
+
+    if (error) throw error;
+
+    return data;
+  },
+
+  async updateCategory(
+    id: number,
+    updates: Partial<Omit<Category, "id" | "created_at" | "updated_at">>
+  ) {
+    const { data, error } = await supabase
+      .from("categories")
+      .update(updates)
+      .eq("id", id);
+
+    if (error) throw error;
+
+    return data;
   },
 };
 

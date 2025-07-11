@@ -1,6 +1,10 @@
-
 import { supabase } from "@/integrations/supabase/client"
-import type { User, Session } from "@supabase/supabase-js"
+import type {
+  User,
+  Session,
+  UserCredentials,
+  UserAttributes,
+} from "@supabase/supabase-js"
 
 export interface SignInResponse {
   user: User | null;
@@ -151,6 +155,18 @@ const authService = {
       return null;
     }
     return data?.id || null;
+  },
+
+  async updateUser(id: string,  UserAttributes) {
+    const {
+      { user },
+    } = await supabase
+      .from("users")
+      .update(UserAttributes)
+      .eq("id", id)
+      .single();
+
+    return user;
   },
 }
 

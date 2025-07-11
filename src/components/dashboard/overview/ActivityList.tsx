@@ -96,13 +96,17 @@ export function ActivityList({ activities, onEdit, onView }: ActivityListProps) 
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => onView?.(activity)}>
-                        <Eye className="h-4 w-4 mr-2" />
-                        View
+                      <DropdownMenuItem>
+                        <Link href={`/dashboard/activities/${activity.id.toString()}`}>
+                          View Details
+                        </Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onEdit?.(activity)}>
-                        <Edit className="h-4 w-4 mr-2" />
-                        Edit
+                      <DropdownMenuItem
+                        onClick={() =>
+                          onStatusChange(activity.id.toString(), "archived")
+                        }
+                      >
+                        Archive
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>

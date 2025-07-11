@@ -1,25 +1,10 @@
+import { supabase } from "@/integrations/supabase/client";
+import { Message } from "@/types/activity";
 
-import { supabase } from "@/integrations/supabase/client"
-
-export interface ChatMessage {
-  id: string;
-  sender_id: string;
-  receiver_id: string;
-  activity_id: number;
-  message: string;
-  created_at: string;
-  read_at?: string;
-}
-
-export interface SendMessageData {
-  sender_id: string;
-  receiver_id: string;
-  activity_id: number;
-  message: string;
-}
+export type NewMessage = Omit<Message, "id" | "created_at" | "sender">;
 
 const chatService = {
-  async getMessages(customerId: string, ownerId: string, activityId: number): Promise<ChatMessage[]> {
+  async getMessages(bookingId: string): Promise<ChatMessage[]> {
     if (!supabase) {
       throw new Error("Supabase client not initialized");
     }
@@ -27,8 +12,8 @@ const chatService = {
     const result = await supabase
       .from("chat_messages")
       .select("*")
-      .eq("activity_id", activityId)
-      .or(`and(sender_id.eq.${customerId},receiver_id.eq.${ownerId}),and(sender_id.eq.${ownerId},receiver_id.eq.${customerId})`)
+      .eq("activity_id", bookingId)
+      .or(`and(sender_id.eq.${bookingId},receiver_id.eq.${bookingId}),and(sender_id.eq.${bookingId},receiver_id.eq.${bookingId})`)
       .order("created_at", { ascending: true })
 
     if (result.error) {
@@ -40,7 +25,7 @@ const chatService = {
       id: item.id,
       sender_id: item.sender_id,
       receiver_id: item.receiver_id,
-      activity_id: activityId,
+      activity_id: bookingId,
       message: item.message,
       created_at: item.created_at,
       read_at: item.read_at
@@ -107,6 +92,17 @@ const chatService = {
     }
 
     return count || 0
+  },
+
+  async createMessage(message: NewMessage) {
+    const { data, error } = await supabase
+      .from("messages")
+      .insert(message)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   }
 }
 
