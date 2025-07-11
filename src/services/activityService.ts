@@ -10,8 +10,19 @@ const activityService = {
     }
     const { data, error } = await supabase
       .from("activities")
-      .select("id, title, b_price, image_url, categories(name)")
-      .limit(10);
+      .select(`
+        id, 
+        title, 
+        b_price, 
+        image_url, 
+        address,
+        average_rating,
+        review_count,
+        currency_code,
+        categories(name)
+      `)
+      .eq("is_active", true)
+      .limit(20);
 
     if (error) {
       console.error("Error fetching activities for homepage:", error);
@@ -22,6 +33,8 @@ const activityService = {
       ...activity,
       slug: `activity-${activity.id}`,
       category_name: activity.categories?.name || null,
+      location: activity.address || "Location not specified",
+      currency: activity.currency_code || "THB",
     }));
   },
 
@@ -38,7 +51,8 @@ const activityService = {
         activity_schedules(*),
         reviews(*, users(full_name, avatar_url))
         `
-      );
+      )
+      .eq("is_active", true);
 
     if (error) {
       console.error(`Error fetching activities:`, error);
