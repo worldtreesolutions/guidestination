@@ -28,8 +28,9 @@ import activityService from "@/services/activityService";
 import { Activity, SupabaseActivity, ActivityWithDetails } from "@/types/activity";
 import { Check, X } from "lucide-react";
 import stripeService from "@/services/stripeService";
-import { toast } from "@/components/ui/toast";
+import { useToast } from "@/hooks/use-toast";
 import { getStripe } from "@/services/stripeService";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function ActivityBookingPage() {
   const router = useRouter();
@@ -40,6 +41,8 @@ export default function ActivityBookingPage() {
   const [participants, setParticipants] = useState(1);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const isMobile = useIsMobile();
+  const { user } = useAuth();
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchActivity = async () => {
@@ -129,15 +132,35 @@ export default function ActivityBookingPage() {
   }
 
   if (activity) {
-    const handleBooking = async () => {
+    const handlePayment = async () => {
+      if (!selectedDate) {
+        toast({
+          title: "Select a date",
+          description: "Please choose an available date before booking.",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (!user) {
+        toast({
+          title: "Please log in",
+          description: "You need to be logged in to make a booking.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       try {
         const session = await stripeService.createCheckoutSession({
           activityId: activity.id.toString(),
           activityName: activity.name || activity.title,
-          price: activity.price,
+          price: activity.b_price,
           participants: participants,
           selectedDate: selectedDate,
+          userId: user.id,
+          userEmail: user.email,
         });
+
         if (session.url) {
           router.push(session.url);
         } else {
@@ -149,41 +172,6 @@ export default function ActivityBookingPage() {
         setError("An unexpected error occurred. Please try again later.");
       }
     };
-
-    const handlePayment = async () => {
-        if (!activity || !selectedDate || !user) return;
-    
-        try {
-          const booking = await handleBooking();
-          if (!booking) {
-            throw new Error("Booking creation failed.");
-          }
-    
-          const { sessionId } = await stripeService.createCheckoutSession(
-            booking.id,
-            booking.total_price ?? 0,
-            activity.currency ?? "eur",
-            activity.title,
-            user.email ?? "",
-            user.id,
-            activity.id.toString(),
-            participants,
-            selectedDate.toISOString()
-          );
-    
-          const stripe = await getStripe();
-          if (stripe) {
-            await stripe.redirectToCheckout({ sessionId });
-          }
-        } catch (error) {
-          console.error("Payment failed:", error);
-          toast({
-            title: "Payment Error",
-            description: "There was an issue processing your payment. Please try again.",
-            variant: "destructive",
-          });
-        }
-      };
 
     return (
       <>

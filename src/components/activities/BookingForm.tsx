@@ -84,7 +84,7 @@ export default function BookingForm({
     }).format(price)
   }
 
-  const isTimeSelected = selectedDate && activity.schedules.some((schedule) => schedule.date === selectedDate);
+  const isTimeSelected = selectedDate && activity.activity_schedules.some(s => s.scheduled_date && selectedDate && s.scheduled_date.startsWith(selectedDate.toISOString().substring(0, 10)));
 
   return (
     <div className="space-y-4">
