@@ -83,15 +83,15 @@ const activityService = {
       console.error("Supabase client is not initialized.");
       return [];
     }
+    
+    // First get activities with their category field values
     const { data, error } = await supabase
       .from("activities")
-      .select(
-        `*,
-        categories(*),
+      .select(`
+        *,
         activity_schedules(*),
         reviews(*, users(full_name, avatar_url))
-        `
-      )
+      `)
       .eq("is_active", true);
 
     if (error) {
@@ -101,9 +101,29 @@ const activityService = {
     if (!data) {
         return [];
     }
+
+    // Get all unique category values from activities
+    const categoryValues = [...new Set(data.map(activity => activity.category).filter(Boolean))];
+    
+    // Fetch category details for these values
+    let categoriesMap: Record<string, any> = {};
+    if (categoryValues.length > 0) {
+      const { data: categoriesData, error: categoriesError } = await supabase
+        .from("categories")
+        .select("*")
+        .in("name", categoryValues);
+      
+      if (!categoriesError && categoriesData) {
+        categoriesMap = categoriesData.reduce((acc, cat) => {
+          acc[cat.name] = cat;
+          return acc;
+        }, {} as Record<string, any>);
+      }
+    }
+
     return data.map((activity: any) => ({
         ...activity,
-        categories: activity.categories && !activity.categories.error ? activity.categories : null,
+        categories: activity.category ? categoriesMap[activity.category] || null : null,
         activity_schedules: Array.isArray(activity.activity_schedules) ? activity.activity_schedules : [],
         reviews: Array.isArray(activity.reviews) ? activity.reviews : [],
     })) as ActivityWithDetails[];
@@ -126,13 +146,11 @@ const activityService = {
     
     const { data, error } = await supabase
       .from("activities")
-      .select(
-        `*,
-        categories(*),
+      .select(`
+        *,
         activity_schedules(*),
         reviews(*, users(full_name, avatar_url))
-        `
-      )
+      `)
       .eq("id", activityId)
       .single();
 
@@ -143,10 +161,25 @@ const activityService = {
     if (!data) {
         return null;
     }
+
+    // Fetch category details if activity has a category
+    let categoryData = null;
+    if (data.category) {
+      const { data: catData, error: catError } = await supabase
+        .from("categories")
+        .select("*")
+        .eq("name", data.category)
+        .single();
+      
+      if (!catError && catData) {
+        categoryData = catData;
+      }
+    }
+
     const activity: any = data;
     return {
         ...activity,
-        categories: activity.categories && !activity.categories.error ? activity.categories : null,
+        categories: categoryData,
         activity_schedules: Array.isArray(activity.activity_schedules) ? activity.activity_schedules : [],
         reviews: Array.isArray(activity.reviews) ? activity.reviews : [],
     } as ActivityWithDetails;
@@ -157,15 +190,14 @@ const activityService = {
       console.error("Supabase client is not initialized.");
       return null;
     }
+    
     const { data, error } = await supabase
       .from("activities")
-      .select(
-        `*,
-        categories(*),
+      .select(`
+        *,
         activity_schedules(*),
         reviews(*, users(full_name, avatar_url))
-        `
-      )
+      `)
       .eq("id", id)
       .single();
 
@@ -176,10 +208,25 @@ const activityService = {
     if (!data) {
         return null;
     }
+
+    // Fetch category details if activity has a category
+    let categoryData = null;
+    if (data.category) {
+      const { data: catData, error: catError } = await supabase
+        .from("categories")
+        .select("*")
+        .eq("name", data.category)
+        .single();
+      
+      if (!catError && catData) {
+        categoryData = catData;
+      }
+    }
+
     const activity: any = data;
     return {
         ...activity,
-        categories: activity.categories && !activity.categories.error ? activity.categories : null,
+        categories: categoryData,
         activity_schedules: Array.isArray(activity.activity_schedules) ? activity.activity_schedules : [],
         reviews: Array.isArray(activity.reviews) ? activity.reviews : [],
     } as ActivityWithDetails;
@@ -326,15 +373,14 @@ const activityService = {
       console.error("Supabase client is not initialized.");
       return [];
     }
+    
     const { data, error } = await supabase
       .from("activities")
-      .select(
-        `*,
-        categories(*),
+      .select(`
+        *,
         activity_schedules(*),
         reviews(*, users(full_name, avatar_url))
-        `
-      )
+      `)
       .eq("provider_id", ownerId);
 
     if (error) {
@@ -344,9 +390,29 @@ const activityService = {
     if (!data) {
         return [];
     }
+
+    // Get all unique category values from activities
+    const categoryValues = [...new Set(data.map(activity => activity.category).filter(Boolean))];
+    
+    // Fetch category details for these values
+    let categoriesMap: Record<string, any> = {};
+    if (categoryValues.length > 0) {
+      const { data: categoriesData, error: categoriesError } = await supabase
+        .from("categories")
+        .select("*")
+        .in("name", categoryValues);
+      
+      if (!categoriesError && categoriesData) {
+        categoriesMap = categoriesData.reduce((acc, cat) => {
+          acc[cat.name] = cat;
+          return acc;
+        }, {} as Record<string, any>);
+      }
+    }
+
     return data.map((activity: any) => ({
         ...activity,
-        categories: activity.categories && !activity.categories.error ? activity.categories : null,
+        categories: activity.category ? categoriesMap[activity.category] || null : null,
         activity_schedules: Array.isArray(activity.activity_schedules) ? activity.activity_schedules : [],
         reviews: Array.isArray(activity.reviews) ? activity.reviews : [],
     })) as ActivityWithDetails[];
