@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import Head from "next/head";
 import Navbar from "@/components/layout/Navbar";
@@ -122,26 +121,6 @@ export default function PartnerPage() {
         <Navbar />
         
         <main>
-          {/* Hero Section */}
-          <section className="bg-gradient-to-br from-primary to-primary/80 text-white py-20">
-            <div className="container mx-auto px-4 text-center">
-              <h1 className="text-4xl md:text-6xl font-bold mb-6">
-                {t("partner.hero.title") || "Become a Partner"}
-              </h1>
-              <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto opacity-90">
-                {t("partner.hero.subtitle") || "Join our network of successful partners and grow your business with Guidestination"}
-              </p>
-              <Button 
-                size="lg" 
-                variant="secondary"
-                onClick={() => setShowForm(true)}
-                className="text-lg px-8 py-3"
-              >
-                {t("partner.hero.cta") || "Start Your Application"}
-              </Button>
-            </div>
-          </section>
-
           {/* Benefits Section */}
           <section className="py-16">
             <div className="container mx-auto px-4">
