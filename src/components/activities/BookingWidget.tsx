@@ -3,16 +3,29 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Activity } from "@/types/activity"
 
-export const BookingWidget = () => {
-  const [participants, setParticipants] = useState("1")
+interface BookingWidgetProps {
+  activity: Activity;
+}
+
+export const BookingWidget = ({ activity }: BookingWidgetProps) => {
+  const [participants, setParticipants] = useState(1)
+
+  const formatPrice = (price: number | null) => {
+    if (price === null) return "N/A";
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: activity.currency || "THB",
+    }).format(price);
+  };
 
   return (
     <Card className="sticky top-24">
       <CardContent className="p-6">
         <div className="flex justify-between items-center mb-6">
           <div className="text-sm text-muted-foreground">From</div>
-          <div className="text-2xl font-bold">฿1,442</div>
+          <div className="text-2xl font-bold">{formatPrice(activity.price || activity.b_price)}</div>
         </div>
 
         <div className="space-y-4">
@@ -20,15 +33,19 @@ export const BookingWidget = () => {
             <label className="text-sm font-medium mb-2 block">
               Select participants
             </label>
-            <Select value={participants} onValueChange={setParticipants}>
+            <Select value={String(participants)} onValueChange={(value) => setParticipants(Number(value))}>
               <SelectTrigger>
                 <SelectValue placeholder="Select participants" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="1">1 Adult</SelectItem>
-                <SelectItem value="2">2 Adults</SelectItem>
-                <SelectItem value="3">3 Adults</SelectItem>
-                <SelectItem value="4">4 Adults</SelectItem>
+                {[...Array((activity.max_participants || 10) - (activity.min_participants || 1) + 1).keys()].map(i => {
+                  const count = (activity.min_participants || 1) + i;
+                  return (
+                    <SelectItem key={count} value={String(count)}>
+                      {count} {count > 1 ? "Adults" : "Adult"}
+                    </SelectItem>
+                  )
+                })}
               </SelectContent>
             </Select>
           </div>
@@ -44,8 +61,12 @@ export const BookingWidget = () => {
 
         <div className="mt-6 pt-6 border-t space-y-4">
           <div className="flex items-center gap-2">
-            <span className="text-sm">★ 4.4</span>
-            <span className="text-sm text-muted-foreground">(4888 reviews)</span>
+            {activity.average_rating && (
+              <>
+                <span className="text-sm">★ {activity.average_rating.toFixed(1)}</span>
+                <span className="text-sm text-muted-foreground">({activity.review_count || 0} reviews)</span>
+              </>
+            )}
           </div>
 
           <div className="text-sm text-muted-foreground">
