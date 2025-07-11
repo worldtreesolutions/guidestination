@@ -1,6 +1,6 @@
-
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import UserDropdown from "./UserDropdown";
 import MobileMenu from "./MobileMenu";
@@ -25,8 +25,15 @@ export default function Navbar() {
 
           {/* Center - Logo */}
           <div className="flex-1 flex justify-center">
-            <Link href="/" className="text-2xl font-bold text-primary">
-              Guidestination
+            <Link href="/" className="flex items-center">
+              <Image
+                src="/logo-mcyznoc4.png"
+                alt="Guidestination"
+                width={200}
+                height={40}
+                className="h-8 w-auto"
+                priority
+              />
             </Link>
           </div>
 
