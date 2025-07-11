@@ -1,3 +1,4 @@
+
 import { Database } from "@/integrations/supabase/types";
 
 export type Tables<T extends keyof Database["public"]["Tables"]> =
@@ -14,6 +15,18 @@ export type CommissionPayment = Tables<"commission_payments">;
 export type Provider = Tables<"activity_owners">;
 
 export type BookingStatus = "confirmed" | "pending" | "cancelled" | "completed";
+
+export interface ActivitySchedule {
+  id: string;
+  activity_id: string;
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+  max_participants: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
 
 export interface Activity extends Omit<SupabaseActivity, 'highlights' | 'languages' | 'included' | 'not_included'> {
   slug?: string;
@@ -95,18 +108,6 @@ export interface ScheduledActivity extends Activity {
   time: string;
 }
 
-export interface ActivitySchedule {
-  id: string;
-  activity_id: string;
-  day_of_week: number;
-  start_time: string;
-  end_time: string;
-  max_participants: number;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
 export interface ActivityBooking {
   id: string;
   activity_id: string;
@@ -133,4 +134,3 @@ export interface ActivityReview {
     avatar_url: string | null;
   };
 }
-  
