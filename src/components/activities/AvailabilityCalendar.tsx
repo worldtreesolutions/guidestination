@@ -3,20 +3,11 @@ import { Calendar } from "@/components/ui/calendar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { CalendarDays, Clock } from "lucide-react"
-
-interface ScheduleDate {
-  date: string;
-  startTime: string;
-  endTime: string;
-  capacity: number;
-  booked: number;
-  available: number;
-  price?: number;
-}
+import { ActivityScheduleInstance } from "@/types/activity"
 
 interface AvailabilityCalendarProps {
   availableDates: string[]
-  scheduleData?: ScheduleDate[]
+  scheduleData?: ActivityScheduleInstance[]
   selectedDate?: Date
   onDateSelect: (date: Date | undefined) => void
 }
@@ -36,12 +27,6 @@ export function AvailabilityCalendar({
     availableDatesLength: availableDates.length,
     scheduleDataLength: scheduleData.length
   });
-
-  // Additional debug logging to see the actual data structure
-  console.log("Raw availableDates array:", availableDates);
-  console.log("Raw scheduleData array:", scheduleData);
-  console.log("Type of availableDates:", typeof availableDates);
-  console.log("Is availableDates an array?", Array.isArray(availableDates));
 
   // Ensure availableDates is an array and filter out any invalid entries
   const validAvailableDates = Array.isArray(availableDates) 
@@ -72,8 +57,6 @@ export function AvailabilityCalendar({
   }).filter(date => date !== null) as Date[];
 
   console.log("Converted available date objects:", availableDateObjects);
-  console.log("Available dates as strings:", availableDateObjects.map(d => d.toDateString()));
-  console.log("Available dates as ISO strings:", availableDateObjects.map(d => d.toISOString().split('T')[0]));
 
   // Check if a date is available by comparing year, month, and day
   const isDateAvailable = (date: Date) => {
@@ -82,7 +65,6 @@ export function AvailabilityCalendar({
       availableDate.getMonth() === date.getMonth() &&
       availableDate.getDate() === date.getDate()
     );
-    console.log(`Checking if date ${date.toDateString()} is available:`, result);
     return result;
   };
 
@@ -94,8 +76,6 @@ export function AvailabilityCalendar({
     
     const isPast = date < todayMidnight;
     const isNotAvailable = !isDateAvailable(date);
-    
-    console.log(`Date ${date.toDateString()}: isPast=${isPast}, isNotAvailable=${isNotAvailable}`);
     
     return isPast || isNotAvailable;
   }
@@ -113,12 +93,9 @@ export function AvailabilityCalendar({
     }
   };
 
-  console.log("Calendar modifiers:", modifiers);
-  console.log("Available date objects for modifiers:", availableDateObjects);
-
   // Get schedule info for selected date
   const getSelectedDateSchedule = () => {
-    if (!selectedDate) return null
+    if (!selectedDate || !scheduleData.length) return null
     
     // Format selectedDate to YYYY-MM-DD to match scheduleData date format
     const year = selectedDate.getFullYear();
@@ -126,7 +103,7 @@ export function AvailabilityCalendar({
     const day = selectedDate.getDate().toString().padStart(2, '0');
     const dateStr = `${year}-${month}-${day}`;
     
-    return scheduleData.find(schedule => schedule.date === dateStr)
+    return scheduleData.find(schedule => schedule.scheduled_date === dateStr)
   }
 
   const selectedSchedule = getSelectedDateSchedule()
@@ -140,13 +117,13 @@ export function AvailabilityCalendar({
       ]
     }
 
-    // Get unique time combinations
+    // Get unique time combinations from schedule instances
     const uniqueTimes = scheduleData.reduce((acc: any[], schedule) => {
-      const timeSlot = `${schedule.startTime} - ${schedule.endTime}`
+      const timeSlot = `${schedule.start_time} - ${schedule.end_time}`
       if (!acc.find(t => `${t.startTime} - ${t.endTime}` === timeSlot)) {
         acc.push({
-          startTime: schedule.startTime,
-          endTime: schedule.endTime
+          startTime: schedule.start_time,
+          endTime: schedule.end_time
         })
       }
       return acc
@@ -187,20 +164,20 @@ export function AvailabilityCalendar({
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">Time:</span>
               <Badge variant="outline">
-                {selectedSchedule.startTime} - {selectedSchedule.endTime}
+                {selectedSchedule.start_time} - {selectedSchedule.end_time}
               </Badge>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">Availability:</span>
               <span className="text-sm text-muted-foreground">
-                {selectedSchedule.available} of {selectedSchedule.capacity} spots available
+                {selectedSchedule.available_spots} of {selectedSchedule.capacity} spots available
               </span>
             </div>
-            {selectedSchedule.price && (
+            {selectedSchedule.price_override && (
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium">Price:</span>
                 <span className="text-sm font-semibold">
-                  ฿{selectedSchedule.price.toLocaleString()}
+                  ฿{selectedSchedule.price_override.toLocaleString()}
                 </span>
               </div>
             )}
