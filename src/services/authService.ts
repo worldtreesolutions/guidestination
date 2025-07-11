@@ -21,24 +21,24 @@ const authService = {
         throw new Error("Supabase client not initialized");
       }
 
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const authResult = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
-      if (error) throw error
+      if (authResult.error) throw authResult.error
 
       let provider_id: string | undefined = undefined;
-      if (data.user) {
+      if (authResult.data.user) {
         try {
-          const ownerResult = await supabase
+          const ownerQuery = await supabase
             .from('activity_owners')
             .select('provider_id')
-            .eq('user_id', data.user.id)
+            .eq('user_id', authResult.data.user.id)
             .maybeSingle()
 
-          if (ownerResult && !ownerResult.error && ownerResult.data) {
-            provider_id = ownerResult.data.provider_id;
+          if (ownerQuery && !ownerQuery.error && ownerQuery.data) {
+            provider_id = ownerQuery.data.provider_id;
             console.log("Found provider_id:", provider_id);
           }
         } catch (ownerErr) {
@@ -47,8 +47,8 @@ const authService = {
       }
 
       return {
-        user: data.user, 
-        session: data.session,
+        user: authResult.data.user, 
+        session: authResult.data.session,
         provider_id,
         error: null,
       }

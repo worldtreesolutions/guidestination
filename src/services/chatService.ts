@@ -28,18 +28,18 @@ const chatService = {
     }
 
     try {
-      const result = await supabase
+      const queryResult = await supabase
         .from("chat_messages")
         .select("*")
         .eq("activity_id", bookingId)
         .order("created_at", { ascending: true })
 
-      if (result.error) {
-        console.error("Error fetching messages:", result.error)
-        throw result.error
+      if (queryResult.error) {
+        console.error("Error fetching messages:", queryResult.error)
+        throw queryResult.error
       }
 
-      return (result.data || []).map((item: any) => ({
+      return (queryResult.data || []).map((item: any) => ({
         id: item.id,
         sender_id: item.sender_id,
         receiver_id: item.receiver_id,
