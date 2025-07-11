@@ -1,4 +1,3 @@
-
 import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -58,13 +57,17 @@ export function ActivityReviews({
     setVisibleReviews(mockReviews.length)
   }
 
+  // Provide default values to prevent undefined errors
+  const safeRating = rating || 0;
+  const safeReviewCount = reviewCount || 0;
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Star className="h-5 w-5 text-yellow-400 fill-yellow-400" />
           <span>
-            {rating.toFixed(1)} ({reviewCount} reviews)
+            {safeRating.toFixed(1)} ({safeReviewCount} reviews)
           </span>
         </CardTitle>
       </CardHeader>

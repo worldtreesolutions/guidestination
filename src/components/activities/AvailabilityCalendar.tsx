@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Calendar } from "@/components/ui/calendar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -6,38 +6,50 @@ import { CalendarDays, Clock } from "lucide-react"
 import { ActivityScheduleInstance } from "@/types/activity"
 
 interface AvailabilityCalendarProps {
-  availableDates: string[]
+  activityId?: string
+  availableDates?: string[]
   scheduleData?: ActivityScheduleInstance[]
   selectedDate?: Date
-  onDateSelect: (date: Date | undefined) => void
+  onDateSelect?: (date: Date | undefined) => void
 }
 
 export function AvailabilityCalendar({ 
-  availableDates, 
+  activityId,
+  availableDates = [], 
   scheduleData = [],
   selectedDate, 
   onDateSelect 
 }: AvailabilityCalendarProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date())
+  const [localSelectedDate, setLocalSelectedDate] = useState<Date | undefined>(selectedDate)
 
-  // Debug logging
-  console.log("AvailabilityCalendar received:", {
-    availableDates,
-    scheduleData,
-    availableDatesLength: availableDates.length,
-    scheduleDataLength: scheduleData.length
-  });
+  // Handle date selection
+  const handleDateSelect = (date: Date | undefined) => {
+    setLocalSelectedDate(date)
+    if (onDateSelect) {
+      onDateSelect(date)
+    }
+  }
+
+  // Mock data when no real data is provided
+  const mockAvailableDates = [
+    new Date(2025, 6, 15).toISOString().split('T')[0], // July 15, 2025
+    new Date(2025, 6, 16).toISOString().split('T')[0], // July 16, 2025
+    new Date(2025, 6, 18).toISOString().split('T')[0], // July 18, 2025
+    new Date(2025, 6, 20).toISOString().split('T')[0], // July 20, 2025
+    new Date(2025, 6, 22).toISOString().split('T')[0], // July 22, 2025
+  ]
+
+  // Use provided dates or fallback to mock data
+  const datesToUse = availableDates.length > 0 ? availableDates : mockAvailableDates
 
   // Ensure availableDates is an array and filter out any invalid entries
-  const validAvailableDates = Array.isArray(availableDates) 
-    ? availableDates.filter(date => date && typeof date === 'string' && date.length > 0)
+  const validAvailableDates = Array.isArray(datesToUse) 
+    ? datesToUse.filter(date => date && typeof date === 'string' && date.length > 0)
     : [];
-
-  console.log("Valid available dates after filtering:", validAvailableDates);
 
   // Convert string dates to Date objects, ensuring proper parsing
   const availableDateObjects = validAvailableDates.map(dateStr => {
-    console.log("Processing date string:", dateStr);
     try {
       // Handle YYYY-MM-DD format by creating a local date
       // This prevents timezone-related off-by-one-day errors
@@ -48,15 +60,12 @@ export function AvailabilityCalendar({
       }
       // Create date in local timezone to match calendar component expectations
       const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
-      console.log("Converted to date object:", dateObj);
       return dateObj;
     } catch (error) {
       console.error("Error parsing date:", dateStr, error);
       return null;
     }
   }).filter(date => date !== null) as Date[];
-
-  console.log("Converted available date objects:", availableDateObjects);
 
   // Check if a date is available by comparing year, month, and day
   const isDateAvailable = (date: Date) => {
@@ -95,12 +104,12 @@ export function AvailabilityCalendar({
 
   // Get schedule info for selected date
   const getSelectedDateSchedule = () => {
-    if (!selectedDate || !scheduleData.length) return null
+    if (!localSelectedDate || !scheduleData.length) return null
     
     // Format selectedDate to YYYY-MM-DD to match scheduleData date format
-    const year = selectedDate.getFullYear();
-    const month = (selectedDate.getMonth() + 1).toString().padStart(2, '0');
-    const day = selectedDate.getDate().toString().padStart(2, '0');
+    const year = localSelectedDate.getFullYear();
+    const month = (localSelectedDate.getMonth() + 1).toString().padStart(2, '0');
+    const day = localSelectedDate.getDate().toString().padStart(2, '0');
     const dateStr = `${year}-${month}-${day}`;
     
     return scheduleData.find(schedule => schedule.scheduled_date === dateStr)
@@ -143,8 +152,8 @@ export function AvailabilityCalendar({
 
       <Calendar
         mode="single"
-        selected={selectedDate}
-        onSelect={onDateSelect}
+        selected={localSelectedDate}
+        onSelect={handleDateSelect}
         disabled={disabledDates}
         modifiers={modifiers}
         modifiersStyles={modifiersStyles}
@@ -153,7 +162,7 @@ export function AvailabilityCalendar({
         onMonthChange={setCurrentMonth}
       />
 
-      {selectedDate && selectedSchedule && (
+      {localSelectedDate && selectedSchedule && (
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <Clock className="h-4 w-4" />
@@ -185,7 +194,7 @@ export function AvailabilityCalendar({
         </div>
       )}
 
-      {availableDates.length > 0 && !selectedDate && (
+      {datesToUse.length > 0 && !localSelectedDate && (
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <Clock className="h-4 w-4" />
@@ -202,7 +211,7 @@ export function AvailabilityCalendar({
         </div>
       )}
 
-      {availableDates.length === 0 && (
+      {datesToUse.length === 0 && (
         <div className="text-center py-4">
           <p className="text-sm text-muted-foreground">
             No available dates at the moment
@@ -213,7 +222,7 @@ export function AvailabilityCalendar({
       <div className="text-xs text-muted-foreground space-y-1">
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 bg-primary rounded-full"></div>
-          <span>Available dates ({availableDates.length})</span>
+          <span>Available dates ({datesToUse.length})</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 bg-muted rounded-full"></div>
