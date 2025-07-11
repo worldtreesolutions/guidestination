@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -78,7 +77,7 @@ export default function HomePage() {
           {activities.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {activities.map((activity) => (
-                <Link key={activity.id} href={`/activities/${activity.slug}`} passHref>
+                <Link key={activity.id} href={`/activities/${activity.slug || `activity-${activity.id}`}`} passHref>
                   <ActivityCard activity={activity} />
                 </Link>
               ))}

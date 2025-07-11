@@ -37,7 +37,6 @@ export const activityService = {
       .from("activities")
       .select(`
         id,
-        slug,
         title,
         price,
         b_price,
@@ -61,6 +60,7 @@ export const activityService = {
 
     return (data || []).map(activity => ({
       ...activity,
+      slug: `activity-${activity.id}`, // Generate slug from ID since slug column doesn't exist
       category_name: activity.category,
       // Convert price from THB to user's currency
       price: activity.price ? currencyService.convertFromTHB(activity.price, userCurrency) : null,
@@ -71,13 +71,16 @@ export const activityService = {
   },
 
   async getActivityBySlug(slug: string): Promise<Activity | null> {
+    // Extract ID from slug (format: activity-{id})
+    const activityId = slug.replace('activity-', '');
+    
     const { data, error } = await supabase
       .from("activities")
       .select(`
         *,
         activity_schedules(*)
       `)
-      .eq("slug", slug)
+      .eq("id", activityId)
       .eq("is_active", true)
       .single();
 
@@ -93,6 +96,7 @@ export const activityService = {
 
     return {
       ...data,
+      slug: `activity-${data.id}`, // Generate slug from ID
       category_name: data.category,
       // Convert price from THB to user's currency
       price: data.price ? currencyService.convertFromTHB(data.price, userCurrency) : null,
