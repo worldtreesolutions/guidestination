@@ -49,14 +49,14 @@ export default function ActivityOwnerDashboard() {
       if (user) {
         try {
           setLoading(true);
-          const [activities, recentBookings, earnings] = await Promise.all([
+          const [activitiesData, recentBookingsData, earningsData] = await Promise.all([
             activityService.fetchActivitiesByOwner(user.id),
             bookingService.fetchRecentBookingsForOwner(user.id),
             commissionService.fetchEarningsForOwner(user.id),
           ]);
-          setActivities(activities);
-          setBookings(recentBookings);
-          setEarnings(earnings as any);
+          setActivities(activitiesData);
+          setBookings(recentBookingsData);
+          setEarnings(earningsData as any);
         } catch (err: any) {
           setError(err.message);
         } finally {

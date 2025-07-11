@@ -24,26 +24,37 @@ export default function ActivitiesPage() {
     const fetchActivitiesAndBookings = async () => {
       if (user) {
         const ownerId = user.id
-        const [fetchedActivities, fetchedBookings] = await Promise.all([
-          activityService.fetchActivitiesByOwner(ownerId),
-          bookingService.fetchBookingsForOwner(ownerId),
-        ])
-        setActivities(fetchedActivities)
+        try {
+          setLoading(true);
+          const [fetchedActivities, fetchedBookings] = await Promise.all([
+            activityService.fetchActivitiesByOwner(ownerId),
+            bookingService.fetchBookingsForOwner(ownerId),
+          ])
+          setActivities(fetchedActivities)
 
-        const bookingsByActivity: Record<string, Booking[]> = {}
-        fetchedActivities.forEach((activity: SupabaseActivity) => {
-          bookingsByActivity[activity.id] = fetchedBookings.filter(
-            (booking: Booking) => booking.activity_id === activity.id
-          )
-        })
-        setActivityBookings(bookingsByActivity)
-        setLoading(false)
+          const bookingsByActivity: Record<string, Booking[]> = {}
+          fetchedActivities.forEach((activity: SupabaseActivity) => {
+            bookingsByActivity[activity.id] = fetchedBookings.filter(
+              (booking: Booking) => booking.activity_id === activity.id
+            )
+          })
+          setActivityBookings(bookingsByActivity)
+        } catch(e) {
+            console.error(e);
+            toast({
+                title: "Error",
+                description: "Failed to fetch activities and bookings.",
+                variant: "destructive",
+            });
+        } finally {
+            setLoading(false)
+        }
       }
     }
     if (user) {
       fetchActivitiesAndBookings()
     }
-  }, [user, router, toast]);
+  }, [user, toast]);
 
   const handleDelete = async (activityId: number) => {
     if (window.confirm("Are you sure you want to delete this activity?")) {

@@ -1,4 +1,3 @@
-
 import { getAdminClient, isAdminAvailable } from "@/integrations/supabase/admin";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -128,24 +127,20 @@ export const commissionService = {
       .single();
 
     if (error) {
-      console.error("Error creating commission invoice:", error);
-      throw error;
+      throw new Error(`Failed to create commission invoice: ${error.message}`)
     }
-    return {
-      ...data,
-      partner_commission_rate: data.partner_commission_rate || 0,
-      invoice_status: data.invoice_status as "pending" | "cancelled" | "paid" | "overdue",
-    } as CommissionInvoice;
+
+    return data[0]
   },
 
   // Get all commission invoices with filters
-  async getCommissionInvoices(filters?: {
-    providerId?: string;
-    status?: "pending" | "cancelled" | "paid" | "overdue";
-    establishmentId?: string;
-    limit?: number;
-    offset?: number;
-  }): Promise<{ data: CommissionInvoice[]; count: number }> {
+  async getCommissionInvoices(
+    providerId: string,
+    status?: "pending" | "paid" | "overdue",
+    establishmentId?: string,
+    limit?: number,
+    offset?: number
+  ): Promise<{ data: CommissionInvoice[]; count: number }> {
     const client = isAdminAvailable() ? getAdminClient() : supabase;
     
     let query = client
@@ -153,24 +148,24 @@ export const commissionService = {
       .select("*", { count: "exact" })
       .order("created_at", { ascending: false });
 
-    if (filters?.providerId) {
-      query = query.eq("provider_id", filters.providerId);
+    if (providerId) {
+      query = query.eq("provider_id", providerId);
     }
 
-    if (filters?.status) {
-      query = query.eq("invoice_status", filters.status);
+    if (status) {
+      query = query.eq("invoice_status", status);
     }
 
-    if (filters?.establishmentId) {
-      query = query.eq("establishment_id", filters.establishmentId);
+    if (establishmentId) {
+      query = query.eq("establishment_id", establishmentId);
     }
 
-    if (filters?.limit) {
-      query = query.limit(filters.limit);
+    if (limit) {
+      query = query.limit(limit);
     }
 
-    if (filters?.offset) {
-      query = query.range(filters.offset, (filters.offset + (filters.limit || 10)) - 1);
+    if (offset) {
+      query = query.range(offset, (offset + (limit || 10)) - 1);
     }
 
     const { data, error, count } = await query;
@@ -369,6 +364,57 @@ export const commissionService = {
       .eq("id", bookingId);
 
     if (error) throw error;
+  },
+
+  async fetchEarningsForOwner(ownerId: string) {
+    const { data: activities, error: activitiesError } = await supabase
+      .from("activities")
+      .select("id")
+      .eq("provider_id", ownerId);
+
+    if (activitiesError) {
+      console.error("Error fetching owner activities for earnings:", activitiesError);
+      throw new Error("Could not fetch activities for earnings calculation.");
+    }
+
+    const activityIds = activities.map((a) => a.id);
+    if (activityIds.length === 0) {
+      return { total: 0, monthly: [], pending: 0 };
+    }
+
+    const {  bookings, error: bookingsError } = await supabase
+      .from("bookings")
+      .select("total_price, created_at, status")
+      .in("activity_id", activityIds);
+
+    if (bookingsError) {
+      console.error("Error fetching bookings for earnings:", bookingsError);
+      throw new Error("Could not fetch bookings for earnings calculation.");
+    }
+
+    let total = 0;
+    let pending = 0;
+    const monthly: { [key: string]: number } = {};
+
+    bookings.forEach((booking) => {
+      if (booking.status === "confirmed" && booking.total_price) {
+        total += booking.total_price;
+        const month = new Date(booking.created_at).toLocaleString('default', { month: 'long', year: 'numeric' });
+        if (!monthly[month]) {
+          monthly[month] = 0;
+        }
+        monthly[month] += booking.total_price;
+      } else if (booking.status === "pending" && booking.total_price) {
+        pending += booking.total_price;
+      }
+    });
+    
+    const monthlyArray = Object.keys(monthly).map(month => ({
+        month,
+        amount: monthly[month]
+    }));
+
+    return { total, monthly: monthlyArray, pending };
   }
 };
 

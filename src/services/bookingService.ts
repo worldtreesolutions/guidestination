@@ -1,148 +1,127 @@
 
-import { supabase } from "@/integrations/supabase/client"
-import { getAdminClient } from "@/integrations/supabase/admin"
-import type { Database } from "@/integrations/supabase/types"
-
-type Booking = Database["public"]["Tables"]["bookings"]["Row"]
-type BookingInsert = Database["public"]["Tables"]["bookings"]["Insert"]
+    import { supabase } from "@/integrations/supabase/client"
+import { Booking, SupabaseBooking } from "@/types/activity"
 
 export const bookingService = {
-  async createBooking(bookingData: BookingInsert) {
-    const client = getAdminClient()
-    if (!client) throw new Error("Database connection not available")
-
-    const { data, error } = await client
+  async createBooking(bookingData: any) {
+    const { data, error } = await supabase
       .from("bookings")
-      .insert(bookingData)
+      .insert([bookingData])
       .select()
-      .single()
 
     if (error) {
       console.error("Error creating booking:", error)
-      throw error
+      throw new Error("Failed to create booking.")
     }
-
-    return data
+    return data[0]
   },
 
-  async getBookingById(bookingId: number) {
-    const client = getAdminClient()
-    if (!client) throw new Error("Database connection not available")
-
-    const { data, error } = await client
+  async fetchBookingsForUser(userId: string): Promise<Booking[]> {
+    const { data, error } = await supabase
       .from("bookings")
-      .select(`
+      .select(
+        `
         *,
-        activities (
-          *,
-          activity_owners (
-            id,
-            email,
-            business_name,
-            provider_id
-          )
-        ),
-        establishments (
-          *,
-          partner_registrations (
-            id,
-            email,
-            owner_name,
-            business_name,
-            commission_package
-          )
-        )
-      `)
-      .eq("id", bookingId)
-      .single()
+        activities (*)
+      `
+      )
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
 
     if (error) {
-      console.error("Error fetching booking:", error)
-      throw error
+      console.error("Error fetching user bookings:", error)
+      return []
+    }
+    return data as Booking[]
+  },
+
+  async fetchBookingsForOwner(ownerId: string): Promise<Booking[]> {
+    // This requires a join through activities table
+    const {  activities, error: activitiesError } = await supabase
+      .from("activities")
+      .select("id")
+      .eq("provider_id", ownerId)
+
+    if (activitiesError) {
+      console.error("Error fetching owner activities:", activitiesError)
+      return []
     }
 
-    return data
+    const activityIds = activities.map((a) => a.id)
+
+    if (activityIds.length === 0) {
+      return []
+    }
+
+    const { data, error } = await supabase
+      .from("bookings")
+      .select(
+        `
+        *,
+        activities (*)
+      `
+      )
+      .in("activity_id", activityIds)
+      .order("created_at", { ascending: false })
+
+    if (error) {
+      console.error("Error fetching owner bookings:", error)
+      return []
+    }
+    return data as Booking[]
+  },
+
+  async fetchRecentBookingsForOwner(
+    ownerId: string,
+    limit = 5
+  ): Promise<Booking[]> {
+    const {  activities, error: activitiesError } = await supabase
+      .from("activities")
+      .select("id")
+      .eq("provider_id", ownerId)
+
+    if (activitiesError) {
+      console.error("Error fetching owner activities:", activitiesError)
+      return []
+    }
+
+    const activityIds = activities.map((a) => a.id)
+
+    if (activityIds.length === 0) {
+      return []
+    }
+
+    const { data, error } = await supabase
+      .from("bookings")
+      .select(
+        `
+        *,
+        activities (*)
+      `
+      )
+      .in("activity_id", activityIds)
+      .order("created_at", { ascending: false })
+      .limit(limit)
+
+    if (error) {
+      console.error("Error fetching recent owner bookings:", error)
+      return []
+    }
+    return data as Booking[]
   },
 
   async updateBookingStatus(bookingId: number, status: string) {
-    const client = getAdminClient()
-    if (!client) throw new Error("Database connection not available")
-
-    const { data, error } = await client
+    const { data, error } = await supabase
       .from("bookings")
       .update({ status })
       .eq("id", bookingId)
       .select()
-      .single()
 
     if (error) {
       console.error("Error updating booking status:", error)
-      throw error
+      throw new Error("Failed to update booking status.")
     }
-
-    return data
+    return data[0]
   },
-
-  async markCommissionInvoiceGenerated(bookingId: number) {
-    const client = getAdminClient()
-    if (!client) throw new Error("Database connection not available")
-
-    const { error } = await client
-      .from("bookings")
-      .update({ commission_invoice_generated: true })
-      .eq("id", bookingId)
-
-    if (error) {
-      console.error("Error marking commission invoice as generated:", error)
-      throw error
-    }
-  },
-
-  async getBookingsByCustomerEmail(customerEmail: string) {
-    const { data, error } = await supabase
-      .from("bookings")
-      .select(`
-        *,
-        activities (
-          title,
-          description,
-          images
-        )
-      `)
-      .eq("customer_email", customerEmail)
-      .order("created_at", { ascending: false })
-
-    if (error) {
-      console.error("Error fetching customer bookings:", error)
-      throw error
-    }
-
-    return data
-  },
-
-  async getBookingsByActivityOwner(ownerId: string) {
-    const { data, error } = await supabase
-      .from("bookings")
-      .select(`
-        *,
-        activities!inner (
-          title,
-          description,
-          activity_owners!inner (
-            id
-          )
-        )
-      `)
-      .eq("activities.activity_owners.id", ownerId)
-      .order("created_at", { ascending: false })
-
-    if (error) {
-      console.error("Error fetching activity owner bookings:", error)
-      throw error
-    }
-
-    return data
-  }
 }
-
-export default bookingService
+  
