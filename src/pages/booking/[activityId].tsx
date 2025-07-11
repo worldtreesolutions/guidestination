@@ -42,6 +42,7 @@ export default function ActivityBookingPage() {
   const isMobile = useIsMobile();
   const { user } = useAuth();
   const { toast } = useToast();
+  const [scheduleInstances, setScheduleInstances] = useState<ActivityScheduleInstance[]>([]);
 
   useEffect(() => {
     const fetchActivity = async () => {
@@ -54,6 +55,27 @@ export default function ActivityBookingPage() {
         }
         const activityData = await activityService.getActivityById(activityIdAsNumber);
         setActivity(activityData);
+        
+        // Transform activity schedules to schedule instances format for compatibility
+        const transformedSchedules = activityData.activity_schedules.map(schedule => ({
+          id: schedule.id || 0,
+          schedule_id: schedule.id || 0,
+          activity_id: activityData.id,
+          scheduled_date: new Date().toISOString().split('T')[0], // Default to today
+          start_time: schedule.start_time || "09:00",
+          end_time: schedule.end_time || "17:00",
+          capacity: schedule.capacity || activityData.max_participants || 10,
+          booked_count: 0,
+          available_spots: schedule.capacity || activityData.max_participants || 10,
+          price_override: null,
+          is_active: schedule.is_active !== false,
+          created_at: schedule.created_at || new Date().toISOString(),
+          updated_at: schedule.updated_at || new Date().toISOString(),
+          notes: null,
+          price: activityData.b_price || 0
+        } as ActivityScheduleInstance));
+        
+        setScheduleInstances(transformedSchedules);
       } catch (error) {
         console.error("Error fetching activity:", error);
         setError("Failed to load activity details.");
