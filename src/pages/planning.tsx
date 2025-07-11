@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast"
 
 function Planner() {
   const { toast } = useToast()
-  const [activities, setActivities] = useState<Activity[]>([])
+  const [activities, setActivities] = useState<ActivityWithDetails[]>([])
   const [loading, setLoading] = useState(true)
   const planningContext = usePlanning()
 

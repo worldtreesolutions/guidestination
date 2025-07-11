@@ -15,7 +15,7 @@ export default function ActivitiesPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [activities, setActivities] = useState<Activity[]>([]);
+  const [activities, setActivities] = useState<ActivityWithDetails[]>([]);
   const [activityBookings, setActivityBookings] = useState<Record<string, Booking[]>>({});
 
   const fetchActivitiesAndBookings = useCallback(async () => {

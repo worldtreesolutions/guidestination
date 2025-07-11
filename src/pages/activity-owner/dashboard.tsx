@@ -28,7 +28,7 @@ export default function ActivityOwnerDashboard() {
     monthly: Earning[]
     pending: number
   }>({ total: 0, monthly: [], pending: 0 })
-  const [activities, setActivities] = useState<Activity[]>([])
+  const [activities, setActivities] = useState<ActivityWithDetails[]>([])
 
   useEffect(() => {
     const fetchData = async () => {
