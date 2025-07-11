@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -221,12 +220,12 @@ export default function HomePage() {
         </div>
         <div className="fixed bottom-4 left-4 flex flex-col space-y-2 z-50">
           <Link href="/activity-owner">
-            <Button variant="secondary" className="rounded-full shadow-lg">
+            <Button variant="secondary" className="rounded-full shadow-lg bg-[#00ac50] hover:bg-[#009945] text-white border-[#00ac50]">
               <Briefcase className="mr-2 h-4 w-4" /> List your Activity
             </Button>
           </Link>
           <Link href="/partner">
-            <Button variant="secondary" className="rounded-full shadow-lg">
+            <Button variant="secondary" className="rounded-full shadow-lg bg-[#00ac50] hover:bg-[#009945] text-white border-[#00ac50]">
               <User className="mr-2 h-4 w-4" /> Become a Partner
             </Button>
           </Link>
