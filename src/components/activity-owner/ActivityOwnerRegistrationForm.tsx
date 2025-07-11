@@ -16,13 +16,6 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Separator } from "@/components/ui/separator"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { useToast } from '@/hooks/use-toast'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { InfoIcon, MapPin } from 'lucide-react'
@@ -31,12 +24,15 @@ import { useLanguage } from "@/contexts/LanguageContext"
 import FileUploader, { UploadedFile } from "@/components/ui/file-uploader"
 import { TermsOfServiceModal } from "./TermsOfServiceModal"
 import uploadService from "@/services/uploadService"
-import { useAuth } from "@/contexts/AuthContext"
+import authService from "@/services/authService"
+import { supabase } from "@/integrations/supabase/client"
 
 const createFormSchema = (t: (key: string) => string) => z.object({
   businessName: z.string().min(2, t('form.validation.businessName')),
   ownerName: z.string().min(2, t('form.validation.ownerName')),
   email: z.string().email(t('form.validation.email')),
+  password: z.string().min(8, 'Password must be at least 8 characters.'),
+  passwordConfirmation: z.string(),
   phone: z.string().min(10, t('form.validation.phone')),
   businessType: z.string().optional(),
   taxId: z.string().min(13, t('form.validation.taxId')),
@@ -50,7 +46,10 @@ const createFormSchema = (t: (key: string) => string) => z.object({
   termsAccepted: z.boolean().refine((val) => val === true, {
     message: t('form.validation.terms'),
   }),
-})
+}).refine(data => data.password === data.passwordConfirmation, {
+  message: "Passwords don't match",
+  path: ["passwordConfirmation"],
+});
 
 export const ActivityOwnerRegistrationForm = () => {
   const { t } = useLanguage()
@@ -72,6 +71,8 @@ export const ActivityOwnerRegistrationForm = () => {
       businessName: '',
       ownerName: '',
       email: '',
+      password: '',
+      passwordConfirmation: '',
       phone: '',
       businessType: 'activity_owner',
       taxId: '',
@@ -99,89 +100,101 @@ export const ActivityOwnerRegistrationForm = () => {
     setIsSubmitting(true);
     setRegistrationStatus({ type: null, message: null });
     
+    let newUserId: string | undefined = undefined;
+
     try {
+      // Step 1: Create user in auth.users
+      const signUpResponse = await authService.signUp(values.email, values.password);
+
+      if (signUpResponse.error) {
+        throw new Error(signUpResponse.error.message || 'Failed to create user account.');
+      }
+      if (!signUpResponse.user) {
+        throw new Error('User account was not created.');
+      }
+      newUserId = signUpResponse.user.id;
+
+      // Step 2: Upload documents
       let documentUrls: string[] = []
-      
-      // Upload supporting documents to Supabase CDN if any files are selected
       if (uploadedFiles.length > 0) {
         toast({
           title: "Uploading Documents",
-          description: "Uploading documents to Supabase CDN...",
+          description: "Uploading documents...",
         });
         
-        // Convert UploadedFile objects to File objects for upload
-        const filesToUpload: File[] = []
-        for (const uploadedFile of uploadedFiles) {
-          // Check if the uploadedFile has the actual File object
-          if (uploadedFile instanceof File) {
-            filesToUpload.push(uploadedFile)
-          } else if ('file' in uploadedFile && uploadedFile.file instanceof File) {
-            filesToUpload.push(uploadedFile.file)
-          } else {
-            // Create a File object from the UploadedFile data if needed
-            try {
-              const response = await fetch(uploadedFile.url || uploadedFile.name)
-              const blob = await response.blob()
-              const file = new File([blob], uploadedFile.name, { type: uploadedFile.type })
-              filesToUpload.push(file)
-            } catch (error) {
-              console.error(`Failed to process file ${uploadedFile.name}:`, error)
-              throw new Error(`Failed to process file: ${uploadedFile.name}`)
+        const filesToUpload: File[] = uploadedFiles.map(upFile => upFile.file).filter((f): f is File => f instanceof File);
+        
+        if (filesToUpload.length > 0) {
+            documentUrls = await uploadService.uploadActivityOwnerDocuments(filesToUpload, newUserId);
+            if (documentUrls.length !== filesToUpload.length) {
+              throw new Error("Some documents failed to upload.");
             }
-          }
+            toast({
+              title: "Upload Complete",
+              description: `Successfully uploaded ${documentUrls.length} documents.`,
+            });
         }
-        
-        // Generate unique owner ID for document organization
-        const ownerId = `owner_${Date.now()}_${Math.random().toString(36).substring(2)}`
-        
-        // Upload to Supabase storage with CDN URLs
-        documentUrls = await uploadService.uploadActivityOwnerDocuments(filesToUpload, ownerId)
-        
-        if (documentUrls.length !== filesToUpload.length) {
-          const failedCount = filesToUpload.length - documentUrls.length
-          throw new Error(`${failedCount} document(s) failed to upload. Please try again.`)
-        }
-        
-        toast({
-          title: "Upload Complete",
-          description: `Successfully uploaded ${documentUrls.length} documents to Supabase CDN`,
-        });
       }
 
-      // Create registration data with CDN URLs
+      // Step 3: Create entry in activity_owners table
       const registrationData = {
-        ...values,
-        locationData,
-        documentUrls,
-        submittedAt: new Date().toISOString(),
-        status: 'pending_review'
+        id: newUserId,
+        business_name: values.businessName,
+        owner_name: values.ownerName,
+        email: values.email,
+        phone: values.phone,
+        business_type: values.businessType,
+        tax_id: values.taxId,
+        address: values.address,
+        description: values.description,
+        tourism_license_number: values.tourismLicenseNumber,
+        tat_license_number: values.tatLicenseNumber,
+        guide_card_number: values.guideCardNumber,
+        insurance_policy_number: values.insurancePolicy,
+        insurance_coverage_amount: parseFloat(values.insuranceAmount),
+        location: locationData,
+        document_urls: documentUrls,
+        approved: 'pending',
+      };
+
+      const { error: insertError } = await supabase
+        .from('activity_owners')
+        .insert(registrationData);
+
+      if (insertError) {
+        throw new Error(insertError.message || 'Failed to save registration details.');
       }
 
-      // Log the registration data for debugging (remove in production)
-      console.log('Activity Owner Registration Data:', registrationData)
-
-      // Show success message with uploaded document info
       setRegistrationStatus({
         type: 'success',
-        message: `Registration form completed successfully! ${documentUrls.length > 0 ? `${documentUrls.length} documents uploaded to Supabase CDN with secure URLs` : 'No documents were uploaded.'}`
+        message: "Registration successful! Your application is pending approval and will be reviewed by our team."
       });
       
       toast({
         title: t('form.success.title') || 'Success',
-        description: `Registration completed! ${documentUrls.length > 0 ? `${documentUrls.length} documents uploaded to CDN` : ''}`,
+        description: "Registration completed! Your application is pending approval.",
       });
       
-      // Reset form
       form.reset()
       setUploadedFiles([])
       setLocationData(null)
       
     } catch (error) {
+      if (newUserId) {
+        try {
+          await fetch('/api/auth/delete-user', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: newUserId }),
+          });
+        } catch (rollbackError) {
+          console.error("CRITICAL: User rollback failed.", rollbackError);
+        }
+      }
+
       let errorMessage = t('form.error.unexpected');
       if (error instanceof Error) {
         errorMessage = error.message;
-      } else if (typeof error === 'object' && error !== null && 'message' in error) {
-         errorMessage = (error as any).message;
       }
       
       setRegistrationStatus({
@@ -203,16 +216,14 @@ export const ActivityOwnerRegistrationForm = () => {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
         {registrationStatus.type && registrationStatus.message && (
-          <Alert variant={registrationStatus.type === 'error' ? 'destructive' : (registrationStatus.type === 'info' ? 'default' : 'default')} className={registrationStatus.type === 'success' ? 'border-green-500 bg-green-50' : (registrationStatus.type === 'info' ? 'border-blue-500 bg-blue-50' : '')}>
-            <InfoIcon className={`h-4 w-4 ${registrationStatus.type === 'success' ? 'text-green-700' : (registrationStatus.type === 'info' ? 'text-blue-700' : '')}`} />
-            <AlertTitle className={registrationStatus.type === 'success' ? 'text-green-800' : (registrationStatus.type === 'info' ? 'text-blue-800' : '')}>
+          <Alert variant={registrationStatus.type === 'error' ? 'destructive' : 'default'} className={registrationStatus.type === 'success' ? 'border-green-500 bg-green-50' : ''}>
+            <InfoIcon className={`h-4 w-4 ${registrationStatus.type === 'success' ? 'text-green-700' : ''}`} />
+            <AlertTitle className={registrationStatus.type === 'success' ? 'text-green-800' : ''}>
               {registrationStatus.type === 'success' 
                 ? t('form.success.title')
-                : registrationStatus.type === 'info' 
-                  ? t('form.info.title')
-                  : t('form.error.title')}
+                : t('form.error.title')}
             </AlertTitle>
-            <AlertDescription className={registrationStatus.type === 'success' ? 'text-green-700' : (registrationStatus.type === 'info' ? 'text-blue-700' : '')}>
+            <AlertDescription className={registrationStatus.type === 'success' ? 'text-green-700' : ''}>
               {registrationStatus.message}
             </AlertDescription>
           </Alert>
@@ -229,13 +240,13 @@ export const ActivityOwnerRegistrationForm = () => {
             </ul>
           </div>
 
-          <h3 className='text-lg font-medium'>{t('form.section.business')}</h3>
+          <h3 className='text-lg font-medium'>Business Information</h3>
           <FormField
             control={form.control}
             name='businessName'
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('form.field.businessName')}</FormLabel>
+                <FormLabel>Business Name</FormLabel>
                 <FormControl>
                   <Input placeholder={t('form.placeholder.businessName')} {...field} />
                 </FormControl>
@@ -340,6 +351,35 @@ export const ActivityOwnerRegistrationForm = () => {
                   <FormLabel>{t('form.field.email')}</FormLabel>
                   <FormControl>
                     <Input placeholder={t('form.placeholder.email')} type='email' {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className='grid md:grid-cols-2 gap-4'>
+            <FormField
+              control={form.control}
+              name='password'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <Input placeholder="********" type='password' {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='passwordConfirmation'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Confirm Password</FormLabel>
+                  <FormControl>
+                    <Input placeholder="********" type='password' {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
