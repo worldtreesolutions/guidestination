@@ -29,7 +29,7 @@ import { AvailabilityCalendar } from "@/components/activities/AvailabilityCalend
 import { BookingForm } from "@/components/activities/BookingForm"
 import { ActivityReviews } from "@/components/activities/ActivityReviews"
 import { useIsMobile } from "@/hooks/use-mobile"
-import { supabaseActivityService } from "@/services/supabaseActivityService.js"
+import activityService from "@/services/activityService"
 import customerService from "@/services/customerService"
 import { SupabaseActivity, ActivitySelectedOption } from "@/types/activity"
 import { ActivityDetails } from "@/components/activities/ActivityDetails"
@@ -52,23 +52,15 @@ export default function ActivityPage() {
     
     try {
       setLoading(true)
-      // Parse the slug as an ID since we're passing numeric IDs
       const activityId = parseInt(slug)
       if (isNaN(activityId)) {
         throw new Error("Invalid activity ID")
       }
       
-      const activityData = await supabaseActivityService.getActivityById(activityId)
+      const activityData = await activityService.getActivityById(activityId)
       console.log("Fetched activity data:", activityData)
-      console.log("Activity schedules:", activityData?.schedules)
-      console.log("Available dates:", activityData?.schedules?.availableDates)
-      console.log("Selected options:", activityData?.activity_selected_options)
-      console.log("Activity selected options structure:", activityData?.activity_selected_options?.map(opt => ({
-        id: opt.id,
-        name: opt.option_name,
-        type: opt.option_type,
-        selected: opt.is_selected
-      })))
+      console.log("Activity schedule instances:", activityData?.schedule_instances)
+      console.log("Selected options:", activityData?.selected_options)
       setActivity(activityData)
     } catch (error) {
       console.error("Error fetching activity:", error)
@@ -236,32 +228,32 @@ export default function ActivityPage() {
   }
 
   // Get selected options from the database
-  const selectedHighlights = activity.activity_selected_options?.filter(
-    opt => opt.option_type === 'highlight' && opt.is_selected
-  ).map(opt => opt.option_name) || []
+  const selectedHighlights = activity.selected_options?.filter(
+    opt => opt.activity_options?.type === 'highlight'
+  ).map(opt => opt.activity_options?.name).filter(Boolean) || []
 
-  const selectedIncluded = activity.activity_selected_options?.filter(
-    opt => opt.option_type === 'included' && opt.is_selected
-  ).map(opt => opt.option_name) || []
+  const selectedIncluded = activity.selected_options?.filter(
+    opt => opt.activity_options?.type === 'included'
+  ).map(opt => opt.activity_options?.name).filter(Boolean) || []
 
-  const selectedNotIncluded = activity.activity_selected_options?.filter(
-    opt => opt.option_type === 'not_included' && opt.is_selected
-  ).map(opt => opt.option_name) || []
+  const selectedNotIncluded = activity.selected_options?.filter(
+    opt => opt.activity_options?.type === 'not_included'
+  ).map(opt => opt.activity_options?.name).filter(Boolean) || []
 
   // Combine with any legacy data (fallback)
   const allHighlights = [
     ...selectedHighlights,
-    ...(activity.highlights || [])
+    ...(activity.highlights ? activity.highlights.split(',').map(h => h.trim()) : [])
   ];
 
   const allIncluded = [
     ...selectedIncluded,
-    ...(activity.included || [])
+    ...(activity.included ? activity.included.split(',').map(i => i.trim()) : [])
   ];
 
   const allNotIncluded = [
     ...selectedNotIncluded,
-    ...(activity.not_included || [])
+    ...(activity.not_included ? activity.not_included.split(',').map(n => n.trim()) : [])
   ];
 
   console.log("Database selected options:", {
@@ -302,12 +294,12 @@ export default function ActivityPage() {
             <div className="mb-6">
               <div className="flex items-center gap-2 mb-4">
                 <Badge variant="secondary" className="capitalize">
-                  {activity.category_name}
+                  {activity.category}
                 </Badge>
-                {activity.rating && (
+                {activity.average_rating && (
                   <div className="flex items-center gap-1">
                     <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    <span className="font-medium">{activity.rating}</span>
+                    <span className="font-medium">{activity.average_rating}</span>
                     <span className="text-muted-foreground">
                       ({activity.review_count} reviews)
                     </span>
@@ -322,11 +314,11 @@ export default function ActivityPage() {
               <div className="flex flex-wrap items-center gap-4 mb-4">
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-primary" />
-                  <span className="text-sm sm:text-base">{activity.location || "Location TBD"}</span>
+                  <span className="text-sm sm:text-base">{activity.address || "Location TBD"}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4" />
-                  <span className="text-sm sm:text-base">{formatDuration(activity.duration)}</span>
+                  <span className="text-sm sm:text-base">{activity.duration || "Duration TBD"}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4" />
@@ -341,7 +333,7 @@ export default function ActivityPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="text-2xl sm:text-3xl font-bold text-primary">
-                    {formatPrice(activity.price)}
+                    {formatPrice(activity.final_price || activity.b_price)}
                   </span>
                   <span className="text-muted-foreground">per person</span>
                 </div>
@@ -377,7 +369,7 @@ export default function ActivityPage() {
               <div className="lg:col-span-2 space-y-8">
                 {/* Image Gallery */}
                 <ActivityGallery 
-                  images={activity.image_urls || []}
+                  images={activity.image_url ? [activity.image_url] : []}
                   videos={[]}
                   title={activity.title}
                 />
@@ -453,7 +445,7 @@ export default function ActivityPage() {
                       </Card>
                     )}
 
-                    {activity.schedules?.availableDates && activity.schedules.availableDates.length > 0 && (
+                    {activity.schedule_instances && activity.schedule_instances.length > 0 && (
                       <Card>
                         <CardHeader>
                           <CardTitle>Schedule & Availability</CardTitle>
@@ -463,13 +455,13 @@ export default function ActivityPage() {
                             <div className="border rounded-lg p-4">
                               <h4 className="font-semibold mb-2">Available Times</h4>
                               <p className="text-sm text-muted-foreground">
-                                {activity.schedules.availableDates[0]?.startTime} - {activity.schedules.availableDates[0]?.endTime}
+                                {activity.schedule_instances[0]?.start_time} - {activity.schedule_instances[0]?.end_time}
                               </p>
                             </div>
                             <div className="border rounded-lg p-4">
                               <h4 className="font-semibold mb-2">Capacity</h4>
                               <p className="text-sm text-muted-foreground">
-                                Up to {activity.schedules.availableDates[0]?.capacity || activity.max_participants} participants
+                                Up to {activity.schedule_instances[0]?.capacity || activity.max_participants} participants
                               </p>
                             </div>
                           </div>
@@ -477,16 +469,16 @@ export default function ActivityPage() {
                           <div className="mt-4">
                             <h4 className="font-semibold mb-2">Available Dates</h4>
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-                              {activity.schedules.availableDates.slice(0, 8).map((dateInfo, index) => (
+                              {activity.schedule_instances.slice(0, 8).map((instance, index) => (
                                 <div key={index} className="text-xs p-2 bg-muted rounded">
-                                  <div className="font-medium">{new Date(dateInfo.date).toLocaleDateString()}</div>
-                                  <div className="text-muted-foreground">{dateInfo.available}/{dateInfo.capacity} spots</div>
+                                  <div className="font-medium">{new Date(instance.scheduled_date).toLocaleDateString()}</div>
+                                  <div className="text-muted-foreground">{instance.available_spots}/{instance.capacity} spots</div>
                                 </div>
                               ))}
                             </div>
-                            {activity.schedules.availableDates.length > 8 && (
+                            {activity.schedule_instances.length > 8 && (
                               <p className="text-xs text-muted-foreground mt-2">
-                                And {activity.schedules.availableDates.length - 8} more dates available...
+                                And {activity.schedule_instances.length - 8} more dates available...
                               </p>
                             )}
                           </div>
@@ -532,15 +524,15 @@ export default function ActivityPage() {
                       </Card>
                     )}
 
-                    {activity.languages && Array.isArray(activity.languages) && (
+                    {activity.languages && typeof activity.languages === 'string' && (
                       <Card>
                         <CardHeader>
                           <CardTitle>Languages</CardTitle>
                         </CardHeader>
                         <CardContent>
                           <div className="flex gap-2 flex-wrap">
-                            {activity.languages.map((language: string, index: number) => (
-                              <Badge key={index} variant="outline">{language}</Badge>
+                            {activity.languages.split(',').map((language: string, index: number) => (
+                              <Badge key={index} variant="outline">{language.trim()}</Badge>
                             ))}
                           </div>
                         </CardContent>
@@ -619,8 +611,8 @@ export default function ActivityPage() {
                       <Separator />
 
                       <AvailabilityCalendar
-                        availableDates={activity.schedules?.availableDates?.map((d: any) => d.date) || []}
-                        scheduleData={activity.schedules?.availableDates || []}
+                        availableDates={activity.schedule_instances?.map(instance => instance.scheduled_date) || []}
+                        scheduleData={activity.schedule_instances || []}
                         selectedDate={selectedDate}
                         onDateSelect={setSelectedDate}
                       />
