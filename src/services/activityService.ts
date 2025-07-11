@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Activity, ActivityForHomepage, SupabaseActivity } from "@/types/activity";
 import { currencyService } from "./currencyService";
@@ -64,7 +63,16 @@ export const activityService = {
           address,
           average_rating,
           image_url,
-          category
+          category,
+          duration,
+          min_age,
+          max_age,
+          description,
+          max_participants,
+          technical_skill_level,
+          physical_effort_level,
+          includes_pickup,
+          includes_meal
         `)
         .eq("is_active", true)
         .order("created_at", { ascending: false })

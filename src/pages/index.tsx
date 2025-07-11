@@ -6,6 +6,7 @@ import CategoryNav from "@/components/home/CategoryNav";
 import CategorySection from "@/components/home/CategorySection";
 import SearchBar from "@/components/home/SearchBar";
 import { activityService } from "@/services/activityService";
+import { categoryService, Category } from "@/services/categoryService";
 import { ActivityForHomepage } from "@/types/activity";
 import { ShoppingCart, User, Briefcase } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
@@ -13,28 +14,42 @@ import { Footer } from "@/components/layout/Footer";
 
 export default function HomePage() {
   const [activities, setActivities] = useState<ActivityForHomepage[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchActivities = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
         setError(null);
-        const data = await activityService.getActivitiesForHomepage();
-        setActivities(data);
+        
+        // Fetch both activities and categories
+        const [activitiesData, categoriesData] = await Promise.all([
+          activityService.getActivitiesForHomepage(),
+          categoryService.getAllCategories()
+        ]);
+        
+        setActivities(activitiesData);
+        setCategories(categoriesData);
       } catch (err) {
-        console.error("Error fetching activities:", err);
-        setError(`Failed to load activities: ${err instanceof Error ? err.message : 'Unknown error'}`);
+        console.error("Error fetching data:", err);
+        setError(`Failed to load data: ${err instanceof Error ? err.message : 'Unknown error'}`);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchActivities();
+    fetchData();
   }, []);
 
-  const groupedActivities = activities.reduce((acc, activity) => {
+  // Filter activities based on selected category
+  const filteredActivities = selectedCategoryId 
+    ? activities.filter(activity => activity.category_id === selectedCategoryId)
+    : activities;
+
+  const groupedActivities = filteredActivities.reduce((acc, activity) => {
     const category = activity.category_name || 'Other';
     if (!acc[category]) {
       acc[category] = [];
@@ -42,6 +57,10 @@ export default function HomePage() {
     acc[category].push(activity);
     return acc;
   }, {} as Record<string, ActivityForHomepage[]>);
+
+  const handleCategorySelect = (categoryId: number | null) => {
+    setSelectedCategoryId(categoryId);
+  };
 
   return (
     <div className="min-h-screen bg-white text-black">
@@ -53,7 +72,10 @@ export default function HomePage() {
           </div>
         </section>
 
-        <CategoryNav />
+        <CategoryNav 
+          onCategorySelect={handleCategorySelect}
+          selectedCategoryId={selectedCategoryId}
+        />
 
         <div className="px-4 md:px-8 lg:px-12 space-y-8 py-8">
           {loading && (
@@ -68,20 +90,25 @@ export default function HomePage() {
           )}
           {!loading && !error && (
             <>
-              {activities.length > 0 ? (
+              {filteredActivities.length > 0 ? (
                 <>
                   <section>
                     <div className="flex justify-between items-center mb-4">
-                      <h2 className="text-2xl font-bold">Featured Activities</h2>
+                      <h2 className="text-2xl font-bold">
+                        {selectedCategoryId 
+                          ? `${categories.find(c => c.id === selectedCategoryId)?.name || 'Category'} Activities`
+                          : 'Featured Activities'
+                        }
+                      </h2>
                       <Link href="/activities">
                         <Button variant="link" className="text-primary">
                           View All
                         </Button>
                       </Link>
                     </div>
-                    <ActivityRow activities={activities.slice(0, 10)} />
+                    <ActivityRow activities={filteredActivities.slice(0, 10)} />
                   </section>
-                  {Object.entries(groupedActivities).map(([category, categoryActivities]) => (
+                  {!selectedCategoryId && Object.entries(groupedActivities).map(([category, categoryActivities]) => (
                     <CategorySection
                       key={category}
                       title={category}
@@ -91,7 +118,12 @@ export default function HomePage() {
                 </>
               ) : (
                 <div className="text-center py-20">
-                  <p className="text-gray-500 text-lg">No activities available at the moment.</p>
+                  <p className="text-gray-500 text-lg">
+                    {selectedCategoryId 
+                      ? `No activities available in ${categories.find(c => c.id === selectedCategoryId)?.name || 'this category'}.`
+                      : 'No activities available at the moment.'
+                    }
+                  </p>
                 </div>
               )}
             </>

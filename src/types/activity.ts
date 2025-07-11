@@ -1,4 +1,3 @@
-
 import { Database } from "@/integrations/supabase/types";
 
 export type Tables<T extends keyof Database["public"]["Tables"]> =
@@ -49,6 +48,15 @@ export interface ActivityForHomepage {
   image_url: string | null;
   category_name?: string;
   currency?: string;
+  duration?: string | null;
+  min_age?: number | null;
+  max_age?: number | null;
+  description?: string | null;
+  max_participants?: number | null;
+  technical_skill_level?: string | null;
+  physical_effort_level?: string | null;
+  includes_pickup?: boolean | null;
+  includes_meal?: boolean | null;
 }
 
 export type Earning = {
