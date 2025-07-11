@@ -97,7 +97,23 @@ export interface ScheduledActivity {
   participants?: number;
 }
 
-export type ActivityScheduleInstance = ActivitySchedule;
+export type ActivityScheduleInstance = {
+  id: number;
+  schedule_id: number;
+  activity_id: number;
+  scheduled_date: string;
+  start_time: string;
+  end_time: string;
+  capacity: number;
+  booked_count: number;
+  available_spots: number;
+  price_override: number | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  notes: string | null;
+  price: number;
+};
 
 // Other specific types
 export interface TimeSlot {
