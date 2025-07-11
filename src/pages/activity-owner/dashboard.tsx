@@ -9,7 +9,7 @@ import { DashboardHeader } from "@/components/activity-owner/dashboard/Dashboard
 import { ActivityList } from "@/components/activity-owner/dashboard/ActivityList"
 import { RecentBookings } from "@/components/activity-owner/dashboard/RecentBookings"
 import { EarningsChart } from "@/components/activity-owner/dashboard/EarningsChart"
-import { activityService } from "@/services/activityService"
+import activityService from "@/services/activityService"
 import { bookingService } from "@/services/bookingService"
 import { commissionService } from "@/services/commissionService"
 import { SupabaseActivity, Booking, Earning } from "@/types/activity"

@@ -27,13 +27,13 @@ import { AvailabilityCalendar } from "@/components/activities/AvailabilityCalend
 import { BookingForm } from "@/components/activities/BookingForm"
 import { ActivityReviews } from "@/components/activities/ActivityReviews"
 import { useIsMobile } from "@/hooks/use-mobile"
-import { activityService } from "@/services/activityService"
-import { SupabaseActivity } from "@/types/activity"
+import activityService from "@/services/activityService"
+import { SupabaseActivity, Activity }
 
 export default function ActivityBookingPage() {
   const router = useRouter()
   const { activityId } = router.query
-  const [activity, setActivity] = useState<SupabaseActivity | null>(null)
+  const [activity, setActivity] = useState<Activity | null>(null)
   const [loading, setLoading] = useState(true)
   const [selectedDate, setSelectedDate] = useState<Date>()
   const [selectedParticipants, setSelectedParticipants] = useState(1)
@@ -90,23 +90,25 @@ export default function ActivityBookingPage() {
     )
   }
 
-  const formatPrice = (price: number | null) => {
-    if (!price) return "Free"
+  const formatPrice = (price: number | null | string) => {
+    if (price === null || price === undefined) return "Free"
+    const numericPrice = typeof price === 'string' ? parseFloat(price) : price;
+    if (isNaN(numericPrice)) return "N/A";
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "THB",
       minimumFractionDigits: 0,
-    }).format(price)
+    }).format(numericPrice)
   }
 
-  const formatDuration = (duration: number | null) => {
+  const formatDuration = (duration: string | null) => {
     if (duration === null) return "";
-    const durationMap: { [key: number]: string } = {
-      2: "2 hours",
-      4: "Half day (4-5 hours)",
-      8: "Full day (8-9 hours)",
-    }
-    return durationMap[duration] || `${duration} hours`
+    return duration;
+  }
+
+  const safeSplit = (text: string | null | undefined) => {
+    if (!text) return [];
+    return text.split(',').map(item => item.trim());
   }
 
   return (
@@ -138,12 +140,12 @@ export default function ActivityBookingPage() {
             <div className="mb-8">
               <div className="flex items-center gap-2 mb-4">
                 <Badge variant="secondary" className="capitalize">
-                  {activity.category_name}
+                  {activity.category || "Uncategorized"}
                 </Badge>
-                {activity.rating && (
+                {activity.average_rating && (
                   <div className="flex items-center gap-1">
                     <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    <span className="font-medium">{activity.rating}</span>
+                    <span className="font-medium">{activity.average_rating}</span>
                     <span className="text-muted-foreground">
                       ({activity.review_count} reviews)
                     </span>
@@ -158,7 +160,7 @@ export default function ActivityBookingPage() {
               <div className="flex flex-wrap items-center gap-4 mb-4">
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-primary" />
-                  <span className="text-sm sm:text-base">{activity.location || "Location TBD"}</span>
+                  <span className="text-sm sm:text-base">{activity.address || "Location TBD"}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4" />
@@ -170,7 +172,7 @@ export default function ActivityBookingPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Globe className="h-4 w-4" />
-                  <span className="text-sm sm:text-base">{activity.languages?.join(", ") || "English"}</span>
+                  <span className="text-sm sm:text-base">{safeSplit(activity.languages).join(", ") || "English"}</span>
                 </div>
               </div>
             </div>
@@ -185,8 +187,8 @@ export default function ActivityBookingPage() {
                   </CardHeader>
                   <CardContent>
                     <ActivityGallery 
-                      images={activity.image_urls || []}
-                      videos={[]}
+                      images={safeSplit(activity.image_url) || []}
+                      videos={activity.video_url ? [{url: activity.video_url, thumbnail: activity.video_thumbnail_url || undefined}] : []}
                       title={activity.title}
                     />
                   </CardContent>
@@ -202,11 +204,11 @@ export default function ActivityBookingPage() {
                       {activity.description}
                     </p>
 
-                    {activity.highlights && activity.highlights.length > 0 && (
+                    {activity.highlights && (
                       <div>
                         <h3 className="font-semibold mb-3">Highlights</h3>
                         <ul className="space-y-2">
-                          {activity.highlights.map((highlight, index) => (
+                          {safeSplit(activity.highlights).map((highlight, index) => (
                             <li key={index} className="flex items-start gap-2">
                               <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
                               <span>{highlight}</span>
@@ -226,7 +228,7 @@ export default function ActivityBookingPage() {
                     </CardHeader>
                     <CardContent>
                       <ul className="space-y-2">
-                        {(activity.included || []).map((item, index) => (
+                        {safeSplit(activity.included).map((item, index) => (
                           <li key={index} className="flex items-start gap-2">
                             <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
                             <span className="text-sm">{item}</span>
@@ -242,7 +244,7 @@ export default function ActivityBookingPage() {
                     </CardHeader>
                     <CardContent>
                       <ul className="space-y-2">
-                        {(activity.not_included || []).map((item, index) => (
+                        {safeSplit(activity.not_included).map((item, index) => (
                           <li key={index} className="flex items-start gap-2">
                             <XCircle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
                             <span className="text-sm">{item}</span>
@@ -296,7 +298,7 @@ export default function ActivityBookingPage() {
                 {/* Reviews Section */}
                 <ActivityReviews 
                   activityId={activity.id.toString()}
-                  rating={activity.rating || 0}
+                  rating={activity.average_rating || 0}
                   reviewCount={activity.review_count || 0}
                 />
               </div>
@@ -314,7 +316,7 @@ export default function ActivityBookingPage() {
                     <CardContent className="space-y-6">
                       <div className="text-center">
                         <div className="text-2xl font-bold text-primary">
-                          {formatPrice(activity.price)}
+                          {formatPrice(activity.b_price)}
                         </div>
                         <div className="text-sm text-muted-foreground">per person</div>
                       </div>
@@ -324,8 +326,8 @@ export default function ActivityBookingPage() {
                       <div>
                         <h3 className="font-semibold mb-3">Select Date</h3>
                         <AvailabilityCalendar
-                          availableDates={activity.schedules?.availableDates?.map((d: any) => d.date) || []}
-                          scheduleData={activity.schedules?.availableDates || []}
+                          availableDates={activity.schedule_instances?.map((d: any) => d.scheduled_date) || []}
+                          scheduleData={activity.schedule_instances || []}
                           selectedDate={selectedDate}
                           onDateSelect={setSelectedDate}
                         />
@@ -374,11 +376,11 @@ export default function ActivityBookingPage() {
 
         <div className="mt-8">
           <h2 className="text-2xl font-bold mb-4">Activity Details</h2>
-          {activity.highlights && activity.highlights.length > 0 && (
+          {activity.highlights && (
             <div className="mb-6">
               <h3 className="text-xl font-semibold mb-2">Highlights</h3>
               <ul className="list-disc list-inside space-y-1">
-                {activity.highlights.map((highlight: string, index: number) => (
+                {safeSplit(activity.highlights).map((highlight: string, index: number) => (
                   <li key={index}>{highlight}</li>
                 ))}
               </ul>
@@ -388,7 +390,7 @@ export default function ActivityBookingPage() {
           <div className="mb-6">
             <h3 className="text-xl font-semibold mb-2">What's Included</h3>
             <ul className="list-disc list-inside space-y-1">
-              {activity.included?.map((item: string, index: number) => (
+              {safeSplit(activity.included)?.map((item: string, index: number) => (
                 <li key={index}>{item}</li>
               ))}
             </ul>
@@ -397,7 +399,7 @@ export default function ActivityBookingPage() {
           <div className="mb-6">
             <h3 className="text-xl font-semibold mb-2">What's Not Included</h3>
             <ul className="list-disc list-inside space-y-1">
-              {activity.not_included?.map((item: string, index: number) => (
+              {safeSplit(activity.not_included)?.map((item: string, index: number) => (
                 <li key={index}>{item}</li>
               ))}
             </ul>
@@ -413,15 +415,15 @@ export default function ActivityBookingPage() {
 
         <div className="mt-8">
           <h2 className="text-2xl font-bold mb-4">Schedule</h2>
-          {activity.schedules && (
+          {activity.schedule_instances && activity.schedule_instances.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="border rounded-lg p-4">
                 <h3 className="font-semibold mb-2">Start Time</h3>
-                <p>{activity.schedules?.availableDates[0]?.startTime || "Not specified"}</p>
+                <p>{activity.schedule_instances[0]?.start_time || "Not specified"}</p>
               </div>
               <div className="border rounded-lg p-4">
                 <h3 className="font-semibold mb-2">End Time</h3>
-                <p>{activity.schedules?.availableDates[0]?.endTime || "Not specified"}</p>
+                <p>{activity.schedule_instances[0]?.end_time || "Not specified"}</p>
               </div>
             </div>
           )}

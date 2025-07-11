@@ -1,5 +1,4 @@
 
-    
 import { supabase } from "@/integrations/supabase/client"
 import {
   Activity,
@@ -50,12 +49,12 @@ const activityService = {
       return null
     }
 
-    const activityData = data as ActivityWithOptionsAndSchedule
+    const activityData = data as unknown as ActivityWithOptionsAndSchedule
 
     return {
       ...activityData,
-      selected_options: activityData.activity_selected_options,
-      schedule_instances: activityData.activity_schedule_instances,
+      selected_options: activityData.activity_selected_options || [],
+      schedule_instances: activityData.activity_schedule_instances || [],
     }
   },
 
@@ -95,7 +94,31 @@ const activityService = {
     }
     return data
   },
+
+  async fetchActivitiesByOwner(ownerId: string): Promise<SupabaseActivity[]> {
+    const { data, error } = await supabase
+      .from("activities")
+      .select("*")
+      .eq("provider_id", ownerId)
+
+    if (error) {
+      console.error("Error fetching activities by owner:", error)
+      return []
+    }
+    return data || []
+  },
+
+  async deleteActivity(activityId: number): Promise<void> {
+    const { error } = await supabase
+      .from("activities")
+      .delete()
+      .eq("id", activityId)
+
+    if (error) {
+      console.error("Error deleting activity:", error)
+      throw new Error("Failed to delete activity")
+    }
+  },
 }
 
 export default activityService
-  

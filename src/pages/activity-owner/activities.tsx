@@ -9,7 +9,7 @@ import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout";
 import { ActivityCard } from "@/components/dashboard/activities/ActivityCard";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
-import { activityService } from "@/services/activityService";
+import activityService from "@/services/activityService";
 import { bookingService } from "@/services/bookingService";
 
 export default function ActivitiesPage() {
