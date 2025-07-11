@@ -38,7 +38,7 @@ const authService = {
             .from('activity_owners')
             .select('id')
             .eq('user_id', data.user.id)
-            .single();
+            .maybeSingle();
 
           if (!ownerError && ownerData) {
             provider_id = ownerData.id;
@@ -125,7 +125,7 @@ const authService = {
       .from("activity_owners")
       .select("id")
       .eq("user_id", userId)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error("Error fetching activity owner id:", error);
@@ -144,7 +144,7 @@ const authService = {
       .from("partner_registrations")
       .select("id")
       .eq("user_id", userId)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error("Error fetching partner id:", error);

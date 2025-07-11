@@ -13,6 +13,7 @@ interface BookingStats {
 
 export interface Booking {
   id: string
+  customer_id?: string
   customer_name: string
   customer_email: string
   activity_id: number
@@ -21,6 +22,8 @@ export interface Booking {
   total_amount: number
   status: string
   created_at: string
+  establishment_id?: string
+  is_qr_booking?: boolean
   activities?: {
     title: string
     description?: string
@@ -116,6 +119,7 @@ export const bookingService = {
       .from(BOOKINGS_TABLE)
       .select(`
         id,
+        customer_id,
         customer_name,
         customer_email,
         activity_id,
@@ -123,7 +127,9 @@ export const bookingService = {
         participants,
         total_amount,
         status,
-        created_at
+        created_at,
+        establishment_id,
+        is_qr_booking
       `)
       .in("activity_id", activityIds)
       .order("created_at", { ascending: false })
@@ -136,6 +142,7 @@ export const bookingService = {
 
     return (bookingsData || []).map((item: any) => ({
       id: item.id,
+      customer_id: item.customer_id,
       customer_name: item.customer_name,
       customer_email: item.customer_email,
       activity_id: item.activity_id,
@@ -143,7 +150,9 @@ export const bookingService = {
       participants: item.participants,
       total_amount: item.total_amount,
       status: item.status,
-      created_at: item.created_at
+      created_at: item.created_at,
+      establishment_id: item.establishment_id,
+      is_qr_booking: item.is_qr_booking
     })) as Booking[]
   },
 
@@ -171,6 +180,7 @@ export const bookingService = {
       .from(BOOKINGS_TABLE)
       .select(`
         id,
+        customer_id,
         customer_name,
         customer_email,
         activity_id,
@@ -178,7 +188,9 @@ export const bookingService = {
         participants,
         total_amount,
         status,
-        created_at
+        created_at,
+        establishment_id,
+        is_qr_booking
       `)
       .in("activity_id", activityIds)
       .order("created_at", { ascending: false })
@@ -190,6 +202,7 @@ export const bookingService = {
 
     return (bookingsData || []).map((item: any) => ({
       id: item.id,
+      customer_id: item.customer_id,
       customer_name: item.customer_name,
       customer_email: item.customer_email,
       activity_id: item.activity_id,
@@ -197,7 +210,9 @@ export const bookingService = {
       participants: item.participants,
       total_amount: item.total_amount,
       status: item.status,
-      created_at: item.created_at
+      created_at: item.created_at,
+      establishment_id: item.establishment_id,
+      is_qr_booking: item.is_qr_booking
     })) as Booking[]
   },
 }

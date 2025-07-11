@@ -65,7 +65,7 @@ export const categoryService = {
     const categoryData = result.data ? {
       id: result.data.id,
       name: result.data.name,
-      description: result.data.description,
+      description: result.data.description || undefined,
       created_at: result.data.created_at || new Date().toISOString(),
       updated_at: result.data.updated_at || new Date().toISOString()
     } : null;
