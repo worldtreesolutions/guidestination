@@ -48,8 +48,8 @@ const ratingDistribution = [
 
 export function ActivityReviews({
   activityId,
-  rating,
-  reviewCount,
+  rating = 0,
+  reviewCount = 0,
 }: ActivityReviewsProps) {
   const [visibleReviews, setVisibleReviews] = useState(2)
 
@@ -57,9 +57,9 @@ export function ActivityReviews({
     setVisibleReviews(mockReviews.length)
   }
 
-  // Provide default values to prevent undefined errors
-  const safeRating = typeof rating === 'number' && !isNaN(rating) ? rating : 0;
-  const safeReviewCount = typeof reviewCount === 'number' && !isNaN(reviewCount) ? reviewCount : 0;
+  // Ensure safe values with proper fallbacks
+  const safeRating = typeof rating === 'number' && !isNaN(rating) && isFinite(rating) ? rating : 0;
+  const safeReviewCount = typeof reviewCount === 'number' && !isNaN(reviewCount) && isFinite(reviewCount) ? reviewCount : 0;
 
   return (
     <Card>
