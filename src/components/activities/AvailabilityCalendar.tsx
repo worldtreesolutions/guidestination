@@ -71,24 +71,28 @@ export function AvailabilityCalendar({
     }).filter(date => date !== null) as Date[];
   }, [datesToUse])
 
-  // Check if a date is available - memoized callback
-  const isDateAvailable = useMemo(() => (date: Date) => {
-    return availableDateObjects.some(availableDate => 
-      availableDate.getFullYear() === date.getFullYear() &&
-      availableDate.getMonth() === date.getMonth() &&
-      availableDate.getDate() === date.getDate()
-    );
+  // Check if a date is available - memoized function
+  const isDateAvailable = useMemo(() => {
+    return (date: Date) => {
+      return availableDateObjects.some(availableDate => 
+        availableDate.getFullYear() === date.getFullYear() &&
+        availableDate.getMonth() === date.getMonth() &&
+        availableDate.getDate() === date.getDate()
+      );
+    };
   }, [availableDateObjects])
 
-  // Disable dates that are not available or in the past - memoized callback
-  const disabledDates = useMemo(() => (date: Date) => {
-    const today = new Date();
-    const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    
-    const isPast = date < todayMidnight;
-    const isNotAvailable = !isDateAvailable(date);
-    
-    return isPast || isNotAvailable;
+  // Disable dates that are not available or in the past - memoized function
+  const disabledDates = useMemo(() => {
+    return (date: Date) => {
+      const today = new Date();
+      const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      
+      const isPast = date < todayMidnight;
+      const isNotAvailable = !isDateAvailable(date);
+      
+      return isPast || isNotAvailable;
+    };
   }, [isDateAvailable])
 
   // Custom modifiers for the calendar - memoized

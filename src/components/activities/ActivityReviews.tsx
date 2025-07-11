@@ -58,8 +58,8 @@ export function ActivityReviews({
   }
 
   // Provide default values to prevent undefined errors
-  const safeRating = rating || 0;
-  const safeReviewCount = reviewCount || 0;
+  const safeRating = typeof rating === 'number' && !isNaN(rating) ? rating : 0;
+  const safeReviewCount = typeof reviewCount === 'number' && !isNaN(reviewCount) ? reviewCount : 0;
 
   return (
     <Card>
