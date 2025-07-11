@@ -25,11 +25,24 @@ export interface PartnerRegistration {
 export interface PartnerActivity {
   id?: string
   partner_id: string
-  activity_id: number // Changed from string to number
+  activity_id: number
   commission_rate?: number
   is_active?: boolean
   created_at?: string
   updated_at?: string
+}
+
+// Rate limiting helper
+const isRateLimitError = (error: any): boolean => {
+  return error?.message?.includes("For security purposes, you can only request this after") ||
+         error?.status === 429 ||
+         error?.code === 429
+}
+
+// Extract wait time from rate limit error message
+const extractWaitTime = (errorMessage: string): number => {
+  const match = errorMessage.match(/after (\d+) seconds/)
+  return match ? parseInt(match[1]) : 60
 }
 
 export const partnerService = {
@@ -41,15 +54,20 @@ export const partnerService = {
         throw new Error("Supabase client not available");
       }
 
-      // Check if user already exists with this email
-      const { data: existingUser } = await supabase
+      // Check if user already exists with this email (this should work now with RLS policies)
+      const { data: existingUser, error: checkError } = await supabase
         .from("partner_registrations")
         .select("email")
         .eq("email", data.email)
-        .single()
+        .maybeSingle()
+
+      if (checkError && checkError.code !== "PGRST116") {
+        console.error("Error checking existing user:", checkError)
+        throw new Error("Unable to verify email availability. Please try again.")
+      }
 
       if (existingUser) {
-        throw new Error("User already registered with this email address")
+        throw new Error("A partner registration already exists with this email address. Please use a different email or contact support if this is your email.")
       }
 
       // Step 1: Create user in auth.users table with email verification
@@ -68,11 +86,23 @@ export const partnerService = {
 
       if (authError) {
         console.error("Auth error:", authError)
-        throw new Error(`Authentication error: ${authError.message}`)
+        
+        // Handle rate limiting specifically
+        if (isRateLimitError(authError)) {
+          const waitTime = extractWaitTime(authError.message)
+          throw new Error(`Too many registration attempts. Please wait ${waitTime} seconds before trying again. This security measure helps protect our platform.`)
+        }
+        
+        // Handle other auth errors
+        if (authError.message.includes("User already registered")) {
+          throw new Error("An account with this email already exists. Please use a different email address.")
+        }
+        
+        throw new Error(`Registration failed: ${authError.message}. Please try again or contact support if the problem persists.`)
       }
       
       if (!authData.user) {
-        throw new Error("Failed to create user account")
+        throw new Error("Failed to create user account. Please try again.")
       }
 
       newUserId = authData.user.id;
@@ -93,13 +123,14 @@ export const partnerService = {
           commission_package: data.commission_package,
           supporting_documents: data.supporting_documents || [],
           status: 'pending',
-          room_count: 0
+          room_count: 0,
+          created_by: authData.user.id
         }])
         .select()
 
       if (partnerError) {
         console.error("Partner registration error:", partnerError)
-        throw new Error(`Registration error: ${partnerError.message}`)
+        throw new Error(`Registration failed: ${partnerError.message}. Please try again or contact support.`)
       }
 
       return {
@@ -107,7 +138,7 @@ export const partnerService = {
         partner: partnerRegistrationData[0],
         message: 'Registration successful! Please check your email to verify your account before you can access your partner dashboard.'
       }
-    } catch (error) {
+    } catch (error: any) {
       // Rollback: Delete user from auth.users if partner registration failed
       if (newUserId) {
         try {
@@ -122,7 +153,13 @@ export const partnerService = {
       }
       
       console.error('Error in partner registration:', error)
-      throw error
+      
+      // Re-throw the error with user-friendly message
+      if (error.message) {
+        throw error
+      } else {
+        throw new Error("Registration failed due to an unexpected error. Please try again later or contact support.")
+      }
     }
   },
 
@@ -134,7 +171,7 @@ export const partnerService = {
     const { data, error } = await supabase
       .from("establishment_activities")
       .insert([{
-        establishment_id: partnerId, // Using establishment_id instead of partner_id
+        establishment_id: partnerId,
         activity_id: activityId,
         commission_rate: commissionRate,
         is_active: true
@@ -263,7 +300,7 @@ export const partnerService = {
       .from("partner_registrations")
       .select("*")
       .eq("email", email)
-      .single()
+      .maybeSingle()
 
     if (error && error.code !== "PGRST116") throw error
     return data
@@ -278,7 +315,7 @@ export const partnerService = {
       .from("partner_registrations")
       .select("*")
       .eq("user_id", userId)
-      .single()
+      .maybeSingle()
 
     if (error && error.code !== "PGRST116") throw error
     return data
@@ -309,7 +346,7 @@ export const partnerService = {
     }
 
     const insertData = activityIds.map(activityId => ({
-      establishment_id: partnerId, // Using establishment_id instead of partner_id
+      establishment_id: partnerId,
       activity_id: activityId,
       commission_rate: commissionRate,
       is_active: true

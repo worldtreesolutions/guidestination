@@ -62,12 +62,7 @@ export const PartnerRegistrationForm = () => {
     },
   })
 
-  const onSubmit = async (values: z.infer<typeof formSchema>, event?: React.FormEvent) => {
-    // Prevent default form submission behavior
-    if (event) {
-      event.preventDefault()
-    }
-    
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true)
     setUploadProgress("Starting submission...")
     
@@ -172,7 +167,7 @@ CDN URLs generated for secure access and fast delivery.`)
   const handleFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     event.stopPropagation()
-    form.handleSubmit((values) => onSubmit(values, event))(event)
+    return false
   }
 
   const handleFileUpload = (files: UploadedFile[]) => {
@@ -191,7 +186,7 @@ CDN URLs generated for secure access and fast delivery.`)
 
   return (
     <Form {...form}>
-      <form onSubmit={handleFormSubmit} className="space-y-8" noValidate>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8" noValidate>
         {uploadProgress && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <p className="text-blue-800 font-medium">{uploadProgress}</p>
