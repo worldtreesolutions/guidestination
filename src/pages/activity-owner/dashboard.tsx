@@ -9,7 +9,9 @@ import { DashboardHeader } from "@/components/activity-owner/dashboard/Dashboard
 import { ActivityList } from "@/components/activity-owner/dashboard/ActivityList"
 import { RecentBookings } from "@/components/activity-owner/dashboard/RecentBookings"
 import { EarningsChart } from "@/components/activity-owner/dashboard/EarningsChart"
-import { supabaseActivityService } from "@/services/supabaseActivityService"
+import { activityService } from "@/services/activityService"
+import { bookingService } from "@/services/bookingService"
+import { commissionService } from "@/services/commissionService"
 import { SupabaseActivity, Booking, Earning } from "@/types/activity"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast"
@@ -48,9 +50,9 @@ export default function ActivityOwnerDashboard() {
         try {
           setLoading(true);
           const [activities, recentBookings, earnings] = await Promise.all([
-            supabaseActivityService.fetchActivitiesByOwner(user.id),
-            supabaseActivityService.fetchRecentBookingsForOwner(user.id),
-            supabaseActivityService.fetchEarningsForOwner(user.id),
+            activityService.fetchActivitiesByOwner(user.id),
+            bookingService.fetchRecentBookingsForOwner(user.id),
+            commissionService.fetchEarningsForOwner(user.id),
           ]);
           setActivities(activities);
           setBookings(recentBookings);
@@ -69,7 +71,7 @@ export default function ActivityOwnerDashboard() {
   const handleDeleteActivity = async () => {
     if (!activityToDelete) return;
     try {
-      await supabaseActivityService.deleteActivity(parseInt(activityToDelete));
+      await activityService.deleteActivity(parseInt(activityToDelete));
       setActivities(activities.filter((a) => a.id.toString() !== activityToDelete));
       toast({
         title: "Success",

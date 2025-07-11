@@ -2,7 +2,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/router"
 import Head from "next/head"
 import { useAuth } from "@/contexts/AuthContext"
-import { supabaseActivityService } from "@/services/supabaseActivityService"
+import { bookingService } from "@/services/bookingService"
 import { Booking } from "@/types/activity"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
@@ -22,7 +22,7 @@ export default function BookingsPage() {
       if (user?.id) {
         try {
           setLoading(true);
-          const ownerBookings = await supabaseActivityService.fetchBookingsForOwner(user.id);
+          const ownerBookings = await bookingService.fetchBookingsForOwner(user.id);
           setBookings(ownerBookings);
         } catch (error: any) {
           console.error(error.message);

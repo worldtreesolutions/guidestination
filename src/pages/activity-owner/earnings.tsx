@@ -3,7 +3,8 @@ import { useRouter } from "next/router";
 import Head from "next/head";
 import { useAuth } from "@/contexts/AuthContext";
 import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout";
-import { supabaseActivityService } from "@/services/supabaseActivityService";
+import { bookingService } from "@/services/bookingService";
+import { commissionService } from "@/services/commissionService";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -36,8 +37,8 @@ export default function EarningsPage() {
         setLoading(true);
         try {
           const [ownerBookings, ownerEarnings] = await Promise.all([
-            supabaseActivityService.fetchBookingsForOwner(user.id),
-            supabaseActivityService.fetchEarningsForOwner(user.id)
+            bookingService.fetchBookingsForOwner(user.id),
+            commissionService.fetchEarningsForOwner(user.id)
           ]);
           setBookings(ownerBookings as Booking[]);
           setEarnings(ownerEarnings || { total: 0, monthly: [], pending: 0 });

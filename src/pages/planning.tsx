@@ -4,7 +4,7 @@ import { Footer } from "@/components/layout/Footer"
 import Head from "next/head"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useLanguage } from "@/contexts/LanguageContext"
-import { supabaseActivityService } from "@/services/supabaseActivityService"
+import { activityService } from "@/services/activityService"
 import { SupabaseActivity } from "@/types/activity"
 import { PlanningProvider, usePlanning } from "@/contexts/PlanningContext"
 import { useState, useEffect, useContext, useCallback } from "react"
@@ -19,7 +19,7 @@ function Planner() {
   const fetchActivities = useCallback(async () => {
     try {
       setLoading(true)
-      const data = await supabaseActivityService.getAllActivities()
+      const data = await activityService.getAllActivities()
       setActivities(data as SupabaseActivity[])
     } catch (error) {
       console.error("Error fetching activities:", error)

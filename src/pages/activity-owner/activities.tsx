@@ -9,7 +9,8 @@ import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout";
 import { ActivityCard } from "@/components/dashboard/activities/ActivityCard";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
-import { supabaseActivityService } from "@/services/supabaseActivityService";
+import { activityService } from "@/services/activityService";
+import { bookingService } from "@/services/bookingService";
 
 export default function ActivitiesPage() {
   const { user } = useAuth();
@@ -24,8 +25,8 @@ export default function ActivitiesPage() {
       if (user) {
         const ownerId = user.id
         const [fetchedActivities, fetchedBookings] = await Promise.all([
-          supabaseActivityService.fetchActivitiesByOwner(ownerId),
-          supabaseActivityService.fetchBookingsForOwner(ownerId),
+          activityService.fetchActivitiesByOwner(ownerId),
+          bookingService.fetchBookingsForOwner(ownerId),
         ])
         setActivities(fetchedActivities)
 
@@ -47,12 +48,7 @@ export default function ActivitiesPage() {
   const handleDelete = async (activityId: number) => {
     if (window.confirm("Are you sure you want to delete this activity?")) {
       try {
-        const { error } = await supabase
-          .from("activities")
-          .delete()
-          .eq("id", activityId);
-
-        if (error) throw error;
+        await activityService.deleteActivity(activityId);
 
         setActivities(activities.filter((act) => act.id !== activityId));
         toast({

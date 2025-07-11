@@ -27,7 +27,7 @@ import { AvailabilityCalendar } from "@/components/activities/AvailabilityCalend
 import { BookingForm } from "@/components/activities/BookingForm"
 import { ActivityReviews } from "@/components/activities/ActivityReviews"
 import { useIsMobile } from "@/hooks/use-mobile"
-import { supabaseActivityService } from "@/services/supabaseActivityService"
+import { activityService } from "@/services/activityService"
 import { SupabaseActivity } from "@/types/activity"
 
 export default function ActivityBookingPage() {
@@ -47,7 +47,7 @@ export default function ActivityBookingPage() {
       
       try {
         setLoading(true)
-        const activityData = await supabaseActivityService.getActivityById(parseInt(activityId as string))
+        const activityData = await activityService.getActivityById(parseInt(activityId as string))
         setActivity(activityData)
       } catch (error) {
         console.error("Error fetching activity:", error)
