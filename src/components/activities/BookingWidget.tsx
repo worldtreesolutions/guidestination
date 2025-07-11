@@ -1,5 +1,4 @@
-
-    import { useState } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -11,6 +10,9 @@ interface BookingWidgetProps {
 }
 
 export function BookingWidget({ activity }: BookingWidgetProps) {
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [participants, setParticipants] = useState(1);
+  
   const price = activity.b_price;
   const currency = activity.currency || "USD";
 
@@ -37,9 +39,10 @@ export function BookingWidget({ activity }: BookingWidgetProps) {
       </CardHeader>
       <CardContent>
         <BookingForm
-          activityId={String(activity.id)}
-          price={price || 0}
-          maxParticipants={activity.max_participants || 10}
+          activity={activity}
+          selectedDate={selectedDate}
+          participants={participants}
+          onParticipantsChange={setParticipants}
         />
       </CardContent>
     </Card>

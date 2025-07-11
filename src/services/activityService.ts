@@ -266,6 +266,37 @@ const activityService = {
     }
     return data as Booking;
   },
+
+  async fetchActivitiesByOwner(ownerId: string): Promise<ActivityWithDetails[]> {
+    if (!supabase) {
+      console.error("Supabase client is not initialized.");
+      return [];
+    }
+    const { data, error } = await supabase
+      .from("activities")
+      .select(
+        `*,
+        categories(*),
+        activity_schedules(*),
+        reviews(*, users(full_name, avatar_url))
+        `
+      )
+      .eq("provider_id", ownerId);
+
+    if (error) {
+      console.error("Error fetching activities by owner:", error);
+      return [];
+    }
+    if (!data) {
+        return [];
+    }
+    return data.map((activity: any) => ({
+        ...activity,
+        categories: activity.categories && !activity.categories.error ? activity.categories : null,
+        activity_schedules: Array.isArray(activity.activity_schedules) ? activity.activity_schedules : [],
+        reviews: Array.isArray(activity.reviews) ? activity.reviews : [],
+    })) as ActivityWithDetails[];
+  },
 };
 
 export default activityService;
