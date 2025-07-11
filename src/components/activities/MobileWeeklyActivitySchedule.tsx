@@ -3,7 +3,7 @@ import { useState, useCallback, useMemo } from "react"
 import { useDroppable, useDraggable } from "@dnd-kit/core"
 import { CSS } from "@dnd-kit/utilities"
 import Image from "next/image"
-import { X, Clock, Calendar, MapPin, ChevronLeft, ChevronRight } from "lucide-react"
+import { X, Clock, MapPin, ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ScheduledActivity } from "@/types/activity"
 import { useLanguage } from "@/contexts/LanguageContext"
@@ -48,7 +48,7 @@ const RemoveButton = ({
 const ActivityCard = ({ activity, onRemove }: { activity: ScheduledActivity; onRemove: (id: string) => void }) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: activity.id,
-    data: { activity }
+     { activity }
   });
 
   const style = transform ? {
@@ -58,6 +58,9 @@ const ActivityCard = ({ activity, onRemove }: { activity: ScheduledActivity; onR
   if (isDragging) {
     return <div ref={setNodeRef} style={{ height: `${HOUR_HEIGHT}px`, opacity: 0 }} />
   }
+
+  const durationNum = useMemo(() => parseInt(String(activity.duration) || '1', 10), [activity.duration]);
+  const endTime = (activity.hour || 0) + durationNum;
 
   return (
     <div className="relative h-full">
@@ -85,7 +88,7 @@ const ActivityCard = ({ activity, onRemove }: { activity: ScheduledActivity; onR
               <div className="flex flex-col gap-1 mt-1">
                 <div className="text-xs bg-primary/80 rounded-full px-2 py-1 inline-flex items-center gap-1 w-fit">
                   <Clock className="h-3 w-3" />
-                  {activity.hour}:00 - {(activity.hour || 0) + (activity.duration || 0)}:00
+                  {activity.hour}:00 - {endTime}:00
                 </div>
                 <div className="text-xs bg-primary/80 rounded-full px-2 py-1 inline-flex items-center gap-1 w-fit">
                   <MapPin className="h-3 w-3" />
@@ -97,7 +100,7 @@ const ActivityCard = ({ activity, onRemove }: { activity: ScheduledActivity; onR
         </div>
       </div>
       
-      <RemoveButton activityId={activity.id.toString()} onRemove={onRemove} />
+      <RemoveButton activityId={String(activity.id)} onRemove={onRemove} />
     </div>
   )
 }
@@ -118,7 +121,7 @@ const DroppableCell = ({
   const { t } = useLanguage()
   const { setNodeRef } = useDroppable({
     id: `${day}-${hour}`,
-    data: { day, hour },
+     { day, hour },
     disabled: !isAvailable
   });
 
@@ -203,8 +206,9 @@ export const MobileWeeklyActivitySchedule = ({
         result[day][hour] = false
       })
       scheduledActivities.forEach(activity => {
-        if (activity.day === day && typeof activity.hour === 'number' && activity.duration) {
-          for (let i = 1; i < activity.duration; i++) {
+        const durationNum = parseInt(String(activity.duration) || '1', 10);
+        if (activity.day === day && typeof activity.hour === 'number' && durationNum) {
+          for (let i = 1; i < durationNum; i++) {
             const hourToSkip = activity.hour + i
             if (hourToSkip <= 17) {
               result[day][hourToSkip] = true
@@ -220,14 +224,16 @@ export const MobileWeeklyActivitySchedule = ({
     if (hour > 17) return false
 
     if (draggedActivity) {
-      if (!draggedActivity.duration) return false;
-      for (let i = 0; i < draggedActivity.duration; i++) {
+      const draggedDuration = parseInt(String(draggedActivity.duration) || '1', 10);
+      if (!draggedDuration) return false;
+      for (let i = 0; i < draggedDuration; i++) {
         const currentHour = hour + i
         if (currentHour > 17) return false
         
         const existingActivity = scheduledActivities.find(activity => {
-          if (activity.day !== day || activity.id === draggedActivity.id || !activity.hour || !activity.duration) return false
-          const activityEnd = activity.hour + activity.duration
+          const activityDuration = parseInt(String(activity.duration) || '1', 10);
+          if (activity.day !== day || activity.id === draggedActivity.id || !activity.hour || !activityDuration) return false
+          const activityEnd = activity.hour + activityDuration
           const hasOverlap = currentHour >= activity.hour && currentHour < activityEnd
           return hasOverlap
         })
@@ -238,12 +244,14 @@ export const MobileWeeklyActivitySchedule = ({
     }
 
     return !scheduledActivities.some(
-      activity => 
-        activity.day === day && 
+      activity => {
+        const activityDuration = parseInt(String(activity.duration) || '1', 10);
+        return activity.day === day && 
         activity.hour &&
-        activity.duration &&
+        activityDuration &&
         hour >= activity.hour && 
-        hour < activity.hour + activity.duration
+        hour < activity.hour + activityDuration
+      }
     )
   }
 
@@ -296,6 +304,7 @@ export const MobileWeeklyActivitySchedule = ({
           
           const activity = activitiesByDayAndHour[activeDay]?.[hour]
           const isAvailable = activity ? true : isSlotAvailable(activeDay, hour)
+          const durationNum = activity ? parseInt(String(activity.duration) || '1', 10) : 1;
           
           return (
             <div key={hour} className='flex items-stretch gap-2'>
@@ -310,8 +319,8 @@ export const MobileWeeklyActivitySchedule = ({
                 <div 
                   className='flex-1 relative bg-primary/5 rounded-lg'
                   style={{ 
-                    height: activity.duration && activity.duration > 1 
-                      ? `${HOUR_HEIGHT * activity.duration + (activity.duration - 1) * 8}px` 
+                    height: durationNum > 1 
+                      ? `${HOUR_HEIGHT * durationNum + (durationNum - 1) * 8}px` 
                       : `${HOUR_HEIGHT}px` 
                   }}
                 >

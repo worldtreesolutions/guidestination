@@ -38,7 +38,7 @@ export function AvailabilityCalendar({
     if (scheduleData.length === 0) return [];
     
     // Get unique dates from schedule instances
-    const uniqueDates = [...new Set(scheduleData.map(schedule => schedule.scheduled_date))];
+    const uniqueDates = Array.from(new Set(scheduleData.map(schedule => schedule.scheduled_date)));
     return uniqueDates.filter(date => date && date.length > 0);
   }, [scheduleData]);
 

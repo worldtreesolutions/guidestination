@@ -198,7 +198,7 @@ export default function ActivityPage() {
 
           {/* Activity Reviews */}
           <ActivityReviews 
-            activityId={activity.id} 
+            activityId={String(activity.id)} 
             rating={activity.average_rating || 0}
             reviewCount={0}
           />
@@ -212,7 +212,7 @@ export default function ActivityPage() {
             </CardHeader>
             <CardContent>
               <AvailabilityCalendar 
-                activityId={activity.id} 
+                activityId={String(activity.id)} 
                 scheduleData={scheduleData}
               />
             </CardContent>

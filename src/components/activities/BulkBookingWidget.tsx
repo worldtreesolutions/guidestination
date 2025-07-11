@@ -2,11 +2,11 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { useRouter } from "next/router"
-import { ShoppingCart, Trash2, CreditCard, Calendar } from "lucide-react"
+import { ShoppingCart, Trash2, Calendar } from "lucide-react"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { motion } from "framer-motion"
-import { SupabaseActivity, ScheduledActivity } from "@/types/activity"
+import { SupabaseActivity, ScheduledActivity, Activity } from "@/types/activity"
 import Image from "next/image"
 
 type ActivityItem = SupabaseActivity | ScheduledActivity;
@@ -17,7 +17,7 @@ interface BulkBookingWidgetProps {
 }
 
 const isScheduledActivity = (activity: ActivityItem): activity is ScheduledActivity => {
-    return "day" in activity && typeof activity.day === "string";
+    return "date" in activity && "time" in activity;
 };
 
 export function BulkBookingWidget({ activities, onClearSelection }: BulkBookingWidgetProps) {
@@ -25,7 +25,10 @@ export function BulkBookingWidget({ activities, onClearSelection }: BulkBookingW
   const isMobile = useIsMobile()
   const { t } = useLanguage()
   
-  const totalPrice = activities.reduce((sum, activity) => sum + (activity.price || 0), 0)
+  const totalPrice = activities.reduce((sum, activity) => {
+    const price = (activity as Activity).price ?? (activity as SupabaseActivity).b_price;
+    return sum + (Number(price) || 0);
+  }, 0)
 
   const formatPrice = (price: number) => {
     return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
@@ -45,23 +48,28 @@ export function BulkBookingWidget({ activities, onClearSelection }: BulkBookingW
         <CardDescription>Book multiple activities at once</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {activities.map((activity) => (
-          <div key={activity.id} className="flex items-center space-x-3 p-3 border rounded-lg">
-            <Image
-              src={isScheduledActivity(activity) ? (activity.image_url || "/placeholder.svg") : (activity.image_urls?.[0] || "/placeholder.svg")}
-              alt={activity.title}
-              width={80}
-              height={80}
-              className="w-12 h-12 rounded object-cover"
-            />
-            <div className="flex-1">
-              <h4 className="font-medium">{activity.title}</h4>
-              <p className="text-sm text-muted-foreground">
-                {formatPrice(activity.price || 0)}
-              </p>
+        {activities.map((activity) => {
+          const price = (activity as Activity).price ?? (activity as SupabaseActivity).b_price;
+          const imageUrl = activity.image_url || "/placeholder.svg";
+
+          return (
+            <div key={activity.id} className="flex items-center space-x-3 p-3 border rounded-lg">
+              <Image
+                src={imageUrl}
+                alt={activity.title}
+                width={80}
+                height={80}
+                className="w-12 h-12 rounded object-cover"
+              />
+              <div className="flex-1">
+                <h4 className="font-medium">{activity.title}</h4>
+                <p className="text-sm text-muted-foreground">
+                  ฿{formatPrice(Number(price) || 0)}
+                </p>
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
         <div className="space-y-4">
           <div className="flex justify-between items-center p-3 bg-primary/5 rounded-lg">
             <div className="flex items-center">
@@ -116,4 +124,3 @@ export function BulkBookingWidget({ activities, onClearSelection }: BulkBookingW
     </Card>
   )
 }
-  
