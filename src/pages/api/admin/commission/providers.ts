@@ -38,7 +38,7 @@ import { NextApiRequest, NextApiResponse } from "next"
             query = query.eq("id", provider_id as string);
           }
 
-          const {  providers, error } = await query;
+          const { data: providers, error } = await query;
 
           if (error) {
             console.error("Error fetching providers:", error);
