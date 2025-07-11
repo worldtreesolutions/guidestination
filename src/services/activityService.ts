@@ -103,7 +103,7 @@ const activityService = {
     }
 
     // Get all unique category values from activities
-    const categoryValues = [...new Set(data.map(activity => activity.category).filter(Boolean))];
+    const categoryValues = Array.from(new Set(data.map(activity => activity.category).filter(Boolean) as string[]));
     
     // Fetch category details for these values
     let categoriesMap: Record<string, any> = {};
@@ -392,7 +392,7 @@ const activityService = {
     }
 
     // Get all unique category values from activities
-    const categoryValues = [...new Set(data.map(activity => activity.category).filter(Boolean))];
+    const categoryValues = Array.from(new Set(data.map(activity => activity.category).filter(Boolean) as string[]));
     
     // Fetch category details for these values
     let categoriesMap: Record<string, any> = {};
