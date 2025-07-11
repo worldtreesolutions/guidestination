@@ -45,7 +45,7 @@ export default function ProfilePage() {
         if (!authUser) {
             throw new Error("User not authenticated to create profile.");
         }
-        const {  newProfile, error: insertError } = await supabase
+        const { data: newProfile, error: insertError } = await supabase
           .from('customer_profiles')
           .insert({
             customer_id: user.id,
