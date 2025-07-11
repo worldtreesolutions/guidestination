@@ -34,8 +34,8 @@ export default function ActivityOwnerDashboard() {
   useEffect(() => {
     const fetchData = async () => {
       if (!user) {
-        setLoading(false);
-        return;
+        setLoading(false)
+        return
       }
 
       try {

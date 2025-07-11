@@ -22,6 +22,7 @@ export type SupabaseActivity = {
   updated_at: string
   status: "published" | "unpublished" | "draft" | "archived"
   average_rating?: number
+  reviews_count?: number
   [key: string]: any // Allow other properties
 }
 
@@ -45,6 +46,22 @@ export type SupabaseActivitySchedule = {
   start_time: string
   end_time: string
   day_of_week: number
+  [key: string]: any
+}
+
+export type ActivityScheduleInstance = {
+  id: string
+  activity_schedule_id: string
+  instance_date: string
+  status: "available" | "booked" | "cancelled"
+  [key: string]: any
+}
+
+export type ActivitySelectedOption = {
+  id: string
+  booking_id: string
+  option_id: string
+  quantity: number
   [key: string]: any
 }
 

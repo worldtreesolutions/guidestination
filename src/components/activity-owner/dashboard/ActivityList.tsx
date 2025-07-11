@@ -1,9 +1,9 @@
 import { SupabaseActivity } from "@/types/activity"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Edit, Eye, Trash2 } from "lucide-react"
+import { Edit, Eye, Trash2, Star } from "lucide-react"
 import Link from "next/link"
 
 interface ActivityListProps {
@@ -87,6 +87,18 @@ export function ActivityList({ activities, onDelete }: ActivityListProps) {
                     </Button>
                   </div>
                 </TableCell>
+                <CardFooter className="flex justify-between">
+                  <div className="flex items-center">
+                    <Star className="h-4 w-4 text-yellow-400 mr-1" />
+                    <span className="text-sm">
+                      {activity.average_rating?.toFixed(1) || "N/A"} (
+                      {activity.reviews_count || 0} reviews)
+                    </span>
+                  </div>
+                  <Link href={`/activity-owner/activities/${activity.id}`}>
+                    <Button variant="outline">View Details</Button>
+                  </Link>
+                </CardFooter>
               </TableRow>
             ))}
           </TableBody>

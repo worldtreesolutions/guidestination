@@ -1,12 +1,13 @@
-
 import { supabase } from "@/integrations/supabase/client"
 import {
   Activity,
   ActivityScheduleInstance,
   ActivitySelectedOption,
-  SupabaseActivity,
 } from "@/types/activity"
-import { Database } from "@/integrations/supabase/types"
+
+const ACTIVITIES_TABLE = "activities"
+const ACTIVITY_SELECTED_OPTIONS_TABLE = "activity_selected_options"
+const ACTIVITY_SCHEDULE_INSTANCES_TABLE = "activity_schedule_instances"
 
 type ActivityWithOptionsAndSchedule =
   Database["public"]["Tables"]["activities"]["Row"] & {
