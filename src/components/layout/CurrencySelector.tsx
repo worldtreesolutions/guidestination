@@ -9,8 +9,9 @@ export default function CurrencySelector() {
   const [currencies, setCurrencies] = useState<Array<{code: string, name: string, symbol: string}>>([]);
 
   useEffect(() => {
-    // Get current user currency
-    currencyService.getUserCurrency().then(setCurrentCurrency);
+    // Get current user currency (synchronous)
+    const userCurrency = currencyService.getUserCurrency();
+    setCurrentCurrency(userCurrency);
     
     // Get all supported currencies
     setCurrencies(currencyService.getSupportedCurrencies());
