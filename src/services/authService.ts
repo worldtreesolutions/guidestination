@@ -32,14 +32,14 @@ const authService = {
       let provider_id = undefined;
       if (data.user && supabase) {
         // Check if user is an activity owner
-        const { data: ownerData, error: ownerError } = await supabase
+        const ownerResult = await supabase
           .from('activity_owners')
           .select('id')
           .eq('user_id', data.user.id)
           .single();
 
-        if (!ownerError && ownerData) {
-          provider_id = ownerData.id;
+        if (!ownerResult.error && ownerResult.data) {
+          provider_id = ownerResult.data.id;
           console.log("Found provider_id:", provider_id);
         }
       }
@@ -116,17 +116,17 @@ const authService = {
       return null;
     }
 
-    const { data, error } = await supabase
+    const result = await supabase
       .from("activity_owners")
       .select("id")
       .eq("user_id", userId)
       .single();
 
-    if (error) {
-      console.error("Error fetching activity owner id:", error);
+    if (result.error) {
+      console.error("Error fetching activity owner id:", result.error);
       return null;
     }
-    return data.id;
+    return result.data?.id || null;
   },
 
   async getPartnerId(userId: string): Promise<string | null> {
@@ -135,17 +135,17 @@ const authService = {
       return null;
     }
 
-    const { data, error } = await supabase
+    const result = await supabase
       .from("partner_registrations")
       .select("id")
       .eq("user_id", userId)
       .single();
 
-    if (error) {
-      console.error("Error fetching partner id:", error);
+    if (result.error) {
+      console.error("Error fetching partner id:", result.error);
       return null;
     }
-    return data.id;
+    return result.data?.id || null;
   },
 }
 

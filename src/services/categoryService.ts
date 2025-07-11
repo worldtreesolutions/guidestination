@@ -33,17 +33,17 @@ export const categoryService = {
       return { data: null, error: err };
     }
 
-    const { data, error } = await supabase
+    const result = await supabase
       .from("categories")
       .select("*")
       .eq("id", numericId)
       .single();
 
-    if (error && error.code !== "PGRST116") { 
-      console.error(`Error fetching category with ID ${numericId}:`, error.message);
-      return { data: null, error };
+    if (result.error && result.error.code !== "PGRST116") { 
+      console.error(`Error fetching category with ID ${numericId}:`, result.error.message);
+      return { data: null, error: result.error };
     }
-    return { data, error: error?.code === "PGRST116" ? null : error };
+    return { data: result.data, error: result.error?.code === "PGRST116" ? null : result.error };
   },
 
   async getActivitiesByCategoryId(categoryId: number): Promise<{ data: Activity[] | null; error: any | null }> {
@@ -53,16 +53,16 @@ export const categoryService = {
       return { data: null, error: err };
     }
 
-    const { data, error } = await supabase
+    const result = await supabase
       .from("activities")
       .select("*")
       .eq("category_id", categoryId);
 
-    if (error) {
-      console.error(`Error fetching activities for category ID ${categoryId}:`, error.message);
-      return { data: null, error };
+    if (result.error) {
+      console.error(`Error fetching activities for category ID ${categoryId}:`, result.error.message);
+      return { data: null, error: result.error };
     }
-    return { data, error };
+    return { data: result.data, error: null };
   },
 };
 

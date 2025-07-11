@@ -99,7 +99,7 @@ const customerService = {
       throw new Error("Supabase client not initialized");
     }
 
-    const { data, error } = await supabase
+    const result = await supabase
       .from("bookings")
       .select(
         `
@@ -115,11 +115,11 @@ const customerService = {
       .eq("customer_id", userId)
       .order("booking_date", { ascending: false })
 
-    if (error) {
-      console.error("Error fetching bookings:", error)
-      throw error
+    if (result.error) {
+      console.error("Error fetching bookings:", result.error)
+      throw result.error
     }
-    return data as unknown as Booking[]
+    return (result.data || []) as Booking[]
   },
 
   async getBookingById(bookingId: string): Promise<Booking> {
@@ -127,7 +127,7 @@ const customerService = {
       throw new Error("Supabase client not initialized");
     }
 
-    const { data, error } = await supabase
+    const result = await supabase
       .from("bookings")
       .select(
         `
@@ -143,11 +143,11 @@ const customerService = {
       .eq("id", bookingId)
       .single()
 
-    if (error) {
-      console.error("Error fetching booking by id:", error)
-      throw error
+    if (result.error) {
+      console.error("Error fetching booking by id:", result.error)
+      throw result.error
     }
-    return data as unknown as Booking
+    return result.data as Booking
   },
 
   async getWishlist(userId: string): Promise<WishlistItem[]> {
@@ -155,7 +155,7 @@ const customerService = {
       throw new Error("Supabase client not initialized");
     }
 
-    const { data, error } = await supabase
+    const result = await supabase
       .from("wishlist")
       .select(
         `
@@ -170,11 +170,11 @@ const customerService = {
       )
       .eq("customer_id", userId)
 
-    if (error) {
-      console.error("Error fetching wishlist:", error)
-      throw error
+    if (result.error) {
+      console.error("Error fetching wishlist:", result.error)
+      throw result.error
     }
-    return data as unknown as WishlistItem[]
+    return (result.data || []) as WishlistItem[]
   },
 
   async addToWishlist(userId: string, activityId: number) {

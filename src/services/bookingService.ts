@@ -10,16 +10,16 @@ export const bookingService = {
       throw new Error("Supabase client not initialized");
     }
 
-    const { data: activities, error: activitiesError } = await supabase
+    const activitiesResult = await supabase
       .from(ACTIVITIES_TABLE)
       .select("id")
       .eq("owner_id", ownerId)
 
-    if (activitiesError) {
-      throw new Error(activitiesError.message)
+    if (activitiesResult.error) {
+      throw new Error(activitiesResult.error.message)
     }
 
-    const activityIds = activities?.map((a: any) => a.id) || []
+    const activityIds = activitiesResult.data?.map((a: any) => a.id) || []
 
     if (activityIds.length === 0) {
       return {
@@ -30,17 +30,17 @@ export const bookingService = {
       }
     }
 
-    const { data, error } = await supabase
+    const bookingsResult = await supabase
       .from(BOOKINGS_TABLE)
       .select("total_price, status")
       .in("activity_id", activityIds)
 
-    if (error) {
-      console.error("Error fetching booking stats:", error)
-      throw new Error(error.message)
+    if (bookingsResult.error) {
+      console.error("Error fetching booking stats:", bookingsResult.error)
+      throw new Error(bookingsResult.error.message)
     }
 
-    const stats = (data || []).reduce(
+    const stats = (bookingsResult.data || []).reduce(
       (acc: any, booking: any) => {
         if (booking.status === "confirmed") {
           acc.totalRevenue += booking.total_price || 0
@@ -70,22 +70,22 @@ export const bookingService = {
       throw new Error("Supabase client not initialized");
     }
 
-    const { data: activities, error: activitiesError } = await supabase
+    const activitiesResult = await supabase
       .from(ACTIVITIES_TABLE)
       .select("id")
       .eq("owner_id", ownerId)
 
-    if (activitiesError) {
-      throw new Error(activitiesError.message)
+    if (activitiesResult.error) {
+      throw new Error(activitiesResult.error.message)
     }
 
-    const activityIds = activities?.map((a: any) => a.id) || []
+    const activityIds = activitiesResult.data?.map((a: any) => a.id) || []
 
     if (activityIds.length === 0) {
       return []
     }
 
-    const { data, error } = await supabase
+    const bookingsResult = await supabase
       .from(BOOKINGS_TABLE)
       .select(`
         *,
@@ -95,12 +95,12 @@ export const bookingService = {
       .order("created_at", { ascending: false })
       .limit(limit)
 
-    if (error) {
-      console.error("Error fetching recent bookings:", error)
-      throw new Error(error.message)
+    if (bookingsResult.error) {
+      console.error("Error fetching recent bookings:", bookingsResult.error)
+      throw new Error(bookingsResult.error.message)
     }
 
-    return (data || []) as Booking[]
+    return (bookingsResult.data || []) as Booking[]
   },
 
   async fetchBookingsForOwner(ownerId: string): Promise<Booking[]> {
@@ -108,22 +108,22 @@ export const bookingService = {
       throw new Error("Supabase client not initialized");
     }
 
-    const { data: activities, error: activitiesError } = await supabase
+    const activitiesResult = await supabase
       .from(ACTIVITIES_TABLE)
       .select("id")
       .eq("owner_id", ownerId)
 
-    if (activitiesError) {
-      throw new Error(activitiesError.message)
+    if (activitiesResult.error) {
+      throw new Error(activitiesResult.error.message)
     }
 
-    const activityIds = activities?.map((a: any) => a.id) || []
+    const activityIds = activitiesResult.data?.map((a: any) => a.id) || []
 
     if (activityIds.length === 0) {
       return []
     }
 
-    const { data, error } = await supabase
+    const bookingsResult = await supabase
       .from(BOOKINGS_TABLE)
       .select(`
         *,
@@ -132,11 +132,11 @@ export const bookingService = {
       .in("activity_id", activityIds)
       .order("created_at", { ascending: false })
 
-    if (error) {
-      console.error("Error fetching bookings for owner:", error)
-      throw new Error(error.message)
+    if (bookingsResult.error) {
+      console.error("Error fetching bookings for owner:", bookingsResult.error)
+      throw new Error(bookingsResult.error.message)
     }
 
-    return (data || []) as Booking[]
+    return (bookingsResult.data || []) as Booking[]
   },
 }
