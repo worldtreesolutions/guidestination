@@ -62,7 +62,14 @@ export type ActivityForHomepage = Pick<
 
 // Add properties that are not in the base table but are needed in the app
 export type Booking = BaseBooking & {
-  activities?: Activity;
+  activities?: {
+    title: string;
+    description?: string;
+    image_urls?: string[];
+    location?: string;
+    image_url?: string;
+    pickup_location?: string;
+  };
   customer_name: string;
   customer_email: string;
   is_qr_booking?: boolean;

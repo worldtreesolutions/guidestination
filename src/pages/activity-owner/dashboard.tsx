@@ -66,7 +66,7 @@ export default function ActivityOwnerDashboard() {
           total_price: booking.total_price || booking.total_amount,
           provider_amount: booking.provider_amount || 0,
           platform_fee: booking.platform_fee || 0,
-          activities: booking.activities || undefined
+          activities: booking.activities
         }))
         
         setRecentBookings(mappedBookings)
