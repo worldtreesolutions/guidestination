@@ -56,7 +56,7 @@ import { NextApiRequest, NextApiResponse } from "next"
           .from("commission_payments")
           .insert({
             invoice_id: invoiceId,
-            payment_amount: paymentIntent.amount / 100,
+            amount: paymentIntent.amount / 100,
             payment_method: paymentIntent.payment_method_types[0],
             stripe_payment_intent_id: paymentIntent.id,
             payment_status: "completed",
@@ -66,17 +66,25 @@ import { NextApiRequest, NextApiResponse } from "next"
         if (insertError) throw insertError
 
         // Create commission payment record for partner
-        const { error: partnerPaymentError } = await supabase
-          .from("commission_payments")
-          .insert([{
-            invoice_id: invoiceId,
-            amount: invoice.platform_commission_amount,
-            paid_at: new Date().toISOString(),
-          }]);
+        const {  invoice } = await supabase
+          .from("commission_invoices")
+          .select("platform_commission_amount")
+          .eq("id", invoiceId)
+          .single();
+        
+        if (invoice) {
+            const { error: partnerPaymentError } = await supabase
+            .from("commission_payments")
+            .insert([{
+                invoice_id: invoiceId,
+                amount: invoice.platform_commission_amount,
+                paid_at: new Date().toISOString(),
+            }]);
 
-        if (partnerPaymentError) {
-          console.error("Error creating partner commission payment:", partnerPaymentError);
-          throw partnerPaymentError;
+            if (partnerPaymentError) {
+            console.error("Error creating partner commission payment:", partnerPaymentError);
+            throw partnerPaymentError;
+            }
         }
 
         console.log(`Successfully processed payment for invoice ${invoiceId}`)
@@ -104,7 +112,7 @@ import { NextApiRequest, NextApiResponse } from "next"
 
             await supabase.from("commission_payments").insert({
                 invoice_id: invoiceId,
-                payment_amount: paymentIntent.amount / 100,
+                amount: paymentIntent.amount / 100,
                 payment_method: paymentIntent.payment_method_types[0],
                 stripe_payment_intent_id: paymentIntent.id,
                 payment_status: "failed",

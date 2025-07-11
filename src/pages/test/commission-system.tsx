@@ -17,7 +17,7 @@ export default function CommissionSystemTest() {
     setTestResults(prev => [...prev, `${new Date().toLocaleTimeString()}: ${message}`]);
   };
 
-  const testCommissionCalculation = async () => {
+  const testCommissionCalculation = useCallback(async () => {
     setLoading(true);
     // Scenario 1: Standard booking
     const standardBookingAmount = 1000;
@@ -38,7 +38,7 @@ export default function CommissionSystemTest() {
     setPartnerCommission(partnerResult);
 
     setLoading(false);
-  };
+  }, []);
 
   const testInvoiceGeneration = useCallback(async () => {
     setLoading(true);

@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { usePlanning } from "@/contexts/PlanningContext";
 import { useToast } from "@/hooks/use-toast";
 import { GripVertical } from "lucide-react";
+import { ScheduledActivity, ActivityWithDetails } from "@/types/activity";
 
 interface SortableActivityItemProps {
   activity: ScheduledActivity;
@@ -61,16 +62,19 @@ export default function RecommendationPage() {
     const recommendations = await recommendationService.getRecommendations(
       submittedPreferences
     );
-    // This part needs to be adapted based on what getRecommendations returns
-    // For now, let's assume it returns a structure that can be set to recommendedPlan
-    // setRecommendedPlan(recommendations); 
+    
+    const plan: RecommendedPlan = {
+        activities: recommendations as any,
+        totalPrice: recommendations.reduce((acc, act) => acc + (act.price || 0), 0),
+        numberOfDays: 1,
+    };
+    setRecommendedPlan(plan);
     setLoading(false);
   };
 
-  const handleAddActivity = (activity: any) => {
-    // This is a placeholder. The activity needs to be converted to a ScheduledActivity
+  const handleAddActivity = (activity: ActivityWithDetails) => {
     const scheduledActivity: ScheduledActivity = {
-      id: new Date().toISOString(), // temporary unique id
+      id: `${activity.id}-${new Date().toISOString()}`,
       title: activity.title,
       day: "monday", // placeholder
       time: "10:00", // placeholder
@@ -79,6 +83,10 @@ export default function RecommendationPage() {
     };
     addActivity(scheduledActivity);
     setScheduledActivities(prev => [...prev, scheduledActivity]);
+    toast({
+        title: "Activity added to plan",
+        description: `${activity.title} has been added to your plan.`
+    })
   };
 
   const handleRemoveActivity = (id: string) => {

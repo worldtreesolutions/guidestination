@@ -64,6 +64,10 @@ export type ActivityForHomepage = Pick<
 export type Booking = BaseBooking & {
   activities?: Activity;
   customer_id: string; // As seen in profile.tsx error
+  is_qr_booking?: boolean;
+  establishment_id?: string;
+  partner_id?: string;
+  total_price?: number;
 };
 
 export interface ScheduledActivity {

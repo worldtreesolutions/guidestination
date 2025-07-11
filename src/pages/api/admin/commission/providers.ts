@@ -1,5 +1,4 @@
-
-    import { NextApiRequest, NextApiResponse } from "next"
+import { NextApiRequest, NextApiResponse } from "next"
     import { getAdminClient } from "@/integrations/supabase/admin"
 
     const supabaseAdmin = getAdminClient()
@@ -30,67 +29,26 @@
 
       if (req.method === "GET") {
         try {
-          const { data: providers, error } = await supabaseAdmin
-            .from("activity_owners")
-            .select(
-              `
-              id,
-              business_name,
-              email,
-              created_at,
-              commission_invoices (
-                id,
-                total_booking_amount,
-                platform_commission_amount,
-                partner_commission_amount,
-                invoice_status
-              )
-            `
-            )
-            .order("created_at", { ascending: false })
+          const provider_id = req.query.provider_id as string | undefined;
 
-          if (error) {
-            console.error("Error fetching providers:", error)
-            return res.status(500).json({ error: error.message })
+          // Get providers with filters
+          let query = supabaseAdmin.from("activity_owners").select("id, business_name, email, created_at");
+
+          if (provider_id) {
+            query = query.eq("id", provider_id as string);
           }
 
-          const enhancedProviders = (providers as Provider[]).map(provider => {
-            const totalRevenue = provider.commission_invoices.reduce(
-              (sum: number, inv: Invoice) => sum + inv.total_booking_amount,
-              0
-            )
-            const totalPlatformCommission = provider.commission_invoices.reduce(
-              (sum: number, inv: Invoice) => sum + inv.platform_commission_amount,
-              0
-            )
-            const totalPartnerCommission = provider.commission_invoices.reduce(
-              (sum: number, inv: Invoice) => sum + (inv.partner_commission_amount || 0),
-              0
-            )
+          const {  providers, error } = await query;
 
-            return {
-              id: provider.id,
-              business_name: provider.business_name,
-              email: provider.email,
-              joined_date: provider.created_at,
-              total_invoices: provider.commission_invoices.length,
-              total_revenue: totalRevenue,
-              total_platform_commission: totalPlatformCommission,
-              total_partner_commission: totalPartnerCommission,
-              paid_invoices: provider.commission_invoices.filter(
-                (inv: Invoice) => inv.invoice_status === "paid"
-              ).length,
-              pending_invoices: provider.commission_invoices.filter(
-                (inv: Invoice) => inv.invoice_status === "pending"
-              ).length,
-            }
-          })
+          if (error) {
+            console.error("Error fetching providers:", error);
+            return res.status(500).json({ error: "Failed to fetch providers" });
+          }
 
-          return res.status(200).json(enhancedProviders)
-        } catch (err) {
-          console.error("API Error:", err)
-          const errorMessage = err instanceof Error ? err.message : "An unknown error occurred"
-          return res.status(500).json({ error: errorMessage })
+          res.status(200).json(providers as Provider[]);
+        } catch (error) {
+          console.error("Error in /api/admin/commission/providers:", error);
+          res.status(500).json({ error: "Internal Server Error" });
         }
       } else {
         res.setHeader("Allow", ["GET"])

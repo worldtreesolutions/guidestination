@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client"
+import type { Database, Tables } from "@/integrations/supabase/types"
 
 export interface PartnerRegistration {
   id?: string
@@ -288,12 +289,12 @@ export const partnerService = {
     return data
   },
 
-  async registerPartner(partnerData: Omit<Tables<'partners'>, 'id' | 'created_at' | 'status'>): Promise<any> {
+  async registerPartner(partnerData: Omit<Tables<'partner_registrations'>, 'id' | 'created_at' | 'updated_at' | 'status' | 'created_by' | 'updated_by'>): Promise<any> {
     if (!supabase) {
       throw new Error("Supabase client is not initialized.");
     }
     const { data, error } = await supabase
-      .from("partners")
+      .from("partner_registrations")
       .insert([{ ...partnerData, status: "pending" }])
       .select()
       .single();

@@ -82,7 +82,7 @@ export const referralService = {
 
     const commissionData = {
       establishment_id: establishmentId,
-      booking_id: parseInt(bookingId), // Convert string to number
+      booking_id: bookingId,
       activity_id: activityId,
       customer_id: customerId,
       referral_visit_id: referralVisitId || null,
@@ -95,7 +95,7 @@ export const referralService = {
 
     const { data, error } = await supabase
       .from("establishment_commissions")
-      .insert([commissionData])
+      .insert([commissionData] as any)
       .select()
       .single();
 
@@ -165,7 +165,7 @@ export const referralService = {
     if (!supabase) {
       throw new Error("Supabase client is not initialized.");
     }
-    const { data, error } = await supabase.from("referral_commissions").insert([
+    const { data, error } = await supabase.from("establishment_commissions").insert([
       {
         ...commissionData,
         commission_status: "pending",
@@ -182,7 +182,7 @@ export const referralService = {
 
   async getReferralStats(establishmentId: string) {
     const { data, error } = await supabase
-      .from("referral_commissions")
+      .from("establishment_commissions")
       .select(`*`)
       .eq("establishment_id", establishmentId)
       .order("created_at", { ascending: false });

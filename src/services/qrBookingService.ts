@@ -149,7 +149,7 @@ export const qrBookingService = {
           customer_name: bookingDetails.customer_name,
           customer_email: bookingDetails.customer_email,
           participants: bookingDetails.participants,
-          total_price: bookingDetails.total_price,
+          total_amount: bookingDetails.total_price,
           provider_id: bookingDetails.provider_id,
           establishment_id: bookingDetails.establishment_id,
           status: "confirmed", // Or "pending" if payment is needed

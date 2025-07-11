@@ -193,10 +193,7 @@ export const invoiceService = {
         .in("id", overdueIds);
     }
 
-    return data?.map(invoice => ({
-      ...invoice,
-      partner_commission_rate: invoice.partner_commission_rate || 0,
-    })) as CommissionInvoice[] || [];
+    return (data as CommissionInvoice[]) || [];
   },
 
   // Send reminder emails for overdue invoices
@@ -247,7 +244,7 @@ export const invoiceService = {
 
       // Calculate commission
       const commissionRate = establishment?.commission_rate || activity.commission_rate || 15;
-      const platformCommission = booking.total_price * (commissionRate / 100);
+      const platformCommission = (booking.total_price || 0) * (commissionRate / 100);
       
       let partnerCommission = 0;
       if (booking.partner_id) {
@@ -256,12 +253,13 @@ export const invoiceService = {
       }
 
       const invoiceData = {
+          invoice_number: `INV-${Date.now()}-${booking.id}`,
           provider_id: activity.provider_id,
           booking_id: booking.id,
-          total_booking_amount: booking.total_price,
+          total_booking_amount: booking.total_price || 0,
           platform_commission_amount: platformCommission,
           partner_commission_amount: partnerCommission,
-          invoice_status: "pending",
+          invoice_status: "pending" as const,
           due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
           is_qr_booking: booking.is_qr_booking,
           partner_id: booking.partner_id,
@@ -271,6 +269,7 @@ export const invoiceService = {
       const {  newInvoice, error: invoiceError } = await supabase
           .from("commission_invoices")
           .insert(invoiceData)
+          .select()
           .single();
 
       if (invoiceError) throw invoiceError;
