@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { ActivityForHomepage, ActivityWithDetails, ActivitySchedule, Booking } from "@/types/activity";
@@ -9,7 +10,7 @@ const activityService = {
       return [];
     }
     
-    // First, let's try to get activities with their categories through the junction table
+    // Get activities with their category details by joining on the category name
     const { data, error } = await supabase
       .from("activities")
       .select(`
@@ -21,61 +22,47 @@ const activityService = {
         average_rating,
         review_count,
         currency_code,
-        activity_categories(
-          categories(
-            id,
-            name
-          )
-        )
+        category
       `)
       .eq("is_active", true)
       .limit(20);
 
     if (error) {
       console.error("Error fetching activities for homepage:", error);
-      // Fallback to simpler query without categories if junction table fails
-      const { data: fallbackData, error: fallbackError } = await supabase
-        .from("activities")
-        .select(`
-          id, 
-          title, 
-          b_price, 
-          image_url, 
-          address,
-          average_rating,
-          review_count,
-          currency_code,
-          category
-        `)
-        .eq("is_active", true)
-        .limit(20);
-      
-      if (fallbackError) {
-        console.error("Fallback query also failed:", fallbackError);
-        throw fallbackError;
-      }
-      
-      return (fallbackData as any[]).map((activity) => ({
-        ...activity,
-        slug: `activity-${activity.id}`,
-        category_name: activity.category || null,
-        location: activity.address || "Location not specified",
-        currency: activity.currency_code || "THB",
-      }));
+      throw error;
     }
 
-    return (data as any[]).map((activity) => {
-      // Extract category name from the junction table relationship
-      const categoryName = activity.activity_categories?.[0]?.categories?.name || activity.category || null;
+    if (!data) {
+      return [];
+    }
+
+    // Get unique category names to fetch category details
+    const categoryNames = [...new Set(data.map(activity => activity.category).filter(Boolean))];
+    
+    let categoriesMap: Record<string, any> = {};
+    
+    if (categoryNames.length > 0) {
+      const { data: categoriesData, error: categoriesError } = await supabase
+        .from("categories")
+        .select("*")
+        .in("name", categoryNames);
       
-      return {
-        ...activity,
-        slug: `activity-${activity.id}`,
-        category_name: categoryName,
-        location: activity.address || "Location not specified",
-        currency: activity.currency_code || "THB",
-      };
-    });
+      if (!categoriesError && categoriesData) {
+        categoriesMap = categoriesData.reduce((acc, cat) => {
+          acc[cat.name] = cat;
+          return acc;
+        }, {} as Record<string, any>);
+      }
+    }
+
+    return data.map((activity) => ({
+      ...activity,
+      slug: `activity-${activity.id}`,
+      category_name: activity.category || null,
+      category_details: activity.category ? categoriesMap[activity.category] || null : null,
+      location: activity.address || "Location not specified",
+      currency: activity.currency_code || "THB",
+    }));
   },
 
   async getActivities(): Promise<ActivityWithDetails[]> {
@@ -84,22 +71,13 @@ const activityService = {
       return [];
     }
     
-    // Get activities with their categories through the junction table
+    // Get activities with their related data
     const { data, error } = await supabase
       .from("activities")
       .select(`
         *,
         activity_schedules(*),
-        reviews(*, users(full_name, avatar_url)),
-        activity_categories(
-          categories(
-            id,
-            name,
-            description,
-            icon,
-            color
-          )
-        )
+        reviews(*, users(full_name, avatar_url))
       `)
       .eq("is_active", true);
 
@@ -111,9 +89,28 @@ const activityService = {
         return [];
     }
 
+    // Get unique category names to fetch category details
+    const categoryNames = [...new Set(data.map(activity => activity.category).filter(Boolean))];
+    
+    let categoriesMap: Record<string, any> = {};
+    
+    if (categoryNames.length > 0) {
+      const { data: categoriesData, error: categoriesError } = await supabase
+        .from("categories")
+        .select("*")
+        .in("name", categoryNames);
+      
+      if (!categoriesError && categoriesData) {
+        categoriesMap = categoriesData.reduce((acc, cat) => {
+          acc[cat.name] = cat;
+          return acc;
+        }, {} as Record<string, any>);
+      }
+    }
+
     return data.map((activity: any) => ({
         ...activity,
-        categories: activity.activity_categories?.[0]?.categories || null,
+        categories: activity.category ? categoriesMap[activity.category] || null : null,
         activity_schedules: Array.isArray(activity.activity_schedules) ? activity.activity_schedules : [],
         reviews: Array.isArray(activity.reviews) ? activity.reviews : [],
     })) as ActivityWithDetails[];
@@ -139,16 +136,7 @@ const activityService = {
       .select(`
         *,
         activity_schedules(*),
-        reviews(*, users(full_name, avatar_url)),
-        activity_categories(
-          categories(
-            id,
-            name,
-            description,
-            icon,
-            color
-          )
-        )
+        reviews(*, users(full_name, avatar_url))
       `)
       .eq("id", activityId)
       .single();
@@ -161,10 +149,24 @@ const activityService = {
         return null;
     }
 
+    // Get category details if category exists
+    let categoryDetails = null;
+    if (data.category) {
+      const { data: categoryData, error: categoryError } = await supabase
+        .from("categories")
+        .select("*")
+        .eq("name", data.category)
+        .single();
+      
+      if (!categoryError && categoryData) {
+        categoryDetails = categoryData;
+      }
+    }
+
     const activity: any = data;
     return {
         ...activity,
-        categories: activity.activity_categories?.[0]?.categories || null,
+        categories: categoryDetails,
         activity_schedules: Array.isArray(activity.activity_schedules) ? activity.activity_schedules : [],
         reviews: Array.isArray(activity.reviews) ? activity.reviews : [],
     } as ActivityWithDetails;
@@ -181,16 +183,7 @@ const activityService = {
       .select(`
         *,
         activity_schedules(*),
-        reviews(*, users(full_name, avatar_url)),
-        activity_categories(
-          categories(
-            id,
-            name,
-            description,
-            icon,
-            color
-          )
-        )
+        reviews(*, users(full_name, avatar_url))
       `)
       .eq("id", id)
       .single();
@@ -203,10 +196,24 @@ const activityService = {
         return null;
     }
 
+    // Get category details if category exists
+    let categoryDetails = null;
+    if (data.category) {
+      const { data: categoryData, error: categoryError } = await supabase
+        .from("categories")
+        .select("*")
+        .eq("name", data.category)
+        .single();
+      
+      if (!categoryError && categoryData) {
+        categoryDetails = categoryData;
+      }
+    }
+
     const activity: any = data;
     return {
         ...activity,
-        categories: activity.activity_categories?.[0]?.categories || null,
+        categories: categoryDetails,
         activity_schedules: Array.isArray(activity.activity_schedules) ? activity.activity_schedules : [],
         reviews: Array.isArray(activity.reviews) ? activity.reviews : [],
     } as ActivityWithDetails;
@@ -359,16 +366,7 @@ const activityService = {
       .select(`
         *,
         activity_schedules(*),
-        reviews(*, users(full_name, avatar_url)),
-        activity_categories(
-          categories(
-            id,
-            name,
-            description,
-            icon,
-            color
-          )
-        )
+        reviews(*, users(full_name, avatar_url))
       `)
       .eq("provider_id", ownerId);
 
@@ -380,9 +378,28 @@ const activityService = {
         return [];
     }
 
+    // Get unique category names to fetch category details
+    const categoryNames = [...new Set(data.map(activity => activity.category).filter(Boolean))];
+    
+    let categoriesMap: Record<string, any> = {};
+    
+    if (categoryNames.length > 0) {
+      const { data: categoriesData, error: categoriesError } = await supabase
+        .from("categories")
+        .select("*")
+        .in("name", categoryNames);
+      
+      if (!categoriesError && categoriesData) {
+        categoriesMap = categoriesData.reduce((acc, cat) => {
+          acc[cat.name] = cat;
+          return acc;
+        }, {} as Record<string, any>);
+      }
+    }
+
     return data.map((activity: any) => ({
         ...activity,
-        categories: activity.activity_categories?.[0]?.categories || null,
+        categories: activity.category ? categoriesMap[activity.category] || null : null,
         activity_schedules: Array.isArray(activity.activity_schedules) ? activity.activity_schedules : [],
         reviews: Array.isArray(activity.reviews) ? activity.reviews : [],
     })) as ActivityWithDetails[];
