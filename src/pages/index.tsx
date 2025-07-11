@@ -7,7 +7,7 @@ import { ActivityRow } from "@/components/home/ActivityRow"
 import { SearchBar } from "@/components/home/SearchBar"
 import { BottomActionButtons } from "@/components/layout/BottomActionButtons"
 import { FloatingCart } from "@/components/layout/FloatingCart"
-import { supabaseActivityService } from "@/services/supabaseActivityService.js"
+import { supabase } from "@/integrations/supabase/client"
 import categoryService from "@/services/categoryService"
 import { SupabaseActivity } from "@/types/activity"
 
@@ -107,26 +107,41 @@ export default function HomePage({
 
 export async function getServerSideProps() {
   try {
-    const featuredActivitiesData = await supabaseActivityService.getFeaturedActivities()
-    const recommendedActivitiesData = await supabaseActivityService.getRecommendedActivities()
+    // Fetch featured activities (first 6 activities)
+    const { data: featuredActivitiesData } = await supabase
+      .from('activities')
+      .select('*')
+      .eq('is_active', true)
+      .limit(6)
 
-    // @ts-ignore
+    // Fetch recommended activities (random selection)
+    const { data: recommendedActivitiesData } = await supabase
+      .from('activities')
+      .select('*')
+      .eq('is_active', true)
+      .limit(8)
+
     const categories = await categoryService.getAllCategories()
     const activitiesByCategory: { [key: string]: SupabaseActivity[] } = {};
 
+    // Fetch activities for each category
     await Promise.all(
       categories.slice(0, 4).map(async (category: Category) => {
-        const activities = await supabaseActivityService.getActivitiesByCategory(
-          category.name
-        )
-        activitiesByCategory[category.name] = activities as SupabaseActivity[];
+        const { data: activities } = await supabase
+          .from('activities')
+          .select('*')
+          .eq('is_active', true)
+          .eq('category', category.name)
+          .limit(10)
+        
+        activitiesByCategory[category.name] = activities || [];
       })
     )
 
     return {
       props: {
-        featuredActivities: featuredActivitiesData,
-        recommendedActivities: recommendedActivitiesData,
+        featuredActivities: featuredActivitiesData || [],
+        recommendedActivities: recommendedActivitiesData || [],
         activitiesByCategory,
         categories,
       },
