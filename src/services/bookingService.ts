@@ -45,7 +45,7 @@ export const bookingService = {
       throw new Error(activitiesError.message)
     }
 
-    const activityIds = activitiesData?.map((a: any) => a.id) || []
+    const activityIds = activitiesData?.map((a) => a.id) || []
 
     if (activityIds.length === 0) {
       return {
@@ -105,7 +105,7 @@ export const bookingService = {
       throw new Error(activitiesError.message)
     }
 
-    const activityIds = activitiesData?.map((a: any) => a.id) || []
+    const activityIds = activitiesData?.map((a) => a.id) || []
 
     if (activityIds.length === 0) {
       return []
@@ -133,7 +133,7 @@ export const bookingService = {
       throw new Error(bookingsError.message)
     }
 
-    return (bookingsData || []).map((item: any) => ({
+    return (bookingsData || []).map((item) => ({
       id: item.id,
       customer_id: item.customer_id,
       activity_id: item.activity_id,
@@ -160,7 +160,7 @@ export const bookingService = {
       throw new Error(activitiesError.message)
     }
 
-    const activityIds = activitiesData?.map((a: any) => a.id) || []
+    const activityIds = activitiesData?.map((a) => a.id) || []
 
     if (activityIds.length === 0) {
       return []
@@ -187,7 +187,7 @@ export const bookingService = {
       throw new Error(bookingsError.message)
     }
 
-    return (bookingsData || []).map((item: any) => ({
+    return (bookingsData || []).map((item) => ({
       id: item.id,
       customer_id: item.customer_id,
       activity_id: item.activity_id,
