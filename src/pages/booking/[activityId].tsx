@@ -139,7 +139,7 @@ export default function ActivityBookingPage() {
       });
       return;
     }
-    if (!user) {
+    if (!user || !user.email) {
       toast({
         title: "Please log in",
         description: "You need to be logged in to make a booking.",
@@ -149,25 +149,33 @@ export default function ActivityBookingPage() {
     }
 
     try {
-      const session = await stripeService.createCheckoutSession({
-        activityId: activity.id.toString(),
-        activityName: activity.name || activity.title,
-        price: activity.b_price,
-        participants: participants,
-        selectedDate: selectedDate,
-        userId: user.id,
-        userEmail: user.email,
-      });
+      const totalAmount = (activity.b_price || 0) * participants;
+      const customerName = user.user_metadata.full_name || user.email;
+      const session = await stripeService.createCheckoutSession(
+        activity.id,
+        participants,
+        totalAmount,
+        user.email,
+        customerName
+      );
 
       if (session.url) {
         router.push(session.url);
       } else {
         console.error("Failed to create checkout session");
-        setError("Could not initiate booking. Please try again.");
+        toast({
+          title: "Booking Error",
+          description: "Could not initiate booking. Please try again.",
+          variant: "destructive",
+        });
       }
     } catch (err) {
       console.error("Error creating checkout session:", err);
-      setError("An unexpected error occurred. Please try again later.");
+      toast({
+        title: "Booking Error",
+        description: "An unexpected error occurred. Please try again later.",
+        variant: "destructive",
+      });
     }
   };
 

@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -108,7 +107,7 @@ export function ActivityList({ activities, onEdit, onView, onStatusChange }: Act
                       <DropdownMenuItem
                         onClick={() => {
                           if (onStatusChange) {
-                            onStatusChange(activity.id.toString(), "archived")
+                            onStatusChange(String(activity.id), "archived")
                           }
                         }}
                       >

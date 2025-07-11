@@ -38,14 +38,14 @@ const authService = {
       if (data.user) {
         try {
           // Check if user is an activity owner
-          const ownerResult: any = await supabase
+          const ownerResult = await supabase
             .from('activity_owners')
             .select('provider_id')
             .eq('user_id', data.user.id)
             .maybeSingle()
 
-          if (!ownerResult.error && ownerResult.data) {
-            provider_id = ownerResult.data.provider_id;
+          if (ownerResult && !ownerResult.error && ownerResult.data) {
+            provider_id = (ownerResult.data as any).provider_id;
             console.log("Found provider_id:", provider_id);
           }
         } catch (ownerErr) {

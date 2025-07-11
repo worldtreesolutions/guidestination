@@ -27,7 +27,7 @@ const chatService = {
       throw new Error("Supabase client not initialized");
     }
 
-    const result: any = await supabase
+    const result = await supabase
       .from("chat_messages")
       .select("*")
       .eq("activity_id", bookingId)
@@ -54,7 +54,7 @@ const chatService = {
       throw new Error("Supabase client not initialized");
     }
 
-    const result = await (supabase as any)
+    const result = await supabase
       .from("chat_messages")
       .insert([messageData])
       .select()
@@ -87,7 +87,7 @@ const chatService = {
     if (!supabase) {
       throw new Error("Supabase client not initialized");
     }
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from("chat_messages")
       .select("id")
       .eq("receiver_id", userId)
@@ -106,7 +106,7 @@ const chatService = {
   ) {
     if (!supabase) return null;
 
-    const channel = (supabase as any)
+    const channel = supabase
       .channel(`messages_${userId}`)
       .on(
         "postgres_changes",

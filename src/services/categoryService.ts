@@ -77,7 +77,7 @@ export const categoryService = {
       return { activities: null, error: err };
     }
 
-    const result: any = await supabase
+    const result = await supabase
       .from("activities")
       .select("*")
       .eq("category_id", categoryId);
