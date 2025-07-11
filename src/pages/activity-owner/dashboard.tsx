@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext"
 import { bookingService } from "@/services/bookingService"
 import { commissionService } from "@/services/commissionService"
 import activityService from "@/services/activityService"
-import { Booking, Earning, Activity } from "@/types/activity"
+import { Booking, Earning, Activity, ActivityWithDetails } from "@/types/activity"
 import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout"
 import { DashboardHeader } from "@/components/activity-owner/dashboard/DashboardHeader"
 import RecentBookings from "@/components/activity-owner/dashboard/RecentBookings"
@@ -60,7 +60,7 @@ export default function ActivityOwnerDashboard() {
         setRecentBookings(recentBookingsData)
         setEarnings(earningsData)
         const activitiesData = await activityService.fetchActivitiesByOwner(user.id);
-        setActivities(activitiesData as ActivityWithDetails[]);
+        setActivities(activitiesData);
       } catch (error: any) {
         console.error("Failed to fetch dashboard ", error)
         toast({

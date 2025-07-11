@@ -28,14 +28,6 @@ export default function ActivitiesPage() {
           bookingService.fetchBookingsForOwner(ownerId),
         ]);
         setActivities(fetchedActivities);
-
-        const bookingsByActivity: Record<string, Booking[]> = {};
-        fetchedActivities.forEach((activity: Activity) => {
-          bookingsByActivity[activity.id.toString()] = fetchedBookings.filter(
-            (booking: Booking) => booking.activity_id === activity.id
-          );
-        });
-        setActivityBookings(bookingsByActivity);
       } catch (error: any) {
         console.error("Error fetching activities and bookings:", error);
         toast({
