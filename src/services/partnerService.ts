@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client"
 import type { Database, Tables } from "@/integrations/supabase/types"
 
@@ -36,6 +37,10 @@ export const partnerService = {
     let newUserId: string | undefined = undefined;
     
     try {
+      if (!supabase) {
+        throw new Error("Supabase client not available");
+      }
+
       // Check if user already exists with this email
       const { data: existingUser } = await supabase
         .from("partner_registrations")
@@ -73,7 +78,7 @@ export const partnerService = {
       newUserId = authData.user.id;
 
       // Step 2: Create partner registration record with user_id as foreign key
-      const {  partnerData, error: partnerError } = await supabase
+      const { data: partnerRegistrationData, error: partnerError } = await supabase
         .from("partner_registrations")
         .insert([{
           user_id: authData.user.id,
@@ -99,7 +104,7 @@ export const partnerService = {
 
       return {
         user: authData.user,
-        partner: partnerData[0],
+        partner: partnerRegistrationData[0],
         message: 'Registration successful! Please check your email to verify your account before you can access your partner dashboard.'
       }
     } catch (error) {
@@ -122,6 +127,10 @@ export const partnerService = {
   },
 
   async linkPartnerToActivity(partnerId: string, activityId: number, commissionRate: number = 0.05) {
+    if (!supabase) {
+      throw new Error("Supabase client not available");
+    }
+
     const { data, error } = await supabase
       .from("establishment_activities")
       .insert([{
@@ -137,6 +146,10 @@ export const partnerService = {
   },
 
   async unlinkPartnerFromActivity(partnerId: string, activityId: number) {
+    if (!supabase) {
+      throw new Error("Supabase client not available");
+    }
+
     const { error } = await supabase
       .from("establishment_activities")
       .delete()
@@ -148,6 +161,10 @@ export const partnerService = {
   },
 
   async getPartnerActivities(partnerId: string) {
+    if (!supabase) {
+      throw new Error("Supabase client not available");
+    }
+
     const { data, error } = await supabase
       .from("establishment_activities")
       .select(`
@@ -169,6 +186,10 @@ export const partnerService = {
   },
 
   async getActivityPartners(activityId: number) {
+    if (!supabase) {
+      throw new Error("Supabase client not available");
+    }
+
     const { data, error } = await supabase
       .from("establishment_activities")
       .select(`
@@ -198,6 +219,10 @@ export const partnerService = {
   },
 
   async uploadSupportingDocument(file: File): Promise<string> {
+    if (!supabase) {
+      throw new Error("Supabase client not available");
+    }
+
     const fileExt = file.name.split(".").pop()
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`
     const filePath = `partner-documents/${fileName}`
@@ -216,6 +241,10 @@ export const partnerService = {
   },
 
   async getPartnerRegistrations() {
+    if (!supabase) {
+      throw new Error("Supabase client not available");
+    }
+
     const { data, error } = await supabase
       .from("partner_registrations")
       .select("*")
@@ -226,6 +255,10 @@ export const partnerService = {
   },
 
   async getPartnerRegistrationByEmail(email: string) {
+    if (!supabase) {
+      throw new Error("Supabase client not available");
+    }
+
     const { data, error } = await supabase
       .from("partner_registrations")
       .select("*")
@@ -237,6 +270,10 @@ export const partnerService = {
   },
 
   async getPartnerRegistrationByUserId(userId: string) {
+    if (!supabase) {
+      throw new Error("Supabase client not available");
+    }
+
     const { data, error } = await supabase
       .from("partner_registrations")
       .select("*")
@@ -248,6 +285,10 @@ export const partnerService = {
   },
 
   async updatePartnerStatus(partnerId: string, status: "pending" | "approved" | "rejected", updatedBy: string) {
+    if (!supabase) {
+      throw new Error("Supabase client not available");
+    }
+
     const { data, error } = await supabase
       .from("partner_registrations")
       .update({ 
@@ -263,6 +304,10 @@ export const partnerService = {
   },
 
   async bulkLinkPartnerToActivities(partnerId: string, activityIds: number[], commissionRate: number = 0.05) {
+    if (!supabase) {
+      throw new Error("Supabase client not available");
+    }
+
     const insertData = activityIds.map(activityId => ({
       establishment_id: partnerId, // Using establishment_id instead of partner_id
       activity_id: activityId,
@@ -280,6 +325,10 @@ export const partnerService = {
   },
 
   async getAvailableActivities() {
+    if (!supabase) {
+      throw new Error("Supabase client not available");
+    }
+
     const { data, error } = await supabase
       .from("activities")
       .select("id, title, description, final_price, category_id")
@@ -290,22 +339,42 @@ export const partnerService = {
     return data
   },
 
-  async registerPartner(partnerData: Omit<Tables<'partner_registrations'>, 'id' | 'created_at' | 'updated_at' | 'status' | 'created_by' | 'updated_by'>): Promise<any> {
+  async registerPartner(partnerData: {
+    user_id?: string;
+    business_name: string;
+    owner_name: string;
+    email: string;
+    phone: string;
+    address: string;
+    latitude?: number;
+    longitude?: number;
+    place_id?: string;
+    room_count?: number;
+    commission_package: string;
+    supporting_documents?: string[];
+  }): Promise<any> {
     if (!supabase) {
       throw new Error("Supabase client is not initialized.");
     }
-    const { data, error } = await supabase
-      .from("partner_registrations")
-      .insert([{ ...partnerData, status: "pending" }])
+    const { data: establishmentData, error: insertError } = await supabase
+      .from("establishments")
+      .insert({
+        establishment_name: partnerData.business_name,
+        establishment_type: "partner",
+        establishment_address: partnerData.address,
+        partner_id: partnerData.user_id || "",
+        room_count: partnerData.room_count || 0,
+        is_active: true
+      })
       .select()
       .single();
 
-    if (error) {
-      console.error("Error registering partner:", error);
-      throw error;
+    if (insertError) {
+      console.error("Error creating partner:", insertError);
+      throw insertError;
     }
 
-    return data;
+    return establishmentData;
   }
 }
 

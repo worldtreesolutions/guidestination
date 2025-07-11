@@ -1,3 +1,4 @@
+
 import { getAdminClient, isAdminAvailable } from "@/integrations/supabase/admin";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -97,14 +98,16 @@ export const invoiceService = {
       
       // Update invoice with payment link details using safe client
       const client = isAdminAvailable() ? getAdminClient() : supabase;
-      await client
-        .from("commission_invoices")
-        .update({
-          stripe_payment_link_id: data.paymentLinkId,
-          stripe_payment_link_url: data.paymentLinkUrl,
-          payment_method: "stripe_payment_link"
-        })
-        .eq("id", invoice.id);
+      if (client) {
+        await client
+          .from("commission_invoices")
+          .update({
+            stripe_payment_link_id: data.paymentLinkId,
+            stripe_payment_link_url: data.paymentLinkUrl,
+            payment_method: "stripe_payment_link"
+          })
+          .eq("id", invoice.id);
+      }
 
       return {
         paymentLinkId: data.paymentLinkId,
@@ -137,22 +140,24 @@ export const invoiceService = {
       
       // Get provider details for email using safe client
       const client = isAdminAvailable() ? getAdminClient() : supabase;
-      const { data: provider } = await client
-        .from("activity_owners")
-        .select("business_name, email")
-        .eq("id", invoice.provider_id)
-        .single();
+      if (client) {
+        const { data: provider } = await client
+          .from("activity_owners")
+          .select("business_name, email")
+          .eq("id", invoice.provider_id)
+          .single();
 
-      if (provider) {
-        const owner = provider as ActivityOwner;
-        await this.sendPaymentConfirmationEmail({
-          invoiceNumber: invoice.invoice_number,
-          providerName: owner.business_name || "Provider",
-          providerEmail: owner.email || "",
-          paymentAmount: data.paymentAmount,
-          paymentMethod: data.paymentMethod,
-          paymentReference: data.paymentReference
-        });
+        if (provider) {
+          const owner = provider as ActivityOwner;
+          await this.sendPaymentConfirmationEmail({
+            invoiceNumber: invoice.invoice_number,
+            providerName: owner.business_name || "Provider",
+            providerEmail: owner.email || "",
+            paymentAmount: data.paymentAmount,
+            paymentMethod: data.paymentMethod,
+            paymentReference: data.paymentReference
+          });
+        }
       }
     } catch (error) {
       console.error("Failed to process commission payment:", error);
@@ -175,6 +180,7 @@ export const invoiceService = {
   // Get overdue invoices for reminder emails
   async getOverdueInvoices(): Promise<CommissionInvoice[]> {
     const client = isAdminAvailable() ? getAdminClient() : supabase;
+    if (!client) return [];
     
     const { data, error } = await client
       .from("commission_invoices")
@@ -204,23 +210,25 @@ export const invoiceService = {
       for (const invoice of overdueInvoices) {
         // Get provider details using safe client
         const client = isAdminAvailable() ? getAdminClient() : supabase;
-        const { data: provider } = await client
-          .from("activity_owners")
-          .select("business_name, email")
-          .eq("id", invoice.provider_id)
-          .single();
+        if (client) {
+          const { data: provider } = await client
+            .from("activity_owners")
+            .select("business_name, email")
+            .eq("id", invoice.provider_id)
+            .single();
 
-        if (provider) {
-          const owner = provider as ActivityOwner;
-          await this.sendInvoiceEmail({
-            invoiceNumber: invoice.invoice_number,
-            providerName: owner.business_name || "Provider",
-            providerEmail: owner.email || "",
-            totalAmount: invoice.total_booking_amount,
-            commissionAmount: invoice.platform_commission_amount,
-            dueDate: invoice.due_date,
-            paymentLinkUrl: invoice.stripe_payment_link_url || undefined
-          });
+          if (provider) {
+            const owner = provider as ActivityOwner;
+            await this.sendInvoiceEmail({
+              invoiceNumber: invoice.invoice_number,
+              providerName: owner.business_name || "Provider",
+              providerEmail: owner.email || "",
+              totalAmount: invoice.total_booking_amount,
+              commissionAmount: invoice.platform_commission_amount,
+              dueDate: invoice.due_date,
+              paymentLinkUrl: invoice.stripe_payment_link_url || undefined
+            });
+          }
         }
       }
     } catch (error) {
@@ -233,46 +241,60 @@ export const invoiceService = {
   async createCommissionInvoice(activity: Activity, booking: Booking): Promise<CommissionInvoice> {
     try {
       let establishment = null;
-      if (booking.is_qr_booking && booking.establishment_id) {
-          const {  est } = await supabase
-              .from("establishments")
-              .select("establishment_name, commission_rate")
-              .eq("id", booking.establishment_id)
-              .single();
-          establishment = est;
+      if (booking.is_qr_booking && booking.establishment_id && supabase) {
+        const { data: establishmentData, error: estError } = await supabase
+          .from("establishments")
+          .select("id, establishment_name, commission_package")
+          .eq("id", booking.establishment_id)
+          .single();
+
+        if (estError) {
+          console.error("Error fetching establishment:", estError);
+          throw estError;
+        }
+
+        establishment = establishmentData;
       }
 
       // Calculate commission
-      const commissionRate = establishment?.commission_rate || 15;
+      const commissionRate = establishment?.commission_package || 15;
       const platformCommission = (booking.total_price || 0) * (commissionRate / 100);
       
       let partnerCommission = 0;
       if (booking.partner_id) {
-          // Assuming a partner commission logic exists
-          partnerCommission = platformCommission * 0.2; // Example: 20% of platform commission
+        // Assuming a partner commission logic exists
+        partnerCommission = platformCommission * 0.2; // Example: 20% of platform commission
       }
 
-      const invoiceData = {
-          invoice_number: `INV-${Date.now()}-${booking.id}`,
-          provider_id: activity.provider_id,
-          booking_id: booking.id,
-          total_booking_amount: booking.total_price || 0,
-          platform_commission_amount: platformCommission,
-          partner_commission_amount: partnerCommission,
-          invoice_status: "pending" as const,
-          due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
-          is_qr_booking: booking.is_qr_booking,
-          partner_id: booking.partner_id,
-          partner_commission_rate: booking.partner_id ? 20 : undefined, // Example rate
-      };
+      const invoiceNumber = `INV-${Date.now()}-${booking.id}`;
+      const providerId = activity.provider_id;
+      const bookingId = booking.id;
+      const totalBookingAmount = booking.total_price || 0;
+      const commissionAmount = platformCommission;
+      const dueDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
 
-      const {  newInvoice, error: invoiceError } = await supabase
-          .from("commission_invoices")
-          .insert(invoiceData)
-          .select()
-          .single();
+      if (!supabase) {
+        throw new Error("Supabase client not available");
+      }
 
-      if (invoiceError) throw invoiceError;
+      const { data: newInvoice, error: insertError } = await supabase
+        .from("commission_invoices")
+        .insert({
+          invoice_number: invoiceNumber,
+          provider_id: providerId,
+          booking_id: bookingId,
+          total_booking_amount: totalBookingAmount,
+          platform_commission_amount: commissionAmount,
+          invoice_status: "pending",
+          due_date: dueDate.toISOString(),
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error("Error creating invoice:", insertError);
+        throw insertError;
+      }
 
       return newInvoice as CommissionInvoice;
     } catch (error) {

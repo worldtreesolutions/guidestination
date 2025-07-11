@@ -61,7 +61,13 @@ export const qrBookingService = {
     }
     const { data, error } = await supabase
       .from("referral_visits")
-      .insert([{ establishment_id: establishmentId, ip_address: ipAddress }]);
+      .insert({
+        establishment_id: establishmentId,
+        ip_address: ipAddress,
+        visit_date: new Date().toISOString(),
+      })
+      .select()
+      .single();
 
     if (error) {
       console.error("Error recording visit:", error);
@@ -224,6 +230,33 @@ export const qrBookingService = {
       confirmedBookings,
       conversionRate: totalBookings > 0 ? (confirmedBookings / totalBookings) * 100 : 0
     };
+  },
+
+  // Update booking
+  async updateBooking(bookingId: string, customerName: string) {
+    const { data: booking, error: bookingError } = await supabase
+      .from("bookings")
+      .select("*, activities(*)")
+      .eq("id", bookingId)
+      .single();
+
+    if (bookingError) {
+      console.error("Error fetching booking:", bookingError);
+      throw bookingError;
+    }
+
+    const { error: updateError } = await supabase
+      .from("bookings")
+      .update({
+        customer_name: customerName,
+        status: "confirmed",
+      })
+      .eq("id", bookingId);
+
+    if (updateError) {
+      console.error("Error updating booking:", updateError);
+      throw updateError;
+    }
   }
 };
 

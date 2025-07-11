@@ -361,19 +361,28 @@ export const stripeService = {
     if (!supabase) {
       throw new Error("Supabase client is not initialized.");
     }
-    const { data, error } = await supabase
+    const { data: booking, error: bookingError } = await supabase
       .from("bookings")
-      .update({
-        status: status,
-        payment_intent_id: paymentIntentId,
-      })
+      .select("*, activities(*)")
       .eq("id", bookingId)
-      .select()
       .single();
 
-    if (error) {
-      console.error("Error updating booking status:", error);
-      throw error;
+    if (bookingError) {
+      console.error("Error fetching booking:", bookingError);
+      throw bookingError;
+    }
+
+    const { error: updateError } = await supabase
+      .from("bookings")
+      .update({
+        customer_name: customerName,
+        status: "confirmed",
+      })
+      .eq("id", bookingId);
+
+    if (updateError) {
+      console.error("Error updating booking status:", updateError);
+      throw updateError;
     }
     return data;
   },
