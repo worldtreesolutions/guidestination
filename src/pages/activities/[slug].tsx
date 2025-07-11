@@ -54,7 +54,13 @@ export default function ActivityPage() {
         if (scheduleError) {
           console.error("Error fetching schedule instances:", scheduleError);
         } else {
-          setScheduleInstances(scheduleData || []);
+          // Transform the data to match our type expectations
+          const transformedScheduleData = (scheduleData || []).map(schedule => ({
+            ...schedule,
+            notes: schedule.notes || null,
+            available_spots: schedule.capacity - schedule.booked_count
+          }));
+          setScheduleInstances(transformedScheduleData);
         }
       } catch (error) {
         console.error("Error fetching activity:", error);
