@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+<![CDATA[import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
 import Navbar from "@/components/layout/Navbar";
@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { ActivityGallery } from "@/components/activities/ActivityGallery";
 import { AvailabilityCalendar } from "@/components/activities/AvailabilityCalendar";
-import { BookingForm } from "@/components/activities/BookingForm";
+import BookingForm from "@/components/activities/BookingForm";
 import { ActivityReviews } from "@/components/activities/ActivityReviews";
 import { useIsMobile } from "@/hooks/use-mobile";
 import activityService from "@/services/activityService";
@@ -29,7 +29,6 @@ import { Activity, SupabaseActivity, ActivityWithDetails } from "@/types/activit
 import { Check, X } from "lucide-react";
 import stripeService from "@/services/stripeService";
 import { useToast } from "@/hooks/use-toast";
-import { getStripe } from "@/services/stripeService";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function ActivityBookingPage() {
@@ -391,7 +390,7 @@ export default function ActivityBookingPage() {
                       <CardContent className="space-y-6">
                         <div className="text-center">
                           <div className="text-4xl font-bold">
-                            {activity.currency_symbol || "$"}
+                            {activity.currency || "THB"}
                             {activity.b_price}
                           </div>
                           <div className="text-sm text-muted-foreground">per person</div>
@@ -402,7 +401,7 @@ export default function ActivityBookingPage() {
                         <div>
                           <h3 className="font-semibold mb-3">Select Date</h3>
                           <AvailabilityCalendar
-                            activityId={typeof activityId === "string" ? parseInt(activityId, 10) : 0}
+                            activityId={activity.id}
                             availableDates={activity.activity_schedules?.map((d: any) => d.scheduled_date) || []}
                             scheduleData={activity.activity_schedules || []}
                             selectedDate={selectedDate}
@@ -457,3 +456,4 @@ export default function ActivityBookingPage() {
     )
   }
 }
+]]>

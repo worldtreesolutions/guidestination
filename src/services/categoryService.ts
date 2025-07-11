@@ -127,11 +127,13 @@ export const categoryService = {
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
 
-    return sortedCategories.map((c) => ({
+    return sortedCategories.map((c: any) => ({
       id: c.id,
       name: c.name,
       description: c.description,
       image_url: c.image_url,
+      created_at: c.created_at,
+      updated_at: c.updated_at,
     }));
   },
 
