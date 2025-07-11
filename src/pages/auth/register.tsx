@@ -1,3 +1,4 @@
+
 import Head from "next/head"
 import Link from "next/link"
 import { useState } from "react"
@@ -8,7 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Navbar } from "@/components/layout/Navbar"
+import Navbar from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { useAuth } from "@/contexts/AuthContext"
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react"
