@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { ActivityForHomepage, ActivityWithDetails, ActivitySchedule, Booking } from "@/types/activity";
@@ -37,7 +36,7 @@ const activityService = {
     }
 
     // Get unique category names to fetch category details
-    const categoryNames = [...new Set(data.map(activity => activity.category).filter(Boolean))];
+    const categoryNames = Array.from(new Set(data.map(activity => activity.category).filter(Boolean)));
     
     let categoriesMap: Record<string, any> = {};
     
@@ -90,7 +89,7 @@ const activityService = {
     }
 
     // Get unique category names to fetch category details
-    const categoryNames = [...new Set(data.map(activity => activity.category).filter(Boolean))];
+    const categoryNames = Array.from(new Set(data.map(activity => activity.category).filter(Boolean)));
     
     let categoriesMap: Record<string, any> = {};
     
@@ -379,7 +378,7 @@ const activityService = {
     }
 
     // Get unique category names to fetch category details
-    const categoryNames = [...new Set(data.map(activity => activity.category).filter(Boolean))];
+    const categoryNames = Array.from(new Set(data.map(activity => activity.category).filter(Boolean)));
     
     let categoriesMap: Record<string, any> = {};
     
