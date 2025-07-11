@@ -10,7 +10,7 @@ const activityService = {
     }
     const { data, error } = await supabase
       .from("activities")
-      .select("id, title, b_price, image_url, slug, categories(name)")
+      .select("id, title, b_price, image_url, categories(name)")
       .limit(10);
 
     if (error) {
@@ -20,6 +20,7 @@ const activityService = {
 
     return (data as any[]).map((activity) => ({
       ...activity,
+      slug: `activity-${activity.id}`,
       category_name: activity.categories?.name || null,
     }));
   },
@@ -59,6 +60,16 @@ const activityService = {
       console.error("Supabase client is not initialized.");
       return null;
     }
+    
+    // Extract ID from slug (format: activity-{id})
+    const idMatch = slug.match(/activity-(\d+)/);
+    if (!idMatch) {
+      console.error(`Invalid slug format: ${slug}`);
+      return null;
+    }
+    
+    const activityId = parseInt(idMatch[1], 10);
+    
     const { data, error } = await supabase
       .from("activities")
       .select(
@@ -68,7 +79,7 @@ const activityService = {
         reviews(*, users(full_name, avatar_url))
         `
       )
-      .eq("slug", slug)
+      .eq("id", activityId)
       .single();
 
     if (error) {

@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useRouter } from "next/router";
@@ -38,9 +37,9 @@ export function BulkBookingWidget({ activities, onClearSelection }: BulkBookingW
     const line_items = activities.map((activity) => {
       const price = activity.b_price ?? activity.price;
       return {
-        price_ {
+        price_data: {
           currency: "usd",
-          product_ {
+          product_data: {
             name: activity.title,
             images: [activity.image_url || ""],
           },
