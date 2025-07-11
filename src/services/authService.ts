@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client"
 
 export interface SignInResponse {
@@ -117,17 +116,22 @@ const authService = {
       return null;
     }
 
-    const { data, error } = await supabase
-      .from("activity_owners")
-      .select("id")
-      .eq("user_id", userId)
-      .maybeSingle();
+    try {
+      const { data, error } = await supabase
+        .from("activity_owners")
+        .select("id")
+        .eq("user_id", userId)
+        .maybeSingle();
 
-    if (error) {
-      console.error("Error fetching activity owner id:", error);
+      if (error) {
+        console.error("Error fetching activity owner id:", error);
+        return null;
+      }
+      return data?.id || null;
+    } catch (err) {
+      console.error("Error in getActivityOwnerId:", err);
       return null;
     }
-    return data?.id || null;
   },
 
   async getPartnerId(userId: string): Promise<string | null> {
@@ -136,17 +140,22 @@ const authService = {
       return null;
     }
 
-    const { data, error } = await supabase
-      .from("partner_registrations")
-      .select("id")
-      .eq("user_id", userId)
-      .maybeSingle();
+    try {
+      const { data, error } = await supabase
+        .from("partner_registrations")
+        .select("id")
+        .eq("user_id", userId)
+        .maybeSingle();
 
-    if (error) {
-      console.error("Error fetching partner id:", error);
+      if (error) {
+        console.error("Error fetching partner id:", error);
+        return null;
+      }
+      return data?.id || null;
+    } catch (err) {
+      console.error("Error in getPartnerId:", err);
       return null;
     }
-    return data?.id || null;
   },
 }
 

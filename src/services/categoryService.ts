@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import type { Activity } from "@/types/activity";
 
@@ -26,7 +25,8 @@ export const categoryService = {
     return (result.data || []).map((item: any) => ({
       id: item.id,
       name: item.name,
-      description: item.description,
+      description: item.description || undefined,
+      image_url: item.image_url || undefined,
       created_at: item.created_at || new Date().toISOString(),
       updated_at: item.updated_at || new Date().toISOString()
     }));
@@ -89,6 +89,10 @@ export const categoryService = {
   },
 
   async getCategory(id: number): Promise<Category> {
+    if (!supabase) {
+      throw new Error("Supabase client not initialized");
+    }
+
     const { data, error } = await supabase
       .from("categories")
       .select("*")
@@ -98,10 +102,21 @@ export const categoryService = {
     if (error) throw error;
     if (!data) throw new Error("Category not found");
 
-    return data;
+    return {
+      id: data.id,
+      name: data.name,
+      description: data.description || undefined,
+      image_url: data.image_url || undefined,
+      created_at: data.created_at || undefined,
+      updated_at: data.updated_at || undefined,
+    };
   },
 
   async getCategories(): Promise<Category[]> {
+    if (!supabase) {
+      throw new Error("Supabase client not initialized");
+    }
+
     const response = await supabase.from("categories").select("*");
     if (response.error) {
       throw response.error;
@@ -112,16 +127,16 @@ export const categoryService = {
 
     const sortedCategories = response.data.sort(
       (a: any, b: any) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
     );
 
     return sortedCategories.map((c: any) => ({
       id: c.id,
       name: c.name,
-      description: c.description,
-      image_url: c.image_url,
-      created_at: c.created_at,
-      updated_at: c.updated_at,
+      description: c.description || undefined,
+      image_url: c.image_url || undefined,
+      created_at: c.created_at || undefined,
+      updated_at: c.updated_at || undefined,
     }));
   },
 
