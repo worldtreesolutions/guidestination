@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client"
 import type { User, Session } from "@supabase/supabase-js"
 
@@ -36,12 +35,12 @@ const authService = {
           // Check if user is an activity owner
           const { data: ownerData, error: ownerError } = await supabase
             .from('activity_owners')
-            .select('id')
+            .select('provider_id')
             .eq('user_id', data.user.id)
             .maybeSingle();
 
           if (!ownerError && ownerData) {
-            provider_id = ownerData.id;
+            provider_id = ownerData.provider_id;
             console.log("Found provider_id:", provider_id);
           }
         } catch (ownerErr) {
