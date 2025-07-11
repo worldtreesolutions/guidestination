@@ -126,7 +126,7 @@ export default function ActivityPage() {
                 )}
               </CardContent>
             </Card>
-            <ActivityChat />
+            <ActivityChat activity={activity} />
           </div>
         </div>
       </div>
