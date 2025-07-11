@@ -1,7 +1,4 @@
-
-import { getAdminClient } from "@/integrations/supabase/admin"
-
-const supabase = getAdminClient()
+import { getAdminClient, getAdminClientSafe } from "@/integrations/supabase/admin"
 
 export interface BookingConfirmationData {
   bookingId: number
@@ -23,6 +20,8 @@ export interface BookingConfirmationData {
 
 export const emailService = {
   async sendBookingConfirmationEmails(data: BookingConfirmationData) {
+    // Get admin client safely when needed
+    const supabase = getAdminClientSafe()
     if (!supabase) {
       console.error("Supabase client not available for sending emails")
       return
@@ -48,6 +47,12 @@ export const emailService = {
   },
 
   async sendCustomerConfirmationEmail(data: BookingConfirmationData) {
+    const supabase = getAdminClientSafe()
+    if (!supabase) {
+      console.error("Supabase client not available for sending customer email")
+      return
+    }
+
     const emailContent = this.generateCustomerEmailContent(data)
     
     // Using Supabase Edge Functions for email sending
@@ -68,6 +73,12 @@ export const emailService = {
   },
 
   async sendActivityOwnerNotificationEmail(data: BookingConfirmationData) {
+    const supabase = getAdminClientSafe()
+    if (!supabase) {
+      console.error("Supabase client not available for sending owner email")
+      return
+    }
+
     const emailContent = this.generateActivityOwnerEmailContent(data)
     
     const { error } = await supabase.functions.invoke('send-email', {
@@ -87,6 +98,12 @@ export const emailService = {
 
   async sendPartnerNotificationEmail(data: BookingConfirmationData) {
     if (!data.partnerEmail || !data.partnerName) return
+
+    const supabase = getAdminClientSafe()
+    if (!supabase) {
+      console.error("Supabase client not available for sending partner email")
+      return
+    }
 
     const emailContent = this.generatePartnerEmailContent(data)
     

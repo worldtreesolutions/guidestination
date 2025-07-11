@@ -1,6 +1,5 @@
-
 import { supabase } from "@/integrations/supabase/client"
-import { getAdminClient } from "@/integrations/supabase/admin"
+import { getAdminClient, getAdminClientSafe } from "@/integrations/supabase/admin"
 import type { Database } from "@/integrations/supabase/types"
 import Stripe from "stripe"
 import emailService from "./emailService"
@@ -16,9 +15,9 @@ const getSupabaseClient = () => {
   return supabase
 }
 
-// Get admin client for webhook operations
+// Get admin client for webhook operations - use safe version
 const getAdminSupabaseClient = () => {
-  const adminClient = getAdminClient()
+  const adminClient = getAdminClientSafe()
   if (!adminClient) {
     console.error("Supabase admin client not initialized")
     return null
