@@ -1,4 +1,3 @@
-
 import { Database } from "@/integrations/supabase/types";
 
 export type Tables<T extends keyof Database["public"]["Tables"]> =
@@ -41,6 +40,7 @@ export interface Activity extends Omit<SupabaseActivity, 'highlights' | 'languag
   not_included: string[] | null;
   activity_schedules?: ActivitySchedule[];
   schedule_instances?: ActivityScheduleInstance[];
+  min_participants?: number | null;
 }
 
 export interface Booking extends Omit<SupabaseBooking, "status"> {
@@ -71,6 +71,7 @@ export interface ActivityForHomepage {
   physical_effort_level?: string | null;
   includes_pickup?: boolean | null;
   includes_meal?: boolean | null;
+  min_participants?: number | null;
 }
 
 export type Earning = {

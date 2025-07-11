@@ -22,8 +22,8 @@ const toActivity = (activity: SupabaseActivity & { activity_schedules?: any[]; a
     languages: splitString(activity.languages),
     included: splitString(activity.included),
     not_included: splitString(activity.not_included),
-    activity_schedules: activity.activity_schedules || [],
-    schedule_instances: activity.activity_schedule_instances || [],
+    activity_schedules: Array.isArray(activity.activity_schedules) ? activity.activity_schedules : [],
+    schedule_instances: Array.isArray(activity.activity_schedule_instances) ? activity.activity_schedule_instances : [],
   };
 };
 
@@ -71,6 +71,7 @@ export const activityService = {
           max_age,
           description,
           max_participants,
+          min_participants,
           technical_skill_level,
           physical_effort_level,
           includes_pickup,
@@ -110,7 +111,13 @@ export const activityService = {
 
   async getActivityBySlug(slug: string): Promise<Activity | null> {
     try {
-      const activityId = slug.replace('activity-', '');
+      const activityIdStr = slug.replace('activity-', '');
+      const activityId = parseInt(activityIdStr, 10);
+
+      if (isNaN(activityId)) {
+        console.error("Invalid activity slug, could not parse ID:", slug);
+        return null;
+      }
       
       const { data, error } = await supabase
         .from("activities")
@@ -219,6 +226,49 @@ export const activityService = {
     } catch (error) {
       console.error("Error in searchActivities:", error);
       throw error;
+    }
+  },
+
+  async fetchActivitiesByOwner(ownerId: string): Promise<Activity[]> {
+    try {
+      const { data, error } = await supabase
+        .from("activities")
+        .select(`
+          *,
+          activity_schedules(*),
+          activity_schedule_instances(*)
+        `)
+        .eq("owner_id", ownerId) // Assuming 'owner_id' column exists
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching activities by owner:", error);
+        throw error;
+      }
+
+      const userCurrency = currencyService.getUserCurrency();
+      
+      return (data || []).map(activity => toActivity(activity, userCurrency));
+    } catch (error) {
+      console.error("Error in fetchActivitiesByOwner:", error);
+      throw error;
+    }
+  },
+
+  async deleteActivity(activityId: number): Promise<{ error: any | null }> {
+    try {
+      const { error } = await supabase
+        .from("activities")
+        .delete()
+        .eq("id", activityId);
+
+      if (error) {
+        console.error("Error deleting activity:", error);
+      }
+      return { error };
+    } catch (error) {
+      console.error("Error in deleteActivity:", error);
+      return { error };
     }
   }
 };

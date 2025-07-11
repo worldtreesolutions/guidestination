@@ -10,7 +10,7 @@ interface BookingWidgetProps {
 }
 
 export const BookingWidget = ({ activity }: BookingWidgetProps) => {
-  const [participants, setParticipants] = useState(1)
+  const [participants, setParticipants] = useState(activity.min_participants || 1)
 
   const formatPrice = (price: number | null) => {
     if (price === null) return "N/A";
@@ -18,6 +18,20 @@ export const BookingWidget = ({ activity }: BookingWidgetProps) => {
       style: "currency",
       currency: activity.currency || "THB",
     }).format(price);
+  };
+
+  const renderParticipantOptions = () => {
+    const min = activity.min_participants || 1;
+    const max = activity.max_participants || 10;
+    const options = [];
+    for (let i = min; i <= max; i++) {
+      options.push(
+        <SelectItem key={i} value={String(i)}>
+          {i} {i > 1 ? "Adults" : "Adult"}
+        </SelectItem>
+      );
+    }
+    return options;
   };
 
   return (
@@ -38,14 +52,7 @@ export const BookingWidget = ({ activity }: BookingWidgetProps) => {
                 <SelectValue placeholder="Select participants" />
               </SelectTrigger>
               <SelectContent>
-                {[...Array((activity.max_participants || 10) - (activity.min_participants || 1) + 1).keys()].map(i => {
-                  const count = (activity.min_participants || 1) + i;
-                  return (
-                    <SelectItem key={count} value={String(count)}>
-                      {count} {count > 1 ? "Adults" : "Adult"}
-                    </SelectItem>
-                  )
-                })}
+                {renderParticipantOptions()}
               </SelectContent>
             </Select>
           </div>
