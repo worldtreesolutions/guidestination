@@ -27,7 +27,11 @@ export const categoryService = {
       console.error("Error fetching categories:", error.message);
       throw error;
     }
-    return data || [];
+    return (data || []).map(item => ({
+      ...item,
+      created_at: item.created_at || new Date().toISOString(),
+      updated_at: item.updated_at || new Date().toISOString()
+    }));
   },
 
   async getCategoryById(id: string): Promise<{ data: Category | null; error: any | null }> {
@@ -54,7 +58,14 @@ export const categoryService = {
       console.error(`Error fetching category with ID ${numericId}:`, result.error.message);
       return { data: null, error: result.error };
     }
-    return { data: result.data, error: result.error?.code === "PGRST116" ? null : result.error };
+    
+    const categoryData = result.data ? {
+      ...result.data,
+      created_at: result.data.created_at || new Date().toISOString(),
+      updated_at: result.data.updated_at || new Date().toISOString()
+    } : null;
+    
+    return { data: categoryData, error: result.error?.code === "PGRST116" ? null : result.error };
   },
 
   async getActivitiesByCategoryId(categoryId: number): Promise<{ data: Activity[] | null; error: any | null }> {
@@ -73,7 +84,13 @@ export const categoryService = {
       console.error(`Error fetching activities for category ID ${categoryId}:`, result.error.message);
       return { data: null, error: result.error };
     }
-    return { data: result.data, error: null };
+    
+    const activities = (result.data || []).map(item => ({
+      ...item,
+      category_id: item.category_id || categoryId
+    }));
+    
+    return { data: activities, error: null };
   },
 };
 

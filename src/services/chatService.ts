@@ -35,7 +35,10 @@ const chatService = {
       throw error
     }
 
-    return data || []
+    return (data || []).map(item => ({
+      ...item,
+      activity_id: item.activity_id || activityId
+    }));
   },
 
   async sendMessage(messageData: SendMessageData): Promise<ChatMessage> {
@@ -54,7 +57,10 @@ const chatService = {
       throw error
     }
 
-    return data
+    return {
+      ...data,
+      activity_id: data.activity_id || messageData.activity_id
+    };
   },
 
   async markAsRead(messageId: string): Promise<void> {

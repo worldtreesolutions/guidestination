@@ -10,6 +10,25 @@ interface BookingStats {
   confirmedBookings: number;
 }
 
+export interface Booking {
+  id: string
+  customer_id: string | null
+  activity_id: number
+  booking_date: string
+  participants: number
+  total_amount: number
+  status: string
+  created_at: string
+  activities?: {
+    title: string
+    description?: string
+    image_urls?: string[]
+    location?: string
+    image_url?: string
+    pickup_location?: string
+  }
+}
+
 export const bookingService = {
   async getBookingStats(ownerId: string): Promise<BookingStats> {
     if (!supabase) {
