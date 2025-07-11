@@ -12,7 +12,6 @@ import { ShoppingCart, User, Briefcase } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import Head from "next/head";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function HomePage() {
   const [activities, setActivities] = useState<ActivityForHomepage[]>([]);
@@ -27,17 +26,25 @@ export default function HomePage() {
         setLoading(true);
         setError(null);
         
+        // Check if services are available
+        if (!activityService || !categoryService) {
+          throw new Error("Services not properly initialized. Please check your configuration.");
+        }
+        
         // Fetch both activities and categories
         const [activitiesData, categoriesData] = await Promise.all([
           activityService.getActivitiesForHomepage(),
           categoryService.getAllCategories()
         ]);
         
-        setActivities(activitiesData);
-        setCategories(categoriesData);
+        setActivities(activitiesData || []);
+        setCategories(categoriesData || []);
       } catch (err) {
         console.error("Error fetching data:", err);
         setError(`Failed to load data: ${err instanceof Error ? err.message : 'Unknown error'}`);
+        // Set empty arrays as fallback
+        setActivities([]);
+        setCategories([]);
       } finally {
         setLoading(false);
       }
@@ -70,7 +77,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-white text-black">
       <Head>
-        <title>Home Page</title>
+        <title>Guidestination - Discover Amazing Activities</title>
       </Head>
       <Navbar />
       <main className="relative">
@@ -93,7 +100,8 @@ export default function HomePage() {
           )}
           {error && (
             <div className="text-center py-20">
-              <p className="text-red-500">{error}</p>
+              <p className="text-red-500 mb-4">{error}</p>
+              <p className="text-gray-500">Please check your Supabase configuration and try again.</p>
             </div>
           )}
           {!loading && !error && (
