@@ -1,5 +1,4 @@
-
-    import type { Database } from "@/integrations/supabase/types";
+import type { Database } from "@/integrations/supabase/types";
 
 // Base types from Supabase
 export type Activity = Database["public"]["Tables"]["activities"]["Row"];
@@ -54,7 +53,7 @@ export type ActivityForHomepage = Pick<
   Activity,
   "id" | "title" | "b_price" | "image_url"
 > & {
-  slug: string | null;
+  slug?: string | null;
   category_name: string | null;
   average_rating?: number;
   location?: string;

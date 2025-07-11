@@ -4,15 +4,16 @@ import { Clock, Users, Calendar, MapPin, Languages, Check, X } from "lucide-reac
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import activityService from "@/services/activityService";
-import { Activity } from "@/types/activity";
+import { Activity, ActivityWithDetails } from "@/types/activity";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface ActivityPreviewProps {
   activityId: string;
 }
 
 export function ActivityPreview({ activityId }: ActivityPreviewProps) {
-  const [activity, setActivity] = useState<Activity | null>(null);
+  const [activity, setActivity] = useState<ActivityWithDetails | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { formatCurrency } = useLanguage();
@@ -91,7 +92,7 @@ export function ActivityPreview({ activityId }: ActivityPreviewProps) {
               </div>
             )}
             <div className="absolute bottom-4 right-4">
-              <Badge className="text-sm px-3 py-1">{activity.category_name || "Uncategorized"}</Badge>
+              <Badge className="text-sm px-3 py-1">{activity.categories?.name || "Uncategorized"}</Badge>
             </div>
             {activity.categories?.name && (
               <Badge className="absolute top-2 left-2 bg-primary text-primary-foreground">
@@ -119,7 +120,7 @@ export function ActivityPreview({ activityId }: ActivityPreviewProps) {
             </div>
             <div className="flex items-center gap-2">
               <Calendar className="h-5 w-5 text-muted-foreground" />
-              <span>{formatDates(activity.schedules?.map(s => ({ date: s.start_time })))}</span>
+              <span>{formatDates(activity.activity_schedules?.map(s => ({ date: s.start_time })))}</span>
             </div>
             <div className="flex items-center gap-2">
               <MapPin className="h-5 w-5 text-muted-foreground" />
@@ -205,21 +206,21 @@ export function ActivityPreview({ activityId }: ActivityPreviewProps) {
             )}
           </div>
 
-          {activity.schedules && (
+          {activity.activity_schedules && (
             <div>
               <h2 className="text-xl font-semibold mb-2">Schedule</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="border rounded-lg p-4">
                   <h3 className="font-semibold mb-2">Start Time</h3>
                   <p>
-                    {activity.schedules?.[0]?.start_time ||
+                    {activity.activity_schedules?.[0]?.start_time ||
                       "Not specified"}
                   </p>
                 </div>
                 <div className="border rounded-lg p-4">
                   <h3 className="font-semibold mb-2">End Time</h3>
                   <p>
-                    {activity.schedules?.[0]?.end_time ||
+                    {activity.activity_schedules?.[0]?.end_time ||
                       "Not specified"}
                   </p>
                 </div>

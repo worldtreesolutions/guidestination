@@ -63,7 +63,7 @@ export function ActivityList({ activities, onDelete }: ActivityListProps) {
                   </TableCell>
                   <TableCell>฿{activity.b_price?.toLocaleString()}</TableCell>
                   <TableCell>
-                    <Badge variant={String(activity.status) as "published" | "draft" | "unpublished" | "archived"}>
+                    <Badge className={getStatusColor(String(activity.status))}>
                       {String(activity.status)}
                     </Badge>
                   </TableCell>

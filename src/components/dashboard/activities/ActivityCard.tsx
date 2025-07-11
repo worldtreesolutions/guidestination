@@ -19,13 +19,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { SupabaseActivity } from "@/types/activity"
+import { Activity, ActivityWithDetails } from "@/types/activity"
 import Image from "next/image"
 import Link from "next/link"
-import { Activity } from "@/types/activity"
 
 interface ActivityCardProps {
-  activity: Activity
+  activity: ActivityWithDetails
   onEdit: (id: number) => void
   onDelete: (id: number) => void
   onPreview: (id: number) => void
@@ -132,11 +131,6 @@ export function ActivityCard({ activity, onEdit, onDelete, onPreview }: Activity
             {getStatusText(activity.is_active)}
           </Badge>
         </div>
-        <div className="absolute top-4 right-4">
-          <Badge variant={String(activity.status) as "published" | "draft" | "unpublished" | "archived"}>
-            {String(activity.status)}
-          </Badge>
-        </div>
         {activity.categories?.name && (
           <Badge className="absolute top-2 left-2 bg-primary text-primary-foreground">
             {activity.categories.name}
@@ -197,7 +191,7 @@ export function ActivityCard({ activity, onEdit, onDelete, onPreview }: Activity
 
         <div className="flex items-center justify-between pt-2 border-t">
           <Badge variant="outline">
-            {activity.category_name || "Uncategorized"}
+            {activity.categories?.name || "Uncategorized"}
           </Badge>
           <div className="text-xs text-muted-foreground">
             {activity.duration ? `${activity.duration} hours` : ''}
