@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client"
 import type {
   User,
@@ -157,16 +158,17 @@ const authService = {
     return data?.id || null;
   },
 
-  async updateUser(id: string,  UserAttributes) {
-    const {
-      { user },
-    } = await supabase
+  async updateUser(id: string, attributes: UserAttributes) {
+    const { data, error } = await supabase
       .from("users")
-      .update(UserAttributes)
+      .update(attributes)
       .eq("id", id)
+      .select()
       .single();
 
-    return user;
+    if (error) throw error;
+
+    return data;
   },
 }
 

@@ -127,13 +127,27 @@ export default function ActivityBookingPage() {
   }
 
   if (activity) {
-    const session = await stripeService.createCheckoutSession({
-      activityId: activity.id.toString(),
-      activityName: activity.name,
-      price: activity.price,
-      participants: participants,
-      selectedDate: selectedDate,
-    });
+    const handleBooking = async () => {
+      try {
+        const session = await stripeService.createCheckoutSession({
+          activityId: activity.id.toString(),
+          activityName: activity.name || activity.title,
+          price: activity.price,
+          participants: participants,
+          selectedDate: selectedDate,
+        });
+        if (session.url) {
+          router.push(session.url);
+        } else {
+          console.error("Failed to create checkout session");
+          setError("Could not initiate booking. Please try again.");
+        }
+      } catch (err) {
+        console.error("Error creating checkout session:", err);
+        setError("An unexpected error occurred. Please try again later.");
+      }
+    };
+
     return (
       <>
         <Head>
@@ -377,6 +391,7 @@ export default function ActivityBookingPage() {
                           selectedDate={selectedDate}
                           participants={participants}
                           onParticipantsChange={setParticipants}
+                          onSubmit={handleBooking}
                         />
                       </CardContent>
                     </Card>

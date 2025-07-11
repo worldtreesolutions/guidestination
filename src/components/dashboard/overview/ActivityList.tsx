@@ -17,9 +17,10 @@ interface ActivityListProps {
   activities: Activity[];
   onEdit?: (activity: Activity) => void;
   onView?: (activity: Activity) => void;
+  onStatusChange?: (activityId: string, newStatus: string) => void;
 }
 
-export function ActivityList({ activities, onEdit, onView }: ActivityListProps) {
+export function ActivityList({ activities, onEdit, onView, onStatusChange }: ActivityListProps) {
   const getStatusColor = (status: string | undefined) => {
     switch (status) {
       case "published":
@@ -102,15 +103,17 @@ export function ActivityList({ activities, onEdit, onView }: ActivityListProps) 
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem
-                        onClick={() =>
-                          onStatusChange(activity.id.toString(), "archived")
-                        }
+                        onClick={() => {
+                          if (onStatusChange) {
+                            onStatusChange(activity.id.toString(), "archived")
+                          }
+                        }}
                       >
                         Archive
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
-                  <Link href={`/dashboard/activities/${activity.id}`}>
+                  <Link href={`/dashboard/activities/${activity.id.toString()}`}>
                     <Button variant="outline" size="sm">
                       Edit
                     </Button>

@@ -1,6 +1,23 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Message } from "@/types/activity";
 
+export interface ChatMessage {
+  id: string;
+  sender_id: string;
+  receiver_id: string;
+  activity_id: string;
+  message: string;
+  created_at: string;
+  read_at: string | null;
+}
+
+export interface SendMessageData {
+  sender_id: string;
+  receiver_id: string;
+  activity_id: string;
+  message: string;
+}
+
 export type NewMessage = Omit<Message, "id" | "created_at" | "sender">;
 
 const chatService = {
