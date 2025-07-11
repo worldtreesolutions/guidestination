@@ -1,4 +1,4 @@
-
+import React from "react";
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,6 +7,9 @@ import { useRouter } from "next/router";
 import { useEffect } from "react";
 import CommissionDashboard from "@/components/admin/CommissionDashboard";
 import CommissionInvoiceList from "@/components/admin/CommissionInvoiceList";
+import { GetServerSideProps } from "next";
+import { commissionService } from "@/services/commissionService";
+import { CommissionInvoice } from "@/types/activity";
 
 export default function AdminCommissionPage() {
   const { user, loading } = useAuth();

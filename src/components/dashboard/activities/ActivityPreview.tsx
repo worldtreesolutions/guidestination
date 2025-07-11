@@ -12,19 +12,25 @@ interface ActivityPreviewProps {
 
 export function ActivityPreview({ activityId }: ActivityPreviewProps) {
   const [activity, setActivity] = useState<Activity | null>(null);
+  const [selectedDates, setSelectedDates] = useState<Date[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchActivity = async () => {
-      if (activityId) {
+    if (activityId) {
+      const fetchActivity = async () => {
+        setLoading(true);
         try {
-          const fetchedActivity = await activityService.getActivityById(activityId);
-          setActivity(fetchedActivity);
-        } catch (error) {
-          console.error("Error fetching activity preview:", error);
+          const data = await activityService.getActivityById(parseInt(activityId as string, 10));
+          setActivity(data);
+        } catch (err) {
+          setError((err as Error).message);
+        } finally {
+          setLoading(false);
         }
-      }
-    };
-    fetchActivity();
+      };
+      fetchActivity();
+    }
   }, [activityId]);
 
   if (!activity) return null;
@@ -96,7 +102,14 @@ export function ActivityPreview({ activityId }: ActivityPreviewProps) {
               <span>Max {activity.max_participants} people</span>
             </div>
             <div className="flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-muted-foreground" />
+              <Calendar
+                mode="multiple"
+                selected={selectedDates}
+                onSelect={setSelectedDates}
+                className="p-0"
+                // TODO: Fix this logic
+                // disabled={(date) => !activity.schedules.availableDates.includes(date.toISOString().split("T")[0])}
+              />
               <span>{formatDates(activity.schedules?.availableDates)}</span>
             </div>
             <div className="flex items-center gap-2">

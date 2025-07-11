@@ -285,13 +285,16 @@ export default function EarningsPage() {
                         .slice(0, 10)
                         .map((booking) => (
                           <TableRow key={booking.id}>
-                            <TableCell>{new Date(booking.created_at).toLocaleDateString()}</TableCell>
-                            <TableCell className="font-medium">{booking.activityTitle}</TableCell>
-                            <TableCell>{booking.customerName}</TableCell>
-                            <TableCell>{booking.num_participants}</TableCell>
-                            <TableCell>฿{(booking.totalAmount || 0).toLocaleString()}</TableCell>
-                            <TableCell>฿{(booking.platformFee || 0).toLocaleString()}</TableCell>
-                            <TableCell className="font-medium">฿{(booking.providerAmount || 0).toLocaleString()}</TableCell>
+                            <TableCell>{booking.customer_name}</TableCell>
+                            <TableCell>{booking.activity_title}</TableCell>
+                            <TableCell>{new Date(booking.booking_date).toLocaleDateString()}</TableCell>
+                            <TableCell>${booking.total_price.toFixed(2)}</TableCell>
+                            <TableCell>
+                              {booking.status === "pending" && <Badge variant="warning">Pending</Badge>}
+                              {booking.status === "cancelled" && <Badge variant="destructive">Cancelled</Badge>}
+                              {booking.status === "confirmed" && <Badge variant="default">Confirmed</Badge>}
+                              {booking.status === "completed" && <Badge variant="success">Paid</Badge>}
+                            </TableCell>
                           </TableRow>
                         ))}
                     </TableBody>

@@ -1,13 +1,11 @@
 import { getAdminClient, isAdminAvailable } from "@/integrations/supabase/admin";
 import { supabase } from "@/integrations/supabase/client";
-import commissionService, { CommissionInvoice } from "@/types/activity";
-
-// Simplified type to reduce memory usage
-interface ActivityOwner {
-  id: string;
-  business_name?: string;
-  email?: string;
-}
+import {
+  Activity,
+  ActivityOwner,
+  Booking,
+  CommissionInvoice,
+} from "@/types/activity";
 
 export interface InvoiceEmailData {
   invoiceNumber: string;

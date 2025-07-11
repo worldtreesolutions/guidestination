@@ -1,20 +1,12 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DollarSign, FileText, Clock, CheckCircle, AlertTriangle } from "lucide-react";
-import commissionService from "@/services/commissionService";
-import CommissionInvoiceList from "./CommissionInvoiceList";
-
-interface CommissionStats {
-  totalInvoices: number;
-  totalCommissionAmount: number;
-  paidInvoices: number;
-  pendingInvoices: number;
-  overdueInvoices: number;
-  totalPaidAmount: number;
-  totalPendingAmount: number;
-}
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { commissionService } from "@/services/commissionService";
+import { CommissionInvoiceList } from "@/components/admin/CommissionInvoiceList";
+import { Provider, CommissionStats } from "@/types/activity";
 
 export default function CommissionDashboard() {
   const [stats, setStats] = useState<CommissionStats | null>(null);

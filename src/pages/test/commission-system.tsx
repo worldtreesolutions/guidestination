@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -54,6 +54,11 @@ export default function CommissionSystemTest() {
   const clearResults = () => {
     setTestResults([]);
   };
+
+  useEffect(() => {
+    testCommissionCalculation();
+    testInvoiceGeneration();
+  }, []);
 
   return (
     <div className="container mx-auto p-6 max-w-4xl">

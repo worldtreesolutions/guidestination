@@ -1,185 +1,161 @@
+import React, { useState, useEffect, useContext } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Calendar } from "@/components/ui/calendar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { activityService } from "@/services/activityService";
+import { Activity, ScheduledActivity as ImportedScheduledActivity, SupabaseActivitySchedule } from "../../types/activity";
+import { PlanningContext } from "@/contexts/PlanningContext";
+import { useToast } from "@/hooks/use-toast";
 
-import { useState, useMemo, useCallback } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { usePlanning } from "@/contexts/PlanningContext"
-import { SupabaseActivity, ScheduledActivity } from "@/types/activity"
-import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent, Active, Over } from "@dnd-kit/core"
-import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable"
-import { CSS } from "@dnd-kit/utilities"
-import { GripVertical, Trash2 } from "lucide-react"
-import Image from "next/image"
-import { WeeklyActivitySchedule } from "./WeeklyActivitySchedule"
-import { MobileWeeklyActivitySchedule } from "./MobileWeeklyActivitySchedule"
-import { useIsMobile } from "@/hooks/use-mobile"
+type PlannerScheduledActivity = ImportedScheduledActivity & {
+  time: string;
+  date: Date;
+};
 
-interface ExcursionPlannerProps {
-  activities: SupabaseActivity[]
-  onPlanComplete: (plan: any) => void
-}
+export function ExcursionPlanner() {
+  const { addActivity } = useContext(PlanningContext);
+  const { toast } = useToast();
 
-function SortableActivityItem({ activity, onRemove }: { activity: SupabaseActivity; onRemove: (id: number) => void }) {
-  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: activity.id })
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [filteredActivities, setFilteredActivities] = useState<Activity[]>([]);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedActivity, setSelectedActivity] = useState<PlannerScheduledActivity | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  }
+  useEffect(() => {
+    const fetchActivities = async () => {
+      try {
+        setLoading(true);
+        const fetchedActivities = await activityService.getActivities();
+        setActivities(fetchedActivities);
+        setFilteredActivities(fetchedActivities);
+        setError(null);
+      } catch (err) {
+        setError("Failed to fetch activities.");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchActivities();
+  }, []);
 
-  return (
-    <div ref={setNodeRef} style={style} {...attributes} className="flex items-center gap-4 p-2 bg-white rounded-lg shadow">
-      <button {...listeners} className="cursor-grab">
-        <GripVertical className="h-5 w-5 text-gray-400" />
-      </button>
-      <Image
-        src={activity.image_url || "/placeholder.jpg"}
-        alt={activity.title}
-        width={64}
-        height={64}
-        className="rounded-md object-cover"
-      />
-      <div className="flex-grow">
-        <h4 className="font-semibold">{activity.title}</h4>
-        <p className="text-sm text-gray-500">{activity.category_name}</p>
-      </div>
-      <Button variant="ghost" size="icon" onClick={() => onRemove(activity.id)}>
-        <Trash2 className="h-4 w-4 text-red-500" />
-      </Button>
-    </div>
-  )
-}
-
-export function ExcursionPlanner({ activities, onPlanComplete }: ExcursionPlannerProps) {
-  const {
-    selectedActivities,
-    scheduledActivities,
-    addActivity,
-    removeActivity,
-    scheduleActivity,
-    updateScheduledActivity,
-    isActivitySelected,
-  } = usePlanning()
-
-  const [editingActivity, setEditingActivity] = useState<ScheduledActivity | null>(null)
-  const [draggedActivity, setDraggedActivity] = useState<ScheduledActivity | null>(null)
-  const isMobile = useIsMobile()
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    })
-  )
-
-  const handleDragStart = (event: any) => {
-    const { active } = event;
-    const activity = scheduledActivities.find(a => a.id === active.id);
-    if (activity) {
-      setDraggedActivity(activity);
+  const handleDateChange = (date: Date | undefined) => {
+    if (date) {
+      setSelectedDate(date);
     }
   };
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event
-    setDraggedActivity(null);
-
-    if (over && over.data.current) {
-      const { day, hour } = over.data.current;
-      if (day && typeof hour === 'number') {
-        scheduleActivity(active.id as number, day, hour);
-        return;
-      }
+  const handleSelectActivity = (activity: Activity, time: string) => {
+    if (!selectedDate) {
+      toast({
+        title: "Please select a date",
+        description: "You must select a date before choosing an activity time.",
+        variant: "destructive",
+      });
+      return;
     }
-    
-    if (active.id !== over?.id) {
-      const oldIndex = selectedActivities.findIndex(a => a.id === active.id)
-      const newIndex = selectedActivities.findIndex(a => a.id === over?.id)
-      if (oldIndex !== -1 && newIndex !== -1) {
-        // This part needs to update the context state, which is complex.
-        console.log(`Move activity from index ${oldIndex} to ${newIndex}`)
-      }
-    }
-  }
 
-  const availableActivities = useMemo(() => {
-    return activities.filter(activity => !isActivitySelected(activity.id))
-  }, [activities, isActivitySelected])
+    const scheduled: PlannerScheduledActivity = {
+      ...activity,
+      date: selectedDate,
+      time,
+    };
+    setSelectedActivity(scheduled);
+  };
+
+  const handleAddToPlan = () => {
+    if (selectedActivity) {
+      addActivity(selectedActivity);
+      toast({
+        title: "Activity added to plan",
+        description: `${selectedActivity.title} on ${selectedActivity.date.toLocaleDateString()} at ${selectedActivity.time} has been added.`,
+      });
+      setSelectedActivity(null);
+    }
+  };
+
+  const getAvailableTimes = (activity: Activity): string[] => {
+    if (!selectedDate) return [];
+    const dayOfWeek = selectedDate.getDay(); // Sunday is 0
+    const adjustedDayOfWeek = dayOfWeek === 0 ? 7 : dayOfWeek; // Adjust to Monday=1..Sunday=7
+
+    return activity.schedules
+      .filter(s => s.day_of_week === adjustedDayOfWeek && s.is_active)
+      .map(s => s.start_time);
+  };
+
+  if (loading) return <div>Loading activities...</div>;
+  if (error) return <div>Error: {error}</div>;
 
   return (
-    <DndContext 
-      sensors={sensors} 
-      collisionDetection={closestCenter} 
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-    >
-      <div className="container mx-auto p-4">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Panel: Activity Selection */}
-          <div className="lg:col-span-1 space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Available Activities</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2 max-h-96 overflow-y-auto">
-                {availableActivities.map(activity => (
-                  <div key={activity.id} className="flex items-center justify-between p-2 border rounded-lg">
-                    <span>{activity.title}</span>
-                    <Button size="sm" onClick={() => addActivity(activity)}>
-                      Add
-                    </Button>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Selected for Planning</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <SortableContext items={selectedActivities.map(a => a.id)} strategy={verticalListSortingStrategy}>
-                  <div className="space-y-2">
-                    {selectedActivities.map(activity => (
-                      <SortableActivityItem key={activity.id} activity={activity} onRemove={removeActivity} />
-                    ))}
-                  </div>
-                </SortableContext>
-                {selectedActivities.length === 0 && (
-                  <p className="text-sm text-gray-500 text-center py-4">No activities selected yet.</p>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Right Panel: Weekly Schedule */}
-          <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Weekly Excursion Plan</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {isMobile ? (
-                  <MobileWeeklyActivitySchedule
-                    scheduledActivities={scheduledActivities}
-                    draggedActivity={draggedActivity}
-                    onActivityClick={(activity: ScheduledActivity) => setEditingActivity(activity)}
-                    onActivityRemove={(id) => removeActivity(Number(id))}
-                  />
-                ) : (
-                  <WeeklyActivitySchedule
-                    scheduledActivities={scheduledActivities}
-                    draggedActivity={draggedActivity}
-                    onActivityClick={(activity: ScheduledActivity) => setEditingActivity(activity)}
-                    onActivityRemove={(id) => removeActivity(Number(id))}
-                  />
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+    <div className="grid md:grid-cols-2 gap-8">
+      <div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Select Date</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={handleDateChange}
+              className="rounded-md border"
+            />
+          </CardContent>
+        </Card>
       </div>
-    </DndContext>
-  )
+      <div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Available Excursions</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {filteredActivities.length > 0 ? (
+              filteredActivities.map((activity) => {
+                const availableTimes = getAvailableTimes(activity);
+                if (availableTimes.length === 0) return null;
+
+                return (
+                  <div key={activity.id} className="border p-4 rounded-lg">
+                    <h3 className="font-semibold">{activity.title}</h3>
+                    <p className="text-sm text-gray-500">{activity.description}</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Select onValueChange={(time) => handleSelectActivity(activity, time)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a time" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableTimes.map(time => (
+                            <SelectItem key={time} value={time}>{time}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <p>No activities available for the selected date.</p>
+            )}
+          </CardContent>
+        </Card>
+        {selectedActivity && (
+          <Card className="mt-4">
+            <CardHeader>
+              <CardTitle>Selected Activity</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p><strong>{selectedActivity.title}</strong></p>
+              <p>Date: {selectedActivity.date.toLocaleDateString()}</p>
+              <p>Time: {selectedActivity.time}</p>
+              <Button onClick={handleAddToPlan} className="mt-2">Add to My Plan</Button>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </div>
+  );
 }
-  
