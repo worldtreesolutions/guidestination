@@ -1,24 +1,20 @@
-import { Button } from "@/components/ui/button"
-import { ShoppingCart } from "lucide-react"
-import { usePlanning } from "@/contexts/PlanningContext"
-import Link from "next/link"
+import { Button } from "@/components/ui/button";
+import { ShoppingCart } from "lucide-react";
+import { usePlanning } from "@/contexts/PlanningContext";
 
-export function FloatingCart() {
-  const { selectedActivities, scheduledActivities } = usePlanning()
-  const totalItems = selectedActivities.length + scheduledActivities.length
+export default function FloatingCart() {
+  const { scheduledActivities } = usePlanning();
 
   return (
-    <Link href="/planning">
-      <div className="fixed bottom-6 right-6 z-40 cursor-pointer group">
-        <div className="relative bg-green-600 hover:bg-green-700 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-200">
-          <ShoppingCart className="h-6 w-6" />
-          {totalItems > 0 && (
-            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-medium">
-              {totalItems}
-            </span>
-          )}
-        </div>
-      </div>
-    </Link>
-  )
+    <div className="fixed bottom-4 right-4 z-50">
+      <Button size="icon" className="rounded-full w-14 h-14 shadow-lg relative">
+        <ShoppingCart className="h-6 w-6" />
+        {scheduledActivities.length > 0 && (
+          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+            {scheduledActivities.length}
+          </span>
+        )}
+      </Button>
+    </div>
+  );
 }

@@ -19,49 +19,30 @@ export interface RecommendedPlan {
   numberOfDays: number;
 }
 
-export class RecommendationService {
-  private async fetchRecommendedActivities(preferences: UserPreferences): Promise<SupabaseActivity[]> {
-    const { travelStyle, budget, unavailableDays, travelDates } = preferences;
-    const { start, end } = travelDates;
-
-    // For now, just fetch some featured activities as a mock recommendation
+export const recommendationService = {
+  async getRecommendations(preferences: any): Promise<any[]> {
+    if (!supabase) {
+      console.error("Supabase client is not initialized.");
+      return [];
+    }
+    
     const { data, error } = await supabase
       .from("activities")
-      .select("*, categories(name)")
-      .eq("is_active", true)
-      .limit(20);
+      .select(`
+        *,
+        categories(*)
+      `)
+      .limit(10);
 
     if (error) {
-      console.error("Error fetching recommended activities:", error);
+      console.error("Error fetching recommendations:", error);
       return [];
     }
 
-    return data.map(a => ({...a, category_name: a.categories.name})) as unknown as SupabaseActivity[];
-  }
-
-  private calculateTotalPrice(activities: SupabaseActivity[]): number {
-    return activities.reduce((total, activity) => total + (activity.price || 0), 0);
-  }
-
-  public async getRecommendations(preferences: UserPreferences): Promise<RecommendedPlan> {
-    const activities = await this.fetchRecommendedActivities(preferences);
-
-    // Mock assigning day and timeslot
-    const recommendedActivities: RecommendedActivity[] = activities.map((act, index) => ({
-      ...act,
-      day: `Day ${index + 1}`,
-      timeSlot: "Morning",
-      recommendationReason: "Mock reason",
+    return (data || []).map((activity: any) => ({
+      ...activity,
+      category_name: activity.categories?.name || null,
+      price: activity.b_price,
     }));
-
-    const plan: RecommendedPlan = {
-      activities: recommendedActivities,
-      totalPrice: this.calculateTotalPrice(recommendedActivities),
-      numberOfDays: 3, // Mock value
-    };
-
-    return plan;
-  }
-}
-
-export const recommendationService = new RecommendationService();
+  },
+};

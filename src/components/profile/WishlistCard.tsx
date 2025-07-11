@@ -8,50 +8,43 @@ import Link from "next/link"
 
 interface WishlistCardProps {
   activity: Activity | ActivityForHomepage;
-  onRemove: () => void;
 }
 
-export default function WishlistCard({ activity, onRemove }: WishlistCardProps) {
+export default function WishlistCard({ activity }: WishlistCardProps) {
+  const generateSlug = (activity: Activity | ActivityForHomepage) => {
+    if ('slug' in activity && activity.slug) {
+      return activity.slug;
+    }
+    return `activity-${activity.id}`;
+  };
+
+  const activitySlug = generateSlug(activity);
+
   return (
-    <Card className="overflow-hidden hover:shadow-md transition-shadow">
-      <div className="relative aspect-video">
+    <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+      <div className="aspect-video relative">
         <Image
-          src={activity.image_url || "https://images.unsplash.com/photo-1563492065599-3520f775eeed"}
-          alt={activity.title || "Activity"}
+          src={activity.image_url || "/placeholder-activity.jpg"}
+          alt={activity.title}
           fill
           className="object-cover"
         />
       </div>
       <CardContent className="p-4">
         <h3 className="font-semibold text-lg mb-2 line-clamp-2">
-          {activity.title || "Activity"}
+          {activity.title}
         </h3>
-        
-        <div className="text-lg font-bold text-blue-600 mb-3">
-          ฿{(activity.b_price || 0).toLocaleString()}
-        </div>
-        
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onRemove}
-            className="flex-1 flex items-center gap-2"
-          >
-            <Heart className="h-4 w-4" />
-            Remove
+        <div className="flex items-center justify-between">
+          <div className="text-lg font-bold">
+            ${activity.b_price}
+          </div>
+          <Button size="sm" asChild>
+            <Link href={`/activities/${activitySlug}`}>
+              View Details
+            </Link>
           </Button>
-          <Link href={activity.slug ? `/activities/${activity.slug}` : `/booking/${activity.id}`} passHref>
-            <Button
-              size="sm"
-              className="flex-1 flex items-center gap-2"
-            >
-              <ShoppingCart className="h-4 w-4" />
-              Book
-            </Button>
-          </Link>
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
