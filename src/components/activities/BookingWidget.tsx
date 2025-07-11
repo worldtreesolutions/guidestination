@@ -34,7 +34,7 @@ export const BookingWidget = ({ activity }: BookingWidgetProps) => {
   };
 
   return (
-    <Card className="sticky top-24">
+    <Card>
       <CardContent className="p-6">
         <div className="flex justify-between items-center mb-6">
           <div className="text-sm text-muted-foreground">From</div>

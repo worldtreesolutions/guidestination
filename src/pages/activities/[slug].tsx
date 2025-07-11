@@ -199,10 +199,12 @@ export default function ActivityPage() {
 
         <div className="lg:col-span-1 space-y-6">
           {/* Booking Widget */}
-          <BookingWidget activity={activity} />
+          <div className="sticky top-24 z-20 mb-6">
+            <BookingWidget activity={activity} />
+          </div>
 
           {/* Availability Calendar */}
-          <Card>
+          <Card className="relative z-10">
             <CardHeader>
               <CardTitle>Availability</CardTitle>
             </CardHeader>
@@ -212,7 +214,7 @@ export default function ActivityPage() {
           </Card>
 
           {/* Quick Info */}
-          <Card>
+          <Card className="relative z-10">
             <CardHeader>
               <CardTitle>Quick Info</CardTitle>
             </CardHeader>
