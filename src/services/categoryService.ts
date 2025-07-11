@@ -2,6 +2,8 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Activity } from "@/types/activity";
 
+const supabaseAny = supabase as any;
+
 export interface Category {
   id: number;
   name: string;
@@ -13,12 +15,12 @@ export interface Category {
 
 export const categoryService = {
   async getAllCategories(): Promise<Category[]> {
-    if (!supabase) {
+    if (!supabaseAny) {
       console.error("Supabase client not initialized");
       return [];
     }
     
-    const { data, error }: any = await supabase.from("categories").select("*");
+    const { data, error } = await supabaseAny.from("categories").select("*");
     if (error) {
       console.error("Error fetching categories:", error.message);
       throw error;
@@ -34,7 +36,7 @@ export const categoryService = {
   },
 
   async getCategoryById(id: string): Promise<Category | null> {
-    if (!supabase) {
+    if (!supabaseAny) {
       console.error("Supabase client not initialized");
       return null;
     }
@@ -45,7 +47,7 @@ export const categoryService = {
       return null;
     }
 
-    const { data, error }: any = await supabase
+    const { data, error } = await supabaseAny
       .from("categories")
       .select("*")
       .eq("id", numericId)
@@ -69,13 +71,13 @@ export const categoryService = {
   },
 
   async getActivitiesByCategoryId(categoryId: number): Promise<{ activities: Activity[] | null; error: any | null }> {
-    if (!supabase) {
+    if (!supabaseAny) {
       const err = { message: "Supabase client not initialized" };
       console.error(err.message);
       return { activities: null, error: err };
     }
 
-    const { data, error }: any = await supabase
+    const { data, error } = await supabaseAny
       .from("activities")
       .select("*")
       .eq("category_id", categoryId);
@@ -89,11 +91,11 @@ export const categoryService = {
   },
 
   async getCategory(id: number): Promise<Category> {
-    if (!supabase) {
+    if (!supabaseAny) {
       throw new Error("Supabase client not initialized");
     }
 
-    const { data, error }: any = await supabase
+    const { data, error } = await supabaseAny
       .from("categories")
       .select("*")
       .eq("id", id)
@@ -113,11 +115,11 @@ export const categoryService = {
   },
 
   async getCategories(): Promise<Category[]> {
-    if (!supabase) {
+    if (!supabaseAny) {
       throw new Error("Supabase client not initialized");
     }
 
-    const { data, error }: any = await supabase.from("categories").select("*");
+    const { data, error } = await supabaseAny.from("categories").select("*");
     if (error) {
       throw error;
     }
@@ -143,7 +145,7 @@ export const categoryService = {
   async createCategory(
     category: Omit<Category, "id" | "created_at" | "updated_at">
   ) {
-    const { data, error }: any = await supabase
+    const { data, error } = await supabaseAny
       .from("categories")
       .insert([category])
       .select();
@@ -157,7 +159,7 @@ export const categoryService = {
     id: number,
     updates: Partial<Omit<Category, "id" | "created_at" | "updated_at">>
   ) {
-    const { data, error }: any = await supabase
+    const { data, error } = await supabaseAny
       .from("categories")
       .update(updates)
       .eq("id", id)

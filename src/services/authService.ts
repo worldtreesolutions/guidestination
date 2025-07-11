@@ -1,6 +1,8 @@
 
 import { supabase } from "@/integrations/supabase/client"
 
+const supabaseAny = supabase as any;
+
 export interface SignInResponse {
   user: any | null;
   session: any | null;
@@ -17,11 +19,11 @@ export interface SignUpResponse {
 const authService = {
   async signInWithEmail(email: string, password: string): Promise<SignInResponse> {
     try {
-      if (!supabase) {
+      if (!supabaseAny) {
         throw new Error("Supabase client not initialized");
       }
 
-      const authResult: any = await supabase.auth.signInWithPassword({
+      const authResult = await supabaseAny.auth.signInWithPassword({
         email,
         password,
       })
@@ -31,7 +33,7 @@ const authService = {
       let provider_id: string | undefined = undefined;
       if (authResult.data.user) {
         try {
-          const ownerQuery: any = await supabase
+          const ownerQuery = await supabaseAny
             .from('activity_owners')
             .select('provider_id')
             .eq('user_id', authResult.data.user.id)
@@ -63,20 +65,20 @@ const authService = {
   },
 
   async signOut() {
-    if (!supabase) {
+    if (!supabaseAny) {
       throw new Error("Supabase client not initialized");
     }
-    const { error }: any = await supabase.auth.signOut()
+    const { error } = await supabaseAny.auth.signOut()
     if (error) throw error
   },
 
   async signUp(email: string, password: string): Promise<SignUpResponse> {
     try {
-      if (!supabase) {
+      if (!supabaseAny) {
         throw new Error("Supabase client not initialized");
       }
 
-      const { data, error }: any = await supabase.auth.signUp({ email, password });
+      const { data, error } = await supabaseAny.auth.signUp({ email, password });
       if (error) {
         return { user: null, session: null, error };
       }
@@ -90,35 +92,35 @@ const authService = {
   },
 
   async resetPassword(email: string): Promise<{ error: Error | null }> {
-    if (!supabase) {
+    if (!supabaseAny) {
       return { error: new Error("Supabase client not initialized") };
     }
 
-    const { error }: any = await supabase.auth.resetPasswordForEmail(email, {
+    const { error } = await supabaseAny.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/dashboard/reset-password`,
     })
     return { error: error ? error : null };
   },
 
   async updatePassword(password: string): Promise<{ error: Error | null }> {
-    if (!supabase) {
+    if (!supabaseAny) {
       return { error: new Error("Supabase client not initialized") };
     }
 
-    const { error }: any = await supabase.auth.updateUser({
+    const { error } = await supabaseAny.auth.updateUser({
       password,
     })
     return { error: error ? error : null };
   },
 
   async getActivityOwnerId(userId: string): Promise<string | null> {
-    if (!supabase) {
+    if (!supabaseAny) {
       console.error("Supabase client not initialized");
       return null;
     }
 
     try {
-      const { data, error }: any = await supabase
+      const { data, error } = await supabaseAny
         .from("activity_owners")
         .select("id")
         .eq("user_id", userId)
@@ -136,13 +138,13 @@ const authService = {
   },
 
   async getPartnerId(userId: string): Promise<string | null> {
-    if (!supabase) {
+    if (!supabaseAny) {
       console.error("Supabase client not initialized");
       return null;
     }
 
     try {
-      const { data, error }: any = await supabase
+      const { data, error } = await supabaseAny
         .from("partner_registrations")
         .select("id")
         .eq("user_id", userId)

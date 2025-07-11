@@ -2,6 +2,8 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Message } from "@/types/activity";
 
+const supabaseAny = supabase as any;
+
 export interface ChatMessage {
   id: string;
   sender_id: string;
@@ -23,12 +25,12 @@ export type NewMessage = Omit<Message, "id" | "created_at" | "sender">;
 
 const chatService = {
   async getMessages(bookingId: string): Promise<ChatMessage[]> {
-    if (!supabase) {
+    if (!supabaseAny) {
       throw new Error("Supabase client not initialized");
     }
 
     try {
-      const queryResult: any = await supabase
+      const queryResult = await supabaseAny
         .from("chat_messages")
         .select("*")
         .eq("activity_id", bookingId)
@@ -55,11 +57,11 @@ const chatService = {
   },
 
   async sendMessage(messageData: SendMessageData): Promise<ChatMessage> {
-    if (!supabase) {
+    if (!supabaseAny) {
       throw new Error("Supabase client not initialized");
     }
 
-    const result: any = await supabase
+    const result = await supabaseAny
       .from("chat_messages")
       .insert([messageData])
       .select()
@@ -73,11 +75,11 @@ const chatService = {
   },
 
   async markAsRead(messageId: string): Promise<void> {
-    if (!supabase) {
+    if (!supabaseAny) {
       throw new Error("Supabase client not initialized");
     }
 
-    const { error }: any = await supabase
+    const { error } = await supabaseAny
       .from("chat_messages")
       .update({ read_at: new Date().toISOString() })
       .eq("id", messageId)
@@ -89,10 +91,10 @@ const chatService = {
   },
 
   async getUnreadMessages(userId: string): Promise<{ id: string }[]> {
-    if (!supabase) {
+    if (!supabaseAny) {
       throw new Error("Supabase client not initialized");
     }
-    const { data, error }: any = await supabase
+    const { data, error } = await supabaseAny
       .from("chat_messages")
       .select("id")
       .eq("receiver_id", userId)
@@ -109,9 +111,9 @@ const chatService = {
     userId: string,
     onNewMessage: (message: ChatMessage) => void
   ) {
-    if (!supabase) return null;
+    if (!supabaseAny) return null;
 
-    const channel = supabase
+    const channel = supabaseAny
       .channel(`messages_${userId}`)
       .on(
         "postgres_changes",
@@ -131,7 +133,7 @@ const chatService = {
   },
 
   async createMessage(message: NewMessage) {
-    const { data, error }: any = await supabase
+    const { data, error } = await supabaseAny
       .from("chat_messages")
       .insert(message)
       .select()
