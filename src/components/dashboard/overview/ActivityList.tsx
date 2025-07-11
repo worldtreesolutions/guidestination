@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -66,67 +67,69 @@ export function ActivityList({ activities, onEdit, onView, onStatusChange }: Act
             </TableRow>
           </TableHeader>
           <TableBody>
-            {activities.map((activity) => (
-              <TableRow key={activity.id}>
-                <TableCell>
-                  <div className="flex items-center gap-4">
-                    <Image
-                      src={activity.image_url || "/placeholder.svg"}
-                      alt={activity.title}
-                      width={64}
-                      height={64}
-                      className="rounded-md object-cover"
-                    />
-                    <Link href={`/dashboard/activities/${String(activity.id)}`} className="font-medium hover:underline">
-                      {activity.title}
-                    </Link>
-                  </div>
-                </TableCell>
-                <TableCell>{activity.meeting_point}</TableCell>
-                <TableCell>
-                  {activity.b_price
-                    ? `฿${activity.b_price.toLocaleString()}`
-                    : "N/A"}
-                </TableCell>
-                <TableCell>
-                  <Badge className={getStatusColor(activity.status)} variant="outline">{activity.status || 'draft'}</Badge>
-                </TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreHorizontal className="h-4 w-4" />
+            {activities.map((activity) => {
+              const activityIdString = String(activity.id);
+              return (
+                <TableRow key={activity.id}>
+                  <TableCell>
+                    <div className="flex items-center gap-4">
+                      <Image
+                        src={activity.image_url || "/placeholder.svg"}
+                        alt={activity.title}
+                        width={64}
+                        height={64}
+                        className="rounded-md object-cover"
+                      />
+                      <Link href={`/dashboard/activities/${activityIdString}`} className="font-medium hover:underline">
+                        {activity.title}
+                      </Link>
+                    </div>
+                  </TableCell>
+                  <TableCell>{activity.meeting_point}</TableCell>
+                  <TableCell>
+                    {activity.b_price
+                      ? `฿${activity.b_price.toLocaleString()}`
+                      : "N/A"}
+                  </TableCell>
+                  <TableCell>
+                    <Badge className={getStatusColor(activity.status)} variant="outline">{activity.status || 'draft'}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem asChild>
+                          <Link href={`/dashboard/activities/${activityIdString}`}>
+                            View Details
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            if (onStatusChange) {
+                              onStatusChange(activityIdString, "archived")
+                            }
+                          }}
+                        >
+                          Archive
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <Link href={`/dashboard/activities/${activityIdString}`}>
+                      <Button variant="outline" size="sm">
+                        Edit
                       </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem asChild>
-                        <Link href={`/dashboard/activities/${String(activity.id)}`}>
-                          View Details
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => {
-                          if (onStatusChange) {
-                            onStatusChange(String(activity.id), "archived")
-                          }
-                        }}
-                      >
-                        Archive
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  <Link href={`/dashboard/activities/${String(activity.id)}`}>
-                    <Button variant="outline" size="sm">
-                      Edit
-                    </Button>
-                  </Link>
-                </TableCell>
-              </TableRow>
-            ))}
+                    </Link>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </CardContent>
     </Card>
   )
 }
-  
