@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client"
 import { Booking } from "@/types/activity"
 
@@ -7,6 +6,10 @@ const ACTIVITIES_TABLE = "activities"
 
 export const bookingService = {
   async getBookingStats(ownerId: string) {
+    if (!supabase) {
+      throw new Error("Supabase client not initialized");
+    }
+
     const { data: activities, error: activitiesError } = await supabase
       .from(ACTIVITIES_TABLE)
       .select("id")
@@ -63,6 +66,10 @@ export const bookingService = {
     ownerId: string,
     limit: number
   ): Promise<Booking[]> {
+    if (!supabase) {
+      throw new Error("Supabase client not initialized");
+    }
+
     const { data: activities, error: activitiesError } = await supabase
       .from(ACTIVITIES_TABLE)
       .select("id")
@@ -97,6 +104,10 @@ export const bookingService = {
   },
 
   async fetchBookingsForOwner(ownerId: string): Promise<Booking[]> {
+    if (!supabase) {
+      throw new Error("Supabase client not initialized");
+    }
+
     const { data: activities, error: activitiesError } = await supabase
       .from(ACTIVITIES_TABLE)
       .select("id")

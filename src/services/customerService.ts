@@ -95,6 +95,10 @@ const customerService = {
   },
 
   async getBookings(userId: string): Promise<Booking[]> {
+    if (!supabase) {
+      throw new Error("Supabase client not initialized");
+    }
+
     const { data, error } = await supabase
       .from("bookings")
       .select(
@@ -119,6 +123,10 @@ const customerService = {
   },
 
   async getBookingById(bookingId: string): Promise<Booking> {
+    if (!supabase) {
+      throw new Error("Supabase client not initialized");
+    }
+
     const { data, error } = await supabase
       .from("bookings")
       .select(
@@ -143,6 +151,10 @@ const customerService = {
   },
 
   async getWishlist(userId: string): Promise<WishlistItem[]> {
+    if (!supabase) {
+      throw new Error("Supabase client not initialized");
+    }
+
     const { data, error } = await supabase
       .from("wishlist")
       .select(
@@ -166,6 +178,10 @@ const customerService = {
   },
 
   async addToWishlist(userId: string, activityId: number) {
+    if (!supabase) {
+      throw new Error("Supabase client not initialized");
+    }
+
     const { data, error } = await supabase
       .from("wishlist")
       .insert([{ user_id: userId, activity_id: activityId }])
@@ -174,6 +190,10 @@ const customerService = {
   },
 
   async removeFromWishlist(userId: string, activityId: number) {
+    if (!supabase) {
+      throw new Error("Supabase client not initialized");
+    }
+
     const { error } = await supabase
       .from("wishlist")
       .delete()

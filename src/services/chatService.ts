@@ -6,6 +6,10 @@ export type SendMessageData = Database["public"]["Tables"]["chat_messages"]["Ins
 
 const chatService = {
   async getMessages(customerId: string, ownerId: string, activityId: number): Promise<ChatMessage[]> {
+    if (!supabase) {
+      throw new Error("Supabase client not initialized");
+    }
+
     const { data, error } = await supabase
       .from("chat_messages")
       .select("*")
@@ -22,6 +26,10 @@ const chatService = {
   },
 
   async sendMessage(messageData: SendMessageData): Promise<ChatMessage> {
+    if (!supabase) {
+      throw new Error("Supabase client not initialized");
+    }
+
     const { data, error } = await supabase
       .from("chat_messages")
       .insert(messageData)
@@ -37,6 +45,10 @@ const chatService = {
   },
 
   async markAsRead(messageId: string): Promise<void> {
+    if (!supabase) {
+      throw new Error("Supabase client not initialized");
+    }
+
     const { error } = await supabase
       .from("chat_messages")
       .update({ read_at: new Date().toISOString() })
@@ -49,6 +61,10 @@ const chatService = {
   },
 
   async getUnreadCount(userId: string): Promise<number> {
+    if (!supabase) {
+      throw new Error("Supabase client not initialized");
+    }
+
     const { count, error } = await supabase
       .from("chat_messages")
       .select("*", { count: "exact", head: true })
