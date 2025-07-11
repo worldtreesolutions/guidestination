@@ -53,12 +53,12 @@ const ActivityCard = ({ activity, onRemove }: { activity: ScheduledActivity; onR
     transform: CSS.Translate.toString(transform)
   } : undefined
 
+  const durationNum = useMemo(() => parseInt(String(activity.duration) || '1', 10), [activity.duration]);
+  const endTime = (activity.hour || 0) + durationNum;
+
   if (isDragging) {
     return <div ref={setNodeRef} style={{ height: `${HOUR_HEIGHT}px`, opacity: 0 }} />
   }
-
-  const durationNum = useMemo(() => parseInt(String(activity.duration) || '1', 10), [activity.duration]);
-  const endTime = (activity.hour || 0) + durationNum;
 
   return (
     <div className="relative h-full">
