@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react"
 import { useAuth } from "@/contexts/AuthContext"
 import { bookingService } from "@/services/bookingService"
@@ -46,23 +45,22 @@ export default function ActivityOwnerDashboard() {
           bookingStats,
           recentBookingsData,
           earningsData,
-          activitiesData,
         ] = await Promise.all([
           bookingService.getBookingStats(ownerId),
           bookingService.fetchRecentBookingsForOwner(ownerId, 5),
           commissionService.fetchEarningsForOwner(ownerId),
-          activityService.fetchActivitiesByOwner(ownerId),
         ])
 
         setStats({
           totalEarnings: earningsData.total,
           totalBookings: bookingStats.totalBookings,
           pendingEarnings: earningsData.pending,
-          totalActivities: activitiesData.length,
+          totalActivities: 0,
         })
         setRecentBookings(recentBookingsData)
         setEarnings(earningsData)
-        setActivities(activitiesData as Activity[])
+        const activitiesData = await activityService.fetchActivitiesByOwner(user.id);
+        setActivities(activitiesData as ActivityWithDetails[]);
       } catch (error: any) {
         console.error("Failed to fetch dashboard ", error)
         toast({

@@ -240,7 +240,6 @@ export default function ProfilePage() {
                         <BookingCard
                           key={booking.id}
                           booking={booking}
-                          onClick={() => handleBookingClick(booking)}
                         />
                       ))}
                     </div>
@@ -284,6 +283,7 @@ export default function ProfilePage() {
       {selectedBooking && (
         <BookingDetailsModal
           booking={selectedBooking}
+          isOpen={!!selectedBooking}
           onClose={() => setSelectedBooking(null)}
         />
       )}

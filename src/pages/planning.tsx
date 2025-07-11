@@ -19,8 +19,8 @@ function Planner() {
   const fetchActivities = useCallback(async () => {
     try {
       setLoading(true)
-      const data = await activityService.getActivities()
-      setActivities(data)
+      const activitiesData = await activityService.getActivities();
+      setActivities(activitiesData as ActivityWithDetails[]);
     } catch (error) {
       console.error("Error fetching activities:", error)
       toast({
