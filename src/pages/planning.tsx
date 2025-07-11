@@ -1,5 +1,5 @@
 import { ExcursionPlanner } from "@/components/activities/ExcursionPlanner"
-import { Navbar } from "@/components/layout/Navbar"
+import Navbar from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import Head from "next/head"
 import { useIsMobile } from "@/hooks/use-mobile"
@@ -19,7 +19,7 @@ function Planner() {
   const fetchActivities = useCallback(async () => {
     try {
       setLoading(true)
-      const data = await activityService.getAllActivities()
+      const data = await activityService.getActivities()
       setActivities(data as SupabaseActivity[])
     } catch (error) {
       console.error("Error fetching activities:", error)

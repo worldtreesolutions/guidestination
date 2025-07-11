@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
@@ -15,34 +15,37 @@ export default function BookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    if (user) {
-      fetchBookings()
-    }
-  }, [user])
-
-  const fetchBookings = async () => {
+  const fetchBookings = useCallback(async () => {
+    if (!user) return
     try {
       const { data, error } = await supabase
-        .from('bookings')
-        .select(`
+        .from("bookings")
+        .select(
+          `
           *,
           activities (
             title,
             image_url
           )
-        `)
-        .eq('provider_id', user?.id)
-        .order('created_at', { ascending: false })
+        `
+        )
+        .eq("provider_id", user.id)
+        .order("created_at", { ascending: false })
 
       if (error) throw error
-      setBookings(data || [])
+      setBookings((data as Booking[]) || [])
     } catch (error) {
-      console.error('Error fetching bookings:', error)
+      console.error("Error fetching bookings:", error)
     } finally {
       setLoading(false)
     }
-  }
+  }, [user])
+
+  useEffect(() => {
+    if (user) {
+      fetchBookings()
+    }
+  }, [user, fetchBookings])
 
   const getStatusColor = (status: string) => {
     switch (status) {

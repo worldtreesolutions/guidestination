@@ -16,7 +16,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Navbar } from "@/components/layout/Navbar"
+import Navbar from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { supabase } from "@/integrations/supabase/client"
 

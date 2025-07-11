@@ -1,3 +1,4 @@
+
 import { Database } from "@/integrations/supabase/types";
 
 export type Tables<T extends keyof Database["public"]["Tables"]> =
@@ -45,7 +46,6 @@ export interface Activity extends Omit<SupabaseActivity, "highlights" | "languag
   languages: string[] | null;
   included: string[] | null;
   not_included: string[] | null;
-  // Dynamic options from activity_selected_options
   dynamic_highlights?: ActivityOption[];
   dynamic_included?: ActivityOption[];
   dynamic_not_included?: ActivityOption[];
@@ -61,7 +61,7 @@ export interface Activity extends Omit<SupabaseActivity, "highlights" | "languag
   booking_type_id?: number | null;
 }
 
-export interface Booking extends Omit<SupabaseBooking, "status"> {
+export interface Booking extends SupabaseBooking {
   status: BookingStatus | null;
   activities: SupabaseActivity | null;
   platform_fee?: number;

@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import Image from "next/image";
-import { Navbar } from "@/components/layout/Navbar";
+import Navbar from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { PreferencesForm } from "@/components/recommendation/PreferencesForm";
+import { PreferencesForm, PreferencesFormData } from "@/components/recommendation/PreferencesForm";
 import { recommendationService, RecommendedPlan, UserPreferences, RecommendedActivity } from "@/services/recommendationService";
 import { SupabaseActivity } from "@/types/activity";
 import { Button } from "@/components/ui/button";
@@ -31,7 +31,7 @@ export default function RecommendationPage() {
     }
   }, [recommendations, addActivity, toast]);
 
-  const handleSubmit = async (data: UserPreferences) => {
+  const handleSubmit = async (data: PreferencesFormData) => {
     setLoading(true);
     setRecommendations(null);
     try {
@@ -44,7 +44,14 @@ export default function RecommendationPage() {
         setLoading(false);
         return;
       }
-      const result = await recommendationService.getRecommendations(data);
+      const preferences: UserPreferences = {
+        ...data,
+        travelDates: {
+            start: data.travelDates.from,
+            end: data.travelDates.to
+        }
+      }
+      const result = await recommendationService.getRecommendations(preferences);
       setRecommendations(result);
     } catch (error) {
       console.error("Error getting recommendations:", error);
@@ -58,8 +65,8 @@ export default function RecommendationPage() {
     }
   };
 
-  const handleActivitySelect = (activity: SupabaseActivity) => {
-    addActivity(activity);
+  const handleActivitySelect = (activity: RecommendedActivity) => {
+    addActivity(activity as SupabaseActivity);
     toast({
       title: "Activity Added",
       description: `${activity.title} has been added to your plan.`,
@@ -117,8 +124,9 @@ export default function RecommendationPage() {
                         <div className="relative w-full md:w-64 h-48">
                           <CardContent className="p-0">
                             <Image
-                              src={activity.image_urls?.[0] || '/placeholder.svg'}
+                              src={activity.image_url || '/placeholder.svg'}
                               alt={activity.title}
+                              fill
                               className="w-full h-48 object-cover"
                             />
                           </CardContent>
@@ -130,7 +138,7 @@ export default function RecommendationPage() {
                               <p className="text-sm text-muted-foreground">{activity.description}</p>
                             </div>
                             <div className="text-left sm:text-right mt-2 sm:mt-0">
-                              <p className="font-semibold">{activity.price?.toLocaleString()} THB</p>
+                              <p className="font-semibold">{activity.b_price?.toLocaleString()} THB</p>
                               <p className="text-sm text-muted-foreground">{activity.duration} hours</p>
                             </div>
                           </div>
@@ -140,7 +148,7 @@ export default function RecommendationPage() {
                             </div>
                             <Button
                               className="w-full sm:w-auto"
-                              onClick={() => handleActivitySelect(activity as SupabaseActivity)}
+                              onClick={() => handleActivitySelect(activity)}
                             >
                               Add to Planning
                             </Button>

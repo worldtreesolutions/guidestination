@@ -1,9 +1,8 @@
-import { useEffect, useState } from "react";
+
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/router";
-import Head from "next/head";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
-import { SupabaseActivity, Booking } from "@/types/activity";
+import { Activity, Booking } from "@/types/activity";
 import { useToast } from "@/hooks/use-toast";
 import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout";
 import { ActivityCard } from "@/components/dashboard/activities/ActivityCard";
@@ -17,50 +16,48 @@ export default function ActivitiesPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [activities, setActivities] = useState<SupabaseActivity[]>([]);
+  const [activities, setActivities] = useState<Activity[]>([]);
   const [activityBookings, setActivityBookings] = useState<Record<string, Booking[]>>({});
 
-  useEffect(() => {
-    const fetchActivitiesAndBookings = async () => {
-      if (user) {
-        const ownerId = user.id
-        try {
-          setLoading(true);
-          const [fetchedActivities, fetchedBookings] = await Promise.all([
-            activityService.fetchActivitiesByOwner(ownerId),
-            bookingService.fetchBookingsForOwner(ownerId),
-          ])
-          setActivities(fetchedActivities)
+  const fetchActivitiesAndBookings = useCallback(async () => {
+    if (user) {
+      const ownerId = user.id;
+      try {
+        setLoading(true);
+        const [fetchedActivities, fetchedBookings] = await Promise.all([
+          activityService.fetchActivitiesByOwner(ownerId),
+          bookingService.fetchBookingsForOwner(ownerId),
+        ]);
+        setActivities(fetchedActivities);
 
-          const bookingsByActivity: Record<string, Booking[]> = {}
-          fetchedActivities.forEach((activity: SupabaseActivity) => {
-            bookingsByActivity[activity.id.toString()] = fetchedBookings.filter(
-              (booking: Booking) => booking.activity_id === activity.id
-            )
-          })
-          setActivityBookings(bookingsByActivity)
-        } catch(error: any) {
-            console.error("Error fetching activities and bookings:", error);
-            toast({
-                title: "Error",
-                description: error.message || "Failed to fetch activities and bookings.",
-                variant: "destructive",
-            });
-        } finally {
-            setLoading(false)
-        }
+        const bookingsByActivity: Record<string, Booking[]> = {};
+        fetchedActivities.forEach((activity: Activity) => {
+          bookingsByActivity[activity.id.toString()] = fetchedBookings.filter(
+            (booking: Booking) => booking.activity_id === activity.id
+          );
+        });
+        setActivityBookings(bookingsByActivity);
+      } catch (error: any) {
+        console.error("Error fetching activities and bookings:", error);
+        toast({
+          title: "Error",
+          description: error.message || "Failed to fetch activities and bookings.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
       }
     }
-    if (user) {
-      fetchActivitiesAndBookings()
-    }
   }, [user, toast]);
+
+  useEffect(() => {
+    fetchActivitiesAndBookings();
+  }, [fetchActivitiesAndBookings]);
 
   const handleDelete = async (activityId: number) => {
     if (window.confirm("Are you sure you want to delete this activity?")) {
       try {
         await activityService.deleteActivity(activityId);
-
         setActivities(activities.filter((act) => act.id !== activityId));
         toast({
           title: "Activity Deleted",
@@ -77,12 +74,12 @@ export default function ActivitiesPage() {
     }
   };
 
-  const handleEdit = (activity: SupabaseActivity) => {
-    router.push(`/dashboard/activities/${activity.id}`);
+  const handleEdit = (activityId: number) => {
+    router.push(`/dashboard/activities/${activityId}`);
   };
 
-  const handleView = (activity: SupabaseActivity) => {
-    const slug = activity.title.toLowerCase().replace(/\s+/g, '-');
+  const handleView = (activity: Activity) => {
+    const slug = activity.title.toLowerCase().replace(/\s+/g, "-");
     window.open(`/activities/${slug}`, "_blank");
   };
 
@@ -90,7 +87,7 @@ export default function ActivitiesPage() {
     <DashboardLayout>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">My Activities</h1>
-        <Button onClick={() => router.push("/dashboard/activities/new")}>
+        <Button onClick={() => router.push("/activity-owner/list-activity")}>
           <PlusCircle className="h-4 w-4 mr-2" />
           Create New Activity
         </Button>
@@ -99,12 +96,14 @@ export default function ActivitiesPage() {
         <p>Loading activities...</p>
       ) : activities.length === 0 ? (
         <div className="text-center py-12 border-2 border-dashed rounded-lg">
-            <h3 className="text-lg font-medium">No activities found</h3>
-            <p className="text-muted-foreground mt-2">Start by creating a new activity to get started.</p>
-            <Button className="mt-4" onClick={() => router.push("/dashboard/activities/new")}>
-              <PlusCircle className="h-4 w-4 mr-2" />
-              Create Activity
-            </Button>
+          <h3 className="text-lg font-medium">No activities found</h3>
+          <p className="text-muted-foreground mt-2">
+            Start by creating a new activity to get started.
+          </p>
+          <Button className="mt-4" onClick={() => router.push("/activity-owner/list-activity")}>
+            <PlusCircle className="h-4 w-4 mr-2" />
+            Create Activity
+          </Button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -114,7 +113,7 @@ export default function ActivitiesPage() {
               activity={activity}
               onDelete={handleDelete}
               onEdit={handleEdit}
-              onView={handleView}
+              onPreview={(id) => router.push(`/activity-owner/activities?preview=${id}`)}
             />
           ))}
         </div>

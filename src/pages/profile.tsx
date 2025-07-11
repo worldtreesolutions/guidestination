@@ -1,15 +1,16 @@
 import Head from "next/head"
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/router"
-import { Navbar } from "@/components/layout/Navbar"
+import Navbar from "@/components/layout/Navbar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ProfileEditForm } from "@/components/profile/ProfileEditForm"
-import { BookingCard } from "@/components/profile/BookingCard"
-import { WishlistCard } from "@/components/profile/WishlistCard"
-import { BookingDetailsModal } from "@/components/profile/BookingDetailsModal"
+import ProfileEditForm from "@/components/profile/ProfileEditForm"
+import BookingCard from "@/components/profile/BookingCard"
+import WishlistCard from "@/components/profile/WishlistCard"
+import BookingDetailsModal from "@/components/profile/BookingDetailsModal"
 import { supabase } from "@/integrations/supabase/client"
 import { Booking, Activity } from "@/types/activity"
+import { useAuth } from "@/contexts/AuthContext"
 
 interface UserProfile {
   id: string
@@ -33,21 +34,21 @@ export default function ProfilePage() {
 
     try {
       const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
         .single()
 
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching profile:', error)
+      if (error && error.code !== "PGRST116") {
+        console.error("Error fetching profile:", error)
       } else {
-        setProfile(data || {
+        setProfile((data as UserProfile) || {
           id: user.id,
-          email: user.email || '',
+          email: user.email || "",
         })
       }
     } catch (error) {
-      console.error('Error fetching profile:', error)
+      console.error("Error fetching profile:", error)
     }
   }, [user])
 
@@ -69,12 +70,12 @@ export default function ProfilePage() {
         .order('created_at', { ascending: false })
 
       if (error) {
-        console.error('Error fetching bookings:', error)
+        console.error("Error fetching bookings:", error)
       } else {
-        setBookings(data || [])
+        setBookings((data as Booking[]) || [])
       }
     } catch (error) {
-      console.error('Error fetching bookings:', error)
+      console.error("Error fetching bookings:", error)
     }
   }, [user])
 
@@ -98,13 +99,13 @@ export default function ProfilePage() {
         .eq('user_id', user.id)
 
       if (error) {
-        console.error('Error fetching wishlist:', error)
+        console.error("Error fetching wishlist:", error)
       } else {
-        const activities = data?.map(item => item.activities).filter(Boolean) || []
+        const activities = data?.map((item: any) => item.activities).filter(Boolean) || []
         setWishlist(activities as Activity[])
       }
     } catch (error) {
-      console.error('Error fetching wishlist:', error)
+      console.error("Error fetching wishlist:", error)
     }
   }, [user])
 

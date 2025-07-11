@@ -1,17 +1,14 @@
-import { GetServerSideProps } from "next";
+
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
-import Image from "next/image";
-import { Navbar } from "@/components/layout/Navbar";
+import Navbar from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { 
-  Heart, 
-  Share2, 
   Clock, 
   Users, 
   Globe, 
@@ -20,7 +17,6 @@ import {
   CheckCircle, 
   XCircle,
   Calendar,
-  Play,
   ArrowLeft
 } from "lucide-react";
 import { ActivityGallery } from "@/components/activities/ActivityGallery";
@@ -29,7 +25,7 @@ import { BookingForm } from "@/components/activities/BookingForm";
 import { ActivityReviews } from "@/components/activities/ActivityReviews";
 import { useIsMobile } from "@/hooks/use-mobile";
 import activityService from "@/services/activityService";
-import { SupabaseActivity, Activity } from "@/types/activity";
+import { Activity } from "@/types/activity";
 
 export default function ActivityBookingPage() {
   const router = useRouter();
@@ -38,8 +34,6 @@ export default function ActivityBookingPage() {
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedParticipants, setSelectedParticipants] = useState(1);
-  const [selectedTime, setSelectedTime] = useState<string | null>(null);
-  const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -91,25 +85,18 @@ export default function ActivityBookingPage() {
     )
   }
 
-  const formatPrice = (price: number | null | string) => {
+  const formatPrice = (price: number | null | undefined) => {
     if (price === null || price === undefined) return "Free"
-    const numericPrice = typeof price === 'string' ? parseFloat(price) : price;
-    if (isNaN(numericPrice)) return "N/A";
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "THB",
       minimumFractionDigits: 0,
-    }).format(numericPrice)
+    }).format(price)
   }
 
-  const formatDuration = (duration: string | null) => {
-    if (duration === null) return "";
-    return duration;
-  }
-
-  const safeSplit = (text: string | null | undefined) => {
-    if (!text) return [];
-    return text.split(',').map(item => item.trim());
+  const formatDuration = (duration: number | null | undefined) => {
+    if (duration === null || duration === undefined) return "";
+    return `${duration} hours`;
   }
 
   return (
@@ -125,7 +112,6 @@ export default function ActivityBookingPage() {
         
         <main className="flex-1">
           <div className="container py-4 sm:py-8 px-4 sm:px-6 max-w-7xl">
-            {/* Back Button */}
             <div className="mb-6">
               <Button 
                 variant="ghost" 
@@ -137,16 +123,15 @@ export default function ActivityBookingPage() {
               </Button>
             </div>
 
-            {/* Header Section */}
             <div className="mb-8">
               <div className="flex items-center gap-2 mb-4">
                 <Badge variant="secondary" className="capitalize">
-                  {activity.category || "Uncategorized"}
+                  {activity.category_name || "Uncategorized"}
                 </Badge>
                 {activity.average_rating && (
                   <div className="flex items-center gap-1">
                     <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    <span className="font-medium">{activity.average_rating}</span>
+                    <span className="font-medium">{activity.average_rating.toFixed(1)}</span>
                     <span className="text-muted-foreground">
                       ({activity.review_count} reviews)
                     </span>
@@ -173,29 +158,26 @@ export default function ActivityBookingPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Globe className="h-4 w-4" />
-                  <span className="text-sm sm:text-base">{safeSplit(activity.languages).join(", ") || "English"}</span>
+                  <span className="text-sm sm:text-base">{activity.languages?.join(", ") || "English"}</span>
                 </div>
               </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Main Content */}
               <div className="lg:col-span-2 space-y-8">
-                {/* Image Gallery */}
                 <Card>
                   <CardHeader>
                     <CardTitle>Activity Gallery</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <ActivityGallery 
-                      images={safeSplit(activity.image_url) || []}
+                      images={activity.image_url ? [activity.image_url] : []}
                       videos={activity.video_url ? [{url: activity.video_url, thumbnail: activity.video_thumbnail_url || undefined}] : []}
                       title={activity.title}
                     />
                   </CardContent>
                 </Card>
 
-                {/* Activity Overview */}
                 <Card>
                   <CardHeader>
                     <CardTitle>About This Experience</CardTitle>
@@ -209,7 +191,7 @@ export default function ActivityBookingPage() {
                       <div>
                         <h3 className="font-semibold mb-3">Highlights</h3>
                         <ul className="space-y-2">
-                          {safeSplit(activity.highlights).map((highlight, index) => (
+                          {activity.highlights.map((highlight, index) => (
                             <li key={index} className="flex items-start gap-2">
                               <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
                               <span>{highlight}</span>
@@ -221,7 +203,6 @@ export default function ActivityBookingPage() {
                   </CardContent>
                 </Card>
 
-                {/* What's Included/Not Included */}
                 <div className="grid md:grid-cols-2 gap-6">
                   <Card>
                     <CardHeader>
@@ -229,7 +210,7 @@ export default function ActivityBookingPage() {
                     </CardHeader>
                     <CardContent>
                       <ul className="space-y-2">
-                        {safeSplit(activity.included).map((item, index) => (
+                        {activity.included?.map((item, index) => (
                           <li key={index} className="flex items-start gap-2">
                             <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
                             <span className="text-sm">{item}</span>
@@ -245,7 +226,7 @@ export default function ActivityBookingPage() {
                     </CardHeader>
                     <CardContent>
                       <ul className="space-y-2">
-                        {safeSplit(activity.not_included).map((item, index) => (
+                        {activity.not_included?.map((item, index) => (
                           <li key={index} className="flex items-start gap-2">
                             <XCircle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
                             <span className="text-sm">{item}</span>
@@ -256,7 +237,6 @@ export default function ActivityBookingPage() {
                   </Card>
                 </div>
 
-                {/* Meeting Point */}
                 <Card>
                   <CardHeader>
                     <CardTitle>Meeting Point & Details</CardTitle>
@@ -296,7 +276,6 @@ export default function ActivityBookingPage() {
                   </CardContent>
                 </Card>
 
-                {/* Reviews Section */}
                 <ActivityReviews 
                   activityId={activity.id.toString()}
                   rating={activity.average_rating || 0}
@@ -304,7 +283,6 @@ export default function ActivityBookingPage() {
                 />
               </div>
 
-              {/* Booking Sidebar */}
               <div className="lg:col-span-1">
                 <div className={isMobile ? "mt-6" : "sticky top-20"}>
                   <Card>
@@ -345,7 +323,6 @@ export default function ActivityBookingPage() {
                     </CardContent>
                   </Card>
 
-                  {/* Trust & Safety */}
                   <Card className="mt-6">
                     <CardHeader>
                       <CardTitle className="text-sm">Trust & Safety</CardTitle>
@@ -374,62 +351,6 @@ export default function ActivityBookingPage() {
             </div>
           </div>
         </main>
-
-        <div className="mt-8">
-          <h2 className="text-2xl font-bold mb-4">Activity Details</h2>
-          {activity.highlights && (
-            <div className="mb-6">
-              <h3 className="text-xl font-semibold mb-2">Highlights</h3>
-              <ul className="list-disc list-inside space-y-1">
-                {safeSplit(activity.highlights).map((highlight: string, index: number) => (
-                  <li key={index}>{highlight}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          <div className="mb-6">
-            <h3 className="text-xl font-semibold mb-2">What's Included</h3>
-            <ul className="list-disc list-inside space-y-1">
-              {safeSplit(activity.included)?.map((item: string, index: number) => (
-                <li key={index}>{item}</li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="mb-6">
-            <h3 className="text-xl font-semibold mb-2">What's Not Included</h3>
-            <ul className="list-disc list-inside space-y-1">
-              {safeSplit(activity.not_included)?.map((item: string, index: number) => (
-                <li key={index}>{item}</li>
-              ))}
-            </ul>
-          </div>
-
-          {activity.meeting_point && (
-            <div className="mb-6">
-              <h3 className="text-xl font-semibold mb-2">Meeting Point</h3>
-              <p>{activity.meeting_point}</p>
-            </div>
-          )}
-        </div>
-
-        <div className="mt-8">
-          <h2 className="text-2xl font-bold mb-4">Schedule</h2>
-          {activity.schedule_instances && activity.schedule_instances.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="border rounded-lg p-4">
-                <h3 className="font-semibold mb-2">Start Time</h3>
-                <p>{activity.schedule_instances[0]?.start_time || "Not specified"}</p>
-              </div>
-              <div className="border rounded-lg p-4">
-                <h3 className="font-semibold mb-2">End Time</h3>
-                <p>{activity.schedule_instances[0]?.end_time || "Not specified"}</p>
-              </div>
-            </div>
-          )}
-        </div>
-
         <Footer />
       </div>
     </>
