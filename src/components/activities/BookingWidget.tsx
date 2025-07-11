@@ -7,7 +7,6 @@ import { Calendar, Users, Clock, CreditCard } from "lucide-react";
 import { ActivityWithDetails } from "@/types/activity";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/router";
-import stripeService from "@/services/stripeService";
 
 interface BookingWidgetProps {
   activity: ActivityWithDetails;
@@ -37,7 +36,7 @@ export function BookingWidget({ activity }: BookingWidgetProps) {
     try {
       setLoading(true);
       
-      // Create Stripe checkout session via API
+      // Create Stripe checkout session via API call directly
       const checkoutData = {
         activityId: activity.id,
         participants,
@@ -47,7 +46,20 @@ export function BookingWidget({ activity }: BookingWidgetProps) {
         customerName: user.user_metadata?.full_name || user.email || "Guest"
       };
 
-      const result = await stripeService.createCheckoutSession(checkoutData);
+      const response = await fetch("/api/stripe/create-checkout-session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(checkoutData),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to create checkout session");
+      }
+
+      const result = await response.json();
       
       // Redirect to Stripe checkout
       if (result.url) {
