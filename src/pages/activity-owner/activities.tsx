@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "@/contexts/AuthContext";
-import { Activity, Booking } from "@/types/activity";
+import { Activity, Booking, ActivityWithDetails } from "@/types/activity";
 import { useToast } from "@/hooks/use-toast";
 import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout";
 import { ActivityCard } from "@/components/dashboard/activities/ActivityCard";
