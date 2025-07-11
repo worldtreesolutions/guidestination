@@ -46,7 +46,10 @@ export default function HomePage() {
 
   // Filter activities based on selected category
   const filteredActivities = selectedCategoryId 
-    ? activities.filter(activity => activity.category_id === selectedCategoryId)
+    ? activities.filter(activity => {
+        const selectedCategory = categories.find(c => c.id === selectedCategoryId);
+        return selectedCategory && activity.category_name === selectedCategory.name;
+      })
     : activities;
 
   const groupedActivities = filteredActivities.reduce((acc, activity) => {
