@@ -32,10 +32,7 @@ export function CommissionInvoiceList({
       setLoading(true);
       try {
         // This function needs to be created in commissionService
-        const fetchedInvoices = await commissionService.getCommissionInvoices({
-          providerId,
-          status,
-        });
+        const fetchedInvoices = await commissionService.fetchCommissionInvoices();
         setInvoices(fetchedInvoices);
       } catch (error) {
         console.error("Failed to fetch invoices:", error);

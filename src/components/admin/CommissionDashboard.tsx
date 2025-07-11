@@ -21,7 +21,7 @@ export default function CommissionDashboard() {
   const loadStats = async () => {
     try {
       setLoading(true);
-      const statsData = await commissionService.getCommissionStats();
+      const statsData = await commissionService.fetchCommissionStats();
       setStats(statsData);
     } catch (error) {
       console.error("Failed to load commission stats:", error);

@@ -115,4 +115,78 @@ export const commissionService = {
     
     return data as CommissionInvoice;
   },
+
+  async fetchCommissionInvoices(): Promise<CommissionInvoice[]> {
+    if (!supabase) {
+      console.error("Supabase client is not initialized.");
+      return [];
+    }
+    
+    const { data, error } = await supabase
+      .from("commission_invoices")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching commission invoices:", error);
+      return [];
+    }
+
+    return data as CommissionInvoice[];
+  },
+
+  async updateInvoiceStatus(invoiceId: string, status: "pending" | "paid" | "overdue" | "cancelled"): Promise<void> {
+    if (!supabase) {
+      throw new Error("Supabase client is not initialized.");
+    }
+    
+    const { error } = await supabase
+      .from("commission_invoices")
+      .update({ invoice_status: status })
+      .eq("id", invoiceId);
+
+    if (error) {
+      console.error("Error updating invoice status:", error);
+      throw error;
+    }
+  },
+
+  async createCommissionPayment(paymentData: any): Promise<void> {
+    if (!supabase) {
+      throw new Error("Supabase client is not initialized.");
+    }
+    
+    const { error } = await supabase
+      .from("commission_payments")
+      .insert([paymentData]);
+
+    if (error) {
+      console.error("Error creating commission payment:", error);
+      throw error;
+    }
+  },
+
+  async getCommissionInvoice(invoiceId: string): Promise<CommissionInvoice | null> {
+    if (!supabase) {
+      console.error("Supabase client is not initialized.");
+      return null;
+    }
+    
+    const { data, error } = await supabase
+      .from("commission_invoices")
+      .select("*")
+      .eq("id", invoiceId)
+      .single();
+
+    if (error) {
+      console.error("Error fetching commission invoice:", error);
+      return null;
+    }
+
+    return data as CommissionInvoice;
+  },
+
+  async calculateCommission(bookingAmount: number, rate: number): Promise<number> {
+    return bookingAmount * (rate / 100);
+  },
 };
