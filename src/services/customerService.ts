@@ -48,35 +48,50 @@ export interface WishlistItem {
 }
 
 const customerService = {
-  async getProfile(userId: string): Promise<CustomerProfile | null> {
+  async getCustomerProfile(customerId: string): Promise<CustomerProfile | null> {
+    if (!supabase) {
+      console.error("Supabase client is not initialized.");
+      return null;
+    }
     const { data, error } = await supabase
       .from("customer_profiles")
       .select("*")
-      .eq("customer_id", userId)
-      .single()
-
-    if (error && error.code !== "PGRST116") {
-      console.error("Error fetching profile:", error)
-      throw error
-    }
-
-    return data
-  },
-
-  async updateProfile(userId: string, updates: Partial<CustomerProfile>): Promise<CustomerProfile> {
-    const { data, error } = await supabase
-      .from("customer_profiles")
-      .update(updates)
-      .eq("customer_id", userId)
-      .select()
-      .single()
+      .eq("customer_id", customerId)
+      .single();
 
     if (error) {
-      console.error("Error updating profile:", error)
-      throw error
+      console.error("Error fetching customer profile:", error);
+      return null;
     }
+    return {
+      ...data,
+      full_name: `${data.first_name || ''} ${data.last_name || ''}`.trim(),
+      date_of_birth: data.date_of_birth || null,
+      user_id: data.customer_id
+    } as CustomerProfile;
+  },
 
-    return data
+  async updateCustomerProfile(customerId: string, profileData: Partial<CustomerProfile>): Promise<CustomerProfile | null> {
+    if (!supabase) {
+      throw new Error("Supabase client is not initialized.");
+    }
+    const { data, error } = await supabase
+      .from("customer_profiles")
+      .update(profileData)
+      .eq("customer_id", customerId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error updating customer profile:", error);
+      throw error;
+    }
+    return {
+      ...data,
+      full_name: `${data.first_name || ''} ${data.last_name || ''}`.trim(),
+      date_of_birth: data.date_of_birth || null,
+      user_id: data.customer_id
+    } as CustomerProfile;
   },
 
   async getBookings(userId: string): Promise<Booking[]> {
