@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react"
 import { useRouter } from "next/router"
 import Head from "next/head"
@@ -28,7 +29,7 @@ import { BookingForm } from "@/components/activities/BookingForm"
 import { ActivityReviews } from "@/components/activities/ActivityReviews"
 import { useIsMobile } from "@/hooks/use-mobile"
 import activityService from "@/services/activityService"
-import { SupabaseActivity, Activity }
+import { SupabaseActivity, Activity } from "@/types/activity"
 
 export default function ActivityBookingPage() {
   const router = useRouter()
