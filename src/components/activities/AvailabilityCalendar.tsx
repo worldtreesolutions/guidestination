@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo } from "react"
+
+import { useState, useMemo } from "react"
 import { Calendar } from "@/components/ui/calendar"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { CalendarDays, Clock } from "lucide-react"
 import { ActivityScheduleInstance } from "@/types/activity"
@@ -71,29 +71,24 @@ export function AvailabilityCalendar({
     }).filter(date => date !== null) as Date[];
   }, [datesToUse])
 
-  // Check if a date is available - memoized function
-  const isDateAvailable = useMemo(() => {
-    return (date: Date) => {
-      return availableDateObjects.some(availableDate => 
-        availableDate.getFullYear() === date.getFullYear() &&
-        availableDate.getMonth() === date.getMonth() &&
-        availableDate.getDate() === date.getDate()
-      );
-    };
-  }, [availableDateObjects])
-
-  // Disable dates that are not available or in the past - memoized function
+  // Disable dates that are not available or in the past - simplified logic
   const disabledDates = useMemo(() => {
     return (date: Date) => {
       const today = new Date();
       const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
       
       const isPast = date < todayMidnight;
-      const isNotAvailable = !isDateAvailable(date);
       
-      return isPast || isNotAvailable;
+      // Check if date is available
+      const isAvailable = availableDateObjects.some(availableDate => 
+        availableDate.getFullYear() === date.getFullYear() &&
+        availableDate.getMonth() === date.getMonth() &&
+        availableDate.getDate() === date.getDate()
+      );
+      
+      return isPast || !isAvailable;
     };
-  }, [isDateAvailable])
+  }, [availableDateObjects])
 
   // Custom modifiers for the calendar - memoized
   const modifiers = useMemo(() => ({
