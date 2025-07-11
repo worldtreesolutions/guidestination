@@ -1,49 +1,60 @@
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts"
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardDescription,
+} from "@/components/ui/card"
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartConfig,
+} from "@/components/ui/chart"
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
+import { Earning } from "@/types/activity"
 
 interface EarningsChartProps {
-  data: { month: string; amount: number }[];
+  earningsData: Earning[]
 }
 
-export function EarningsChart({ data }: EarningsChartProps) {
+const chartConfig = {
+  earnings: {
+    label: "Earnings",
+    color: "hsl(var(--chart-1))",
+  },
+} satisfies ChartConfig
+
+export default function EarningsChart({ earningsData }: EarningsChartProps) {
+  const totalEarnings = earningsData.reduce(
+    (acc, month) => acc + month.amount,
+    0
+  )
+
   return (
-    <Card className="col-span-4">
+    <Card>
       <CardHeader>
-        <CardTitle>Earnings Overview</CardTitle>
+        <CardTitle>Monthly Earnings</CardTitle>
         <CardDescription>
-          Your earnings over the past months
+          Total Earnings: ${totalEarnings.toFixed(2)}
         </CardDescription>
       </CardHeader>
-      <CardContent className="pl-2">
-        <ResponsiveContainer width="100%" height={350}>
-          <BarChart data={data}>
+      <CardContent>
+        <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
+          <BarChart data={earningsData}>
+            <CartesianGrid vertical={false} />
             <XAxis
               dataKey="month"
-              stroke="#888888"
-              fontSize={12}
               tickLine={false}
+              tickMargin={10}
               axisLine={false}
             />
-            <YAxis
-              stroke="#888888"
-              fontSize={12}
-              tickLine={false}
-              axisLine={false}
-              tickFormatter={(value) => `฿${value}`}
-            />
-            <Tooltip 
-              formatter={(value: number) => [`฿${value.toLocaleString()}`, 'Earnings']}
-              labelFormatter={(label) => `Month: ${label}`}
-            />
-            <Bar
-              dataKey="amount"
-              fill="currentColor"
-              radius={[4, 4, 0, 0]}
-              className="fill-primary"
-            />
+            <YAxis />
+            <ChartTooltip content={<ChartTooltipContent />} />
+            <Bar dataKey="amount" fill="var(--color-earnings)" radius={4} />
           </BarChart>
-        </ResponsiveContainer>
+        </ChartContainer>
       </CardContent>
     </Card>
   )

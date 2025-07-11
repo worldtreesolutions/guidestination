@@ -1,65 +1,60 @@
-import { SupabaseBooking, Booking } from "@/types/activity"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
+
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardDescription,
+} from "@/components/ui/card"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Booking } from "@/types/activity"
+import { format } from "date-fns"
 
 interface RecentBookingsProps {
-  bookings: Booking[];
+  bookings: Booking[]
 }
 
-export function RecentBookings({ bookings }: RecentBookingsProps) {
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "confirmed":
-        return "bg-green-100 text-green-800 hover:bg-green-100/80";
-      case "pending":
-        return "bg-yellow-100 text-yellow-800 hover:bg-yellow-100/80";
-      case "completed":
-        return "bg-blue-100 text-blue-800 hover:bg-blue-100/80";
-      case "cancelled":
-        return "bg-red-100 text-red-800 hover:bg-red-100/80";
-      default:
-        return "";
-    }
-  };
-
+export default function RecentBookings({ bookings }: RecentBookingsProps) {
   return (
-    <Card className="col-span-4">
+    <Card>
       <CardHeader>
         <CardTitle>Recent Bookings</CardTitle>
         <CardDescription>
-          Your most recent customer bookings
+          You have {bookings.length} recent bookings.
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Activity</TableHead>
-              <TableHead>Customer</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Participants</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Status</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {bookings.map((booking) => (
-              <TableRow key={booking.id}>
-                <TableCell className="font-medium">{booking.activityTitle}</TableCell>
-                <TableCell>{booking.customerName}</TableCell>
-                <TableCell>{new Date(booking.date || booking.created_at).toLocaleDateString()} at {booking.bookingTime}</TableCell>
-                <TableCell>{booking.num_participants}</TableCell>
-                <TableCell>฿{(booking.providerAmount || 0).toLocaleString()}</TableCell>
-                <TableCell>
-                  <Badge className={getStatusColor(booking.status)} variant="outline">
-                    {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-                  </Badge>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+      <CardContent className="grid gap-6">
+        {bookings.length > 0 ? (
+          bookings.map((booking) => (
+            <div key={booking.id} className="flex items-center gap-4">
+              <Avatar className="hidden h-9 w-9 sm:flex">
+                <AvatarImage
+                  src={`/avatars/${booking.customer_name?.charAt(0)}.png`}
+                  alt="Avatar"
+                />
+                <AvatarFallback>
+                  {booking.customer_name
+                    ? booking.customer_name.charAt(0).toUpperCase()
+                    : "N/A"}
+                </AvatarFallback>
+              </Avatar>
+              <div className="grid gap-1">
+                <p className="text-sm font-medium leading-none">
+                  {booking.customer_name || "Guest"}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {booking.activities?.title || "Activity"} -{" "}
+                  {format(new Date(booking.booking_date), "PPP")}
+                </p>
+              </div>
+              <div className="ml-auto font-medium">
+                +${booking.total_price.toFixed(2)}
+              </div>
+            </div>
+          ))
+        ) : (
+          <p className="text-sm text-muted-foreground">No recent bookings.</p>
+        )}
       </CardContent>
     </Card>
   )
