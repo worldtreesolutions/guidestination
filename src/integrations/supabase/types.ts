@@ -1,4 +1,3 @@
-
 export type Json =
   | string
   | number
@@ -7,7 +6,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export type Database = {
+export interface Database {
   public: {
     Tables: {
       activities: {
@@ -206,7 +205,29 @@ export type Database = {
           pickup_location_lng?: number | null
           pickup_location_formatted_address?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "activities_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activities_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "activity_owners"
+            referencedColumns: ["provider_id"]
+          },
+          {
+            foreignKeyName: "activities_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       activity_selected_options: {
         Row: {
