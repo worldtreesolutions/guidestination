@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
@@ -315,7 +314,7 @@ export default function ActivityBookingPage() {
                       <Separator />
 
                       <BookingForm
-                        activity={activity}
+                        activity={activity as unknown as SupabaseActivity}
                         selectedDate={selectedDate}
                         participants={selectedParticipants}
                         onParticipantsChange={setSelectedParticipants}

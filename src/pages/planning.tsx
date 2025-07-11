@@ -1,4 +1,3 @@
-
 import { ExcursionPlanner } from "@/components/activities/ExcursionPlanner"
 import Navbar from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
@@ -43,7 +42,7 @@ function Planner() {
   }
 
   return (
-    <ExcursionPlanner activities={activities as SupabaseActivity[]} onPlanComplete={(plan) => console.log(plan)} />
+    <ExcursionPlanner activities={activities as unknown as SupabaseActivity[]} onPlanComplete={(plan) => console.log(plan)} />
   )
 }
 

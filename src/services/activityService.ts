@@ -1,311 +1,193 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { Activity, ActivityForHomepage, SupabaseActivity, ActivityOption } from "@/types/activity";
-import { currencyService } from "./currencyService";
+import { Activity, SupabaseActivity, ActivitySchedule, ActivityScheduleInstance } from "@/types/activity";
 
-const toActivity = (activity: SupabaseActivity, userCurrency: string): Activity => {
-  const splitString = (str: string | null): string[] => {
-    if (!str || str.trim() === "") return [];
-    return str.split(",").map(s => s.trim());
-  };
-
-  // Convert b_price from string to number if needed
-  const bPrice = typeof activity.b_price === "string" ? parseFloat(activity.b_price) : activity.b_price;
-
-  return {
-    ...activity,
-    slug: `activity-${activity.id}`,
-    category_name: activity.category,
-    price: bPrice ? currencyService.convertFromTHB(bPrice, userCurrency) : null,
-    currency: userCurrency,
-    highlights: splitString(activity.highlights),
-    languages: splitString(activity.languages),
-    included: splitString(activity.included),
-    not_included: splitString(activity.not_included),
-    dynamic_highlights: [],
-    dynamic_included: [],
-    dynamic_not_included: [],
-    activity_schedules: [],
-    schedule_instances: [],
-  };
-};
-
-export const activityService = {
-  async getActivities(): Promise<Activity[]> {
-    try {
-      const { data, error } = await supabase
-        .from("activities")
-        .select("*")
-        .eq("is_active", true)
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        console.error("Error fetching activities:", error);
-        throw error;
-      }
-
-      const userCurrency = currencyService.getUserCurrency();
-      
-      return (data || []).map(activity => toActivity(activity, userCurrency));
-    } catch (error) {
-      console.error("Error in getActivities:", error);
-      throw error;
-    }
-  },
-
-  async getActivitiesForHomepage(): Promise<ActivityForHomepage[]> {
-    try {
-      const { data, error } = await supabase
-        .from("activities")
-        .select(`
-          id,
-          title,
-          b_price,
-          address,
-          average_rating,
-          image_url,
-          category,
-          duration,
-          min_age,
-          max_age,
-          description,
-          max_participants,
-          technical_skill_level,
-          physical_effort_level,
-          includes_pickup,
-          includes_meal
-        `)
-        .eq("is_active", true)
-        .order("created_at", { ascending: false })
-        .limit(20);
-
-      if (error) {
-        console.error("Error fetching activities for homepage:", error);
-        throw error;
-      }
-
-      const userCurrency = currencyService.getUserCurrency();
-
-      return (data || []).map(activity => {
-        const bPrice = typeof activity.b_price === "string" ? parseFloat(activity.b_price) : activity.b_price;
-        const convertedPrice = bPrice ? currencyService.convertFromTHB(bPrice, userCurrency) : null;
-
-        return {
-          ...activity,
-          slug: `activity-${activity.id}`,
-          category_name: activity.category,
-          location: activity.address || "Location TBD",
-          price: convertedPrice,
-          b_price: convertedPrice,
-          currency: userCurrency
-        };
-      });
-    } catch (error) {
-      console.error("Error in getActivitiesForHomepage:", error);
-      throw error;
-    }
-  },
-
-  async getActivityBySlug(slug: string): Promise<Activity | null> {
-    try {
-      const activityIdStr = slug.replace("activity-", "");
-      const activityId = parseInt(activityIdStr, 10);
-
-      if (isNaN(activityId)) {
-        console.error("Invalid activity slug:", slug);
-        return null;
-      }
-      
-      // Fetch activity data
-      const {  activityData, error: activityError } = await supabase
-        .from("activities")
-        .select("*")
-        .eq("id", activityId)
-        .eq("is_active", true)
-        .single();
-
-      if (activityError || !activityData) {
-        console.error("Error fetching activity:", activityError?.message || "Activity not found");
-        return null;
-      }
-
-      // Fetch schedules
-      const {  schedules, error: schedulesError } = await supabase
-        .from("activity_schedules")
-        .select("*")
-        .eq("activity_id", activityId);
-      
-      if (schedulesError) {
-        console.warn("Could not fetch activity schedules:", schedulesError.message);
-      }
-
-      // Fetch schedule instances
-      const {  scheduleInstances, error: instancesError } = await supabase
-        .from("activity_schedule_instances")
-        .select("*")
-        .eq("activity_id", activityId);
-
-      if (instancesError) {
-        console.warn("Could not fetch schedule instances:", instancesError.message);
-      }
-
-      // Fetch selected options with activity options
-      const {  selectedOptions, error: optionsError } = await supabase
-        .from("activity_selected_options")
-        .select(`
-          option_id,
-          activity_options (
-            id,
-            label,
-            icon,
-            type
-          )
-        `)
-        .eq("activity_id", activityId);
-
-      if (optionsError) {
-        console.warn("Could not fetch activity options:", optionsError.message);
-      }
-
-      const userCurrency = currencyService.getUserCurrency();
-      const activity = toActivity(activityData, userCurrency);
-
-      // Process dynamic options
-      const processOptions = (type: string): ActivityOption[] => {
-        if (!selectedOptions) return [];
-        return selectedOptions
-          .filter(opt => {
-            const relatedOption = opt.activity_options as any; // Cast to any to check properties
-            return relatedOption && !relatedOption.error && relatedOption.type === type;
-          })
-          .map(opt => {
-            const relatedOption = opt.activity_options as any;
-            return {
-              id: relatedOption.id,
-              label: relatedOption.label || "",
-              icon: relatedOption.icon || "Star",
-              type: relatedOption.type
-            };
-          });
-      };
-
-      // Add dynamic data
-      activity.dynamic_highlights = processOptions("highlight");
-      activity.dynamic_included = processOptions("included");
-      activity.dynamic_not_included = processOptions("not_included");
-      activity.activity_schedules = schedules || [];
-      activity.schedule_instances = scheduleInstances || [];
-
-      return activity;
-    } catch (error) {
-      console.error("Error in getActivityBySlug:", error);
-      return null;
-    }
-  },
-
-  async getActivityById(activityId: number): Promise<Activity | null> {
-    try {
-      const {  activityData, error: activityError } = await supabase
-        .from("activities")
-        .select("*")
-        .eq("id", activityId)
-        .eq("is_active", true)
-        .single();
-
-      if (activityError || !activityData) {
-        console.error("Error fetching activity:", activityError);
-        return null;
-      }
-
-      const userCurrency = currencyService.getUserCurrency();
-      return toActivity(activityData, userCurrency);
-    } catch (error) {
-      console.error("Error in getActivityById:", error);
-      return null;
-    }
-  },
-
-  async getActivitiesByCategory(categoryName: string): Promise<Activity[]> {
-    try {
-      const { data, error } = await supabase
-        .from("activities")
-        .select("*")
-        .eq("category", categoryName)
-        .eq("is_active", true)
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        console.error("Error fetching activities by category:", error);
-        throw error;
-      }
-
-      const userCurrency = currencyService.getUserCurrency();
-      return (data || []).map(activity => toActivity(activity, userCurrency));
-    } catch (error) {
-      console.error("Error in getActivitiesByCategory:", error);
-      throw error;
-    }
-  },
-
-  async searchActivities(query: string): Promise<Activity[]> {
-    try {
-      const { data, error } = await supabase
-        .from("activities")
-        .select("*")
-        .eq("is_active", true)
-        .or(`title.ilike.%${query}%,description.ilike.%${query}%,address.ilike.%${query}%`)
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        console.error("Error searching activities:", error);
-        throw error;
-      }
-
-      const userCurrency = currencyService.getUserCurrency();
-      return (data || []).map(activity => toActivity(activity, userCurrency));
-    } catch (error) {
-      console.error("Error in searchActivities:", error);
-      throw error;
-    }
-  },
-
-  async fetchActivitiesByOwner(ownerId: string): Promise<Activity[]> {
-    try {
-      const { data, error } = await supabase
-        .from("activities")
-        .select("*")
-        .eq("owner_id", ownerId)
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        console.error("Error fetching activities by owner:", error);
-        throw error;
-      }
-
-      const userCurrency = currencyService.getUserCurrency();
-      return (data || []).map(activity => toActivity(activity, userCurrency));
-    } catch (error) {
-      console.error("Error in fetchActivitiesByOwner:", error);
-      throw error;
-    }
-  },
-
-  async deleteActivity(activityId: number): Promise<{ error: any | null }> {
-    try {
-      const { error } = await supabase
-        .from("activities")
-        .delete()
-        .eq("id", activityId);
-
-      if (error) {
-        console.error("Error deleting activity:", error);
-      }
-      return { error };
-    } catch (error) {
-      console.error("Error in deleteActivity:", error);
-      return { error };
+class ActivityService {
+  private _mapStatus(status: number | null): string {
+    switch (status) {
+      case 1:
+        return "published";
+      case 2:
+        return "unpublished";
+      case 3:
+        return "draft";
+      case 4:
+        return "archived";
+      default:
+        return "draft";
     }
   }
-};
 
+  private _transformActivity(
+    activity: SupabaseActivity,
+    categoryName?: string
+  ): Activity {
+    const {
+      highlights,
+      languages,
+      included,
+      not_included,
+      status,
+      duration,
+      ...rest
+    } = activity;
+
+    return {
+      ...rest,
+      slug: activity.title.toLowerCase().replace(/\s+/g, "-"),
+      category_name: categoryName || "Uncategorized",
+      price: activity.b_price,
+      currency: "THB",
+      highlights: highlights ? JSON.parse(highlights) : [],
+      languages: languages ? JSON.parse(languages) : ["English"],
+      included: included ? JSON.parse(included) : [],
+      not_included: not_included ? JSON.parse(not_included) : [],
+      status: this._mapStatus(status),
+      duration: duration ? parseInt(duration, 10) : null,
+      average_rating: activity.average_rating || 0,
+    };
+  }
+
+  async getActivities(): Promise<Activity[]> {
+    const { data, error } = await supabase
+      .from("activities")
+      .select("*, categories(name)")
+      .eq("is_active", true);
+
+    if (error) {
+      console.error("Error fetching activities:", error);
+      throw error;
+    }
+
+    return data.map((activity) =>
+      this._transformActivity(activity, (activity as any).categories?.name)
+    );
+  }
+
+  async getActivityById(id: number): Promise<Activity> {
+    const {  activity, error } = await supabase
+      .from("activities")
+      .select("*, categories(name)")
+      .eq("id", id)
+      .single();
+
+    if (error) throw error;
+    if (!activity) throw new Error("Activity not found");
+
+    const schedulesResponse = await supabase
+      .from("activity_schedules")
+      .select("*")
+      .eq("activity_id", id);
+
+    const scheduleInstancesResponse = await supabase
+      .from("activity_schedule_instances")
+      .select("*")
+      .eq("activity_id", id);
+
+    const transformedActivity = this._transformActivity(
+      activity as any,
+      (activity as any).categories?.name
+    );
+
+    return {
+      ...transformedActivity,
+      schedules: schedulesResponse.data || [],
+      schedule_instances: scheduleInstancesResponse.data || [],
+    };
+  }
+
+  async fetchActivitiesByOwner(ownerId: string): Promise<Activity[]> {
+    const { data, error } = await supabase
+      .from("activities")
+      .select("*, categories(name)")
+      .eq("provider_id", ownerId);
+
+    if (error) throw error;
+
+    return data.map((activity) =>
+      this._transformActivity(activity, (activity as any).categories?.name)
+    );
+  }
+
+  async createActivity(
+    activityData: Partial<SupabaseActivity>
+  ): Promise<SupabaseActivity> {
+    const { data, error } = await supabase
+      .from("activities")
+      .insert(activityData)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  async updateActivity(
+    id: number,
+    activityData: Partial<SupabaseActivity>
+  ): Promise<SupabaseActivity> {
+    const { data, error } = await supabase
+      .from("activities")
+      .update(activityData)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  async deleteActivity(id: number): Promise<void> {
+    const { error } = await supabase.from("activities").delete().eq("id", id);
+    if (error) throw error;
+  }
+
+  async getSchedulesForActivity(activityId: number): Promise<ActivitySchedule[]> {
+    const { data, error } = await supabase
+      .from("activity_schedules")
+      .select("*")
+      .eq("activity_id", activityId);
+    if (error) throw error;
+    return data;
+  }
+
+  async updateSchedulesForActivity(
+    activityId: number,
+    schedules: Partial<ActivitySchedule>[]
+  ): Promise<ActivitySchedule[]> {
+    // This is a complex operation, typically involving deleting old schedules
+    // and inserting new ones to avoid conflicts.
+    // For simplicity, we'll just upsert.
+    const schedulesToUpsert = schedules.map((s) => ({
+      ...s,
+      activity_id: activityId,
+    }));
+
+    const { data, error } = await supabase
+      .from("activity_schedules")
+      .upsert(schedulesToUpsert, { onConflict: "id" })
+      .select();
+
+    if (error) throw error;
+    return data;
+  }
+
+  async getScheduleInstances(
+    activityId: number,
+    startDate: string,
+    endDate: string
+  ): Promise<ActivityScheduleInstance[]> {
+    const { data, error } = await supabase
+      .from("activity_schedule_instances")
+      .select("*")
+      .eq("activity_id", activityId)
+      .gte("scheduled_date", startDate)
+      .lte("scheduled_date", endDate);
+
+    if (error) throw error;
+    return data;
+  }
+}
+
+const activityService = new ActivityService();
 export default activityService;

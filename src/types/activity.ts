@@ -1,4 +1,3 @@
-
 import { Database } from "@/integrations/supabase/types";
 
 export type Tables<T extends keyof Database["public"]["Tables"]> =
@@ -56,7 +55,7 @@ export interface Activity extends Omit<SupabaseActivity, "highlights" | "languag
   location?: string | null;
   status?: string;
   review_count?: number;
-  average_rating?: number | null;
+  average_rating: number | null;
   duration?: number | null;
   booking_type_id?: number | null;
 }

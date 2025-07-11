@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
@@ -24,7 +23,7 @@ export default function RecommendationPage() {
 
   useEffect(() => {
     if (recommendations) {
-      recommendations.activities.forEach(activity => addActivity(activity as Activity));
+      recommendations.activities.forEach(activity => addActivity(activity as unknown as Activity));
       toast({
         title: "All activities added",
         description: "All recommended activities have been added to your plan.",
@@ -67,7 +66,7 @@ export default function RecommendationPage() {
   };
 
   const handleActivitySelect = (activity: RecommendedActivity) => {
-    addActivity(activity as Activity);
+    addActivity(activity as unknown as Activity);
     toast({
       title: "Activity Added",
       description: `${activity.title} has been added to your plan.`,
