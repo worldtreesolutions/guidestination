@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/router"
 import Head from "next/head"
@@ -52,12 +51,7 @@ export default function ActivityPage() {
     
     try {
       setLoading(true)
-      const activityId = parseInt(slug)
-      if (isNaN(activityId)) {
-        throw new Error("Invalid activity ID")
-      }
-      
-      const activityData = await activityService.getActivityById(activityId)
+      const activityData = await activityService.getActivityBySlug(slug)
       setActivity(activityData)
     } catch (error) {
       console.error("Error fetching activity:", error)
@@ -588,13 +582,6 @@ export default function ActivityPage() {
                         scheduleData={activity.schedule_instances || []}
                         selectedDate={selectedDate}
                         onDateSelect={setSelectedDate}
-                      />
-
-                      <BookingForm
-                        activity={activity}
-                        selectedDate={selectedDate}
-                        participants={selectedParticipants}
-                        onParticipantsChange={setSelectedParticipants}
                       />
                     </CardContent>
                   </Card>
