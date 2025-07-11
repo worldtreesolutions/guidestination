@@ -109,7 +109,7 @@ export function ActivityList({ activities, onEdit, onView, onStatusChange }: Act
                         <DropdownMenuItem
                           onClick={() => {
                             if (onStatusChange) {
-                              onStatusChange(activityId as number, "archived")
+                              onStatusChange(activity.id, "archived")
                             }
                           }}
                         >
