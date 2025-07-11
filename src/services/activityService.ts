@@ -91,7 +91,7 @@ export const activityService = {
     if (!data) return null;
 
     // Get user's currency and convert prices
-    const userCurrency = await currencyService.getUserCurrency();
+    const userCurrency = currencyService.getUserCurrency();
 
     return {
       ...data,
@@ -122,7 +122,7 @@ export const activityService = {
     }
 
     // Get user's currency and convert prices
-    const userCurrency = await currencyService.getUserCurrency();
+    const userCurrency = currencyService.getUserCurrency();
 
     return (data || []).map(activity => ({
       ...activity,
@@ -153,7 +153,7 @@ export const activityService = {
     }
 
     // Get user's currency and convert prices
-    const userCurrency = await currencyService.getUserCurrency();
+    const userCurrency = currencyService.getUserCurrency();
 
     return (data || []).map(activity => ({
       ...activity,

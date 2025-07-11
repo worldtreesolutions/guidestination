@@ -1,4 +1,3 @@
-
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Star, MapPin } from "lucide-react";
@@ -16,7 +15,9 @@ export default function ActivityCard({ activity }: ActivityCardProps) {
 
   useEffect(() => {
     if (!activity.currency) {
-      currencyService.getUserCurrency().then(setUserCurrency);
+      // Use synchronous method since getUserCurrency is now sync
+      const currency = currencyService.getUserCurrency();
+      setUserCurrency(currency);
     }
   }, [activity.currency]);
 
