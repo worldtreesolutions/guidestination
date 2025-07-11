@@ -1,14 +1,14 @@
-
-import { useState, useEffect } from "react"
-import { useRouter } from "next/router"
-import Head from "next/head"
-import Image from "next/image"
-import { Navbar } from "@/components/layout/Navbar"
-import { Footer } from "@/components/layout/Footer"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
+import { GetServerSideProps } from "next";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/router";
+import Head from "next/head";
+import Image from "next/image";
+import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { 
   Heart, 
   Share2, 
@@ -22,43 +22,43 @@ import {
   Calendar,
   Play,
   ArrowLeft
-} from "lucide-react"
-import { ActivityGallery } from "@/components/activities/ActivityGallery"
-import { AvailabilityCalendar } from "@/components/activities/AvailabilityCalendar"
-import { BookingForm } from "@/components/activities/BookingForm"
-import { ActivityReviews } from "@/components/activities/ActivityReviews"
-import { useIsMobile } from "@/hooks/use-mobile"
-import activityService from "@/services/activityService"
-import { SupabaseActivity, Activity } from "@/types/activity"
+} from "lucide-react";
+import { ActivityGallery } from "@/components/activities/ActivityGallery";
+import { AvailabilityCalendar } from "@/components/activities/AvailabilityCalendar";
+import { BookingForm } from "@/components/activities/BookingForm";
+import { ActivityReviews } from "@/components/activities/ActivityReviews";
+import { useIsMobile } from "@/hooks/use-mobile";
+import activityService from "@/services/activityService";
+import { SupabaseActivity, Activity } from "@/types/activity";
 
 export default function ActivityBookingPage() {
-  const router = useRouter()
-  const { activityId } = router.query
-  const [activity, setActivity] = useState<Activity | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [selectedDate, setSelectedDate] = useState<Date>()
-  const [selectedParticipants, setSelectedParticipants] = useState(1)
-  const [selectedTime, setSelectedTime] = useState<string | null>(null)
-  const [selectedDay, setSelectedDay] = useState<string | null>(null)
-  const isMobile = useIsMobile()
+  const router = useRouter();
+  const { activityId } = router.query;
+  const [activity, setActivity] = useState<Activity | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [selectedDate, setSelectedDate] = useState<Date>();
+  const [selectedParticipants, setSelectedParticipants] = useState(1);
+  const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const fetchActivity = async () => {
       if (!activityId || typeof activityId !== "string") return
       
       try {
-        setLoading(true)
-        const activityData = await activityService.getActivityById(parseInt(activityId as string))
-        setActivity(activityData)
+        setLoading(true);
+        const activityData = await activityService.getActivityById(parseInt(activityId as string));
+        setActivity(activityData);
       } catch (error) {
-        console.error("Error fetching activity:", error)
+        console.error("Error fetching activity:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
 
-    fetchActivity()
-  }, [activityId])
+    fetchActivity();
+  }, [activityId]);
 
   if (loading) {
     return (

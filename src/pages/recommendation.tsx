@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import Image from "next/image";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { PreferencesForm, PreferencesFormData } from "@/components/recommendation/PreferencesForm";
+import { PreferencesForm } from "@/components/recommendation/PreferencesForm";
 import { recommendationService, RecommendedPlan, UserPreferences, RecommendedActivity } from "@/services/recommendationService";
 import { SupabaseActivity } from "@/types/activity";
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,17 @@ export default function RecommendationPage() {
   const { addActivity } = usePlanning();
   const { toast } = useToast();
 
-  const handleSubmit = async (data: PreferencesFormData) => {
+  useEffect(() => {
+    if (recommendations) {
+      recommendations.activities.forEach(activity => addActivity(activity as SupabaseActivity));
+      toast({
+        title: "All activities added",
+        description: "All recommended activities have been added to your plan.",
+      });
+    }
+  }, [recommendations]);
+
+  const handleSubmit = async (data: UserPreferences) => {
     setLoading(true);
     setRecommendations(null);
     try {
@@ -34,14 +44,7 @@ export default function RecommendationPage() {
         setLoading(false);
         return;
       }
-      const preferences: UserPreferences = {
-        ...data,
-        travelDates: {
-          start: data.travelDates.from,
-          end: data.travelDates.to,
-        },
-      };
-      const result = await recommendationService.getRecommendations(preferences);
+      const result = await recommendationService.getRecommendations(data);
       setRecommendations(result);
     } catch (error) {
       console.error("Error getting recommendations:", error);
@@ -61,16 +64,6 @@ export default function RecommendationPage() {
       title: "Activity Added",
       description: `${activity.title} has been added to your plan.`,
     });
-  };
-
-  const handleAddAllToPlanning = () => {
-    if (recommendations) {
-      recommendations.activities.forEach(activity => addActivity(activity as SupabaseActivity));
-      toast({
-        title: "All activities added",
-        description: "All recommended activities have been added to your plan.",
-      });
-    }
   };
 
   return (
@@ -112,8 +105,8 @@ export default function RecommendationPage() {
                   <h2 className="text-xl sm:text-2xl font-semibold">
                     Your Recommended Plan
                   </h2>
-                  <Button onClick={handleAddAllToPlanning}>
-                    Add All to Planning
+                  <Button onClick={() => setRecommendations(null)}>
+                    Start Over
                   </Button>
                 </div>
 
@@ -170,15 +163,6 @@ export default function RecommendationPage() {
                     </div>
                   </CardContent>
                 </Card>
-
-                <div className="flex justify-center">
-                  <Button
-                    variant="outline"
-                    onClick={() => setRecommendations(null)}
-                  >
-                    Start Over
-                  </Button>
-                </div>
               </div>
             )}
           </div>

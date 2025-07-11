@@ -1,5 +1,5 @@
-import { supabaseAdmin } from '@/integrations/supabase/admin';
-import type { NextApiRequest, NextApiResponse } from 'next';
+import supabaseAdmin from "@/integrations/supabase/admin";
+import { NextApiRequest, NextApiResponse } from "next";
 
 type Data = {
   message?: string;

@@ -1,14 +1,12 @@
-
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { ActivityGallery } from "@/components/activities/ActivityGallery";
 import { ActivityDetails } from "@/components/activities/ActivityDetails";
-import { BookingWidget } from "@/components/activities/BookingWidget";
 import { Activity } from "@/types/activity";
 import activityService from "@/services/activityService";
 import { Skeleton } from "@/components/ui/skeleton";
+import { GetServerSideProps, NextPage } from "next";
 
 export default function ActivityPage() {
   const router = useRouter();
@@ -73,11 +71,10 @@ export default function ActivityPage() {
     return (
       <div className="container py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
-          <ActivityGallery images={images} videos={videos} title={activity.title} />
           <ActivityDetails activity={activity} />
         </div>
         <div className="lg:col-span-1">
-          <BookingWidget activity={activity} />
+          <Skeleton className="h-96 w-full" />
         </div>
       </div>
     );
