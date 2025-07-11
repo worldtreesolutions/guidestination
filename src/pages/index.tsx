@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import ActivityRow from "@/components/home/ActivityRow";
 import CategoryNav from "@/components/home/CategoryNav";
 import CategorySection from "@/components/home/CategorySection";
-import { SearchBar } from "@/components/home/SearchBar";
+import SearchBar from "@/components/home/SearchBar";
 import { activityService } from "@/services/activityService";
 import { ActivityForHomepage } from "@/types/activity";
 import { ShoppingCart, User, Briefcase } from "lucide-react";

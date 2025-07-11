@@ -4,7 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Search, MapPin, Calendar as CalendarIcon, Users } from "lucide-react"
 import { useState } from "react"
 
-export function SearchBar() {
+export default function SearchBar() {
   const [destination, setDestination] = useState("")
   const [date, setDate] = useState("")
   const [guests, setGuests] = useState("1")
@@ -70,5 +70,3 @@ export function SearchBar() {
     </div>
   )
 }
-
-export default SearchBar;
