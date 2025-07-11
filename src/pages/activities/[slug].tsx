@@ -198,13 +198,8 @@ export default function ActivityPage() {
         </div>
 
         <div className="lg:col-span-1 space-y-6">
-          {/* Booking Widget */}
-          <div className="sticky top-24 z-20 mb-6">
-            <BookingWidget activity={activity} />
-          </div>
-
           {/* Availability Calendar */}
-          <Card className="relative z-10">
+          <Card>
             <CardHeader>
               <CardTitle>Availability</CardTitle>
             </CardHeader>
@@ -213,8 +208,15 @@ export default function ActivityPage() {
             </CardContent>
           </Card>
 
+          {/* Booking Widget */}
+          <Card>
+            <CardContent className="p-0">
+              <BookingWidget activity={activity} />
+            </CardContent>
+          </Card>
+
           {/* Quick Info */}
-          <Card className="relative z-10">
+          <Card>
             <CardHeader>
               <CardTitle>Quick Info</CardTitle>
             </CardHeader>
