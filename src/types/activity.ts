@@ -1,5 +1,3 @@
-
-    
 import { Database } from "@/integrations/supabase/types"
 
 export type SupabaseActivity = Database["public"]["Tables"]["activities"]["Row"]
@@ -11,5 +9,39 @@ export type ActivitySelectedOption = Database["public"]["Tables"]["activity_sele
 export type Activity = SupabaseActivity & {
   schedule_instances: ActivityScheduleInstance[]
   selected_options: ActivitySelectedOption[]
-}
-  
+  category_name?: string;
+  image_urls?: string[];
+  schedules?: any;
+  rating?: number;
+  location?: string;
+  booking_type?: string;
+};
+
+export type ScheduledActivity = Activity & {
+  date: string;
+  time: string;
+};
+
+export type SupabaseBooking = Database["public"]["Tables"]["bookings"]["Row"];
+export type Booking = SupabaseBooking & {
+  activities: SupabaseActivity;
+};
+
+export type Earning = {
+  month: string;
+  total_earnings: number;
+};
+
+export type ActivityForHomepage = {
+  id: number;
+  title: string;
+  image_url: string;
+  price: number;
+  location: string;
+  category_name: string;
+  rating: number;
+};
+
+export type RecommendedActivity = SupabaseActivity & {
+  similarity: number;
+};
