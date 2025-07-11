@@ -17,7 +17,7 @@ interface ActivityListProps {
   activities: Activity[];
   onEdit?: (activity: Activity) => void;
   onView?: (activity: Activity) => void;
-  onStatusChange?: (activityId: string, newStatus: string) => void;
+  onStatusChange?: (activityId: number, newStatus: string) => void;
 }
 
 export function ActivityList({ activities, onEdit, onView, onStatusChange }: ActivityListProps) {
@@ -109,7 +109,7 @@ export function ActivityList({ activities, onEdit, onView, onStatusChange }: Act
                         <DropdownMenuItem
                           onClick={() => {
                             if (onStatusChange) {
-                              onStatusChange(activityId as string, "archived")
+                              onStatusChange(activityId as number, "archived")
                             }
                           }}
                         >
