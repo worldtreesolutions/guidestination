@@ -16,47 +16,41 @@ export default function Navbar() {
     <nav className="bg-white shadow-sm border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
+          {/* Left side - Language selector on desktop, empty on mobile */}
           <div className="flex items-center">
+            <div className="hidden md:block">
+              <LanguageSelector />
+            </div>
+          </div>
+
+          {/* Center - Logo */}
+          <div className="flex-1 flex justify-center">
             <Link href="/" className="text-2xl font-bold text-primary">
               Guidestination
             </Link>
           </div>
 
-          <div className="hidden md:flex items-center space-x-8">
-            <Link href="/" className="text-gray-700 hover:text-primary">
-              Home
-            </Link>
-            <Link href="/activities" className="text-gray-700 hover:text-primary">
-              Activities
-            </Link>
-            <Link href="/partner" className="text-gray-700 hover:text-primary">
-              Partner Program
-            </Link>
-          </div>
-
+          {/* Right side - Auth buttons and mobile menu */}
           <div className="flex items-center space-x-4">
             <div className="hidden md:block">
-                <LanguageSelector />
-            </div>
-            <div className="hidden md:block">
-                {user ? (
+              {user ? (
                 <UserDropdown />
-                ) : (
+              ) : (
                 <div className="flex items-center space-x-2">
-                    <Link href="/auth/login">
+                  <Link href="/auth/login">
                     <Button variant="ghost">Sign In</Button>
-                    </Link>
-                    <Link href="/auth/register">
+                  </Link>
+                  <Link href="/auth/register">
                     <Button>Sign Up</Button>
-                    </Link>
+                  </Link>
                 </div>
-                )}
+              )}
             </div>
             <div className="md:hidden">
-                <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(true)}>
-                    <Menu className="h-6 w-6" />
-                    <span className="sr-only">Toggle menu</span>
-                </Button>
+              <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(true)}>
+                <Menu className="h-6 w-6" />
+                <span className="sr-only">Toggle menu</span>
+              </Button>
             </div>
           </div>
         </div>
