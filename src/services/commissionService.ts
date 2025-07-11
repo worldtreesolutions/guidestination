@@ -2,7 +2,6 @@
 import { supabase } from "@/integrations/supabase/client"
 import { Earning } from "@/types/activity"
 
-// Using <any> to bypass incorrect type generation for now
 const BOOKINGS_TABLE = "bookings"
 const ACTIVITIES_TABLE = "activities"
 
@@ -12,8 +11,8 @@ export const commissionService = {
     monthly: Earning[]
     pending: number
   }> {
-    const {  activities, error: activitiesError } = await supabase
-      .from<any>(ACTIVITIES_TABLE)
+    const { data: activities, error: activitiesError } = await supabase
+      .from(ACTIVITIES_TABLE)
       .select("id")
       .eq("owner_id", ownerId)
 
@@ -28,8 +27,8 @@ export const commissionService = {
 
     const activityIds = activities.map((a: any) => a.id)
 
-    const {  bookings, error: bookingsError } = await supabase
-      .from<any>(BOOKINGS_TABLE)
+    const { data: bookings, error: bookingsError } = await supabase
+      .from(BOOKINGS_TABLE)
       .select("total_price, status, created_at")
       .in("activity_id", activityIds)
 
@@ -59,9 +58,9 @@ export const commissionService = {
     const monthlyArray: Earning[] = Object.entries(monthlyData)
       .map(([month, amount]) => ({ month, amount }))
       .sort((a, b) => {
-        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-        return months.indexOf(a.month) - months.indexOf(b.month);
-      });
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+        return months.indexOf(a.month) - months.indexOf(b.month)
+      })
 
     return { total, monthly: monthlyArray, pending }
   },

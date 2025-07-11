@@ -2,14 +2,13 @@
 import { supabase } from "@/integrations/supabase/client"
 import { Booking } from "@/types/activity"
 
-// Using <any> to bypass incorrect type generation for now
 const BOOKINGS_TABLE = "bookings"
 const ACTIVITIES_TABLE = "activities"
 
 export const bookingService = {
   async getBookingStats(ownerId: string) {
-    const {  activities, error: activitiesError } = await supabase
-      .from<any>(ACTIVITIES_TABLE)
+    const { data: activities, error: activitiesError } = await supabase
+      .from(ACTIVITIES_TABLE)
       .select("id")
       .eq("owner_id", ownerId)
 
@@ -17,7 +16,7 @@ export const bookingService = {
       throw new Error(activitiesError.message)
     }
 
-    const activityIds = activities.map((a: any) => a.id)
+    const activityIds = activities?.map((a: any) => a.id) || []
 
     if (activityIds.length === 0) {
       return {
@@ -29,7 +28,7 @@ export const bookingService = {
     }
 
     const { data, error } = await supabase
-      .from<any>(BOOKINGS_TABLE)
+      .from(BOOKINGS_TABLE)
       .select("total_price, status")
       .in("activity_id", activityIds)
 
@@ -38,7 +37,7 @@ export const bookingService = {
       throw new Error(error.message)
     }
 
-    const stats = data.reduce(
+    const stats = (data || []).reduce(
       (acc: any, booking: any) => {
         if (booking.status === "confirmed") {
           acc.totalRevenue += booking.total_price || 0
@@ -64,8 +63,8 @@ export const bookingService = {
     ownerId: string,
     limit: number
   ): Promise<Booking[]> {
-    const {  activities, error: activitiesError } = await supabase
-      .from<any>(ACTIVITIES_TABLE)
+    const { data: activities, error: activitiesError } = await supabase
+      .from(ACTIVITIES_TABLE)
       .select("id")
       .eq("owner_id", ownerId)
 
@@ -73,20 +72,18 @@ export const bookingService = {
       throw new Error(activitiesError.message)
     }
 
-    const activityIds = activities.map((a: any) => a.id)
+    const activityIds = activities?.map((a: any) => a.id) || []
 
     if (activityIds.length === 0) {
       return []
     }
 
     const { data, error } = await supabase
-      .from<any>(BOOKINGS_TABLE)
-      .select(
-        `
+      .from(BOOKINGS_TABLE)
+      .select(`
         *,
         activities:activity_id(*)
-      `
-      )
+      `)
       .in("activity_id", activityIds)
       .order("created_at", { ascending: false })
       .limit(limit)
@@ -96,12 +93,12 @@ export const bookingService = {
       throw new Error(error.message)
     }
 
-    return data as Booking[]
+    return (data || []) as Booking[]
   },
 
   async fetchBookingsForOwner(ownerId: string): Promise<Booking[]> {
-    const {  activities, error: activitiesError } = await supabase
-      .from<any>(ACTIVITIES_TABLE)
+    const { data: activities, error: activitiesError } = await supabase
+      .from(ACTIVITIES_TABLE)
       .select("id")
       .eq("owner_id", ownerId)
 
@@ -109,20 +106,18 @@ export const bookingService = {
       throw new Error(activitiesError.message)
     }
 
-    const activityIds = activities.map((a: any) => a.id)
+    const activityIds = activities?.map((a: any) => a.id) || []
 
     if (activityIds.length === 0) {
       return []
     }
 
     const { data, error } = await supabase
-      .from<any>(BOOKINGS_TABLE)
-      .select(
-        `
+      .from(BOOKINGS_TABLE)
+      .select(`
         *,
         activities:activity_id(*)
-      `
-      )
+      `)
       .in("activity_id", activityIds)
       .order("created_at", { ascending: false })
 
@@ -131,6 +126,6 @@ export const bookingService = {
       throw new Error(error.message)
     }
 
-    return data as Booking[]
+    return (data || []) as Booking[]
   },
 }

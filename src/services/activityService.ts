@@ -1,6 +1,9 @@
+
 import { supabase } from "@/integrations/supabase/client"
+import { Database } from "@/integrations/supabase/types"
 import {
   Activity,
+  SupabaseActivity,
   ActivityScheduleInstance,
   ActivitySelectedOption,
 } from "@/types/activity"
@@ -9,13 +12,10 @@ const ACTIVITIES_TABLE = "activities"
 const ACTIVITY_SELECTED_OPTIONS_TABLE = "activity_selected_options"
 const ACTIVITY_SCHEDULE_INSTANCES_TABLE = "activity_schedule_instances"
 
-type ActivityWithOptionsAndSchedule =
-  Database["public"]["Tables"]["activities"]["Row"] & {
-    activity_selected_options: (Database["public"]["Tables"]["activity_selected_options"]["Row"] & {
-      activity_options: Database["public"]["Tables"]["activity_options"]["Row"]
-    })[]
-    activity_schedule_instances: Database["public"]["Tables"]["activity_schedule_instances"]["Row"][]
-  }
+type ActivityWithOptionsAndSchedule = Database["public"]["Tables"]["activities"]["Row"] & {
+  activity_selected_options?: any[]
+  activity_schedule_instances?: any[]
+}
 
 const activityService = {
   async getAllActivities(): Promise<SupabaseActivity[]> {
@@ -32,16 +32,7 @@ const activityService = {
   async getActivityById(id: number): Promise<Activity | null> {
     const { data, error } = await supabase
       .from("activities")
-      .select(
-        `
-        *,
-        activity_selected_options:activity_selected_options!inner (
-          *,
-          activity_options (*)
-        ),
-        activity_schedule_instances (*)
-      `
-      )
+      .select("*")
       .eq("id", id)
       .single()
 
@@ -50,13 +41,7 @@ const activityService = {
       return null
     }
 
-    const activityData = data as unknown as ActivityWithOptionsAndSchedule
-
-    return {
-      ...activityData,
-      selected_options: activityData.activity_selected_options || [],
-      schedule_instances: activityData.activity_schedule_instances || [],
-    }
+    return data as Activity
   },
 
   async getSelectedOptionsByActivityId(
@@ -64,12 +49,7 @@ const activityService = {
   ): Promise<ActivitySelectedOption[]> {
     const { data, error } = await supabase
       .from("activity_selected_options")
-      .select(
-        `
-        *,
-        activity_options (*)
-      `
-      )
+      .select("*")
       .eq("activity_id", activityId)
 
     if (error) {
@@ -86,21 +66,20 @@ const activityService = {
       .from("activity_schedule_instances")
       .select("*")
       .eq("activity_id", activityId)
-      .order("scheduled_date", { ascending: true })
-      .order("start_time", { ascending: true })
+      .order("instance_date", { ascending: true })
 
     if (error) {
       console.error("Error fetching schedule instances:", error)
       return []
     }
-    return data
+    return data as ActivityScheduleInstance[]
   },
 
   async fetchActivitiesByOwner(ownerId: string): Promise<SupabaseActivity[]> {
     const { data, error } = await supabase
       .from("activities")
       .select("*")
-      .eq("provider_id", ownerId)
+      .eq("owner_id", ownerId)
 
     if (error) {
       console.error("Error fetching activities by owner:", error)

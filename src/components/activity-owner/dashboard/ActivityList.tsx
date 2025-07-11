@@ -1,24 +1,33 @@
-import { SupabaseActivity } from "@/types/activity"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
+
+import { Activity } from "@/types/activity"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Edit, Eye, Trash2, Star } from "lucide-react"
+import { Edit, Eye, Trash2 } from "lucide-react"
 import Link from "next/link"
 
 interface ActivityListProps {
-  activities: SupabaseActivity[];
-  onDelete: (id: string) => void;
+  activities: Activity[]
+  onDelete?: (id: string) => void
 }
 
 export function ActivityList({ activities, onDelete }: ActivityListProps) {
-  const getStatusColor = (status: boolean | null) => {
-    if (status === null) return "";
-    return status ? "bg-green-100 text-green-800 hover:bg-green-100/80" : "bg-yellow-100 text-yellow-800 hover:bg-yellow-100/80";
-  };
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "published":
+        return "bg-green-100 text-green-800 hover:bg-green-100/80"
+      case "draft":
+        return "bg-yellow-100 text-yellow-800 hover:bg-yellow-100/80"
+      case "unpublished":
+        return "bg-gray-100 text-gray-800 hover:bg-gray-100/80"
+      default:
+        return "bg-gray-100 text-gray-800 hover:bg-gray-100/80"
+    }
+  }
 
   return (
-    <Card className="col-span-4">
+    <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <CardTitle>Your Activities</CardTitle>
@@ -35,7 +44,7 @@ export function ActivityList({ activities, onDelete }: ActivityListProps) {
           <TableHeader>
             <TableRow>
               <TableHead>Activity</TableHead>
-              <TableHead>Category</TableHead>
+              <TableHead>Location</TableHead>
               <TableHead>Price</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Rating</TableHead>
@@ -43,64 +52,62 @@ export function ActivityList({ activities, onDelete }: ActivityListProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {activities.map((activity) => (
-              <TableRow key={activity.id}>
-                <TableCell className="font-medium">{activity.title}</TableCell>
-                <TableCell className="capitalize">{activity.category_name?.replace('_', ' ')}</TableCell>
-                <TableCell>฿{activity.price?.toLocaleString()}</TableCell>
-                <TableCell>
-                  <Badge className={getStatusColor(activity.is_active)} variant="outline">
-                    {activity.is_active ? "Published" : "Draft"}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  {activity.rating ? (
-                    <div className="flex items-center">
-                      <span className="mr-1">{activity.rating}</span>
-                      <span className="text-yellow-500">★</span>
-                      <span className="text-xs text-muted-foreground ml-1">
-                        ({activity.review_count})
-                      </span>
+            {activities.length > 0 ? (
+              activities.map((activity) => (
+                <TableRow key={activity.id}>
+                  <TableCell className="font-medium">{activity.title}</TableCell>
+                  <TableCell>{activity.location || "Not specified"}</TableCell>
+                  <TableCell>฿{activity.price?.toLocaleString()}</TableCell>
+                  <TableCell>
+                    <Badge className={getStatusColor(activity.status)} variant="outline">
+                      {activity.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {activity.average_rating ? (
+                      <div className="flex items-center">
+                        <span className="mr-1">{activity.average_rating.toFixed(1)}</span>
+                        <span className="text-yellow-500">★</span>
+                        <span className="text-xs text-muted-foreground ml-1">
+                          ({activity.reviews_count || 0})
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">No ratings</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex space-x-2">
+                      <Link href={`/activities/${activity.id}`}>
+                        <Button variant="outline" size="icon">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </Link>
+                      <Link href={`/activity-owner/edit-activity/${activity.id}`}>
+                        <Button variant="outline" size="icon">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </Link>
+                      {onDelete && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => onDelete(activity.id.toString())}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
-                  ) : (
-                    <span className="text-xs text-muted-foreground">No ratings</span>
-                  )}
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center text-muted-foreground">
+                  No activities found. Create your first activity to get started.
                 </TableCell>
-                <TableCell>
-                  <div className="flex space-x-2">
-                    <Link href={`/activities/${activity.id}`}>
-                      <Button variant="outline" size="icon">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </Link>
-                    <Link href={`/activity-owner/edit-activity/${activity.id}`}>
-                      <Button variant="outline" size="icon">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    </Link>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onDelete(activity.id.toString())}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-                <CardFooter className="flex justify-between">
-                  <div className="flex items-center">
-                    <Star className="h-4 w-4 text-yellow-400 mr-1" />
-                    <span className="text-sm">
-                      {activity.average_rating?.toFixed(1) || "N/A"} (
-                      {activity.reviews_count || 0} reviews)
-                    </span>
-                  </div>
-                  <Link href={`/activity-owner/activities/${activity.id}`}>
-                    <Button variant="outline">View Details</Button>
-                  </Link>
-                </CardFooter>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
       </CardContent>
