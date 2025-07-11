@@ -15,8 +15,15 @@ const getStripe = (): Stripe | null => {
     return null
   }
   // Dynamically require Stripe to avoid bundling it on the client
-  const StripeConstructor = require("stripe")
-  return new StripeConstructor(process.env.STRIPE_SECRET_KEY)
+  try {
+    const StripeConstructor = require("stripe")
+    return new StripeConstructor(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: "2023-10-16",
+    })
+  } catch (error) {
+    console.error("Failed to initialize Stripe:", error)
+    return null
+  }
 }
 
 // Create a safe supabase client that handles null checks
