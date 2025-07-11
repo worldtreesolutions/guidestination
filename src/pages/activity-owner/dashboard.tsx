@@ -18,10 +18,10 @@ export default function ActivityOwnerDashboard() {
   const { toast } = useToast()
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState({
-    totalRevenue: 0,
+    totalEarnings: 0,
     totalBookings: 0,
-    pendingBookings: 0,
-    confirmedBookings: 0,
+    pendingEarnings: 0,
+    totalActivities: 0,
   })
   const [recentBookings, setRecentBookings] = useState<Booking[]>([])
   const [earnings, setEarnings] = useState<{
@@ -55,14 +55,14 @@ export default function ActivityOwnerDashboard() {
         ])
 
         setStats({
-          totalRevenue: bookingStats.totalRevenue,
+          totalEarnings: earningsData.total,
           totalBookings: bookingStats.totalBookings,
-          pendingBookings: bookingStats.pendingBookings,
-          confirmedBookings: bookingStats.confirmedBookings,
+          pendingEarnings: earningsData.pending,
+          totalActivities: activitiesData.length,
         })
         setRecentBookings(recentBookingsData)
         setEarnings(earningsData)
-        setActivities(activitiesData)
+        setActivities(activitiesData as Activity[])
       } catch (error: any) {
         console.error("Failed to fetch dashboard ", error)
         toast({
@@ -115,3 +115,4 @@ export default function ActivityOwnerDashboard() {
     </DashboardLayout>
   )
 }
+  

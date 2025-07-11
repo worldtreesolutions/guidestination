@@ -1,10 +1,10 @@
-
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Download, ArrowLeft } from "lucide-react";
-import commissionService, { CommissionInvoice } from "@/services/commissionService";
+import { commissionService } from "@/services/commissionService";
+import { CommissionInvoice } from "@/types/activity";
 
 export default function CommissionPaymentSuccessPage() {
   const router = useRouter();

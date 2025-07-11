@@ -1,4 +1,3 @@
-
 import { Database } from "@/integrations/supabase/types"
 
 // Manually define types to bypass issues with generated types.
@@ -120,3 +119,16 @@ export type RecentBooking = Pick<
 
 // Utility type for booking status
 export type BookingStatus = "confirmed" | "pending" | "cancelled"
+
+export type CommissionInvoice = {
+  id: string;
+  provider_id: string;
+  provider_name?: string;
+  amount: number;
+  status: "pending" | "paid" | "overdue";
+  due_date: string;
+  paid_at: string | null;
+  invoice_period_start: string;
+  invoice_period_end: string;
+  created_at: string;
+};

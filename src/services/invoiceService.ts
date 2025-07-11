@@ -1,6 +1,6 @@
 import { getAdminClient, isAdminAvailable } from "@/integrations/supabase/admin";
 import { supabase } from "@/integrations/supabase/client";
-import commissionService, { CommissionInvoice } from "./commissionService";
+import commissionService, { CommissionInvoice } from "@/types/activity";
 
 // Simplified type to reduce memory usage
 interface ActivityOwner {

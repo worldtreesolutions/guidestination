@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client"
-import { Earning } from "@/types/activity"
+import { Earning, CommissionInvoice } from "@/types/activity"
 
 const BOOKINGS_TABLE = "bookings"
 const ACTIVITIES_TABLE = "activities"
@@ -11,7 +11,7 @@ export const commissionService = {
     monthly: Earning[]
     pending: number
   }> {
-    const { data: activities, error: activitiesError } = await supabase
+    const {  activities, error: activitiesError } = await supabase
       .from(ACTIVITIES_TABLE)
       .select("id")
       .eq("owner_id", ownerId)
@@ -27,7 +27,7 @@ export const commissionService = {
 
     const activityIds = activities.map((a: any) => a.id)
 
-    const { data: bookings, error: bookingsError } = await supabase
+    const {  bookings, error: bookingsError } = await supabase
       .from(BOOKINGS_TABLE)
       .select("total_price, status, created_at")
       .in("activity_id", activityIds)
@@ -64,4 +64,54 @@ export const commissionService = {
 
     return { total, monthly: monthlyArray, pending }
   },
+
+  async getCommissionStats() {
+    // This is a placeholder. In a real app, you'd query your database.
+    return {
+      totalInvoices: 0,
+      totalCommissionAmount: 0,
+      paidInvoices: 0,
+      pendingInvoices: 0,
+      overdueInvoices: 0,
+      totalPaidAmount: 0,
+      totalPendingAmount: 0,
+    }
+  },
+
+  async getCommissionInvoice(invoiceId: string): Promise<CommissionInvoice | null> {
+    // This is a placeholder.
+    console.log("Fetching commission invoice:", invoiceId)
+    return null
+  },
+
+  async updateInvoiceStatus(invoiceId: string, status: "pending" | "paid" | "overdue"): Promise<void> {
+    // This is a placeholder.
+    console.log(`Updating invoice ${invoiceId} to status ${status}`)
+  },
+
+  async createCommissionPayment(paymentData: any): Promise<void> {
+    // This is a placeholder.
+    console.log("Creating commission payment:", paymentData)
+  },
+
+  calculateCommission(amount: number, isQrBooking: boolean) {
+    const platformRate = 0.20; // 20%
+    const partnerShareRate = 0.50; // 50% of platform commission
+
+    const platformCommissionAmount = amount * platformRate;
+    let partnerCommissionAmount = 0;
+    let providerReceives = amount - platformCommissionAmount;
+
+    if (isQrBooking) {
+      partnerCommissionAmount = platformCommissionAmount * partnerShareRate;
+      // Provider payout is not affected by partner commission, that's on the platform
+    }
+
+    return {
+      platformCommissionAmount,
+      partnerCommissionAmount,
+      providerReceives,
+    };
+  },
 }
+  
