@@ -20,12 +20,17 @@ export function AvailabilityCalendar({
   selectedDate, 
   onDateSelect 
 }: AvailabilityCalendarProps) {
-  const [currentMonth, setCurrentMonth] = useState(() => new Date())
+  const [currentMonth, setCurrentMonth] = useState<Date>(() => {
+    const now = new Date()
+    return new Date(now.getFullYear(), now.getMonth(), 1)
+  })
   const [localSelectedDate, setLocalSelectedDate] = useState<Date | undefined>(selectedDate)
 
   // Sync with external selectedDate prop changes
   useEffect(() => {
-    setLocalSelectedDate(selectedDate)
+    if (selectedDate !== localSelectedDate) {
+      setLocalSelectedDate(selectedDate)
+    }
   }, [selectedDate])
 
   // Handle date selection
