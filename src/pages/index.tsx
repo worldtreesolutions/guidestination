@@ -218,14 +218,14 @@ export default function HomePage() {
             <ShoppingCart className="h-6 w-6" />
           </Button>
         </div>
-        <div className="fixed bottom-4 left-4 flex flex-col space-y-2 z-50">
+        <div className="fixed bottom-4 left-4 flex flex-row space-x-2 z-50">
           <Link href="/activity-owner">
-            <Button variant="secondary" className="rounded-full shadow-lg bg-[#00ac50] hover:bg-[#009945] text-white border-[#00ac50]">
+            <Button variant="secondary" className="rounded-full shadow-lg bg-[#018fcd] hover:bg-[#0177b8] text-white border-[#018fcd]">
               <Briefcase className="mr-2 h-4 w-4" /> List your Activity
             </Button>
           </Link>
           <Link href="/partner">
-            <Button variant="secondary" className="rounded-full shadow-lg bg-[#00ac50] hover:bg-[#009945] text-white border-[#00ac50]">
+            <Button variant="secondary" className="rounded-full shadow-lg bg-[#018fcd] hover:bg-[#0177b8] text-white border-[#018fcd]">
               <User className="mr-2 h-4 w-4" /> Become a Partner
             </Button>
           </Link>
