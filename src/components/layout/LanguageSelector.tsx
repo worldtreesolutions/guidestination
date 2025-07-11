@@ -1,5 +1,6 @@
+
 import { useState, useEffect } from "react";
-import { useLanguage, Language } from "@/contexts/LanguageContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -8,6 +9,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Check } from "lucide-react";
+
+export type Language = "en" | "th" | "fr";
 
 export function LanguageSelector() {
   const { language, setLanguage, isLoading } = useLanguage();
@@ -88,3 +91,5 @@ export function LanguageSelector() {
     </DropdownMenu>
   );
 }
+
+export default LanguageSelector;
