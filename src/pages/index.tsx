@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -83,7 +84,8 @@ export default function HomePage() {
       })
     : activities;
 
-  const groupedActivities = filteredActivities.reduce((acc, activity) => {
+  // Group all activities by category for Netflix-style display
+  const groupedActivities = activities.reduce((acc, activity) => {
     const category = activity.category_name || 'Other';
     if (!acc[category]) {
       acc[category] = [];
@@ -91,6 +93,11 @@ export default function HomePage() {
     acc[category].push(activity);
     return acc;
   }, {} as Record<string, ActivityForHomepage[]>);
+
+  // Get categories that have activities
+  const categoriesWithActivities = categories.filter(category => 
+    activities.some(activity => activity.category_name === category.name)
+  );
 
   const handleCategorySelect = (categoryId: number | null) => {
     setSelectedCategoryId(categoryId);
@@ -114,7 +121,7 @@ export default function HomePage() {
           selectedCategoryId={selectedCategoryId}
         />
 
-        <div className="px-4 md:px-8 lg:px-12 space-y-8 py-8">
+        <div className="px-4 md:px-8 lg:px-12 space-y-12 py-8">
           {loading && (
             <div className="text-center py-20">
               <p className="text-gray-500 text-lg">Loading activities...</p>
@@ -131,44 +138,77 @@ export default function HomePage() {
           )}
           {!loading && !error && (
             <>
-              {filteredActivities.length > 0 ? (
-                <>
-                  <section>
-                    <div className="flex justify-between items-center mb-4">
-                      <h2 className="text-2xl font-bold">
-                        {selectedCategoryId 
-                          ? `${categories.find(c => c.id === selectedCategoryId)?.name || 'Category'} Activities`
-                          : 'Featured Activities'
-                        }
-                      </h2>
-                      <Link href="/activities">
-                        <Button variant="link" className="text-primary">
-                          View All
-                        </Button>
-                      </Link>
+              {selectedCategoryId ? (
+                // Show filtered activities for selected category
+                <section>
+                  <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-3xl font-bold">
+                      {categories.find(c => c.id === selectedCategoryId)?.name || 'Category'} Activities
+                    </h2>
+                    <Link href="/activities">
+                      <Button variant="link" className="text-primary">
+                        View All
+                      </Button>
+                    </Link>
+                  </div>
+                  {filteredActivities.length > 0 ? (
+                    <ActivityRow activities={filteredActivities} />
+                  ) : (
+                    <div className="text-center py-12">
+                      <p className="text-gray-500 text-lg">
+                        No activities available in {categories.find(c => c.id === selectedCategoryId)?.name || 'this category'}.
+                      </p>
                     </div>
-                    <ActivityRow activities={filteredActivities.slice(0, 10)} />
-                  </section>
-                  {!selectedCategoryId && Object.entries(groupedActivities).map(([category, categoryActivities]) => (
-                    <CategorySection
-                      key={category}
-                      title={category}
-                      activities={categoryActivities}
-                    />
-                  ))}
-                </>
+                  )}
+                </section>
               ) : (
-                <div className="text-center py-20">
-                  <p className="text-gray-500 text-lg">
-                    {selectedCategoryId 
-                      ? `No activities available in ${categories.find(c => c.id === selectedCategoryId)?.name || 'this category'}.`
-                      : 'No activities available at the moment.'
-                    }
-                  </p>
-                  <p className="text-sm text-gray-400 mt-2">
-                    This might be due to Supabase configuration issues or no data in the database.
-                  </p>
-                </div>
+                // Show all categories with their activities (Netflix-style)
+                <>
+                  {activities.length > 0 && (
+                    <section>
+                      <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-3xl font-bold">Featured Activities</h2>
+                        <Link href="/activities">
+                          <Button variant="link" className="text-primary">
+                            View All
+                          </Button>
+                        </Link>
+                      </div>
+                      <ActivityRow activities={activities.slice(0, 10)} />
+                    </section>
+                  )}
+                  
+                  {/* Netflix-style category sections */}
+                  {categoriesWithActivities.map((category) => {
+                    const categoryActivities = groupedActivities[category.name] || [];
+                    if (categoryActivities.length === 0) return null;
+                    
+                    return (
+                      <CategorySection
+                        key={category.id}
+                        title={category.name}
+                        activities={categoryActivities}
+                      />
+                    );
+                  })}
+                  
+                  {/* Show "Other" category if it exists */}
+                  {groupedActivities['Other'] && groupedActivities['Other'].length > 0 && (
+                    <CategorySection
+                      title="Other Activities"
+                      activities={groupedActivities['Other']}
+                    />
+                  )}
+                  
+                  {activities.length === 0 && (
+                    <div className="text-center py-20">
+                      <p className="text-gray-500 text-lg">No activities available at the moment.</p>
+                      <p className="text-sm text-gray-400 mt-2">
+                        This might be due to Supabase configuration issues or no data in the database.
+                      </p>
+                    </div>
+                  )}
+                </>
               )}
             </>
           )}
