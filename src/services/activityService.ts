@@ -99,7 +99,7 @@ class ActivityService {
   }
 
   async getActivityById(id: number): Promise<Activity> {
-    const {  activity, error } = await supabase
+    const { data: activity, error } = await supabase
       .from("activities")
       .select("*, categories(name)")
       .eq("id", id)
