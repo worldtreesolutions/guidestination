@@ -15,7 +15,7 @@ const activityService = {
 
     if (error) {
       console.error("Error fetching activities for homepage:", error);
-      return [];
+      throw error;
     }
 
     return (data as any[]).map((activity) => ({
