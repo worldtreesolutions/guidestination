@@ -1,19 +1,32 @@
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import Link from "next/link"
 
-import { ActivityForHomepage } from "@/types/activity";
-import ActivityRow from "./ActivityRow";
-
-interface CategorySectionProps {
-  title: string;
-  activities: ActivityForHomepage[];
+interface Category {
+  id: number
+  name: string
+  icon?: string
+  color?: string
 }
 
-export default function CategorySection({ title, activities }: CategorySectionProps) {
-  if (activities.length === 0) return null;
+interface CategorySectionProps {
+  categories: Category[]
+}
 
+export function CategorySection({ categories }: CategorySectionProps) {
   return (
-    <section>
-      <h2 className="text-2xl font-bold mb-4 px-0">{title}</h2>
-      <ActivityRow activities={activities} />
-    </section>
-  );
+    <div className="w-full max-w-4xl mx-auto">
+      <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
+        {categories.map((category) => (
+          <Link key={category.id} href={`/activities?category=${category.id}`}>
+            <div className="px-4 py-2 bg-white hover:bg-blue-50 border border-gray-200 hover:border-blue-300 rounded-full transition-all duration-200 cursor-pointer group">
+              <span className="text-sm font-medium text-gray-700 group-hover:text-blue-600 transition-colors">
+                {category.name}
+              </span>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </div>
+  )
 }

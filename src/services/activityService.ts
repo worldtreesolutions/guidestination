@@ -8,7 +8,8 @@ export const activityService = {
       .from("activities")
       .select(`
         *,
-        activity_schedules(*)
+        activity_schedules(*),
+        categories(name)
       `)
       .eq("is_active", true)
       .order("created_at", { ascending: false });
@@ -18,14 +19,19 @@ export const activityService = {
       throw error;
     }
 
-    // Get user's currency with simple fallback
-    const userCurrency = currencyService.getUserCurrency();
+    // Get user's currency and convert prices with fallback
+    let userCurrency = "USD";
+    try {
+      userCurrency = await currencyService.getUserCurrency();
+    } catch (error) {
+      console.warn("Currency detection failed, using USD:", error);
+    }
     
     return (data || []).map(activity => ({
       ...activity,
-      category_name: activity.category,
-      // Convert price from THB to user's currency - use b_price as the main price
-      price: activity.b_price ? currencyService.convertFromTHB(activity.b_price, userCurrency) : null,
+      category_name: activity.categories?.name,
+      // Convert price from THB to user's currency
+      price: activity.price ? currencyService.convertFromTHB(activity.price, userCurrency) : null,
       b_price: activity.b_price ? currencyService.convertFromTHB(activity.b_price, userCurrency) : null,
       // Add currency info for display
       currency: userCurrency
@@ -37,12 +43,15 @@ export const activityService = {
       .from("activities")
       .select(`
         id,
+        slug,
         title,
+        price,
         b_price,
+        location,
         address,
         average_rating,
         image_url,
-        category
+        categories(name)
       `)
       .eq("is_active", true)
       .order("created_at", { ascending: false })
@@ -53,16 +62,19 @@ export const activityService = {
       throw error;
     }
 
-    // Get user's currency with simple fallback
-    const userCurrency = currencyService.getUserCurrency();
+    // Get user's currency and convert prices with fallback
+    let userCurrency = "USD";
+    try {
+      userCurrency = await currencyService.getUserCurrency();
+    } catch (error) {
+      console.warn("Currency detection failed, using USD:", error);
+    }
 
     return (data || []).map(activity => ({
       ...activity,
-      slug: `activity-${activity.id}`, // Generate slug from ID since slug column doesn't exist
-      category_name: activity.category,
-      location: activity.address, // Use address as location since location column doesn't exist
-      // Convert price from THB to user's currency - use b_price as the main price
-      price: activity.b_price ? currencyService.convertFromTHB(activity.b_price, userCurrency) : null,
+      category_name: activity.categories?.name,
+      // Convert price from THB to user's currency
+      price: activity.price ? currencyService.convertFromTHB(activity.price, userCurrency) : null,
       b_price: activity.b_price ? currencyService.convertFromTHB(activity.b_price, userCurrency) : null,
       // Add currency info for display
       currency: userCurrency
@@ -70,16 +82,14 @@ export const activityService = {
   },
 
   async getActivityBySlug(slug: string): Promise<Activity | null> {
-    // Extract ID from slug (format: activity-{id})
-    const activityId = slug.replace('activity-', '');
-    
     const { data, error } = await supabase
       .from("activities")
       .select(`
         *,
-        activity_schedules(*)
+        activity_schedules(*),
+        categories(name)
       `)
-      .eq("id", activityId)
+      .eq("slug", slug)
       .eq("is_active", true)
       .single();
 
@@ -91,28 +101,28 @@ export const activityService = {
     if (!data) return null;
 
     // Get user's currency and convert prices
-    const userCurrency = currencyService.getUserCurrency();
+    const userCurrency = await currencyService.getUserCurrency();
 
     return {
       ...data,
-      slug: `activity-${data.id}`, // Generate slug from ID
-      category_name: data.category,
-      // Convert price from THB to user's currency - use b_price as the main price
-      price: data.b_price ? currencyService.convertFromTHB(data.b_price, userCurrency) : null,
+      category_name: data.categories?.name,
+      // Convert price from THB to user's currency
+      price: data.price ? currencyService.convertFromTHB(data.price, userCurrency) : null,
       b_price: data.b_price ? currencyService.convertFromTHB(data.b_price, userCurrency) : null,
       // Add currency info for display
       currency: userCurrency
     };
   },
 
-  async getActivitiesByCategory(categoryName: string): Promise<Activity[]> {
+  async getActivitiesByCategory(categoryId: string): Promise<Activity[]> {
     const { data, error } = await supabase
       .from("activities")
       .select(`
         *,
-        activity_schedules(*)
+        activity_schedules(*),
+        categories(name)
       `)
-      .eq("category", categoryName)
+      .eq("category_id", categoryId)
       .eq("is_active", true)
       .order("created_at", { ascending: false });
 
@@ -122,13 +132,13 @@ export const activityService = {
     }
 
     // Get user's currency and convert prices
-    const userCurrency = currencyService.getUserCurrency();
+    const userCurrency = await currencyService.getUserCurrency();
 
     return (data || []).map(activity => ({
       ...activity,
-      category_name: activity.category,
-      // Convert price from THB to user's currency - use b_price as the main price
-      price: activity.b_price ? currencyService.convertFromTHB(activity.b_price, userCurrency) : null,
+      category_name: activity.categories?.name,
+      // Convert price from THB to user's currency
+      price: activity.price ? currencyService.convertFromTHB(activity.price, userCurrency) : null,
       b_price: activity.b_price ? currencyService.convertFromTHB(activity.b_price, userCurrency) : null,
       // Add currency info for display
       currency: userCurrency
@@ -140,7 +150,8 @@ export const activityService = {
       .from("activities")
       .select(`
         *,
-        activity_schedules(*)
+        activity_schedules(*),
+        categories(name)
       `)
       .eq("is_active", true)
       .or(`title.ilike.%${query}%, description.ilike.%${query}%, location.ilike.%${query}%`)
@@ -152,13 +163,13 @@ export const activityService = {
     }
 
     // Get user's currency and convert prices
-    const userCurrency = currencyService.getUserCurrency();
+    const userCurrency = await currencyService.getUserCurrency();
 
     return (data || []).map(activity => ({
       ...activity,
-      category_name: activity.category,
-      // Convert price from THB to user's currency - use b_price as the main price
-      price: activity.b_price ? currencyService.convertFromTHB(activity.b_price, userCurrency) : null,
+      category_name: activity.categories?.name,
+      // Convert price from THB to user's currency
+      price: activity.price ? currencyService.convertFromTHB(activity.price, userCurrency) : null,
       b_price: activity.b_price ? currencyService.convertFromTHB(activity.b_price, userCurrency) : null,
       // Add currency info for display
       currency: userCurrency
