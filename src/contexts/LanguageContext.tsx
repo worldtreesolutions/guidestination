@@ -59,8 +59,14 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     const initializeLanguage = async () => {
       setIsLoading(true);
       
-      const savedLanguage = localStorage.getItem("language") as Language;
-      const initialLanguage = savedLanguage || "en";
+      let initialLanguage: Language = "en";
+      
+      // Only access localStorage on client side
+      if (typeof window !== "undefined") {
+        const savedLanguage = localStorage.getItem("language") as Language;
+        initialLanguage = savedLanguage || "en";
+      }
+      
       setLanguageState(initialLanguage);
       
       if (initialLanguage === 'fr') {
@@ -80,7 +86,12 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
-    localStorage.setItem("language", lang);
+    
+    // Only access localStorage on client side
+    if (typeof window !== "undefined") {
+      localStorage.setItem("language", lang);
+    }
+    
     fetchTranslations(lang);
     
     if (lang === 'fr') {
