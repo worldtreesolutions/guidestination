@@ -3,14 +3,17 @@ import { createContext, useContext, useState, useEffect, ReactNode, useCallback 
 import { useRouter } from "next/router";
 import { currencyService } from "@/services/currencyService";
 
+export type Language = "en" | "th" | "fr";
+
 interface LanguageContextType {
-  language: string;
-  setLanguage: (language: string) => void;
+  language: Language;
+  setLanguage: (language: Language) => void;
   translations: any;
   t: (key: string) => string;
   currency: string;
   setCurrency: (currency: string) => void;
   formatCurrency: (amount: number) => string;
+  isLoading: boolean;
 }
 
 export const LanguageContext = createContext<LanguageContextType | undefined>(
@@ -26,12 +29,13 @@ export function useLanguage() {
 }
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguageState] = useState("en");
+  const [language, setLanguageState] = useState<Language>("en");
   const [translations, setTranslations] = useState({});
   const [currency, setCurrency] = useState("THB");
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  const fetchTranslations = useCallback(async (lang: string) => {
+  const fetchTranslations = useCallback(async (lang: Language) => {
     try {
       const response = await fetch(`/translations/${lang}.json`);
       if (!response.ok) {
@@ -52,22 +56,29 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    const savedLanguage = localStorage.getItem("language");
-    const initialLanguage = savedLanguage || "en";
-    setLanguageState(initialLanguage);
-    
-    if (initialLanguage === 'fr') {
-      setCurrency('EUR');
-    } else if (initialLanguage === 'en') {
-      setCurrency('USD');
-    } else {
-      setCurrency('THB');
-    }
+    const initializeLanguage = async () => {
+      setIsLoading(true);
+      
+      const savedLanguage = localStorage.getItem("language") as Language;
+      const initialLanguage = savedLanguage || "en";
+      setLanguageState(initialLanguage);
+      
+      if (initialLanguage === 'fr') {
+        setCurrency('EUR');
+      } else if (initialLanguage === 'en') {
+        setCurrency('USD');
+      } else {
+        setCurrency('THB');
+      }
 
-    fetchTranslations(initialLanguage);
+      await fetchTranslations(initialLanguage);
+      setIsLoading(false);
+    };
+
+    initializeLanguage();
   }, [fetchTranslations]);
 
-  const setLanguage = (lang: string) => {
+  const setLanguage = (lang: Language) => {
     setLanguageState(lang);
     localStorage.setItem("language", lang);
     fetchTranslations(lang);
@@ -109,6 +120,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     currency,
     setCurrency,
     formatCurrency,
+    isLoading,
   };
 
   return (
