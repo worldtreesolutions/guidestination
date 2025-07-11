@@ -1,7 +1,10 @@
+
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import ActivityCard from "@/components/home/ActivityCard";
+import ActivityRow from "@/components/home/ActivityRow";
+import CategoryNav from "@/components/home/CategoryNav";
+import CategorySection from "@/components/home/CategorySection";
 import { SearchBar } from "@/components/home/SearchBar";
 import { activityService } from "@/services/activityService";
 import { ActivityForHomepage } from "@/types/activity";
@@ -33,58 +36,81 @@ export default function HomePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">Loading activities...</div>
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center text-white">Loading activities...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center text-red-600">{error}</div>
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center text-red-500">{error}</div>
       </div>
     );
   }
 
+  // Group activities by category for Netflix-style layout
+  const groupedActivities = activities.reduce((acc, activity) => {
+    const category = activity.category_name || 'Other';
+    if (!acc[category]) {
+      acc[category] = [];
+    }
+    acc[category].push(activity);
+    return acc;
+  }, {} as Record<string, ActivityForHomepage[]>);
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <section className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-20">
-        <div className="max-w-7xl mx-auto px-4 text-center">
+    <div className="min-h-screen bg-black text-white">
+      {/* Hero Section */}
+      <section className="relative h-screen bg-gradient-to-b from-transparent to-black">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20" />
+        <div className="relative z-10 flex flex-col justify-center items-center h-full px-4 text-center">
           <h1 className="text-4xl md:text-6xl font-bold mb-6">
             Discover Amazing Experiences
           </h1>
-          <p className="text-xl md:text-2xl mb-8 opacity-90">
+          <p className="text-xl md:text-2xl mb-8 opacity-90 max-w-2xl">
             Find and book unique activities and tours around the world
           </p>
           <SearchBar />
         </div>
       </section>
 
-      <section className="py-12">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl font-bold">Featured Activities</h2>
-            <Link href="/activities">
-              <Button variant="outline">View All</Button>
-            </Link>
+      {/* Category Navigation */}
+      <CategoryNav />
+
+      {/* Netflix-style Activity Sections */}
+      <div className="px-4 md:px-8 lg:px-12 space-y-8 pb-20">
+        {/* Featured Activities */}
+        {activities.length > 0 && (
+          <section>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold">Featured Activities</h2>
+              <Link href="/activities">
+                <Button variant="ghost" className="text-white hover:text-gray-300">
+                  View All
+                </Button>
+              </Link>
+            </div>
+            <ActivityRow activities={activities.slice(0, 10)} />
+          </section>
+        )}
+
+        {/* Category Sections */}
+        {Object.entries(groupedActivities).map(([category, categoryActivities]) => (
+          <CategorySection
+            key={category}
+            title={category}
+            activities={categoryActivities}
+          />
+        ))}
+
+        {activities.length === 0 && (
+          <div className="text-center py-20">
+            <p className="text-gray-400 text-lg">No activities available at the moment.</p>
           </div>
-          
-          {activities.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {activities.map((activity) => (
-                <Link key={activity.id} href={`/activities/${activity.slug || `activity-${activity.id}`}`} passHref>
-                  <ActivityCard activity={activity} />
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-gray-600">No activities available at the moment.</p>
-            </div>
-          )}
-        </div>
-      </section>
+        )}
+      </div>
     </div>
   );
 }

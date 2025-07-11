@@ -1,35 +1,30 @@
-import { useState, useEffect } from "react";
+
 import { Button } from "@/components/ui/button";
-import { type Category } from "@/services/categoryService";
-import { useLanguage } from "@/contexts/LanguageContext";
 
-interface CategoryNavProps {
-  categories: Category[];
-  selectedCategory: string | null;
-  onSelectCategory: (categoryName: string | null) => void;
-}
+const categories = [
+  "All",
+  "Adventure",
+  "Cultural",
+  "Food & Drink",
+  "Nature",
+  "Water Sports",
+  "City Tours",
+  "Nightlife",
+  "Wellness",
+  "Family"
+];
 
-export function CategoryNav({ categories, selectedCategory, onSelectCategory }: CategoryNavProps) {
-  const { t } = useLanguage();
-
+export default function CategoryNav() {
   return (
-    <div className="flex flex-col items-center justify-center w-full overflow-x-auto">
-      <div className="flex flex-wrap justify-center gap-2 sm:gap-3 max-w-4xl mx-auto">
-        <Button
-          variant={!selectedCategory ? "default" : "outline"}
-          className="whitespace-nowrap text-xs sm:text-sm px-2 sm:px-4 h-8 sm:h-10"
-          onClick={() => onSelectCategory(null)}
-        >
-          {t("category.all")}
-        </Button>
+    <div className="px-4 md:px-8 lg:px-12 py-6">
+      <div className="flex overflow-x-auto space-x-4 scrollbar-hide">
         {categories.map((category) => (
           <Button
-            key={category.id}
-            variant={selectedCategory === category.name ? "default" : "outline"}
-            className="whitespace-nowrap text-xs sm:text-sm px-2 sm:px-4 h-8 sm:h-10"
-            onClick={() => onSelectCategory(category.name)}
+            key={category}
+            variant="ghost"
+            className="flex-shrink-0 text-white hover:text-gray-300 hover:bg-gray-800/50 border border-gray-600 rounded-full px-6"
           >
-            {t(`category.${category.name?.toLowerCase() || ""}`) || category.name}
+            {category}
           </Button>
         ))}
       </div>
