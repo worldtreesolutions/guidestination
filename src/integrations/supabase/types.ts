@@ -1,4 +1,5 @@
 
+    
 export type Json =
   | string
   | number
@@ -229,7 +230,7 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
+      },
       activity_owners: {
         Row: {
           id: string
@@ -272,7 +273,7 @@ export type Database = {
             referencedColumns: ["id"]
           }
         ]
-      }
+      },
       bookings: {
         Row: {
           id: number
@@ -384,7 +385,7 @@ export type Database = {
             referencedColumns: ["id"]
           }
         ]
-      }
+      },
       chat_messages: {
         Row: {
           id: string
@@ -436,7 +437,7 @@ export type Database = {
             referencedColumns: ["id"]
           }
         ]
-      }
+      },
       categories: {
         Row: {
           id: number
@@ -454,7 +455,7 @@ export type Database = {
           description?: string | null
         }
         Relationships: []
-      }
+      },
       commission_invoices: {
         Row: {
           id: string
@@ -542,7 +543,7 @@ export type Database = {
             referencedColumns: ["id"]
           }
         ]
-      }
+      },
       commission_payments: {
         Row: {
           id: string
@@ -588,7 +589,7 @@ export type Database = {
             referencedColumns: ["id"]
           }
         ]
-      }
+      },
       customer_profiles: {
         Row: {
           customer_id: string
@@ -634,7 +635,7 @@ export type Database = {
             referencedColumns: ["id"]
           }
         ]
-      }
+      },
       establishment_activities: {
         Row: {
           establishment_id: string
@@ -662,7 +663,7 @@ export type Database = {
             referencedColumns: ["id"]
           }
         ]
-      }
+      },
       establishment_commissions: {
         Row: {
           id: string
@@ -726,7 +727,7 @@ export type Database = {
             referencedColumns: ["id"]
           }
         ]
-      }
+      },
       establishments: {
         Row: {
           id: string
@@ -763,7 +764,7 @@ export type Database = {
             referencedColumns: ["id"]
           }
         ]
-      }
+      },
       partner_registrations: {
         Row: {
           id: string
@@ -830,27 +831,27 @@ export type Database = {
             referencedColumns: ["id"]
           }
         ]
-      }
+      },
       qr_scans: {
         Row: {
           id: string
           establishment_id: string
           user_agent: string | null
-          meta Json | null
+          meta: Json | null
           created_at: string
         }
         Insert: {
           id?: string
           establishment_id: string
           user_agent?: string | null
-          metadata?: Json | null
+          meta?: Json | null
           created_at?: string
         }
         Update: {
           id?: string
           establishment_id?: string
           user_agent?: string | null
-          metadata?: Json | null
+          meta?: Json | null
           created_at?: string
         }
         Relationships: [
@@ -861,14 +862,14 @@ export type Database = {
             referencedColumns: ["id"]
           }
         ]
-      }
+      },
       referral_visits: {
         Row: {
           id: string
           establishment_id: string
           session_id: string
           user_agent: string | null
-          meta Json | null
+          meta: Json | null
           visit_date: string
         }
         Insert: {
@@ -876,7 +877,7 @@ export type Database = {
           establishment_id: string
           session_id: string
           user_agent?: string | null
-          metadata?: Json | null
+          meta?: Json | null
           visit_date?: string
         }
         Update: {
@@ -884,7 +885,7 @@ export type Database = {
           establishment_id?: string
           session_id?: string
           user_agent?: string | null
-          metadata?: Json | null
+          meta?: Json | null
           visit_date?: string
         }
         Relationships: [
@@ -895,7 +896,7 @@ export type Database = {
             referencedColumns: ["id"]
           }
         ]
-      }
+      },
       reviews: {
         Row: {
           id: string
@@ -935,7 +936,7 @@ export type Database = {
             referencedColumns: ["id"]
           }
         ]
-      }
+      },
       stripe_checkout_sessions: {
         Row: {
           id: string
@@ -989,7 +990,7 @@ export type Database = {
           booking_source?: string
         }
         Relationships: []
-      }
+      },
       stripe_payouts: {
         Row: {
           id: string
@@ -1019,7 +1020,7 @@ export type Database = {
           created_at?: string
         }
         Relationships: []
-      }
+      },
       stripe_transfers: {
         Row: {
           id: string
@@ -1052,7 +1053,7 @@ export type Database = {
           created_at?: string
         }
         Relationships: []
-      }
+      },
       stripe_webhook_events: {
         Row: {
           id: string
@@ -1082,7 +1083,7 @@ export type Database = {
           error_message?: string | null
         }
         Relationships: []
-      }
+      },
       wishlist: {
         Row: {
           id: string
@@ -1116,7 +1117,7 @@ export type Database = {
             referencedColumns: ["customer_id"]
           }
         ]
-      }
+      },
       activity_selected_options: {
         Row: {
           id: number
@@ -1150,9 +1151,9 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "activity_options"
             referencedColumns: ["id"]
-          },
+          }
         ]
-      }
+      },
       activity_schedule_instances: {
         Row: {
           id: number
@@ -1219,7 +1220,7 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "activity_schedules"
             referencedColumns: ["id"]
-          },
+          }
         ]
       }
     }
