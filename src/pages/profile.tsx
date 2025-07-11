@@ -1,4 +1,3 @@
-
 import Head from "next/head"
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/router"
@@ -41,7 +40,7 @@ export default function ProfilePage() {
         .single()
 
       if (error && error.code === "PGRST116") { // Not found, create one
-        const {  { user: authUser } } = await supabase.auth.getUser();
+        const { data: { user: authUser } } = await supabase.auth.getUser();
         if (!authUser) {
             throw new Error("User not authenticated to create profile.");
         }
