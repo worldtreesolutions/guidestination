@@ -30,13 +30,20 @@ export default function ActivityPage() {
   useEffect(() => {
     const fetchActivityAndSchedules = async () => {
       if (typeof slug !== "string") return;
+      
       try {
         setLoading(true);
+        setError(null);
+        
+        console.log("Fetching activity with slug:", slug);
         
         // Fetch activity details
         const activityData = await activityService.getActivityBySlug(slug);
+        console.log("Activity data received:", activityData);
+        
         if (!activityData) {
-          setError("Activity not found");
+          console.log("No activity found for slug:", slug);
+          setError(`Activity not found. The activity "${slug}" may have been removed or the link is incorrect.`);
           return;
         }
         
@@ -65,7 +72,7 @@ export default function ActivityPage() {
         }
       } catch (error) {
         console.error("Error fetching activity:", error);
-        setError("Failed to load activity details.");
+        setError("Failed to load activity details. Please try refreshing the page or contact support if the problem persists.");
       } finally {
         setLoading(false);
       }
@@ -94,8 +101,18 @@ export default function ActivityPage() {
 
   const renderError = () => (
     <div className="container py-8 text-center">
-      <h2 className="text-2xl font-bold text-destructive mb-4">Error</h2>
-      <p>{error}</p>
+      <div className="max-w-md mx-auto">
+        <h2 className="text-2xl font-bold text-destructive mb-4">Activity Not Found</h2>
+        <p className="text-muted-foreground mb-6">{error}</p>
+        <div className="space-y-3">
+          <Button asChild className="w-full">
+            <Link href="/">Browse All Activities</Link>
+          </Button>
+          <Button variant="outline" onClick={() => router.back()} className="w-full">
+            Go Back
+          </Button>
+        </div>
+      </div>
     </div>
   );
 

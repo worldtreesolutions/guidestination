@@ -41,6 +41,8 @@ export default function HomePage() {
         
         try {
           activitiesData = await activityService.getActivitiesForHomepage();
+          console.log("Activities fetched successfully:", activitiesData.length, "activities");
+          console.log("Sample activity data:", activitiesData[0]);
         } catch (activityError) {
           console.error("Failed to fetch activities:", activityError);
           activitiesData = [];
@@ -48,6 +50,7 @@ export default function HomePage() {
         
         try {
           categoriesData = await categoryService.getAllCategories();
+          console.log("Categories fetched successfully:", categoriesData.length, "categories");
         } catch (categoryError) {
           console.error("Failed to fetch categories:", categoryError);
           categoriesData = [];
@@ -55,6 +58,8 @@ export default function HomePage() {
         
         setActivities(activitiesData || []);
         setCategories(categoriesData || []);
+        
+        console.log("Final state - Activities:", activitiesData.length, "Categories:", categoriesData.length);
         
         // If both failed, show error
         if (activitiesData.length === 0 && categoriesData.length === 0) {
@@ -175,6 +180,19 @@ export default function HomePage() {
                       </div>
                       <ActivityRow activities={activities.slice(0, 10)} />
                     </section>
+                  )}
+                  
+                  {/* Debug information */}
+                  {process.env.NODE_ENV === 'development' && (
+                    <div className="bg-gray-100 p-4 rounded-lg text-sm">
+                      <p><strong>Debug Info:</strong></p>
+                      <p>Total Activities: {activities.length}</p>
+                      <p>Total Categories: {categories.length}</p>
+                      <p>Categories with Activities: {categoriesWithActivities.length}</p>
+                      {activities.length > 0 && (
+                        <p>Sample Activity: {activities[0]?.title} (ID: {activities[0]?.id})</p>
+                      )}
+                    </div>
                   )}
                   
                   {/* Netflix-style category sections */}
