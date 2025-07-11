@@ -351,7 +351,7 @@ export default function ActivityBookingPage() {
                       <div>
                         <h3 className="font-semibold mb-3">Select Date</h3>
                         <AvailabilityCalendar
-                          activityId={parseInt(activityId as string, 10)}
+                          activityId={typeof activityId === "string" ? parseInt(activityId, 10) : 0}
                           availableDates={activity.activity_schedules?.map((d: any) => d.scheduled_date) || []}
                           scheduleData={activity.activity_schedules || []}
                           selectedDate={selectedDate}
