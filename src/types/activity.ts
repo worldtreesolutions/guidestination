@@ -1,3 +1,4 @@
+
 import { Database } from "@/integrations/supabase/types";
 
 // Helper type to extract row types from the Database type.
@@ -19,7 +20,7 @@ export type Provider = Tables<"activity_owners">; // Alias for ActivityOwner
 export type BookingStatus = "confirmed" | "pending" | "cancelled" | "completed";
 
 // Enriched types for application use
-export type Activity = SupabaseActivity & {
+export interface Activity extends SupabaseActivity {
   category_name?: string;
   media?: { url: string; type: "image" | "video" }[];
   schedules?: SupabaseActivitySchedule[];
@@ -35,29 +36,31 @@ export type Activity = SupabaseActivity & {
   pickup_locations?: string | null;
   includes_meal?: boolean | null;
   meal_description?: string | null;
-};
+  activity_schedules?: ActivitySchedule[];
+  currency?: string;
+}
 
-export type Booking = Omit<SupabaseBooking, "status"> & {
+export interface Booking extends Omit<SupabaseBooking, "status"> {
   status: BookingStatus | null;
   activities: SupabaseActivity | null;
   platform_fee?: number;
   provider_amount?: number;
-};
+}
 
 // Slimmed-down type for homepage activity cards
-export type ActivityForHomepage = Pick<
-  Activity,
-  | "id"
-  | "title"
-  | "price"
-  | "b_price"
-  | "location"
-  | "address"
-  | "average_rating"
-> & {
+export interface ActivityForHomepage {
+  id: string;
+  slug: string;
+  title: string;
+  price: number | null;
+  b_price: number | null;
+  location: string;
+  address: string;
+  average_rating: number | null;
   image_url: string | null;
   category_name?: string;
-};
+  currency?: string;
+}
 
 // Type for earnings data visualization
 export type Earning = {
@@ -93,50 +96,9 @@ export type CommissionStats = {
 };
 
 // Type for activities scheduled in the planner
-export type ScheduledActivity = Activity & {
+export interface ScheduledActivity extends Activity {
   date: Date;
   time: string;
-};
-
-export interface Activity {
-  id: string;
-  title: string;
-  description: string;
-  price: number | null;
-  b_price: number | null;
-  location: string;
-  address: string;
-  latitude: number | null;
-  longitude: number | null;
-  duration: string | null;
-  max_participants: number | null;
-  min_participants: number | null;
-  difficulty_level: string | null;
-  category_id: string | null;
-  category_name?: string;
-  image_url: string | null;
-  gallery_images: string[] | null;
-  is_active: boolean;
-  average_rating: number | null;
-  total_reviews: number | null;
-  created_at: string;
-  updated_at: string;
-  slug: string;
-  activity_schedules?: ActivitySchedule[];
-  currency?: string; // Added currency field
-}
-
-export interface ActivityForHomepage {
-  id: string;
-  title: string;
-  price: number | null;
-  b_price: number | null;
-  location: string;
-  address: string;
-  average_rating: number | null;
-  image_url: string | null;
-  category_name?: string;
-  currency?: string; // Added currency field
 }
 
 export interface ActivitySchedule {

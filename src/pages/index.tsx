@@ -1,161 +1,95 @@
-import Head from "next/head"
-import { useState } from "react"
-import { Navbar } from "@/components/layout/Navbar"
-import { Footer } from "@/components/layout/Footer"
-import { CategoryNav } from "@/components/home/CategoryNav"
-import { ActivityRow } from "@/components/home/ActivityRow"
-import { SearchBar } from "@/components/home/SearchBar"
-import { BottomActionButtons } from "@/components/layout/BottomActionButtons"
-import { FloatingCart } from "@/components/layout/FloatingCart"
-import { supabase } from "@/integrations/supabase/client"
-import categoryService from "@/services/categoryService"
-import { SupabaseActivity } from "@/types/activity"
 
-interface Category {
-  id: number;
-  name: string;
-  description: string | null;
-}
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import ActivityCard from "@/components/home/ActivityCard";
+import CategoryNav from "@/components/home/CategoryNav";
+import SearchBar from "@/components/home/SearchBar";
+import { activityService } from "@/services/activityService";
+import { ActivityForHomepage } from "@/types/activity";
 
-interface HomePageProps {
-  featuredActivities: SupabaseActivity[];
-  recommendedActivities: SupabaseActivity[];
-  activitiesByCategory: { [key: string]: SupabaseActivity[] };
-  categories: Category[];
-}
+export default function HomePage() {
+  const [activities, setActivities] = useState<ActivityForHomepage[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-export default function HomePage({
-  activitiesByCategory,
-  categories,
-}: HomePageProps) {
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  useEffect(() => {
+    const fetchActivities = async () => {
+      try {
+        setLoading(true);
+        const data = await activityService.getActivitiesForHomepage();
+        setActivities(data);
+      } catch (err) {
+        console.error("Error fetching activities:", err);
+        setError("Failed to load activities");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const handleSelectCategory = (categoryName: string | null) => {
-    setSelectedCategory(categoryName)
+    fetchActivities();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">Loading activities...</div>
+      </div>
+    );
   }
 
-  const renderActivityRows = () => {
-    if (selectedCategory) {
-      const activities = activitiesByCategory[selectedCategory] || []
-      return (
-        <div className="space-y-8">
-          <ActivityRow title={selectedCategory} activities={activities} />
-        </div>
-      )
-    }
-
-    // Netflix-style: Show all categories with their activities
+  if (error) {
     return (
-      <div className="space-y-12">
-        {Object.entries(activitiesByCategory).map(([categoryName, activities]) => {
-          if (activities.length === 0) return null
-          
-          return (
-            <ActivityRow
-              key={categoryName}
-              title={categoryName}
-              activities={activities as SupabaseActivity[]}
-            />
-          )
-        })}
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center text-red-600">{error}</div>
       </div>
-    )
+    );
   }
 
   return (
-    <>
-      <Head>
-        <title>Guidestination - Discover Amazing Activities</title>
-        <meta name="description" content="Discover and book amazing activities and experiences" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+    <div className="min-h-screen bg-gray-50">
+      <section className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-20">
+        <div className="max-w-7xl mx-auto px-4 text-center">
+          <h1 className="text-4xl md:text-6xl font-bold mb-6">
+            Discover Amazing Experiences
+          </h1>
+          <p className="text-xl md:text-2xl mb-8 opacity-90">
+            Find and book unique activities and tours around the world
+          </p>
+          <SearchBar />
+        </div>
+      </section>
 
-      <Navbar />
-      
-      <div className="min-h-screen bg-gray-50">
-        <section className="bg-white py-8 border-b">
-          <div className="container mx-auto px-4">
-            <SearchBar />
+      <section className="py-12">
+        <div className="max-w-7xl mx-auto px-4">
+          <CategoryNav />
+        </div>
+      </section>
+
+      <section className="py-12">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-3xl font-bold">Featured Activities</h2>
+            <Link href="/activities">
+              <Button variant="outline">View All</Button>
+            </Link>
           </div>
-        </section>
-
-        <section className="bg-gray-50 py-8">
-          <div className="container mx-auto px-4">
-            <CategoryNav 
-              categories={categories}
-              selectedCategory={selectedCategory} 
-              onSelectCategory={handleSelectCategory} 
-            />
-          </div>
-        </section>
-
-        <section className="py-12">
-          <div className="container mx-auto px-4">
-            {renderActivityRows()}
-          </div>
-        </section>
-
-        <BottomActionButtons />
-        <FloatingCart />
-      </div>
-
-      <Footer />
-    </>
-  )
+          
+          {activities.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {activities.map((activity) => (
+                <Link key={activity.id} href={`/activities/${activity.slug}`} passHref>
+                  <ActivityCard activity={activity} />
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-gray-600">No activities available at the moment.</p>
+            </div>
+          )}
+        </div>
+      </section>
+    </div>
+  );
 }
-
-export async function getServerSideProps() {
-  try {
-    // Fetch featured activities (first 6 activities)
-    const { data: featuredActivitiesData } = await supabase
-      .from('activities')
-      .select('*')
-      .eq('is_active', true)
-      .limit(6)
-
-    // Fetch recommended activities (random selection)
-    const { data: recommendedActivitiesData } = await supabase
-      .from('activities')
-      .select('*')
-      .eq('is_active', true)
-      .limit(8)
-
-    const categories = await categoryService.getAllCategories()
-    const activitiesByCategory: { [key: string]: SupabaseActivity[] } = {};
-
-    // Fetch activities for each category
-    await Promise.all(
-      categories.slice(0, 4).map(async (category: Category) => {
-        const { data: activities } = await supabase
-          .from('activities')
-          .select('*')
-          .eq('is_active', true)
-          .eq('category', category.name)
-          .limit(10)
-        
-        activitiesByCategory[category.name] = activities || [];
-      })
-    )
-
-    return {
-      props: {
-        featuredActivities: featuredActivitiesData || [],
-        recommendedActivities: recommendedActivitiesData || [],
-        activitiesByCategory,
-        categories,
-      },
-    }
-  } catch (error) {
-    console.error("Error fetching data for homepage:", error)
-    return {
-      props: {
-        featuredActivities: [],
-        recommendedActivities: [],
-        activitiesByCategory: {},
-        categories: [],
-      },
-    }
-  }
-}
-  

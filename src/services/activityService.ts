@@ -38,6 +38,7 @@ export const activityService = {
       .from("activities")
       .select(`
         id,
+        slug,
         title,
         price,
         b_price,
