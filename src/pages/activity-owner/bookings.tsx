@@ -1,72 +1,90 @@
 import { useState, useEffect } from "react"
-import { useRouter } from "next/router"
-import Head from "next/head"
-import { useAuth } from "@/contexts/AuthContext"
-import { bookingService } from "@/services/bookingService"
-import { Booking } from "@/types/activity"
-import { Navbar } from "@/components/layout/Navbar"
-import { Footer } from "@/components/layout/Footer"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Eye } from "lucide-react"
+import Navbar from "@/components/layout/Navbar"
+import { useAuth } from "@/contexts/AuthContext"
+import { Booking } from "@/types/activity"
+import { supabase } from "@/integrations/supabase/client"
+import { format } from "date-fns"
 
 export default function BookingsPage() {
   const { user } = useAuth()
-  const router = useRouter()
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const fetchBookings = async () => {
-      if (user?.id) {
-        try {
-          setLoading(true);
-          const ownerBookings = await bookingService.fetchBookingsForOwner(user.id);
-          setBookings(ownerBookings);
-        } catch (error: any) {
-          console.error(error.message);
-        } finally {
-          setLoading(false);
-        }
-      }
+    if (user) {
+      fetchBookings()
     }
-    fetchBookings()
-  }, [user]);
+  }, [user])
+
+  const fetchBookings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('bookings')
+        .select(`
+          *,
+          activities (
+            title,
+            image_url
+          )
+        `)
+        .eq('provider_id', user?.id)
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+      setBookings(data || [])
+    } catch (error) {
+      console.error('Error fetching bookings:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'confirmed':
+        return 'bg-green-100 text-green-800'
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800'
+      case 'cancelled':
+        return 'bg-red-100 text-red-800'
+      case 'completed':
+        return 'bg-blue-100 text-blue-800'
+      default:
+        return 'bg-gray-100 text-gray-800'
+    }
+  }
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <p>Loading bookings...</p>
+      <div>
+        <Navbar />
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center">Loading bookings...</div>
+        </div>
       </div>
-    );
+    )
   }
 
   return (
-    <>
-      <Head>
-        <title>Manage Bookings - Guidestination</title>
-        <meta name="description" content="Manage your activity bookings" />
-      </Head>
-
+    <div>
       <Navbar />
-
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Bookings</h1>
-          <p className="text-muted-foreground">
-            Manage your customer reservations
-          </p>
-        </div>
-
+      <div className="container mx-auto px-4 py-8">
         <Card>
-          <CardContent className="p-0">
+          <CardHeader>
+            <CardTitle>Your Bookings</CardTitle>
+          </CardHeader>
+          <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Activity</TableHead>
                   <TableHead>Customer</TableHead>
-                  <TableHead>Date & Time</TableHead>
+                  <TableHead>Date</TableHead>
                   <TableHead>Participants</TableHead>
                   <TableHead>Amount</TableHead>
                   <TableHead>Status</TableHead>
@@ -74,58 +92,51 @@ export default function BookingsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {bookings.map((booking) => (
-                  <TableRow key={booking.id}>
-                    <TableCell className="font-medium">{booking.activityTitle}</TableCell>
-                    <TableCell>
-                      <div>{booking.customerName}</div>
-                      <div className="text-xs text-muted-foreground">{booking.customerEmail}</div>
-                    </TableCell>
-                    <TableCell>
-                      <div>{new Date(booking.date || booking.created_at).toLocaleDateString()}</div>
-                      <div className="text-xs text-muted-foreground">{booking.bookingTime}</div>
-                    </TableCell>
-                    <TableCell>{booking.num_participants}</TableCell>
-                    <TableCell>
-                      <div>฿{(booking.providerAmount || 0).toLocaleString()}</div>
-                      <div className="text-xs text-muted-foreground">
-                        After {(((booking.platformFee || 0) / (booking.totalAmount || 1)) * 100).toFixed(0)}% fee
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={getStatusColor(booking.status)} variant="outline">
-                        {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Button variant="outline" size="sm">
-                        View Details
-                      </Button>
+                {bookings.length > 0 ? (
+                  bookings.map((booking) => (
+                    <TableRow key={booking.id}>
+                      <TableCell className="font-medium">
+                        {booking.activities?.title || "Activity"}
+                      </TableCell>
+                      <TableCell>
+                        {booking.customer_name || "Guest"}
+                      </TableCell>
+                      <TableCell>
+                        {booking.booking_date
+                          ? format(new Date(booking.booking_date), "PPP")
+                          : "N/A"}
+                      </TableCell>
+                      <TableCell>
+                        {booking.participants || 1}
+                      </TableCell>
+                      <TableCell>
+                        ฿{(booking.provider_amount || 0).toLocaleString()}
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={getStatusColor(booking.status || "pending")} variant="outline">
+                          {booking.status || "pending"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Button variant="outline" size="sm">
+                          <Eye className="h-4 w-4 mr-2" />
+                          View
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center text-muted-foreground">
+                      No bookings found.
                     </TableCell>
                   </TableRow>
-                ))}
+                )}
               </TableBody>
             </Table>
           </CardContent>
         </Card>
       </div>
-
-      <Footer />
-    </>
-  );
-}
-
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case "confirmed":
-      return "bg-green-100 text-green-800 hover:bg-green-100/80";
-    case "pending":
-      return "bg-yellow-100 text-yellow-800 hover:bg-yellow-100/80";
-    case "completed":
-      return "bg-blue-100 text-blue-800 hover:bg-blue-100/80";
-    case "cancelled":
-      return "bg-red-100 text-red-800 hover:bg-red-100/80";
-    default:
-      return "";
-  }
+    </div>
+  )
 }

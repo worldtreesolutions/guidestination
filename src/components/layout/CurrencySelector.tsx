@@ -1,18 +1,18 @@
-
 import { useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { currencyService } from "@/services/currencyService";
 import { Globe } from "lucide-react";
 
 export default function CurrencySelector() {
-  const [selectedCurrency, setSelectedCurrency] = useState(currencyService.getCurrency());
+  const [selectedCurrency, setSelectedCurrency] = useState(currencyService.getUserCurrency());
 
   const handleCurrencyChange = (currencyCode: string) => {
-    currencyService.setCurrency(currencyCode);
+    // Store currency preference in localStorage
+    localStorage.setItem('preferred_currency', currencyCode);
     window.location.reload(); // Reload to apply currency changes
   };
 
-  const supportedCurrencies = currencyService.getCurrencies();
+  const supportedCurrencies = currencyService.getSupportedCurrencies();
 
   return (
     <div className="flex items-center gap-2">
