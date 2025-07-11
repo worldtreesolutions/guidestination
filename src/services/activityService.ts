@@ -8,8 +8,7 @@ export const activityService = {
       .from("activities")
       .select(`
         *,
-        activity_schedules(*),
-        categories(name)
+        activity_schedules(*)
       `)
       .eq("is_active", true)
       .order("created_at", { ascending: false });
@@ -24,7 +23,7 @@ export const activityService = {
     
     return (data || []).map(activity => ({
       ...activity,
-      category_name: activity.categories?.name,
+      category_name: activity.category,
       // Convert price from THB to user's currency
       price: activity.price ? currencyService.convertFromTHB(activity.price, userCurrency) : null,
       b_price: activity.b_price ? currencyService.convertFromTHB(activity.b_price, userCurrency) : null,
@@ -46,7 +45,7 @@ export const activityService = {
         address,
         average_rating,
         image_url,
-        categories(name)
+        category
       `)
       .eq("is_active", true)
       .order("created_at", { ascending: false })
@@ -62,7 +61,7 @@ export const activityService = {
 
     return (data || []).map(activity => ({
       ...activity,
-      category_name: activity.categories?.name,
+      category_name: activity.category,
       // Convert price from THB to user's currency
       price: activity.price ? currencyService.convertFromTHB(activity.price, userCurrency) : null,
       b_price: activity.b_price ? currencyService.convertFromTHB(activity.b_price, userCurrency) : null,
@@ -76,8 +75,7 @@ export const activityService = {
       .from("activities")
       .select(`
         *,
-        activity_schedules(*),
-        categories(name)
+        activity_schedules(*)
       `)
       .eq("slug", slug)
       .eq("is_active", true)
@@ -95,7 +93,7 @@ export const activityService = {
 
     return {
       ...data,
-      category_name: data.categories?.name,
+      category_name: data.category,
       // Convert price from THB to user's currency
       price: data.price ? currencyService.convertFromTHB(data.price, userCurrency) : null,
       b_price: data.b_price ? currencyService.convertFromTHB(data.b_price, userCurrency) : null,
@@ -104,15 +102,14 @@ export const activityService = {
     };
   },
 
-  async getActivitiesByCategory(categoryId: string): Promise<Activity[]> {
+  async getActivitiesByCategory(categoryName: string): Promise<Activity[]> {
     const { data, error } = await supabase
       .from("activities")
       .select(`
         *,
-        activity_schedules(*),
-        categories(name)
+        activity_schedules(*)
       `)
-      .eq("category_id", categoryId)
+      .eq("category", categoryName)
       .eq("is_active", true)
       .order("created_at", { ascending: false });
 
@@ -126,7 +123,7 @@ export const activityService = {
 
     return (data || []).map(activity => ({
       ...activity,
-      category_name: activity.categories?.name,
+      category_name: activity.category,
       // Convert price from THB to user's currency
       price: activity.price ? currencyService.convertFromTHB(activity.price, userCurrency) : null,
       b_price: activity.b_price ? currencyService.convertFromTHB(activity.b_price, userCurrency) : null,
@@ -140,8 +137,7 @@ export const activityService = {
       .from("activities")
       .select(`
         *,
-        activity_schedules(*),
-        categories(name)
+        activity_schedules(*)
       `)
       .eq("is_active", true)
       .or(`title.ilike.%${query}%, description.ilike.%${query}%, location.ilike.%${query}%`)
@@ -157,7 +153,7 @@ export const activityService = {
 
     return (data || []).map(activity => ({
       ...activity,
-      category_name: activity.categories?.name,
+      category_name: activity.category,
       // Convert price from THB to user's currency
       price: activity.price ? currencyService.convertFromTHB(activity.price, userCurrency) : null,
       b_price: activity.b_price ? currencyService.convertFromTHB(activity.b_price, userCurrency) : null,
