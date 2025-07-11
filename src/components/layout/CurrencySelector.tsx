@@ -1,18 +1,35 @@
 import { useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { currencyService } from "@/services/currencyService";
 import { Globe } from "lucide-react";
 
+// Define currency service interface locally to avoid import issues
+interface Currency {
+  code: string;
+  symbol: string;
+  name: string;
+}
+
+const supportedCurrencies: Currency[] = [
+  { code: "THB", symbol: "฿", name: "Thai Baht" },
+  { code: "USD", symbol: "$", name: "US Dollar" },
+  { code: "EUR", symbol: "€", name: "Euro" },
+  { code: "GBP", symbol: "£", name: "British Pound" },
+];
+
+const getUserCurrency = (): string => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('preferred_currency') || 'THB';
+  }
+  return 'THB';
+};
+
 export default function CurrencySelector() {
-  const [selectedCurrency, setSelectedCurrency] = useState(currencyService.getUserCurrency());
+  const [selectedCurrency, setSelectedCurrency] = useState(getUserCurrency());
 
   const handleCurrencyChange = (currencyCode: string) => {
-    // Store currency preference in localStorage
     localStorage.setItem('preferred_currency', currencyCode);
-    window.location.reload(); // Reload to apply currency changes
+    window.location.reload();
   };
-
-  const supportedCurrencies = currencyService.getSupportedCurrencies();
 
   return (
     <div className="flex items-center gap-2">

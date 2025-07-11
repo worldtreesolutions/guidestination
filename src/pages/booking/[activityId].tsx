@@ -24,7 +24,7 @@ import { BookingForm } from "@/components/activities/BookingForm";
 import { ActivityReviews } from "@/components/activities/ActivityReviews";
 import { useIsMobile } from "@/hooks/use-mobile";
 import activityService from "@/services/activityService";
-import { Activity } from "@/types/activity";
+import { Activity, SupabaseActivity } from "@/types/activity";
 
 export default function ActivityBookingPage() {
   const router = useRouter();
@@ -314,7 +314,7 @@ export default function ActivityBookingPage() {
                       <Separator />
 
                       <BookingForm
-                        activity={activity as unknown as SupabaseActivity}
+                        activity={activity as SupabaseActivity}
                         selectedDate={selectedDate}
                         participants={selectedParticipants}
                         onParticipantsChange={setSelectedParticipants}

@@ -31,7 +31,7 @@ export default function RecommendationPage() {
     }
   }, [recommendations, addActivity, toast]);
 
-  const handleSubmit = async ( PreferencesFormData) => {
+  const handleSubmit = async (data: PreferencesFormData) => {
     setLoading(true);
     setRecommendations(null);
     try {

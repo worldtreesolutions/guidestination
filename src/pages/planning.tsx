@@ -42,7 +42,7 @@ function Planner() {
   }
 
   return (
-    <ExcursionPlanner activities={activities as unknown as SupabaseActivity[]} onPlanComplete={(plan) => console.log(plan)} />
+    <ExcursionPlanner activities={activities as SupabaseActivity[]} onPlanComplete={(plan) => console.log(plan)} />
   )
 }
 
