@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { CommissionInvoice } from "@/types/activity";
 import {
@@ -13,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { commissionService } from "@/services/commissionService";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CommissionInvoiceListProps {
   providerId?: string;
@@ -25,6 +25,7 @@ export function CommissionInvoiceList({
 }: CommissionInvoiceListProps) {
   const [invoices, setInvoices] = useState<CommissionInvoice[]>([]);
   const [loading, setLoading] = useState(true);
+  const { formatCurrency } = useLanguage();
 
   useEffect(() => {
     const fetchInvoices = async () => {
@@ -71,10 +72,10 @@ export function CommissionInvoiceList({
               <TableCell>{invoice.provider_id}</TableCell>
               <TableCell>{invoice.booking_id}</TableCell>
               <TableCell>
-                ฿{invoice.total_booking_amount.toFixed(2)}
+                {formatCurrency(invoice.total_booking_amount)}
               </TableCell>
               <TableCell>
-                ฿{invoice.platform_commission_amount.toFixed(2)}
+                {formatCurrency(invoice.platform_commission_amount)}
               </TableCell>
               <TableCell>
                 <Badge>{invoice.invoice_status}</Badge>

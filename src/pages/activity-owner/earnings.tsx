@@ -13,11 +13,13 @@ import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Line, LineCh
 import { CreditCard, TrendingUp, DollarSign, Calendar } from "lucide-react";
 import { Booking, Earning } from "@/types/activity";
 import { Badge } from "@/components/ui/badge";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function EarningsPage() {
   const { user } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
+  const { formatCurrency } = useLanguage();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [earnings, setEarnings] = useState<{
     total: number;
@@ -115,7 +117,7 @@ export default function EarningsPage() {
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">฿{earnings.total.toLocaleString()}</div>
+                <div className="text-2xl font-bold">{formatCurrency(earnings.total)}</div>
                 <p className="text-xs text-muted-foreground">
                   Lifetime earnings
                 </p>
@@ -128,7 +130,7 @@ export default function EarningsPage() {
                 <Calendar className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">฿{earnings.monthly.length > 0 ? earnings.monthly[earnings.monthly.length - 1].amount.toLocaleString() : 0}</div>
+                <div className="text-2xl font-bold">{formatCurrency(earnings.monthly.length > 0 ? earnings.monthly[earnings.monthly.length - 1].amount : 0)}</div>
                 <p className="text-xs text-muted-foreground">
                   +12% from last month
                 </p>
@@ -141,7 +143,7 @@ export default function EarningsPage() {
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">฿{earnings.pending.toLocaleString()}</div>
+                <div className="text-2xl font-bold">{formatCurrency(earnings.pending)}</div>
                 <p className="text-xs text-muted-foreground">
                   From upcoming bookings
                 </p>
@@ -155,9 +157,9 @@ export default function EarningsPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  ฿{bookings.length > 0 
-                    ? Math.round(bookings.reduce((sum, b) => sum + (b.providerAmount || 0), 0) / bookings.length).toLocaleString() 
-                    : 0}
+                  {formatCurrency(bookings.length > 0 
+                    ? Math.round(bookings.reduce((sum, b) => sum + (b.provider_amount || 0), 0) / bookings.length) 
+                    : 0)}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Per reservation
@@ -196,10 +198,10 @@ export default function EarningsPage() {
                         fontSize={12}
                         tickLine={false}
                         axisLine={false}
-                        tickFormatter={(value) => `฿${value}`}
+                        tickFormatter={(value) => formatCurrency(value as number)}
                       />
                       <Tooltip 
-                        formatter={(value: number) => [`฿${value.toLocaleString()}`, 'Earnings']}
+                        formatter={(value: number) => [formatCurrency(value), 'Earnings']}
                         labelFormatter={(label) => `Month: ${label}`}
                       />
                       <Bar
@@ -237,10 +239,10 @@ export default function EarningsPage() {
                         fontSize={12}
                         tickLine={false}
                         axisLine={false}
-                        tickFormatter={(value) => `฿${value}`}
+                        tickFormatter={(value) => formatCurrency(value as number)}
                       />
                       <Tooltip 
-                        formatter={(value: number) => [`฿${value.toLocaleString()}`, 'Earnings']}
+                        formatter={(value: number) => [formatCurrency(value), 'Earnings']}
                         labelFormatter={(label) => `Day ${label}`}
                       />
                       <Line
@@ -289,9 +291,9 @@ export default function EarningsPage() {
                             <TableCell>{booking.activity_title}</TableCell>
                             <TableCell>{booking.customer_name}</TableCell>
                             <TableCell>{booking.participants}</TableCell>
-                            <TableCell>฿{(booking.total_price || 0).toFixed(2)}</TableCell>
-                            <TableCell>฿{booking.platform_fee?.toFixed(2) ?? '0.00'}</TableCell>
-                            <TableCell>฿{booking.provider_amount?.toFixed(2) ?? '0.00'}</TableCell>
+                            <TableCell>{formatCurrency(booking.total_price || 0)}</TableCell>
+                            <TableCell>{formatCurrency(booking.platform_fee || 0)}</TableCell>
+                            <TableCell>{formatCurrency(booking.provider_amount || 0)}</TableCell>
                           </TableRow>
                         ))}
                     </TableBody>

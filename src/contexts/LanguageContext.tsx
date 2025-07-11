@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { useRouter } from "next/router";
 import { currencyService } from "@/services/currencyService";
 
@@ -29,14 +29,14 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [currency, setCurrency] = useState("THB");
   const router = useRouter();
 
-  const fetchTranslations = async (lang: string) => {
+  const fetchTranslations = useCallback(async (lang: string) => {
     try {
       const response = await fetch(`/translations/${lang}.json`);
       if (!response.ok) {
         console.error(`Failed to load ${lang}.json`);
         // Fallback to English if the language file is not found
         if (lang !== "en") {
-          fetchTranslations("en");
+          await fetchTranslations("en");
         }
         return;
       }
@@ -45,10 +45,10 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error("Error fetching translations:", error);
       if (lang !== "en") {
-        fetchTranslations("en");
+        await fetchTranslations("en");
       }
     }
-  };
+  }, []);
 
   useEffect(() => {
     const savedLanguage = localStorage.getItem("language");
@@ -65,7 +65,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     }
 
     fetchTranslations(initialLanguage);
-  }, []);
+  }, [fetchTranslations]);
 
   const setLanguage = (lang: string) => {
     setLanguageState(lang);

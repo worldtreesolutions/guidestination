@@ -7,10 +7,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { commissionService } from "@/services/commissionService";
 import { CommissionInvoiceList } from "@/components/admin/CommissionInvoiceList";
 import { Provider, CommissionStats } from "@/types/activity";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function CommissionDashboard() {
   const [stats, setStats] = useState<CommissionStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const { formatCurrency } = useLanguage();
 
   useEffect(() => {
     loadStats();
@@ -67,7 +69,7 @@ export default function CommissionDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                ${stats.totalCommissionAmount.toFixed(2)}
+                {formatCurrency(stats.totalCommissionAmount)}
               </div>
               <p className="text-xs text-muted-foreground">
                 Total commission amount
@@ -82,7 +84,7 @@ export default function CommissionDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-green-600">
-                ${stats.totalPaidAmount.toFixed(2)}
+                {formatCurrency(stats.totalPaidAmount)}
               </div>
               <p className="text-xs text-muted-foreground">
                 {stats.paidInvoices} invoices paid
@@ -97,7 +99,7 @@ export default function CommissionDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-orange-600">
-                ${stats.totalPendingAmount.toFixed(2)}
+                {formatCurrency(stats.totalPendingAmount)}
               </div>
               <p className="text-xs text-muted-foreground">
                 {stats.pendingInvoices} pending, {stats.overdueInvoices} overdue

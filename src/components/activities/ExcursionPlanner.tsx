@@ -4,14 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import activityService from "@/services/activityService";
-import { Activity, ScheduledActivity as ImportedScheduledActivity, SupabaseActivitySchedule } from "../../types/activity";
+import { Activity, ScheduledActivity } from "@/types/activity";
 import { PlanningContext } from "@/contexts/PlanningContext";
 import { useToast } from "@/hooks/use-toast";
-
-type PlannerScheduledActivity = Activity & {
-  time: string;
-  date: Date;
-};
 
 export function ExcursionPlanner() {
   const { addActivity } = useContext(PlanningContext);
@@ -20,7 +15,7 @@ export function ExcursionPlanner() {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [filteredActivities, setFilteredActivities] = useState<Activity[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [selectedActivity, setSelectedActivity] = useState<PlannerScheduledActivity | null>(null);
+  const [selectedActivity, setSelectedActivity] = useState<ScheduledActivity | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -58,7 +53,7 @@ export function ExcursionPlanner() {
       return;
     }
 
-    const scheduled: PlannerScheduledActivity = {
+    const scheduled: ScheduledActivity = {
       ...activity,
       date: selectedDate,
       time,
@@ -78,7 +73,7 @@ export function ExcursionPlanner() {
   };
 
   const getAvailableTimes = (activity: Activity): string[] => {
-    if (!selectedDate) return [];
+    if (!selectedDate || !activity.schedules) return [];
     const dayOfWeek = selectedDate.getDay(); // Sunday is 0
     const adjustedDayOfWeek = dayOfWeek === 0 ? 7 : dayOfWeek; // Adjust to Monday=1..Sunday=7
 

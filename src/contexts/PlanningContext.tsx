@@ -1,16 +1,16 @@
 import { createContext, useContext, useState, useCallback, ReactNode } from "react"
-import { SupabaseActivity } from "@/types/activity"
+import { SupabaseActivity, Activity } from "@/types/activity"
 
 // Define the shape of a scheduled activity
-interface ScheduledActivity extends SupabaseActivity {
+interface ScheduledActivity extends Activity {
   day?: string
   hour?: number
 }
 
 interface PlanningContextType {
-  selectedActivities: SupabaseActivity[]
+  selectedActivities: Activity[]
   scheduledActivities: ScheduledActivity[]
-  addActivity: (activity: SupabaseActivity) => void
+  addActivity: (activity: Activity) => void
   removeActivity: (activityId: number) => void
   scheduleActivity: (activityId: number, day: string, hour: number) => void
   updateScheduledActivity: (activityId: number, updates: Partial<ScheduledActivity>) => void
@@ -29,10 +29,10 @@ export function usePlanning() {
 }
 
 export function PlanningProvider({ children }: { children: ReactNode }) {
-  const [selectedActivities, setSelectedActivities] = useState<SupabaseActivity[]>([])
+  const [selectedActivities, setSelectedActivities] = useState<Activity[]>([])
   const [scheduledActivities, setScheduledActivities] = useState<ScheduledActivity[]>([])
 
-  const addActivity = useCallback((activity: SupabaseActivity) => {
+  const addActivity = useCallback((activity: Activity) => {
     setSelectedActivities(prev => {
       const isAlreadySelected = prev.some(a => a.id === activity.id)
       const isAlreadyScheduled = scheduledActivities.some(a => a.id === activity.id)

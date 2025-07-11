@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import activityService from "@/services/activityService";
 import { Activity } from "@/types/activity";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ActivityPreviewProps {
   activityId: string;
@@ -12,9 +13,9 @@ interface ActivityPreviewProps {
 
 export function ActivityPreview({ activityId }: ActivityPreviewProps) {
   const [activity, setActivity] = useState<Activity | null>(null);
-  const [selectedDates, setSelectedDates] = useState<Date[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { formatCurrency } = useLanguage();
 
   useEffect(() => {
     if (activityId) {
@@ -87,7 +88,7 @@ export function ActivityPreview({ activityId }: ActivityPreviewProps) {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <h1 className="text-2xl font-bold">{activity.title}</h1>
             <div className="text-xl font-bold">
-              ฿{activity.b_price?.toLocaleString()}{" "}
+              {formatCurrency(activity.b_price || 0)}{" "}
               <span className="text-sm text-muted-foreground">per person</span>
             </div>
           </div>
