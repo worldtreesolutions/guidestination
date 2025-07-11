@@ -7,6 +7,7 @@ import { ActivityGallery } from "@/components/activities/ActivityGallery";
 import { ActivityReviews } from "@/components/activities/ActivityReviews";
 import { BookingWidget } from "@/components/activities/BookingWidget";
 import { AvailabilityCalendar } from "@/components/activities/AvailabilityCalendar";
+import { ActivityChat } from "@/components/activities/ActivityChat";
 import { ActivityWithDetails, ActivitySchedule } from "@/types/activity";
 import activityService from "@/services/activityService";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -125,6 +126,7 @@ export default function ActivityPage() {
                 )}
               </CardContent>
             </Card>
+            <ActivityChat />
           </div>
         </div>
       </div>
