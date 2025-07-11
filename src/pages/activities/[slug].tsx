@@ -142,14 +142,18 @@ export default function ActivityPage() {
                     <span className="text-sm">Meal included</span>
                   </div>
                 )}
-                <div className="flex items-center gap-2">
-                  <Shield className="h-4 w-4 text-green-600" />
-                  <span className="text-sm">Professional guide</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Shield className="h-4 w-4 text-green-600" />
-                  <span className="text-sm">Safety equipment</span>
-                </div>
+                {activity.includes_guide && (
+                  <div className="flex items-center gap-2">
+                    <Shield className="h-4 w-4 text-green-600" />
+                    <span className="text-sm">Professional guide</span>
+                  </div>
+                )}
+                {activity.includes_equipment && (
+                  <div className="flex items-center gap-2">
+                    <Shield className="h-4 w-4 text-green-600" />
+                    <span className="text-sm">Safety equipment</span>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -237,14 +241,18 @@ export default function ActivityPage() {
                   {activity.max_participants ? `Up to ${activity.max_participants}` : "Varies"}
                 </span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Language</span>
-                <span className="text-sm font-medium">English, Thai</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Cancellation</span>
-                <span className="text-sm font-medium">Free up to 24h</span>
-              </div>
+              {activity.languages && (
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Language</span>
+                  <span className="text-sm font-medium">{activity.languages}</span>
+                </div>
+              )}
+              {activity.cancellation_policy && (
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Cancellation</span>
+                  <span className="text-sm font-medium">{activity.cancellation_policy}</span>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
