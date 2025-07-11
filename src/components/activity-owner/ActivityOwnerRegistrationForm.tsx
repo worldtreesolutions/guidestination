@@ -38,7 +38,7 @@ const createFormSchema = (t: (key: string) => string) => z.object({
   ownerName: z.string().min(2, t('form.validation.ownerName')),
   email: z.string().email(t('form.validation.email')),
   phone: z.string().min(10, t('form.validation.phone')),
-  businessType: z.string().min(1, t('form.validation.businessType')),
+  businessType: z.string().optional(),
   taxId: z.string().min(13, t('form.validation.taxId')),
   address: z.string().min(10, t('form.validation.address')),
   description: z.string().min(50, t('form.validation.description')),
@@ -73,7 +73,7 @@ export const ActivityOwnerRegistrationForm = () => {
       ownerName: '',
       email: '',
       phone: '',
-      businessType: '',
+      businessType: 'activity_owner',
       taxId: '',
       address: '',
       description: '',
@@ -245,29 +245,6 @@ export const ActivityOwnerRegistrationForm = () => {
           />
 
           <FormField
-            control={form.control}
-            name='businessType'
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('form.field.businessType')}</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t('form.placeholder.businessType')} />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value='tour_operator'>{t('form.businessType.tourOperator')}</SelectItem>
-                    <SelectItem value='activity_provider'>{t('form.businessType.activityProvider')}</SelectItem>
-                    <SelectItem value='experience_host'>{t('form.businessType.experienceHost')}</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-           <FormField
             control={form.control}
             name='taxId'
             render={({ field }) => (
