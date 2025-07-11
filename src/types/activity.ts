@@ -1,10 +1,9 @@
+
 import { Database } from "@/integrations/supabase/types";
 
-// Helper type to extract row types from the Database type.
 export type Tables<T extends keyof Database["public"]["Tables"]> =
   Database["public"]["Tables"][T]["Row"];
 
-// Base types from Supabase schema
 export type SupabaseActivity = Tables<"activities">;
 export type SupabaseBooking = Tables<"bookings">;
 export type SupabaseActivitySchedule = Tables<"activity_schedules">;
@@ -13,30 +12,22 @@ export type ActivitySelectedOption = Tables<"activity_selected_options">;
 export type ActivityOwner = Tables<"activity_owners">;
 export type CommissionInvoice = Tables<"commission_invoices">;
 export type CommissionPayment = Tables<"commission_payments">;
-export type Provider = Tables<"activity_owners">; // Alias for ActivityOwner
+export type Provider = Tables<"activity_owners">;
 
-// Utility type for booking status
 export type BookingStatus = "confirmed" | "pending" | "cancelled" | "completed";
 
-// Enriched types for application use
-export interface Activity extends SupabaseActivity {
+export interface Activity extends Omit<SupabaseActivity, 'highlights' | 'languages' | 'included' | 'not_included'> {
+  slug?: string;
   category_name?: string;
+  price?: number | null;
+  currency?: string;
   media?: { url: string; type: "image" | "video" }[];
   schedules?: SupabaseActivitySchedule[];
-  name?: string;
-  duration: string | null;
-  max_participants: number | null;
-  meeting_point: string | null;
   highlights: string[] | null;
   languages: string[] | null;
   included: string[] | null;
   not_included: string[] | null;
-  includes_pickup: boolean | null;
-  pickup_locations: string | null;
-  includes_meal: boolean | null;
-  meal_description: string | null;
   activity_schedules?: ActivitySchedule[];
-  currency?: string;
 }
 
 export interface Booking extends Omit<SupabaseBooking, "status"> {
@@ -46,7 +37,6 @@ export interface Booking extends Omit<SupabaseBooking, "status"> {
   provider_amount?: number;
 }
 
-// Slimmed-down type for homepage activity cards
 export interface ActivityForHomepage {
   id: number;
   slug: string;
@@ -61,7 +51,6 @@ export interface ActivityForHomepage {
   currency?: string;
 }
 
-// Type for earnings data visualization
 export type Earning = {
   month: string;
   amount: number;
@@ -73,7 +62,6 @@ export type EarningsData = {
   pending: number;
 };
 
-// Specific type for recent bookings list in the dashboard
 export type RecentBooking = {
   id: string;
   customer_name: string | null;
@@ -83,7 +71,6 @@ export type RecentBooking = {
   activity_title: string | null;
 };
 
-// Type for commission statistics
 export type CommissionStats = {
   totalInvoices: number;
   totalCommissionAmount: number;
@@ -94,7 +81,6 @@ export type CommissionStats = {
   totalPendingAmount: number;
 };
 
-// Type for activities scheduled in the planner
 export interface ScheduledActivity extends Activity {
   date: Date;
   time: string;
@@ -138,3 +124,4 @@ export interface ActivityReview {
     avatar_url: string | null;
   };
 }
+  

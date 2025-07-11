@@ -1,3 +1,4 @@
+
 export type Json =
   | string
   | number
@@ -282,6 +283,42 @@ export type Database = {
         }
         Relationships: []
       }
+      activity_schedules: {
+        Row: {
+          id: number
+          activity_id: number
+          day_of_week: number
+          start_time: string
+          end_time: string
+          max_participants: number
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          activity_id: number
+          day_of_week: number
+          start_time: string
+          end_time: string
+          max_participants?: number
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          activity_id?: number
+          day_of_week?: number
+          start_time?: string
+          end_time?: string
+          max_participants?: number
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       activity_options: {
         Row: {
           id: number
@@ -306,6 +343,117 @@ export type Database = {
         }
         Relationships: []
       }
+      activity_owners: {
+        Row: {
+          id: string
+          business_name: string
+          email: string
+          created_at: string
+          commission_invoices: any[]
+        }
+        Insert: {
+          id?: string
+          business_name: string
+          email: string
+          created_at?: string
+          commission_invoices?: any[]
+        }
+        Update: {
+          id?: string
+          business_name?: string
+          email?: string
+          created_at?: string
+          commission_invoices?: any[]
+        }
+        Relationships: []
+      }
+      bookings: {
+        Row: {
+          id: string
+          activity_id: number
+          user_id: string
+          status: string | null
+          total_amount: number
+          created_at: string
+          activities: any | null
+        }
+        Insert: {
+          id?: string
+          activity_id: number
+          user_id: string
+          status?: string | null
+          total_amount: number
+          created_at?: string
+          activities?: any | null
+        }
+        Update: {
+          id?: string
+          activity_id?: number
+          user_id?: string
+          status?: string | null
+          total_amount?: number
+          created_at?: string
+          activities?: any | null
+        }
+        Relationships: []
+      }
+      commission_invoices: {
+        Row: {
+          id: string
+          invoice_number: string
+          provider_id: string
+          booking_id: string
+          total_booking_amount: number
+          platform_commission_amount: number
+          invoice_status: string
+          due_date: string
+          stripe_payment_link_id: string | null
+        }
+        Insert: {
+          id?: string
+          invoice_number: string
+          provider_id: string
+          booking_id: string
+          total_booking_amount: number
+          platform_commission_amount: number
+          invoice_status?: string
+          due_date: string
+          stripe_payment_link_id?: string | null
+        }
+        Update: {
+          id?: string
+          invoice_number?: string
+          provider_id?: string
+          booking_id?: string
+          total_booking_amount?: number
+          platform_commission_amount?: number
+          invoice_status?: string
+          due_date?: string
+          stripe_payment_link_id?: string | null
+        }
+        Relationships: []
+      }
+      commission_payments: {
+        Row: {
+          id: string
+          invoice_id: string
+          amount: number
+          paid_at: string
+        }
+        Insert: {
+          id?: string
+          invoice_id: string
+          amount: number
+          paid_at?: string
+        }
+        Update: {
+          id?: string
+          invoice_id?: string
+          amount?: number
+          paid_at?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           id: number
@@ -321,6 +469,351 @@ export type Database = {
           id?: number
           name?: string
           description?: string | null
+        }
+        Relationships: []
+      }
+      customer_profiles: {
+        Row: {
+          customer_id: string
+          email: string
+          first_name: string
+          last_name: string
+          phone: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          customer_id?: string
+          email: string
+          first_name: string
+          last_name: string
+          phone?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          customer_id?: string
+          email?: string
+          first_name?: string
+          last_name?: string
+          phone?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      establishments: {
+        Row: {
+          id: string
+          establishment_name: string
+          establishment_type: string
+          establishment_address: string
+          partner_id: string
+          room_count: number | null
+          is_active: boolean
+          created_at: string
+          updated_at: string
+          partner_registrations: any[]
+        }
+        Insert: {
+          id?: string
+          establishment_name: string
+          establishment_type: string
+          establishment_address: string
+          partner_id: string
+          room_count?: number | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+          partner_registrations?: any[]
+        }
+        Update: {
+          id?: string
+          establishment_name?: string
+          establishment_type?: string
+          establishment_address?: string
+          partner_id?: string
+          room_count?: number | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+          partner_registrations?: any[]
+        }
+        Relationships: []
+      }
+      establishment_activities: {
+        Row: {
+          id: string
+          establishment_id: string
+          activity_id: number
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          establishment_id: string
+          activity_id: number
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          establishment_id?: string
+          activity_id?: number
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      establishment_commissions: {
+        Row: {
+          id: string
+          establishment_id: string
+          booking_id: string
+          commission_amount: number
+          commission_rate: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          establishment_id: string
+          booking_id: string
+          commission_amount: number
+          commission_rate: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          establishment_id?: string
+          booking_id?: string
+          commission_amount?: number
+          commission_rate?: number
+          created_at?: string
+        }
+        Relationships: []
+      }
+      partner_registrations: {
+        Row: {
+          id: string
+          user_id: string
+          business_name: string
+          owner_name: string
+          email: string
+          phone: string
+          address: string
+          latitude: number
+          longitude: number
+          place_id: string
+          room_count: number
+          commission_package: string
+          supporting_documents: string[]
+          status: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          business_name: string
+          owner_name: string
+          email: string
+          phone: string
+          address: string
+          latitude: number
+          longitude: number
+          place_id: string
+          room_count: number
+          commission_package: string
+          supporting_documents: string[]
+          status?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          business_name?: string
+          owner_name?: string
+          email?: string
+          phone?: string
+          address?: string
+          latitude?: number
+          longitude?: number
+          place_id?: string
+          room_count?: number
+          commission_package?: string
+          supporting_documents?: string[]
+          status?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      qr_scans: {
+        Row: {
+          id: string
+          establishment_id: string
+          scanned_at: string
+        }
+        Insert: {
+          id?: string
+          establishment_id: string
+          scanned_at?: string
+        }
+        Update: {
+          id?: string
+          establishment_id?: string
+          scanned_at?: string
+        }
+        Relationships: []
+      }
+      referral_visits: {
+        Row: {
+          id: string
+          establishment_id: string
+          ip_address: string
+          visit_date: string
+        }
+        Insert: {
+          id?: string
+          establishment_id: string
+          ip_address: string
+          visit_date?: string
+        }
+        Update: {
+          id?: string
+          establishment_id?: string
+          ip_address?: string
+          visit_date?: string
+        }
+        Relationships: []
+      }
+      wishlist: {
+        Row: {
+          id: string
+          user_id: string
+          activity_id: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          activity_id: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          activity_id?: number
+          created_at?: string
+        }
+        Relationships: []
+      }
+      chat_messages: {
+        Row: {
+          id: string
+          sender_id: string
+          receiver_id: string
+          message: string
+          read_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          sender_id: string
+          receiver_id: string
+          message: string
+          read_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          sender_id?: string
+          receiver_id?: string
+          message?: string
+          read_at?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      stripe_checkout_sessions: {
+        Row: {
+          id: string
+          stripe_session_id: string
+          amount: number
+          status: string
+          customer_email: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          stripe_session_id: string
+          amount: number
+          status: string
+          customer_email: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          stripe_session_id?: string
+          amount?: number
+          status?: string
+          customer_email?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      stripe_transfers: {
+        Row: {
+          id: string
+          recipient_id: string
+          recipient_type: string
+          amount: number
+          status: string
+          failure_message: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          recipient_id: string
+          recipient_type: string
+          amount: number
+          status: string
+          failure_message?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          recipient_id?: string
+          recipient_type?: string
+          amount?: number
+          status?: string
+          failure_message?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      stripe_webhook_events: {
+        Row: {
+          id: string
+          stripe_event_id: string
+          event_type: string
+          processed: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          stripe_event_id: string
+          event_type: string
+          processed?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          stripe_event_id?: string
+          event_type?: string
+          processed?: boolean
+          created_at?: string
         }
         Relationships: []
       }
