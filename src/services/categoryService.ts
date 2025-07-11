@@ -22,12 +22,12 @@ export const categoryService = {
       return [];
     }
     
-    const { data, error } = await supabase.from("categories").select("*");
-    if (error) {
-      console.error("Error fetching categories:", error.message);
-      throw error;
+    const result = await supabase.from("categories").select("*");
+    if (result.error) {
+      console.error("Error fetching categories:", result.error.message);
+      throw result.error;
     }
-    return (data || []).map((item: any) => ({
+    return (result.data || []).map((item: any) => ({
       id: item.id,
       name: item.name,
       description: item.description,

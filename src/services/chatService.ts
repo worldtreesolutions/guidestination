@@ -23,19 +23,19 @@ const chatService = {
       throw new Error("Supabase client not initialized");
     }
 
-    const { data, error } = await supabase
+    const result = await supabase
       .from("chat_messages")
       .select("*")
       .eq("activity_id", activityId)
       .or(`and(sender_id.eq.${customerId},receiver_id.eq.${ownerId}),and(sender_id.eq.${ownerId},receiver_id.eq.${customerId})`)
       .order("created_at", { ascending: true })
 
-    if (error) {
-      console.error("Error fetching messages:", error)
-      throw error
+    if (result.error) {
+      console.error("Error fetching messages:", result.error)
+      throw result.error
     }
 
-    return (data || []).map((item: any) => ({
+    return (result.data || []).map((item: any) => ({
       id: item.id,
       sender_id: item.sender_id,
       receiver_id: item.receiver_id,
@@ -51,25 +51,25 @@ const chatService = {
       throw new Error("Supabase client not initialized");
     }
 
-    const { data, error } = await supabase
+    const result = await supabase
       .from("chat_messages")
       .insert(messageData)
       .select()
       .single()
 
-    if (error) {
-      console.error("Error sending message:", error)
-      throw error
+    if (result.error) {
+      console.error("Error sending message:", result.error)
+      throw result.error
     }
 
     return {
-      id: data.id,
-      sender_id: data.sender_id,
-      receiver_id: data.receiver_id,
+      id: result.data.id,
+      sender_id: result.data.sender_id,
+      receiver_id: result.data.receiver_id,
       activity_id: messageData.activity_id,
-      message: data.message,
-      created_at: data.created_at,
-      read_at: data.read_at
+      message: result.data.message,
+      created_at: result.data.created_at,
+      read_at: result.data.read_at
     };
   },
 
