@@ -1,44 +1,16 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { Activity, ActivityForHomepage, SupabaseActivity } from "@/types/activity";
 import { currencyService } from "./currencyService";
 
-const toActivity = (activity: SupabaseActivity & { 
-  activity_schedules?: any[]; 
-  activity_schedule_instances?: any[];
-  activity_selected_options?: any[];
-}, userCurrency: string): Activity => {
+const toActivity = (activity: SupabaseActivity, userCurrency: string): Activity => {
   const splitString = (str: string | null): string[] | null => {
-    if (str === null || typeof str === 'undefined') return null;
-    if (str.trim() === '') return [];
+    if (!str || str.trim() === '') return null;
     return str.split(',').map(s => s.trim());
   };
 
   // Convert b_price from string to number if needed
   const bPrice = typeof activity.b_price === 'string' ? parseFloat(activity.b_price) : activity.b_price;
-
-  // Process activity options by type with better null safety
-  const processOptions = (type: string) => {
-    if (!activity.activity_selected_options || !Array.isArray(activity.activity_selected_options)) {
-      return [];
-    }
-    
-    return activity.activity_selected_options
-      .filter((selectedOption: any) => {
-        return selectedOption && 
-               selectedOption.activity_options && 
-               selectedOption.activity_options.type === type;
-      })
-      .map((selectedOption: any) => ({
-        id: selectedOption.activity_options.id,
-        label: selectedOption.activity_options.label || '',
-        icon: selectedOption.activity_options.icon || 'Star',
-        type: selectedOption.activity_options.type
-      }));
-  };
-
-  const dynamicHighlights = processOptions('highlight');
-  const dynamicIncluded = processOptions('included');
-  const dynamicNotIncluded = processOptions('not_included');
 
   return {
     ...activity,
@@ -50,12 +22,11 @@ const toActivity = (activity: SupabaseActivity & {
     languages: splitString(activity.languages),
     included: splitString(activity.included),
     not_included: splitString(activity.not_included),
-    // Add dynamic options
-    dynamic_highlights: dynamicHighlights,
-    dynamic_included: dynamicIncluded,
-    dynamic_not_included: dynamicNotIncluded,
-    activity_schedules: Array.isArray(activity.activity_schedules) ? activity.activity_schedules : [],
-    schedule_instances: Array.isArray(activity.activity_schedule_instances) ? activity.activity_schedule_instances : [],
+    dynamic_highlights: [],
+    dynamic_included: [],
+    dynamic_not_included: [],
+    activity_schedules: [],
+    schedule_instances: [],
   };
 };
 
@@ -64,11 +35,7 @@ export const activityService = {
     try {
       const { data, error } = await supabase
         .from("activities")
-        .select(`
-          *,
-          activity_schedules(*),
-          activity_schedule_instances(*)
-        `)
+        .select("*")
         .eq("is_active", true)
         .order("created_at", { ascending: false });
 
@@ -120,7 +87,6 @@ export const activityService = {
       const userCurrency = currencyService.getUserCurrency();
 
       return (data || []).map(activity => {
-        // Convert b_price from string to number if needed
         const bPrice = typeof activity.b_price === 'string' ? parseFloat(activity.b_price) : activity.b_price;
         const convertedPrice = bPrice ? currencyService.convertFromTHB(bPrice, userCurrency) : null;
 
@@ -146,13 +112,13 @@ export const activityService = {
       const activityId = parseInt(activityIdStr, 10);
 
       if (isNaN(activityId)) {
-        console.error("Invalid activity slug, could not parse ID:", slug);
+        console.error("Invalid activity slug:", slug);
         return null;
       }
       
       console.log("Fetching activity with ID:", activityId);
       
-      // Fetch activity data first
+      // Fetch activity data
       const { data: activityData, error: activityError } = await supabase
         .from("activities")
         .select("*")
@@ -165,19 +131,19 @@ export const activityService = {
         return null;
       }
 
-      // Fetch schedules separately
+      // Fetch schedules
       const { data: schedules } = await supabase
         .from("activity_schedules")
         .select("*")
         .eq("activity_id", activityId);
 
-      // Fetch schedule instances separately
+      // Fetch schedule instances
       const { data: scheduleInstances } = await supabase
         .from("activity_schedule_instances")
         .select("*")
         .eq("activity_id", activityId);
 
-      // Fetch selected options separately
+      // Fetch selected options with activity options
       const { data: selectedOptions } = await supabase
         .from("activity_selected_options")
         .select(`
@@ -191,29 +157,39 @@ export const activityService = {
         `)
         .eq("activity_id", activityId);
 
-      // Combine the data
-      const combinedData = {
-        ...activityData,
-        activity_schedules: schedules || [],
-        activity_schedule_instances: scheduleInstances || [],
-        activity_selected_options: selectedOptions || []
+      const userCurrency = currencyService.getUserCurrency();
+      const activity = toActivity(activityData, userCurrency);
+
+      // Process dynamic options
+      const processOptions = (type: string) => {
+        if (!selectedOptions) return [];
+        return selectedOptions
+          .filter(opt => opt.activity_options && opt.activity_options.type === type)
+          .map(opt => ({
+            id: opt.activity_options.id,
+            label: opt.activity_options.label || '',
+            icon: opt.activity_options.icon || 'Star',
+            type: opt.activity_options.type
+          }));
       };
 
-      console.log("Successfully fetched activity data:", combinedData.title);
-      const userCurrency = currencyService.getUserCurrency();
+      // Add dynamic data
+      activity.dynamic_highlights = processOptions('highlight');
+      activity.dynamic_included = processOptions('included');
+      activity.dynamic_not_included = processOptions('not_included');
+      activity.activity_schedules = schedules || [];
+      activity.schedule_instances = scheduleInstances || [];
 
-      return toActivity(combinedData, userCurrency);
+      console.log("Successfully fetched activity:", activity.title);
+      return activity;
     } catch (error) {
-      console.error("Unexpected error in getActivityBySlug:", error);
+      console.error("Error in getActivityBySlug:", error);
       return null;
     }
   },
 
   async getActivityById(activityId: number): Promise<Activity | null> {
     try {
-      console.log("Fetching activity by ID:", activityId);
-      
-      // Fetch activity data first
       const { data: activityData, error: activityError } = await supabase
         .from("activities")
         .select("*")
@@ -226,46 +202,10 @@ export const activityService = {
         return null;
       }
 
-      // Fetch schedules separately
-      const { data: schedules } = await supabase
-        .from("activity_schedules")
-        .select("*")
-        .eq("activity_id", activityId);
-
-      // Fetch schedule instances separately
-      const { data: scheduleInstances } = await supabase
-        .from("activity_schedule_instances")
-        .select("*")
-        .eq("activity_id", activityId);
-
-      // Fetch selected options separately
-      const { data: selectedOptions } = await supabase
-        .from("activity_selected_options")
-        .select(`
-          option_id,
-          activity_options(
-            id,
-            label,
-            icon,
-            type
-          )
-        `)
-        .eq("activity_id", activityId);
-
-      // Combine the data
-      const combinedData = {
-        ...activityData,
-        activity_schedules: schedules || [],
-        activity_schedule_instances: scheduleInstances || [],
-        activity_selected_options: selectedOptions || []
-      };
-
-      console.log("Successfully fetched activity data:", combinedData.title);
       const userCurrency = currencyService.getUserCurrency();
-
-      return toActivity(combinedData, userCurrency);
+      return toActivity(activityData, userCurrency);
     } catch (error) {
-      console.error("Unexpected error in getActivityById:", error);
+      console.error("Error in getActivityById:", error);
       return null;
     }
   },
@@ -274,11 +214,7 @@ export const activityService = {
     try {
       const { data, error } = await supabase
         .from("activities")
-        .select(`
-          *,
-          activity_schedules(*),
-          activity_schedule_instances(*)
-        `)
+        .select("*")
         .eq("category", categoryName)
         .eq("is_active", true)
         .order("created_at", { ascending: false });
@@ -289,7 +225,6 @@ export const activityService = {
       }
 
       const userCurrency = currencyService.getUserCurrency();
-
       return (data || []).map(activity => toActivity(activity, userCurrency));
     } catch (error) {
       console.error("Error in getActivitiesByCategory:", error);
@@ -301,11 +236,7 @@ export const activityService = {
     try {
       const { data, error } = await supabase
         .from("activities")
-        .select(`
-          *,
-          activity_schedules(*),
-          activity_schedule_instances(*)
-        `)
+        .select("*")
         .eq("is_active", true)
         .or(`title.ilike.%${query}%,description.ilike.%${query}%,address.ilike.%${query}%`)
         .order("created_at", { ascending: false });
@@ -316,7 +247,6 @@ export const activityService = {
       }
 
       const userCurrency = currencyService.getUserCurrency();
-
       return (data || []).map(activity => toActivity(activity, userCurrency));
     } catch (error) {
       console.error("Error in searchActivities:", error);
@@ -328,12 +258,8 @@ export const activityService = {
     try {
       const { data, error } = await supabase
         .from("activities")
-        .select(`
-          *,
-          activity_schedules(*),
-          activity_schedule_instances(*)
-        `)
-        .eq("owner_id", ownerId) // Assuming 'owner_id' column exists
+        .select("*")
+        .eq("owner_id", ownerId)
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -342,7 +268,6 @@ export const activityService = {
       }
 
       const userCurrency = currencyService.getUserCurrency();
-      
       return (data || []).map(activity => toActivity(activity, userCurrency));
     } catch (error) {
       console.error("Error in fetchActivitiesByOwner:", error);
