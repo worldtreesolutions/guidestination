@@ -1,15 +1,8 @@
 
 import { supabase } from "@/integrations/supabase/client"
-import { SupabaseActivity, Earning, ActivityForHomepage } from "@/types/activity"
 
 export const supabaseActivityService = {
-  async getActivities(filters?: {
-    category?: string
-    location?: string
-    priceRange?: [number, number]
-    limit?: number
-    offset?: number
-  }) {
+  async getActivities(filters?: any) {
     try {
       let query = supabase
         .from("activities")
@@ -30,17 +23,8 @@ export const supabaseActivityService = {
         `)
         .eq("is_active", true)
 
-      if (filters?.category) {
-        // @ts-ignore
-        query = query.eq("categories.name", filters.category)
-      }
-
       if (filters?.limit) {
         query = query.limit(filters.limit)
-      }
-
-      if (filters?.offset) {
-        query = query.range(filters.offset, filters.offset + (filters.limit || 10) - 1)
       }
 
       const { data, error } = await query
@@ -58,7 +42,7 @@ export const supabaseActivityService = {
         location: activity.location || activity.address || "Location TBD"
       })) || []
 
-      return activities as ActivityForHomepage[];
+      return activities;
 
     } catch (error) {
       console.error("Error in getActivities:", error)
@@ -66,11 +50,10 @@ export const supabaseActivityService = {
     }
   },
 
-  async getActivityById(id: number): Promise<SupabaseActivity | null> {
+  async getActivityById(id: number) {
     try {
       console.log(`[Service] Fetching activity with ID: ${id}`);
       
-      // @ts-ignore - Bypass type checking for main query
       const { data: activity, error: activityError } = await supabase
         .from("activities")
         .select(`
@@ -93,7 +76,6 @@ export const supabaseActivityService = {
 
       console.log("[Service] Raw activity data fetched:", activity);
 
-      // @ts-ignore - Bypass type checking for schedule query
       const { data: scheduleData, error: scheduleError } = await supabase
         .from("activity_schedules")
         .select("*")
@@ -105,7 +87,6 @@ export const supabaseActivityService = {
       }
       console.log("[Service] Raw schedule data:", scheduleData);
 
-      // @ts-ignore - Bypass type checking for options query
       const { data: optionsData, error: optionsError } = await supabase
         .from('activity_selected_options')
         .select(`
@@ -186,13 +167,13 @@ export const supabaseActivityService = {
       console.log("[Service] Formatted options:", formattedOptions);
 
       // Build the result object with all required fields
-      const result: SupabaseActivity = {
+      const result = {
         id: activity.id,
         title: activity.title || '',
         name: activity.name || activity.title || '',
         description: activity.description || null,
-        category: (activity.categories as any)?.name || "Uncategorized",
-        category_name: (activity.categories as any)?.name || "Uncategorized",
+        category: activity.categories?.name || "Uncategorized",
+        category_name: activity.categories?.name || "Uncategorized",
         price: activity.price || null,
         max_participants: activity.max_participants || null,
         duration: activity.duration || null,
@@ -238,11 +219,10 @@ export const supabaseActivityService = {
     }
   },
 
-  async createActivity(activityData: Partial<SupabaseActivity>) {
-    // @ts-ignore
+  async createActivity(activityData: any) {
     const { data, error } = await supabase
         .from("activities")
-        .insert([activityData] as any)
+        .insert([activityData])
         .select()
         .single()
 
@@ -250,11 +230,10 @@ export const supabaseActivityService = {
     return data
   },
 
-  async updateActivity(id: number, activityData: Partial<SupabaseActivity>) {
-    // @ts-ignore
+  async updateActivity(id: number, activityData: any) {
     const { data, error } = await supabase
         .from("activities")
-        .update(activityData as any)
+        .update(activityData)
         .eq("id", id)
         .select()
         .single()
@@ -294,7 +273,6 @@ export const supabaseActivityService = {
   },
 
   async getActivityReviews(activityId: number) {
-    // @ts-ignore
     const { data, error } = await supabase
         .from("reviews")
         .select("*, customer_profiles(full_name, first_name, last_name)")
@@ -304,7 +282,6 @@ export const supabaseActivityService = {
   },
 
   async createActivityReview(reviewData: any) {
-    // @ts-ignore
     const { data, error } = await supabase
         .from("reviews")
         .insert([reviewData])
@@ -316,7 +293,6 @@ export const supabaseActivityService = {
   },
 
   async updateActivityRating(activityId: number) {
-    // @ts-ignore
     const { data: reviews, error } = await supabase
         .from("reviews")
         .select("rating")
@@ -331,7 +307,7 @@ export const supabaseActivityService = {
   async fetchActivitiesByOwner(ownerId: string) { return []; },
   async fetchBookingsForOwner(ownerId: string) { return []; },
   async fetchRecentBookingsForOwner(ownerId: string) { return []; },
-  async fetchEarningsForOwner(ownerId: string): Promise<Earning> { 
+  async fetchEarningsForOwner(ownerId: string) { 
     return { total: 0, monthly: [], pending: 0 }; 
   },
   async getFeaturedActivities() { return this.getActivities({ limit: 5 }); },
