@@ -1,40 +1,7 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { Activity, ActivityForHomepage, SupabaseActivity } from "@/types/activity";
-
-// Temporary inline currency conversion to avoid circular dependency
-const getUserCurrency = (): string => {
-  try {
-    if (typeof window !== "undefined") {
-      try {
-        const locale = navigator.language || "en-US";
-        const countryCode = locale.split("-")[1];
-        const COUNTRY_CURRENCY_MAP: Record<string, string> = {
-          US: "USD", CA: "CAD", GB: "GBP", AU: "AUD", NZ: "NZD",
-          DE: "EUR", FR: "EUR", IT: "EUR", ES: "EUR", NL: "EUR", BE: "EUR",
-          JP: "JPY", CN: "CNY", KR: "KRW", SG: "SGD", TH: "THB",
-        };
-        if (countryCode && COUNTRY_CURRENCY_MAP[countryCode]) {
-          return COUNTRY_CURRENCY_MAP[countryCode];
-        }
-      } catch (error) {
-        console.warn("Browser locale detection failed:", error);
-      }
-    }
-    return "USD";
-  } catch (error) {
-    console.error("Error getting user currency:", error);
-    return "USD";
-  }
-};
-
-const convertFromTHB = (amountInTHB: number, targetCurrency: string): number => {
-  const CURRENCY_RATES: Record<string, number> = {
-    THB: 1, USD: 0.028, EUR: 0.026, GBP: 0.022, JPY: 4.2,
-    CNY: 0.20, KRW: 38.5, SGD: 0.038, AUD: 0.043, CAD: 0.038,
-  };
-  const rate = CURRENCY_RATES[targetCurrency] || CURRENCY_RATES.USD;
-  return Math.round((amountInTHB * rate) * 100) / 100;
-};
+import { currencyService } from "./currencyService";
 
 const toActivity = (activity: SupabaseActivity, userCurrency: string): Activity => {
   const splitString = (str: string | null): string[] | null => {
@@ -49,7 +16,7 @@ const toActivity = (activity: SupabaseActivity, userCurrency: string): Activity 
     ...activity,
     slug: `activity-${activity.id}`,
     category_name: activity.category,
-    price: bPrice ? convertFromTHB(bPrice, userCurrency) : null,
+    price: bPrice ? currencyService.convertFromTHB(bPrice, userCurrency) : null,
     currency: userCurrency,
     highlights: splitString(activity.highlights),
     languages: splitString(activity.languages),
@@ -77,7 +44,7 @@ export const activityService = {
         throw error;
       }
 
-      const userCurrency = getUserCurrency();
+      const userCurrency = currencyService.getUserCurrency();
       
       return (data || []).map(activity => toActivity(activity, userCurrency));
     } catch (error) {
@@ -117,11 +84,11 @@ export const activityService = {
         throw error;
       }
 
-      const userCurrency = getUserCurrency();
+      const userCurrency = currencyService.getUserCurrency();
 
       return (data || []).map(activity => {
         const bPrice = typeof activity.b_price === 'string' ? parseFloat(activity.b_price) : activity.b_price;
-        const convertedPrice = bPrice ? convertFromTHB(bPrice, userCurrency) : null;
+        const convertedPrice = bPrice ? currencyService.convertFromTHB(bPrice, userCurrency) : null;
 
         return {
           ...activity,
@@ -152,7 +119,7 @@ export const activityService = {
       console.log("Fetching activity with ID:", activityId);
       
       // Fetch activity data
-      const { data: activityData, error: activityError } = await supabase
+      const {  activityData, error: activityError } = await supabase
         .from("activities")
         .select("*")
         .eq("id", activityId)
@@ -165,19 +132,19 @@ export const activityService = {
       }
 
       // Fetch schedules
-      const { data: schedules } = await supabase
+      const {  schedules } = await supabase
         .from("activity_schedules")
         .select("*")
         .eq("activity_id", activityId);
 
       // Fetch schedule instances
-      const { data: scheduleInstances } = await supabase
+      const {  scheduleInstances } = await supabase
         .from("activity_schedule_instances")
         .select("*")
         .eq("activity_id", activityId);
 
       // Fetch selected options with activity options
-      const { data: selectedOptions } = await supabase
+      const {  selectedOptions } = await supabase
         .from("activity_selected_options")
         .select(`
           option_id,
@@ -190,7 +157,7 @@ export const activityService = {
         `)
         .eq("activity_id", activityId);
 
-      const userCurrency = getUserCurrency();
+      const userCurrency = currencyService.getUserCurrency();
       const activity = toActivity(activityData, userCurrency);
 
       // Process dynamic options
@@ -223,7 +190,7 @@ export const activityService = {
 
   async getActivityById(activityId: number): Promise<Activity | null> {
     try {
-      const { data: activityData, error: activityError } = await supabase
+      const {  activityData, error: activityError } = await supabase
         .from("activities")
         .select("*")
         .eq("id", activityId)
@@ -235,7 +202,7 @@ export const activityService = {
         return null;
       }
 
-      const userCurrency = getUserCurrency();
+      const userCurrency = currencyService.getUserCurrency();
       return toActivity(activityData, userCurrency);
     } catch (error) {
       console.error("Error in getActivityById:", error);
@@ -257,7 +224,7 @@ export const activityService = {
         throw error;
       }
 
-      const userCurrency = getUserCurrency();
+      const userCurrency = currencyService.getUserCurrency();
       return (data || []).map(activity => toActivity(activity, userCurrency));
     } catch (error) {
       console.error("Error in getActivitiesByCategory:", error);
@@ -279,7 +246,7 @@ export const activityService = {
         throw error;
       }
 
-      const userCurrency = getUserCurrency();
+      const userCurrency = currencyService.getUserCurrency();
       return (data || []).map(activity => toActivity(activity, userCurrency));
     } catch (error) {
       console.error("Error in searchActivities:", error);
@@ -300,7 +267,7 @@ export const activityService = {
         throw error;
       }
 
-      const userCurrency = getUserCurrency();
+      const userCurrency = currencyService.getUserCurrency();
       return (data || []).map(activity => toActivity(activity, userCurrency));
     } catch (error) {
       console.error("Error in fetchActivitiesByOwner:", error);

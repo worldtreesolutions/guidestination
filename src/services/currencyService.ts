@@ -1,8 +1,8 @@
+
 // A mock currency conversion service. In a real application, this would use an API.
-import { supabase } from "@/integrations/supabase/client";
 
 // Enhanced currency conversion rates (THB as base currency)
-const CURRENCY_RATES = {
+const CURRENCY_RATES: Record<string, number> = {
   THB: 1,      // Thai Baht (base currency)
   USD: 0.028,  // US Dollar
   EUR: 0.026,  // Euro
@@ -35,7 +35,7 @@ const CURRENCY_RATES = {
 };
 
 // Currency symbols mapping
-const CURRENCY_SYMBOLS = {
+const CURRENCY_SYMBOLS: Record<string, string> = {
   THB: "฿",
   USD: "$",
   EUR: "€",
@@ -68,7 +68,7 @@ const CURRENCY_SYMBOLS = {
 };
 
 // Country to currency mapping
-const COUNTRY_CURRENCY_MAP = {
+const COUNTRY_CURRENCY_MAP: Record<string, string> = {
   US: "USD", CA: "CAD", GB: "GBP", AU: "AUD", NZ: "NZD",
   DE: "EUR", FR: "EUR", IT: "EUR", ES: "EUR", NL: "EUR", BE: "EUR",
   AT: "EUR", PT: "EUR", IE: "EUR", FI: "EUR", GR: "EUR", LU: "EUR",
@@ -100,23 +100,6 @@ export const currencyService = {
       return "USD"; // Default fallback
     } catch (error) {
       console.error("Error getting user currency:", error);
-      return "USD";
-    }
-  },
-
-  // Async version for when we need to check user preferences
-  async getUserCurrencyAsync(): Promise<string> {
-    try {
-      // First check if user has saved currency preference
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user?.user_metadata?.preferred_currency) {
-        return user.user_metadata.preferred_currency;
-      }
-
-      // Fallback to synchronous detection
-      return this.getUserCurrency();
-    } catch (error) {
-      console.error("Error getting user currency async:", error);
       return "USD";
     }
   },
@@ -168,19 +151,5 @@ export const currencyService = {
       ZAR: "South African Rand"
     };
     return names[code] || code;
-  },
-
-  // Save user's preferred currency
-  async saveUserCurrency(currency: string): Promise<void> {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await supabase.auth.updateUser({
-          data: { preferred_currency: currency }
-        });
-      }
-    } catch (error) {
-      console.error("Error saving user currency:", error);
-    }
   }
 };
