@@ -29,7 +29,7 @@ import { AvailabilityCalendar } from "@/components/activities/AvailabilityCalend
 import { BookingForm } from "@/components/activities/BookingForm"
 import { ActivityReviews } from "@/components/activities/ActivityReviews"
 import { useIsMobile } from "@/hooks/use-mobile"
-import { supabaseActivityService } from "@/services/supabaseActivityService"
+import { supabaseActivityService } from "@/services/supabaseActivityService.js"
 import customerService from "@/services/customerService"
 import { SupabaseActivity, ActivitySelectedOption } from "@/types/activity"
 import { ActivityDetails } from "@/components/activities/ActivityDetails"

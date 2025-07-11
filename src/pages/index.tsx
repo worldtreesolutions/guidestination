@@ -1,4 +1,3 @@
-
 import Head from "next/head"
 import { useState } from "react"
 import { Navbar } from "@/components/layout/Navbar"
@@ -8,7 +7,7 @@ import { ActivityRow } from "@/components/home/ActivityRow"
 import { SearchBar } from "@/components/home/SearchBar"
 import { BottomActionButtons } from "@/components/layout/BottomActionButtons"
 import { FloatingCart } from "@/components/layout/FloatingCart"
-import { supabaseActivityService } from "@/services/supabaseActivityService"
+import { supabaseActivityService } from "@/services/supabaseActivityService.js"
 import categoryService from "@/services/categoryService"
 import { SupabaseActivity } from "@/types/activity"
 
