@@ -3,6 +3,7 @@ import type {
   User,
   Session,
   UserAttributes,
+  PostgrestSingleResponse,
 } from "@supabase/supabase-js"
 
 export interface SignInResponse {
@@ -37,11 +38,11 @@ const authService = {
       if (data.user) {
         try {
           // Check if user is an activity owner
-          const ownerResult = await supabase
+          const ownerResult: PostgrestSingleResponse<{ provider_id: string }> = await supabase
             .from('activity_owners')
             .select('provider_id')
             .eq('user_id', data.user.id)
-            .maybeSingle<{ provider_id: string }>();
+            .maybeSingle()
 
           if (!ownerResult.error && ownerResult.data) {
             provider_id = ownerResult.data.provider_id;

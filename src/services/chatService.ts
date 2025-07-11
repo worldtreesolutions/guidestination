@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Message } from "@/types/activity";
+import type { PostgrestResponse } from "@supabase/supabase-js";
 
 export interface ChatMessage {
   id: string;
@@ -26,7 +27,7 @@ const chatService = {
       throw new Error("Supabase client not initialized");
     }
 
-    const result = await supabase
+    const result: PostgrestResponse<ChatMessage> = await supabase
       .from("chat_messages")
       .select("*")
       .eq("activity_id", bookingId)

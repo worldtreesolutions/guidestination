@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { PostgrestResponse } from "@supabase/supabase-js";
 
 export interface Category {
   id: number;
@@ -75,24 +76,24 @@ export const categoryService = {
     return categoryData as Category | null;
   },
 
-  async getActivitiesByCategoryId(categoryId: number): Promise<{ data: Activity[] | null; error: any | null }> {
+  async getActivitiesByCategoryId(categoryId: number): Promise<{  Activity[] | null; error: any | null }> {
     if (!supabase) {
       const err = { message: "Supabase client not initialized", details: "Check environment variables", hint: "Ensure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set", code: "CLIENT_ERROR" };
       console.error(err.message, err.details);
-      return { data: null, error: err };
+      return {  null, error: err };
     }
 
-    const result = await supabase
+    const result: PostgrestResponse<Activity> = await supabase
       .from("activities")
       .select("*")
       .eq("category_id", categoryId);
 
     if (result.error) {
       console.error(`Error fetching activities for category ID ${categoryId}:`, result.error.message);
-      return { data: null, error: result.error };
+      return {  null, error: result.error };
     }
     
-    return { data: result.data as Activity[], error: null };
+    return {  result.data as Activity[], error: null };
   },
 
   async getCategory(id: number): Promise<Category> {
