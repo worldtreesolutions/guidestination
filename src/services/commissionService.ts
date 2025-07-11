@@ -367,54 +367,64 @@ export const commissionService = {
   },
 
   async fetchEarningsForOwner(ownerId: string) {
-    const { data: activities, error: activitiesError } = await supabase
-      .from("activities")
-      .select("id")
-      .eq("provider_id", ownerId);
+    try {
+      const { data: activities, error: activitiesError } = await supabase
+        .from("activities")
+        .select("id")
+        .eq("provider_id", ownerId);
 
-    if (activitiesError) {
-      console.error("Error fetching owner activities for earnings:", activitiesError);
-      throw new Error("Could not fetch activities for earnings calculation.");
-    }
+      if (activitiesError) {
+        console.error("Error fetching owner activities for earnings:", activitiesError);
+        throw new Error("Could not fetch activities for earnings calculation.");
+      }
 
-    const activityIds = activities.map((a) => a.id);
-    if (activityIds.length === 0) {
+      if (!activities || activities.length === 0) {
+        return { total: 0, monthly: [], pending: 0 };
+      }
+
+      const activityIds = activities.map((a) => a.id);
+
+      const { data: bookings, error: bookingsError } = await supabase
+        .from("bookings")
+        .select("total_price, created_at, status")
+        .in("activity_id", activityIds);
+
+      if (bookingsError) {
+        console.error("Error fetching bookings for earnings:", bookingsError);
+        throw new Error("Could not fetch bookings for earnings calculation.");
+      }
+
+      if (!bookings) {
+        return { total: 0, monthly: [], pending: 0 };
+      }
+
+      let total = 0;
+      let pending = 0;
+      const monthly: { [key: string]: number } = {};
+
+      bookings.forEach((booking) => {
+        if (booking.status === "confirmed" && booking.total_price) {
+          total += booking.total_price;
+          const month = new Date(booking.created_at).toLocaleString('default', { month: 'long', year: 'numeric' });
+          if (!monthly[month]) {
+            monthly[month] = 0;
+          }
+          monthly[month] += booking.total_price;
+        } else if (booking.status === "pending" && booking.total_price) {
+          pending += booking.total_price;
+        }
+      });
+      
+      const monthlyArray = Object.keys(monthly).map(month => ({
+          month,
+          amount: monthly[month]
+      }));
+
+      return { total, monthly: monthlyArray, pending };
+    } catch (error) {
+      console.error("Unexpected error in fetchEarningsForOwner:", error);
       return { total: 0, monthly: [], pending: 0 };
     }
-
-    const {  bookings, error: bookingsError } = await supabase
-      .from("bookings")
-      .select("total_price, created_at, status")
-      .in("activity_id", activityIds);
-
-    if (bookingsError) {
-      console.error("Error fetching bookings for earnings:", bookingsError);
-      throw new Error("Could not fetch bookings for earnings calculation.");
-    }
-
-    let total = 0;
-    let pending = 0;
-    const monthly: { [key: string]: number } = {};
-
-    bookings.forEach((booking) => {
-      if (booking.status === "confirmed" && booking.total_price) {
-        total += booking.total_price;
-        const month = new Date(booking.created_at).toLocaleString('default', { month: 'long', year: 'numeric' });
-        if (!monthly[month]) {
-          monthly[month] = 0;
-        }
-        monthly[month] += booking.total_price;
-      } else if (booking.status === "pending" && booking.total_price) {
-        pending += booking.total_price;
-      }
-    });
-    
-    const monthlyArray = Object.keys(monthly).map(month => ({
-        month,
-        amount: monthly[month]
-    }));
-
-    return { total, monthly: monthlyArray, pending };
   }
 };
 

@@ -1,5 +1,5 @@
 
-    import { supabase } from "@/integrations/supabase/client"
+import { supabase } from "@/integrations/supabase/client"
 import { Booking, SupabaseBooking } from "@/types/activity"
 
 export const bookingService = {
@@ -36,78 +36,93 @@ export const bookingService = {
   },
 
   async fetchBookingsForOwner(ownerId: string): Promise<Booking[]> {
-    // This requires a join through activities table
-    const {  activities, error: activitiesError } = await supabase
-      .from("activities")
-      .select("id")
-      .eq("provider_id", ownerId)
+    try {
+      // First get all activities for this owner
+      const { data: activities, error: activitiesError } = await supabase
+        .from("activities")
+        .select("id")
+        .eq("provider_id", ownerId)
 
-    if (activitiesError) {
-      console.error("Error fetching owner activities:", activitiesError)
-      return []
-    }
+      if (activitiesError) {
+        console.error("Error fetching owner activities:", activitiesError)
+        return []
+      }
 
-    const activityIds = activities.map((a) => a.id)
+      if (!activities || activities.length === 0) {
+        return []
+      }
 
-    if (activityIds.length === 0) {
-      return []
-    }
+      const activityIds = activities.map((a) => a.id)
 
-    const { data, error } = await supabase
-      .from("bookings")
-      .select(
+      // Then get all bookings for those activities
+      const { data, error } = await supabase
+        .from("bookings")
+        .select(
+          `
+          *,
+          activities (*)
         `
-        *,
-        activities (*)
-      `
-      )
-      .in("activity_id", activityIds)
-      .order("created_at", { ascending: false })
+        )
+        .in("activity_id", activityIds)
+        .order("created_at", { ascending: false })
 
-    if (error) {
-      console.error("Error fetching owner bookings:", error)
+      if (error) {
+        console.error("Error fetching owner bookings:", error)
+        return []
+      }
+
+      return data as Booking[]
+    } catch (error) {
+      console.error("Unexpected error in fetchBookingsForOwner:", error)
       return []
     }
-    return data as Booking[]
   },
 
   async fetchRecentBookingsForOwner(
     ownerId: string,
     limit = 5
   ): Promise<Booking[]> {
-    const {  activities, error: activitiesError } = await supabase
-      .from("activities")
-      .select("id")
-      .eq("provider_id", ownerId)
+    try {
+      // First get all activities for this owner
+      const { data: activities, error: activitiesError } = await supabase
+        .from("activities")
+        .select("id")
+        .eq("provider_id", ownerId)
 
-    if (activitiesError) {
-      console.error("Error fetching owner activities:", activitiesError)
-      return []
-    }
+      if (activitiesError) {
+        console.error("Error fetching owner activities:", activitiesError)
+        return []
+      }
 
-    const activityIds = activities.map((a) => a.id)
+      if (!activities || activities.length === 0) {
+        return []
+      }
 
-    if (activityIds.length === 0) {
-      return []
-    }
+      const activityIds = activities.map((a) => a.id)
 
-    const { data, error } = await supabase
-      .from("bookings")
-      .select(
+      // Then get recent bookings for those activities
+      const { data, error } = await supabase
+        .from("bookings")
+        .select(
+          `
+          *,
+          activities (*)
         `
-        *,
-        activities (*)
-      `
-      )
-      .in("activity_id", activityIds)
-      .order("created_at", { ascending: false })
-      .limit(limit)
+        )
+        .in("activity_id", activityIds)
+        .order("created_at", { ascending: false })
+        .limit(limit)
 
-    if (error) {
-      console.error("Error fetching recent owner bookings:", error)
+      if (error) {
+        console.error("Error fetching recent owner bookings:", error)
+        return []
+      }
+
+      return data as Booking[]
+    } catch (error) {
+      console.error("Unexpected error in fetchRecentBookingsForOwner:", error)
       return []
     }
-    return data as Booking[]
   },
 
   async updateBookingStatus(bookingId: number, status: string) {
@@ -123,5 +138,109 @@ export const bookingService = {
     }
     return data[0]
   },
+
+  async getBookingById(bookingId: number): Promise<Booking | null> {
+    const { data, error } = await supabase
+      .from("bookings")
+      .select(
+        `
+        *,
+        activities (*)
+      `
+      )
+      .eq("id", bookingId)
+      .single()
+
+    if (error) {
+      console.error("Error fetching booking by ID:", error)
+      return null
+    }
+
+    return data as Booking
+  },
+
+  async getBookingStats(ownerId: string) {
+    try {
+      // Get activities for owner
+      const { data: activities, error: activitiesError } = await supabase
+        .from("activities")
+        .select("id")
+        .eq("provider_id", ownerId)
+
+      if (activitiesError || !activities) {
+        console.error("Error fetching activities for stats:", activitiesError)
+        return {
+          totalBookings: 0,
+          confirmedBookings: 0,
+          pendingBookings: 0,
+          cancelledBookings: 0,
+          totalRevenue: 0
+        }
+      }
+
+      const activityIds = activities.map((a) => a.id)
+
+      if (activityIds.length === 0) {
+        return {
+          totalBookings: 0,
+          confirmedBookings: 0,
+          pendingBookings: 0,
+          cancelledBookings: 0,
+          totalRevenue: 0
+        }
+      }
+
+      // Get booking stats
+      const { data: bookings, error: bookingsError } = await supabase
+        .from("bookings")
+        .select("status, total_price")
+        .in("activity_id", activityIds)
+
+      if (bookingsError || !bookings) {
+        console.error("Error fetching bookings for stats:", bookingsError)
+        return {
+          totalBookings: 0,
+          confirmedBookings: 0,
+          pendingBookings: 0,
+          cancelledBookings: 0,
+          totalRevenue: 0
+        }
+      }
+
+      const stats = bookings.reduce(
+        (acc, booking) => {
+          acc.totalBookings++
+          if (booking.status === "confirmed") {
+            acc.confirmedBookings++
+            acc.totalRevenue += booking.total_price || 0
+          } else if (booking.status === "pending") {
+            acc.pendingBookings++
+          } else if (booking.status === "cancelled") {
+            acc.cancelledBookings++
+          }
+          return acc
+        },
+        {
+          totalBookings: 0,
+          confirmedBookings: 0,
+          pendingBookings: 0,
+          cancelledBookings: 0,
+          totalRevenue: 0
+        }
+      )
+
+      return stats
+    } catch (error) {
+      console.error("Unexpected error in getBookingStats:", error)
+      return {
+        totalBookings: 0,
+        confirmedBookings: 0,
+        pendingBookings: 0,
+        cancelledBookings: 0,
+        totalRevenue: 0
+      }
+    }
+  }
 }
-  
+
+export default bookingService
