@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,7 +9,7 @@ import LanguageSelector from "./LanguageSelector";
 import CurrencySelector from "./CurrencySelector";
 import MobileMenu from "./MobileMenu";
 
-export default function Navbar() {
+export function Navbar() {
   const { user } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
