@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client"
 
 export interface ChatMessage {
@@ -23,19 +24,19 @@ const chatService = {
       throw new Error("Supabase client not initialized");
     }
 
-    const { data, error } = await supabase
+    const result = await supabase
       .from("chat_messages")
       .select("*")
       .eq("activity_id", activityId)
       .or(`and(sender_id.eq.${customerId},receiver_id.eq.${ownerId}),and(sender_id.eq.${ownerId},receiver_id.eq.${customerId})`)
       .order("created_at", { ascending: true })
 
-    if (error) {
-      console.error("Error fetching messages:", error)
-      throw error
+    if (result.error) {
+      console.error("Error fetching messages:", result.error)
+      throw result.error
     }
 
-    return (data || []).map((item: any) => ({
+    return (result.data || []).map((item: any) => ({
       id: item.id,
       sender_id: item.sender_id,
       receiver_id: item.receiver_id,
