@@ -1,3 +1,4 @@
+
 import Head from "next/head"
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/router"
@@ -34,7 +35,7 @@ export default function ProfilePage() {
 
     try {
       const { data, error } = await supabase
-        .from("profiles")
+        .from("customer_profiles")
         .select("*")
         .eq("id", user.id)
         .single()

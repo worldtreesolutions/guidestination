@@ -1,3 +1,4 @@
+
 import { ExcursionPlanner } from "@/components/activities/ExcursionPlanner"
 import Navbar from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
@@ -5,14 +6,14 @@ import Head from "next/head"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useLanguage } from "@/contexts/LanguageContext"
 import activityService from "@/services/activityService"
-import { SupabaseActivity } from "@/types/activity"
+import { Activity, SupabaseActivity } from "@/types/activity"
 import { PlanningProvider, usePlanning } from "@/contexts/PlanningContext"
 import { useState, useEffect, useContext, useCallback } from "react"
 import { useToast } from "@/hooks/use-toast"
 
 function Planner() {
   const { toast } = useToast()
-  const [activities, setActivities] = useState<SupabaseActivity[]>([])
+  const [activities, setActivities] = useState<Activity[]>([])
   const [loading, setLoading] = useState(true)
   const planningContext = usePlanning()
 
@@ -20,7 +21,7 @@ function Planner() {
     try {
       setLoading(true)
       const data = await activityService.getActivities()
-      setActivities(data as SupabaseActivity[])
+      setActivities(data)
     } catch (error) {
       console.error("Error fetching activities:", error)
       toast({
@@ -42,7 +43,7 @@ function Planner() {
   }
 
   return (
-    <ExcursionPlanner activities={activities} onPlanComplete={(plan) => console.log(plan)} />
+    <ExcursionPlanner activities={activities as SupabaseActivity[]} onPlanComplete={(plan) => console.log(plan)} />
   )
 }
 

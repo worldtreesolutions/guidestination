@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
@@ -6,7 +7,7 @@ import Navbar from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { PreferencesForm, PreferencesFormData } from "@/components/recommendation/PreferencesForm";
 import { recommendationService, RecommendedPlan, UserPreferences, RecommendedActivity } from "@/services/recommendationService";
-import { SupabaseActivity } from "@/types/activity";
+import { Activity, SupabaseActivity } from "@/types/activity";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, MapPin, Clock, Users, Star } from "lucide-react";
@@ -23,7 +24,7 @@ export default function RecommendationPage() {
 
   useEffect(() => {
     if (recommendations) {
-      recommendations.activities.forEach(activity => addActivity(activity as SupabaseActivity));
+      recommendations.activities.forEach(activity => addActivity(activity as Activity));
       toast({
         title: "All activities added",
         description: "All recommended activities have been added to your plan.",
@@ -31,7 +32,7 @@ export default function RecommendationPage() {
     }
   }, [recommendations, addActivity, toast]);
 
-  const handleSubmit = async (data: PreferencesFormData) => {
+  const handleSubmit = async ( PreferencesFormData) => {
     setLoading(true);
     setRecommendations(null);
     try {
@@ -66,7 +67,7 @@ export default function RecommendationPage() {
   };
 
   const handleActivitySelect = (activity: RecommendedActivity) => {
-    addActivity(activity as SupabaseActivity);
+    addActivity(activity as Activity);
     toast({
       title: "Activity Added",
       description: `${activity.title} has been added to your plan.`,
