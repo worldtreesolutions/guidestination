@@ -66,11 +66,19 @@ import { NextApiRequest, NextApiResponse } from "next"
         if (insertError) throw insertError
 
         // Create commission payment record for partner
-        const {  invoice } = await supabase
+        const {  invoice, error: invoiceError } = await supabase
           .from("commission_invoices")
           .select("platform_commission_amount")
           .eq("id", invoiceId)
-          .single();
+          .single()
+
+        if (invoiceError) {
+          console.error(
+            "Error fetching invoice for commission payment:",
+            invoiceError
+          )
+          throw invoiceError
+        }
         
         if (invoice) {
             const { error: partnerPaymentError } = await supabase
