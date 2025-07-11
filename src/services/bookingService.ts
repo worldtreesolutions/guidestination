@@ -13,7 +13,8 @@ interface BookingStats {
 
 export interface Booking {
   id: string
-  customer_id: string | null
+  customer_name: string
+  customer_email: string
   activity_id: number
   booking_date: string
   participants: number
@@ -39,7 +40,7 @@ export const bookingService = {
     const { data: activitiesData, error: activitiesError } = await supabase
       .from(ACTIVITIES_TABLE)
       .select("id")
-      .eq("owner_id", ownerId)
+      .eq("created_by", ownerId)
 
     if (activitiesError) {
       throw new Error(activitiesError.message)
@@ -99,7 +100,7 @@ export const bookingService = {
     const { data: activitiesData, error: activitiesError } = await supabase
       .from(ACTIVITIES_TABLE)
       .select("id")
-      .eq("owner_id", ownerId)
+      .eq("created_by", ownerId)
 
     if (activitiesError) {
       throw new Error(activitiesError.message)
@@ -115,14 +116,14 @@ export const bookingService = {
       .from(BOOKINGS_TABLE)
       .select(`
         id,
-        customer_id,
+        customer_name,
+        customer_email,
         activity_id,
         booking_date,
         participants,
         total_amount,
         status,
-        created_at,
-        activities:activity_id(title, description, image_url, pickup_location)
+        created_at
       `)
       .in("activity_id", activityIds)
       .order("created_at", { ascending: false })
@@ -133,16 +134,16 @@ export const bookingService = {
       throw new Error(bookingsError.message)
     }
 
-    return (bookingsData || []).map((item) => ({
+    return (bookingsData || []).map((item: any) => ({
       id: item.id,
-      customer_id: item.customer_id,
+      customer_name: item.customer_name,
+      customer_email: item.customer_email,
       activity_id: item.activity_id,
       booking_date: item.booking_date,
       participants: item.participants,
       total_amount: item.total_amount,
       status: item.status,
-      created_at: item.created_at,
-      activities: item.activities
+      created_at: item.created_at
     })) as Booking[]
   },
 
@@ -154,7 +155,7 @@ export const bookingService = {
     const { data: activitiesData, error: activitiesError } = await supabase
       .from(ACTIVITIES_TABLE)
       .select("id")
-      .eq("owner_id", ownerId)
+      .eq("created_by", ownerId)
 
     if (activitiesError) {
       throw new Error(activitiesError.message)
@@ -170,14 +171,14 @@ export const bookingService = {
       .from(BOOKINGS_TABLE)
       .select(`
         id,
-        customer_id,
+        customer_name,
+        customer_email,
         activity_id,
         booking_date,
         participants,
         total_amount,
         status,
-        created_at,
-        activities:activity_id(title, description, image_url, pickup_location)
+        created_at
       `)
       .in("activity_id", activityIds)
       .order("created_at", { ascending: false })
@@ -187,16 +188,16 @@ export const bookingService = {
       throw new Error(bookingsError.message)
     }
 
-    return (bookingsData || []).map((item) => ({
+    return (bookingsData || []).map((item: any) => ({
       id: item.id,
-      customer_id: item.customer_id,
+      customer_name: item.customer_name,
+      customer_email: item.customer_email,
       activity_id: item.activity_id,
       booking_date: item.booking_date,
       participants: item.participants,
       total_amount: item.total_amount,
       status: item.status,
-      created_at: item.created_at,
-      activities: item.activities
+      created_at: item.created_at
     })) as Booking[]
   },
 }
