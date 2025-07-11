@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useMemo } from "react"
 import { useDroppable, useDraggable } from "@dnd-kit/core"
 import { CSS } from "@dnd-kit/utilities"
@@ -47,7 +48,7 @@ const RemoveButton = ({
 const ActivityCard = ({ activity, onRemove }: { activity: ScheduledActivity; onRemove: (id: string) => void }) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: activity.id,
-    data: { activity }
+     { activity }
   });
 
   const style = transform ? {
@@ -55,7 +56,8 @@ const ActivityCard = ({ activity, onRemove }: { activity: ScheduledActivity; onR
   } : undefined
 
   const durationNum = useMemo(() => parseInt(String(activity.duration) || '1', 10), [activity.duration]);
-  const endTime = (activity.hour || 0) + durationNum;
+  const activityHour = useMemo(() => activity.hour ? parseInt(activity.hour, 10) : 0, [activity.hour]);
+  const endTime = activityHour + durationNum;
 
   if (isDragging) {
     return <div ref={setNodeRef} style={{ height: `${HOUR_HEIGHT}px`, opacity: 0 }} />
@@ -87,7 +89,7 @@ const ActivityCard = ({ activity, onRemove }: { activity: ScheduledActivity; onR
               <div className="flex flex-col gap-1 mt-1">
                 <div className="text-xs bg-primary/80 rounded-full px-2 py-1 inline-flex items-center gap-1 w-fit">
                   <Clock className="h-3 w-3" />
-                  {activity.hour}:00 - {endTime}:00
+                  {activityHour}:00 - {endTime}:00
                 </div>
                 <div className="text-xs bg-primary/80 rounded-full px-2 py-1 inline-flex items-center gap-1 w-fit">
                   <MapPin className="h-3 w-3" />
@@ -120,7 +122,7 @@ const DroppableCell = ({
   const { t } = useLanguage()
   const { setNodeRef } = useDroppable({
     id: `${day}-${hour}`,
-    data: { day, hour },
+     { day, hour },
     disabled: !isAvailable
   });
 
@@ -187,11 +189,12 @@ export const MobileWeeklyActivitySchedule = ({
       result[day] = {}
     })
     scheduledActivities.forEach(activity => {
-      if (activity.day && typeof activity.hour === 'number') {
+      const activityHour = activity.hour ? parseInt(activity.hour, 10) : -1;
+      if (activity.day && activityHour !== -1 && !isNaN(activityHour)) {
         if (!result[activity.day]) {
           result[activity.day] = {}
         }
-        result[activity.day][activity.hour] = activity
+        result[activity.day][activityHour] = activity
       }
     })
     return result
@@ -206,9 +209,10 @@ export const MobileWeeklyActivitySchedule = ({
       })
       scheduledActivities.forEach(activity => {
         const durationNum = parseInt(String(activity.duration) || '1', 10);
-        if (activity.day === day && typeof activity.hour === 'number' && durationNum) {
+        const activityHour = activity.hour ? parseInt(activity.hour, 10) : -1;
+        if (activity.day === day && activityHour !== -1 && !isNaN(activityHour) && durationNum) {
           for (let i = 1; i < durationNum; i++) {
-            const hourToSkip = activity.hour + i
+            const hourToSkip = activityHour + i
             if (hourToSkip <= 17) {
               result[day][hourToSkip] = true
             }
@@ -231,9 +235,10 @@ export const MobileWeeklyActivitySchedule = ({
         
         const existingActivity = scheduledActivities.find(activity => {
           const activityDuration = parseInt(String(activity.duration) || '1', 10);
-          if (activity.day !== day || activity.id === draggedActivity.id || !activity.hour || !activityDuration) return false
-          const activityEnd = activity.hour + activityDuration
-          const hasOverlap = currentHour >= activity.hour && currentHour < activityEnd
+          const activityHour = activity.hour ? parseInt(activity.hour, 10) : -1;
+          if (activity.day !== day || activity.id === draggedActivity.id || activityHour === -1 || !activityDuration) return false
+          const activityEnd = activityHour + activityDuration
+          const hasOverlap = currentHour >= activityHour && currentHour < activityEnd
           return hasOverlap
         })
         
@@ -245,11 +250,12 @@ export const MobileWeeklyActivitySchedule = ({
     return !scheduledActivities.some(
       activity => {
         const activityDuration = parseInt(String(activity.duration) || '1', 10);
+        const activityHour = activity.hour ? parseInt(activity.hour, 10) : -1;
         return activity.day === day && 
-        activity.hour &&
+        activityHour !== -1 &&
         activityDuration &&
-        hour >= activity.hour && 
-        hour < activity.hour + activityDuration
+        hour >= activityHour && 
+        hour < activityHour + activityDuration
       }
     )
   }
@@ -264,70 +270,6 @@ export const MobileWeeklyActivitySchedule = ({
   const goToNextDay = () => {
     const newIndex = (activeDayIndex + 1) % dayKeys.length
     setActiveDay(dayKeys[newIndex])
-  }
-
-  const renderHour = (hour: number) => {
-    const now = new Date();
-    const currentDay = now.getDay();
-    const dayIndex = days.findIndex(d => d.dayOfWeek === currentDay);
-    const isToday = dayIndex !== -1;
-
-    const scheduled = schedules.find(s => {
-      const startHour = parseInt(s.start_time.split(':')[0], 10);
-      const endHour = parseInt(s.end_time.split(':')[0], 10);
-      return s.day_of_week === days[activeDayIndex].dayOfWeek && hour >= startHour && hour < endHour;
-    });
-
-    const isBooked = bookings.some(b => {
-      const bookingDate = new Date(b.date);
-      const bookingHour = bookingDate.getHours();
-      const bookingDay = bookingDate.getDay();
-      return days[activeDayIndex].dayOfWeek === bookingDay && hour >= bookingHour && hour < (bookingHour + Number(b.duration || 1));
-    });
-
-    const isPast = isToday && hour < now.getHours();
-
-    return (
-      <div key={hour} className='flex items-stretch gap-2'>
-        <div className='w-16 flex items-center justify-center bg-primary/5 rounded-lg'>
-          <div className='flex flex-col items-center'>
-            <Clock className='h-3.5 w-3.5 text-primary' />
-            <span className='text-sm font-medium'>{formatHour(hour)}</span>
-          </div>
-        </div>
-        
-        {scheduled ? (
-          <div 
-            className='flex-1 relative bg-primary/5 rounded-lg'
-            style={{ 
-              height: Number(scheduled.duration || 60) > 1 
-                ? `${HOUR_HEIGHT * Number(scheduled.duration || 60) + (Number(scheduled.duration || 60) - 1) * 8}px` 
-                : `${HOUR_HEIGHT}px` 
-            }}
-          >
-            <ActivityCard 
-              activity={scheduled} 
-              onRemove={handleActivityRemove} 
-            />
-          </div>
-        ) : (
-          <DroppableCell
-            day={activeDay}
-            hour={hour}
-            isAvailable={isSlotAvailable(activeDay, hour)}
-            showUnavailable={!!draggedActivity}
-          >
-            <div className='h-full border-2 border-dashed border-gray-200 rounded-lg flex items-center justify-center'>
-              {isSlotAvailable(activeDay, hour) && !draggedActivity && (
-                <div className='text-xs text-gray-400'>
-                  {t("calendar.dropHere")}
-                </div>
-              )}
-            </div>
-          </DroppableCell>
-        )}
-      </div>
-    )
   }
 
   return (
@@ -360,7 +302,55 @@ export const MobileWeeklyActivitySchedule = ({
       </div>
 
       <div className='space-y-2'>
-        {hours.map(renderHour)}
+        {hours.map(hour => {
+          if (skipCells[activeDay]?.[hour]) {
+            return null;
+          }
+          const scheduled = activitiesByDayAndHour[activeDay]?.[hour];
+          const durationNum = scheduled ? parseInt(String(scheduled.duration) || '1', 10) : 1;
+
+          return (
+            <div key={hour} className='flex items-stretch gap-2'>
+              <div className='w-16 flex items-center justify-center bg-primary/5 rounded-lg'>
+                <div className='flex flex-col items-center'>
+                  <Clock className='h-3.5 w-3.5 text-primary' />
+                  <span className='text-sm font-medium'>{formatHour(hour)}</span>
+                </div>
+              </div>
+              
+              {scheduled ? (
+                <div 
+                  className='flex-1 relative'
+                  style={{ 
+                    height: `${HOUR_HEIGHT * durationNum + (durationNum > 1 ? (durationNum - 1) * 8 : 0)}px`
+                  }}
+                >
+                  <ActivityCard 
+                    activity={scheduled} 
+                    onRemove={handleActivityRemove} 
+                  />
+                </div>
+              ) : (
+                <div className="flex-1">
+                  <DroppableCell
+                    day={activeDay}
+                    hour={hour}
+                    isAvailable={isSlotAvailable(activeDay, hour)}
+                    showUnavailable={!!draggedActivity}
+                  >
+                    <div className='h-full border-2 border-dashed border-gray-200 rounded-lg flex items-center justify-center'>
+                      {isSlotAvailable(activeDay, hour) && !draggedActivity && (
+                        <div className='text-xs text-gray-400'>
+                          {t("calendar.dropHere")}
+                        </div>
+                      )}
+                    </div>
+                  </DroppableCell>
+                </div>
+              )}
+            </div>
+          )
+        })}
       </div>
       
       <div className='mt-4 flex justify-center'>
