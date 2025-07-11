@@ -61,7 +61,7 @@ export const qrBookingService = {
     }
     const { data, error } = await supabase
       .from("referral_visits")
-      .insert([{ establishment_id: establishmentId, ip_address: ipAddress, session_id: sessionId }]);
+      .insert([{ establishment_id: establishmentId, ip_address: ipAddress }]);
 
     if (error) {
       console.error("Error recording visit:", error);
@@ -81,12 +81,11 @@ export const qrBookingService = {
     establishmentId: string
     referralVisitId?: string
   }) {
-    const { data: booking, error } = await supabase
+    const { booking, error } = await supabase
       .from("bookings")
       .insert({
         activity_id: bookingData.activityId,
         customer_name: bookingData.customerName,
-        customer_email: bookingData.customerEmail,
         customer_phone: bookingData.customerPhone || null,
         participants: bookingData.participants,
         total_amount: bookingData.totalAmount,
@@ -147,7 +146,6 @@ export const qrBookingService = {
           activity_id: bookingDetails.activity_id,
           user_id: bookingDetails.user_id,
           customer_name: bookingDetails.customer_name,
-          customer_email: bookingDetails.customer_email,
           participants: bookingDetails.participants,
           total_amount: bookingDetails.total_price,
           provider_id: bookingDetails.provider_id,

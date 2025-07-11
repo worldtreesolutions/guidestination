@@ -73,7 +73,7 @@ export const partnerService = {
       newUserId = authData.user.id;
 
       // Step 2: Create partner registration record with user_id as foreign key
-      const { data: partnerData, error: partnerError } = await supabase
+      const {  partnerData, error: partnerError } = await supabase
         .from("partner_registrations")
         .insert([{
           user_id: authData.user.id,
@@ -87,7 +87,8 @@ export const partnerService = {
           place_id: data.place_id,
           commission_package: data.commission_package,
           supporting_documents: data.supporting_documents || [],
-          status: 'pending'
+          status: 'pending',
+          room_count: 0
         }])
         .select()
 

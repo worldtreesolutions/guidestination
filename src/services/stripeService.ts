@@ -147,7 +147,7 @@ export const stripeService = {
 
     try {
       // Create the booking
-      const { data: booking, error: bookingError } = await client
+      const {  booking, error: bookingError } = await client
         .from("bookings")
         .insert({
           activity_id: parseInt(activityId),

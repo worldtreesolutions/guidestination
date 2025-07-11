@@ -236,14 +236,14 @@ export const invoiceService = {
       if (booking.is_qr_booking && booking.establishment_id) {
           const {  est } = await supabase
               .from("establishments")
-              .select("name, commission_rate")
+              .select("establishment_name, commission_rate")
               .eq("id", booking.establishment_id)
               .single();
           establishment = est;
       }
 
       // Calculate commission
-      const commissionRate = establishment?.commission_rate || activity.commission_rate || 15;
+      const commissionRate = establishment?.commission_rate || 15;
       const platformCommission = (booking.total_price || 0) * (commissionRate / 100);
       
       let partnerCommission = 0;
