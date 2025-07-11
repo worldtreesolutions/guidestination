@@ -2,7 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Activity, ActivityForHomepage, SupabaseActivity } from "@/types/activity";
 import { currencyService } from "./currencyService";
 
-const toActivity = (activity: SupabaseActivity & { activity_schedules?: any[] }, userCurrency: string): Activity => {
+const toActivity = (activity: SupabaseActivity & { activity_schedules?: any[]; activity_schedule_instances?: any[] }, userCurrency: string): Activity => {
   const splitString = (str: string | null): string[] | null => {
     if (str === null || typeof str === 'undefined') return null;
     if (str.trim() === '') return [];
@@ -23,6 +23,7 @@ const toActivity = (activity: SupabaseActivity & { activity_schedules?: any[] },
     included: splitString(activity.included),
     not_included: splitString(activity.not_included),
     activity_schedules: activity.activity_schedules || [],
+    schedule_instances: activity.activity_schedule_instances || [],
   };
 };
 
@@ -33,7 +34,8 @@ export const activityService = {
         .from("activities")
         .select(`
           *,
-          activity_schedules(*)
+          activity_schedules(*),
+          activity_schedule_instances(*)
         `)
         .eq("is_active", true)
         .order("created_at", { ascending: false });
@@ -114,7 +116,8 @@ export const activityService = {
         .from("activities")
         .select(`
           *,
-          activity_schedules(*)
+          activity_schedules(*),
+          activity_schedule_instances(*)
         `)
         .eq("id", activityId)
         .eq("is_active", true)
@@ -136,13 +139,43 @@ export const activityService = {
     }
   },
 
+  async getActivityById(activityId: number): Promise<Activity | null> {
+    try {
+      const { data, error } = await supabase
+        .from("activities")
+        .select(`
+          *,
+          activity_schedules(*),
+          activity_schedule_instances(*)
+        `)
+        .eq("id", activityId)
+        .eq("is_active", true)
+        .single();
+
+      if (error) {
+        console.error("Error fetching activity by ID:", error);
+        return null;
+      }
+
+      if (!data) return null;
+
+      const userCurrency = currencyService.getUserCurrency();
+
+      return toActivity(data, userCurrency);
+    } catch (error) {
+      console.error("Error in getActivityById:", error);
+      return null;
+    }
+  },
+
   async getActivitiesByCategory(categoryName: string): Promise<Activity[]> {
     try {
       const { data, error } = await supabase
         .from("activities")
         .select(`
           *,
-          activity_schedules(*)
+          activity_schedules(*),
+          activity_schedule_instances(*)
         `)
         .eq("category", categoryName)
         .eq("is_active", true)
@@ -168,7 +201,8 @@ export const activityService = {
         .from("activities")
         .select(`
           *,
-          activity_schedules(*)
+          activity_schedules(*),
+          activity_schedule_instances(*)
         `)
         .eq("is_active", true)
         .or(`title.ilike.%${query}%,description.ilike.%${query}%,address.ilike.%${query}%`)
