@@ -1,16 +1,11 @@
+
 {
   "compilerOptions": {
     "skipLibCheck": true,
     "noImplicitAny": false,
     "strict": false,
-    "typeRoots": [
-      "./node_modules/@types"
-    ],
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "es6"
-    ],
+    "typeRoots": ["./node_modules/@types"],
+    "lib": ["dom", "dom.iterable", "es6"],
     "allowJs": true,
     "skipDefaultLibCheck": true,
     "esModuleInterop": true,
@@ -29,19 +24,9 @@
     ],
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
-    },
-    "module": "esnext"
+      "@/*": ["./src/*"]
+    }
   },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
 }
