@@ -94,6 +94,8 @@ export interface ScheduledActivity {
   hour?: string;
   image_url?: string | null;
   price?: number | null;
+  participants: number;
+  date: string;
 }
 
 export type ActivityScheduleInstance = ActivitySchedule;
@@ -161,4 +163,16 @@ export interface CommissionStats {
 }
 
 export type SupabaseActivity = Activity;
-  
+
+export interface Message {
+  id: string;
+  created_at: string;
+  message: string;
+  sender_id: string;
+  receiver_id: string;
+  activity_id: string;
+  sender: {
+    full_name: string;
+    avatar_url: string;
+  };
+}

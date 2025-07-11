@@ -77,7 +77,9 @@ export function ActivityList({ activities, onEdit, onView, onStatusChange }: Act
                       height={64}
                       className="rounded-md object-cover"
                     />
-                    <div className="font-medium">{activity.title}</div>
+                    <Link href={`/dashboard/activities/${activity.id.toString()}`} className="font-medium hover:underline">
+                      {activity.title}
+                    </Link>
                   </div>
                 </TableCell>
                 <TableCell>{activity.meeting_point}</TableCell>

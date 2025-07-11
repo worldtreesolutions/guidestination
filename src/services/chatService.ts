@@ -54,26 +54,17 @@ const chatService = {
       throw new Error("Supabase client not initialized");
     }
 
-    const result = await supabase
+    const result = await (supabase as any)
       .from("chat_messages")
-      .insert(messageData)
+      .insert([messageData])
       .select()
-      .single()
+      .single();
 
     if (result.error) {
-      console.error("Error sending message:", result.error)
-      throw result.error
+      throw result.error;
     }
 
-    return {
-      id: result.data.id,
-      sender_id: result.data.sender_id,
-      receiver_id: result.data.receiver_id,
-      activity_id: messageData.activity_id,
-      message: result.data.message,
-      created_at: result.data.created_at,
-      read_at: result.data.read_at
-    };
+    return result.data as ChatMessage;
   },
 
   async markAsRead(messageId: string): Promise<void> {
@@ -92,28 +83,51 @@ const chatService = {
     }
   },
 
-  async getUnreadCount(userId: string): Promise<number> {
+  async getUnreadMessages(userId: string): Promise<ChatMessage[]> {
     if (!supabase) {
       throw new Error("Supabase client not initialized");
     }
-
-    const { count, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("chat_messages")
-      .select("*", { count: "exact", head: true })
+      .select("id")
       .eq("receiver_id", userId)
-      .is("read_at", null)
+      .is("read_at", null);
 
     if (error) {
-      console.error("Error getting unread count:", error)
-      throw error
+      console.error("Error fetching unread messages:", error);
+      return [];
     }
+    return data;
+  },
 
-    return count || 0
+  async subscribeToMessages(
+    userId: string,
+    onNewMessage: (message: ChatMessage) => void
+  ) {
+    if (!supabase) return null;
+
+    const channel = (supabase as any)
+      .channel(`messages_${userId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "chat_messages",
+          filter: `receiver_id=eq.${userId}`,
+        },
+        (payload: any) => {
+          onNewMessage(payload.new as ChatMessage);
+        }
+      )
+      .subscribe();
+
+    return channel;
   },
 
   async createMessage(message: NewMessage) {
     const { data, error } = await supabase
-      .from("messages")
+      .from("chat_messages")
       .insert(message)
       .select()
       .single();

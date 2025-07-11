@@ -6,6 +6,7 @@ export interface Category {
   description?: string;
   created_at?: string;
   updated_at?: string;
+  image_url?: string;
 }
 
 interface Activity {
@@ -36,18 +37,18 @@ export const categoryService = {
     }));
   },
 
-  async getCategoryById(id: string): Promise<{ data: Category | null; error: any | null }> {
+  async getCategoryById(id: string): Promise<Category | null> {
     if (!supabase) {
       const err = { message: "Supabase client not initialized", details: "Check environment variables", hint: "Ensure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set", code: "CLIENT_ERROR" };
       console.error(err.message, err.details);
-      return { data: null, error: err };
+      return null;
     }
 
     const numericId = parseInt(id, 10);
     if (isNaN(numericId)) {
       const err = { message: "Invalid category ID format. ID must be a number.", details: `Received: ${id}`, hint: "Ensure ID is a numeric string.", code: "22P02" };
       console.error(err.message, err.details);
-      return { data: null, error: err };
+      return null;
     }
 
     const result = await supabase
@@ -58,18 +59,19 @@ export const categoryService = {
 
     if (result.error && result.error.code !== "PGRST116") { 
       console.error(`Error fetching category with ID ${numericId}:`, result.error.message);
-      return { data: null, error: result.error };
+      return null;
     }
     
     const categoryData = result.data ? {
       id: result.data.id,
       name: result.data.name,
       description: result.data.description || undefined,
-      created_at: result.data.created_at || new Date().toISOString(),
-      updated_at: result.data.updated_at || new Date().toISOString()
+      image_url: result.data.image_url || undefined,
+      created_at: result.data.created_at || undefined,
+      updated_at: result.data.updated_at || undefined,
     } : null;
     
-    return { data: categoryData, error: result.error?.code === "PGRST116" ? null : result.error };
+    return categoryData as Category | null;
   },
 
   async getActivitiesByCategoryId(categoryId: number): Promise<{ data: Activity[] | null; error: any | null }> {
@@ -111,13 +113,26 @@ export const categoryService = {
   },
 
   async getCategories(): Promise<Category[]> {
-    const { data, error } = await supabase
-      .from("categories")
-      .select("*");
+    const response = await supabase.from("categories").select("*");
+    if (response.error) {
+      throw response.error;
+    }
+    if (!response.data) {
+      return [];
+    }
 
-    if (error) throw error;
+    // Sort categories by creation date, newest first
+    const sortedCategories = (response.data as any[]).sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
 
-    return data || [];
+    return sortedCategories.map((c) => ({
+      id: c.id,
+      name: c.name,
+      description: c.description,
+      image_url: c.image_url,
+    }));
   },
 
   async createCategory(

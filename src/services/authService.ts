@@ -1,9 +1,7 @@
-
-import { supabase } from "@/integrations/supabase/client"
+<![CDATA[import { supabase } from "@/integrations/supabase/client"
 import type {
   User,
   Session,
-  UserCredentials,
   UserAttributes,
 } from "@supabase/supabase-js"
 
@@ -157,19 +155,7 @@ const authService = {
     }
     return data?.id || null;
   },
-
-  async updateUser(id: string, attributes: UserAttributes) {
-    const { data, error } = await supabase
-      .from("users")
-      .update(attributes)
-      .eq("id", id)
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    return data;
-  },
 }
 
 export default authService
+]]>

@@ -11,24 +11,33 @@ import {
 } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast"
-import { Activity, SupabaseActivity } from "@/types/activity"
+import { ActivityWithDetails, ActivitySchedule } from "@/types/activity"
 import { Users, Minus, Plus } from "lucide-react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
 
 interface BookingFormProps {
-  activity: Activity;
+  activity: ActivityWithDetails;
   selectedDate: Date | undefined;
   participants: number;
   onParticipantsChange: (value: number) => void;
+  onDateChange: (date: Date | undefined) => void;
+  onSubmit: () => void;
 }
 
 const bookingSchema = z.object({
   participants: z.number().min(1, "At least one participant is required."),
 })
 
-export function BookingForm({ activity, selectedDate, participants, onParticipantsChange }: BookingFormProps) {
+export default function BookingForm({
+  activity,
+  selectedDate,
+  participants,
+  onParticipantsChange,
+  onDateChange,
+  onSubmit,
+}: BookingFormProps) {
   const { toast } = useToast()
   const { register, handleSubmit } = useForm({
     defaultValues: { participants },
@@ -74,6 +83,8 @@ export function BookingForm({ activity, selectedDate, participants, onParticipan
       minimumFractionDigits: 0,
     }).format(price)
   }
+
+  const isTimeSelected = selectedDate && activity.schedules.some((schedule) => schedule.date === selectedDate);
 
   return (
     <div className="space-y-4">
@@ -123,12 +134,7 @@ export function BookingForm({ activity, selectedDate, participants, onParticipan
         </div>
       </div>
 
-      <Button
-        size="lg"
-        className="w-full"
-        onClick={handleBooking}
-        disabled={!selectedDate}
-      >
+      <Button onClick={onSubmit} className="w-full" size="lg" disabled={!selectedDate || !isTimeSelected}>
         Book Now
       </Button>
       <p className="text-xs text-center text-muted-foreground">
