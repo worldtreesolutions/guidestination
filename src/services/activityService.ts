@@ -62,6 +62,42 @@ class ActivityService {
     );
   }
 
+  async getActivitiesForHomepage(): Promise<any[]> {
+    const { data, error } = await supabase
+      .from("activities")
+      .select("id, title, b_price, address, average_rating, image_url, categories(name), duration, min_age, max_age, description, max_participants, technical_skill_level, physical_effort_level, includes_pickup, includes_meal")
+      .eq("is_active", true)
+      .limit(50);
+
+    if (error) {
+      console.error("Error fetching activities for homepage:", error);
+      throw error;
+    }
+
+    return data.map((activity: any) => ({
+      id: activity.id,
+      slug: activity.title.toLowerCase().replace(/\s+/g, "-"),
+      title: activity.title,
+      price: activity.b_price,
+      b_price: activity.b_price,
+      location: activity.address,
+      address: activity.address,
+      average_rating: activity.average_rating,
+      image_url: activity.image_url,
+      category_name: activity.categories?.name || 'Uncategorized',
+      currency: 'THB',
+      duration: activity.duration,
+      min_age: activity.min_age,
+      max_age: activity.max_age,
+      description: activity.description,
+      max_participants: activity.max_participants,
+      technical_skill_level: activity.technical_skill_level,
+      physical_effort_level: activity.physical_effort_level,
+      includes_pickup: activity.includes_pickup,
+      includes_meal: activity.includes_meal,
+    }));
+  }
+
   async getActivityById(id: number): Promise<Activity> {
     const {  activity, error } = await supabase
       .from("activities")
