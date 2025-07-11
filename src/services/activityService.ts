@@ -2,7 +2,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Activity, ActivityForHomepage, SupabaseActivity } from "@/types/activity";
 import { currencyService } from "./currencyService";
 
-const toActivity = (activity: SupabaseActivity & { activity_schedules?: any[]; activity_schedule_instances?: any[] }, userCurrency: string): Activity => {
+const toActivity = (activity: SupabaseActivity & { 
+  activity_schedules?: any[]; 
+  activity_schedule_instances?: any[];
+  activity_selected_options?: any[];
+}, userCurrency: string): Activity => {
   const splitString = (str: string | null): string[] | null => {
     if (str === null || typeof str === 'undefined') return null;
     if (str.trim() === '') return [];
@@ -11,6 +15,23 @@ const toActivity = (activity: SupabaseActivity & { activity_schedules?: any[]; a
 
   // Convert b_price from string to number if needed
   const bPrice = typeof activity.b_price === 'string' ? parseFloat(activity.b_price) : activity.b_price;
+
+  // Process activity options by type
+  const processOptions = (type: string) => {
+    if (!activity.activity_selected_options) return [];
+    return activity.activity_selected_options
+      .filter((selectedOption: any) => selectedOption.activity_options?.type === type)
+      .map((selectedOption: any) => ({
+        id: selectedOption.activity_options?.id,
+        label: selectedOption.activity_options?.label,
+        icon: selectedOption.activity_options?.icon,
+        type: selectedOption.activity_options?.type
+      }));
+  };
+
+  const dynamicHighlights = processOptions('highlight');
+  const dynamicIncluded = processOptions('included');
+  const dynamicNotIncluded = processOptions('not_included');
 
   return {
     ...activity,
@@ -22,6 +43,10 @@ const toActivity = (activity: SupabaseActivity & { activity_schedules?: any[]; a
     languages: splitString(activity.languages),
     included: splitString(activity.included),
     not_included: splitString(activity.not_included),
+    // Add dynamic options
+    dynamic_highlights: dynamicHighlights,
+    dynamic_included: dynamicIncluded,
+    dynamic_not_included: dynamicNotIncluded,
     activity_schedules: Array.isArray(activity.activity_schedules) ? activity.activity_schedules : [],
     schedule_instances: Array.isArray(activity.activity_schedule_instances) ? activity.activity_schedule_instances : [],
   };
@@ -123,7 +148,16 @@ export const activityService = {
         .select(`
           *,
           activity_schedules(*),
-          activity_schedule_instances(*)
+          activity_schedule_instances(*),
+          activity_selected_options(
+            option_id,
+            activity_options(
+              id,
+              label,
+              icon,
+              type
+            )
+          )
         `)
         .eq("id", activityId)
         .eq("is_active", true)
@@ -152,7 +186,16 @@ export const activityService = {
         .select(`
           *,
           activity_schedules(*),
-          activity_schedule_instances(*)
+          activity_schedule_instances(*),
+          activity_selected_options(
+            option_id,
+            activity_options(
+              id,
+              label,
+              icon,
+              type
+            )
+          )
         `)
         .eq("id", activityId)
         .eq("is_active", true)
