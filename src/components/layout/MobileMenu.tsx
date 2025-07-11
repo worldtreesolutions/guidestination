@@ -1,14 +1,15 @@
-import { useState } from "react"
+
 import Link from "next/link"
-import Image from "next/image"
-import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet"
 import { useAuth } from "@/contexts/AuthContext"
-import { useRouter } from "next/router"
-import React from "react"
-import { LanguageSelector } from "./LanguageSelector"
-import { CurrencySelector } from "./CurrencySelector"
+import authService from "@/services/authService"
+import LanguageSelector from "./LanguageSelector"
+import CurrencySelector from "./CurrencySelector"
+
+interface MobileMenuProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
 
 export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
   const { user } = useAuth();
@@ -18,7 +19,6 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
   return (
     <div className="md:hidden bg-white border-t shadow-lg">
       <div className="px-4 py-4 space-y-4">
-        {/* Language and Currency Selectors */}
         <div className="flex items-center justify-between">
           <LanguageSelector />
           <CurrencySelector />
@@ -26,10 +26,10 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
         
         {user ? (
           <div className="space-y-2">
-            <Link href="/profile" className="block py-2 text-gray-700 hover:text-primary">
+            <Link href="/profile" className="block py-2 text-gray-700 hover:text-primary" onClick={onClose}>
               Profile
             </Link>
-            <Link href="/dashboard" className="block py-2 text-gray-700 hover:text-primary">
+            <Link href="/dashboard" className="block py-2 text-gray-700 hover:text-primary" onClick={onClose}>
               Dashboard
             </Link>
             <button
@@ -44,12 +44,12 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
           </div>
         ) : (
           <div className="space-y-2">
-            <Link href="/auth/login" className="block">
+            <Link href="/auth/login" className="block" onClick={onClose}>
               <Button variant="ghost" className="w-full justify-start">
                 Sign In
               </Button>
             </Link>
-            <Link href="/auth/register" className="block">
+            <Link href="/auth/register" className="block" onClick={onClose}>
               <Button className="w-full">Sign Up</Button>
             </Link>
           </div>
