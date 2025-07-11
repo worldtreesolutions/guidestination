@@ -24,6 +24,11 @@ export interface Booking {
   created_at: string
   establishment_id?: string
   is_qr_booking?: boolean
+  user_id?: string
+  provider_id?: string
+  total_price?: number
+  provider_amount?: number
+  platform_fee?: number
   activities?: {
     title: string
     description?: string
@@ -152,7 +157,12 @@ export const bookingService = {
       status: item.status,
       created_at: item.created_at,
       establishment_id: item.establishment_id,
-      is_qr_booking: item.is_qr_booking
+      is_qr_booking: item.is_qr_booking,
+      user_id: item.user_id || item.customer_id,
+      provider_id: item.provider_id || "",
+      total_price: item.total_amount,
+      provider_amount: item.provider_amount || 0,
+      platform_fee: item.platform_fee || 0
     })) as Booking[]
   },
 
@@ -212,7 +222,12 @@ export const bookingService = {
       status: item.status,
       created_at: item.created_at,
       establishment_id: item.establishment_id,
-      is_qr_booking: item.is_qr_booking
+      is_qr_booking: item.is_qr_booking,
+      user_id: item.user_id || item.customer_id,
+      provider_id: item.provider_id || "",
+      total_price: item.total_amount,
+      provider_amount: item.provider_amount || 0,
+      platform_fee: item.platform_fee || 0
     })) as Booking[]
   },
 }
