@@ -11,7 +11,6 @@ export interface PartnerRegistration {
   latitude?: number
   longitude?: number
   place_id?: string
-  room_count: number
   commission_package: "basic" | "premium"
   supporting_documents?: string[]
   status?: "pending" | "approved" | "rejected"
@@ -33,6 +32,8 @@ export interface PartnerActivity {
 
 export const partnerService = {
   async createPartnerRegistration(data: Omit<PartnerRegistration, "id" | "created_at" | "updated_at" | "created_by" | "updated_by" | "user_id">) {
+    let newUserId: string | undefined = undefined;
+    
     try {
       // Check if user already exists with this email
       const { data: existingUser } = await supabase
@@ -55,7 +56,7 @@ export const partnerService = {
             role: 'partner',
             business_name: data.business_name
           },
-          emailRedirectTo: `https://3000-sandbox-63cb7384.h1088.daytona.work/partner/verify-email`
+          emailRedirectTo: `https://3000-e31f2767-d3ac-4cb2-9894-aa7d0ebe87d2.h1092.daytona.work/partner/verify-email`
         }
       })
 
@@ -67,6 +68,8 @@ export const partnerService = {
       if (!authData.user) {
         throw new Error("Failed to create user account")
       }
+
+      newUserId = authData.user.id;
 
       // Step 2: Create partner registration record with user_id as foreign key
       const { data: partnerData, error: partnerError } = await supabase
@@ -81,7 +84,6 @@ export const partnerService = {
           latitude: data.latitude,
           longitude: data.longitude,
           place_id: data.place_id,
-          room_count: data.room_count,
           commission_package: data.commission_package,
           supporting_documents: data.supporting_documents || [],
           status: 'pending'
@@ -90,8 +92,6 @@ export const partnerService = {
 
       if (partnerError) {
         console.error("Partner registration error:", partnerError)
-        // If user was created but partner registration failed, consider deleting the auth user
-        // For now, just throwing the error.
         throw new Error(`Registration error: ${partnerError.message}`)
       }
 
@@ -101,6 +101,19 @@ export const partnerService = {
         message: 'Registration successful! Please check your email to verify your account before you can access your partner dashboard.'
       }
     } catch (error) {
+      // Rollback: Delete user from auth.users if partner registration failed
+      if (newUserId) {
+        try {
+          await fetch('/api/auth/delete-user', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: newUserId }),
+          });
+        } catch (rollbackError) {
+          console.error("CRITICAL: User rollback failed.", rollbackError);
+        }
+      }
+      
       console.error('Error in partner registration:', error)
       throw error
     }
