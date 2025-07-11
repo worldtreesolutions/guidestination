@@ -28,11 +28,8 @@ export function AvailabilityCalendar({
 
   // Sync with external selectedDate prop changes
   useEffect(() => {
-    // Compare time values to prevent infinite loops from new Date objects
-    if (selectedDate?.getTime() !== localSelectedDate?.getTime()) {
-      setLocalSelectedDate(selectedDate)
-    }
-  }, [selectedDate, localSelectedDate])
+    setLocalSelectedDate(selectedDate)
+  }, [selectedDate])
 
   // Handle date selection
   const handleDateSelect = (date: Date | undefined) => {
