@@ -3,15 +3,15 @@ import { useState, useEffect } from "react"
 import { useAuth } from "@/contexts/AuthContext"
 import { bookingService } from "@/services/bookingService"
 import { commissionService } from "@/services/commissionService"
-import { activityService } from "@/services/activityService"
+import activityService from "@/services/activityService"
 import { Booking, Earning, Activity } from "@/types/activity"
-import DashboardLayout from "@/components/dashboard/layout/DashboardLayout"
-import DashboardHeader from "@/components/activity-owner/dashboard/DashboardHeader"
+import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout"
+import { DashboardHeader } from "@/components/activity-owner/dashboard/DashboardHeader"
 import RecentBookings from "@/components/activity-owner/dashboard/RecentBookings"
 import EarningsChart from "@/components/activity-owner/dashboard/EarningsChart"
-import ActivityList from "@/components/activity-owner/dashboard/ActivityList"
+import { ActivityList } from "@/components/activity-owner/dashboard/ActivityList"
 import { Skeleton } from "@/components/ui/skeleton"
-import { useToast } from "@/components/ui/use-toast"
+import { useToast } from "@/hooks/use-toast"
 
 export default function ActivityOwnerDashboard() {
   const { user } = useAuth()
@@ -33,7 +33,10 @@ export default function ActivityOwnerDashboard() {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!user) return
+      if (!user) {
+        setLoading(false);
+        return;
+      }
 
       try {
         setLoading(true)

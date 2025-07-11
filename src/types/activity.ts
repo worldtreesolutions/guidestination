@@ -1,30 +1,68 @@
 
 import { Database } from "@/integrations/supabase/types"
 
-// Base types from Supabase, using the 'Row' type for fetched data
-export type SupabaseActivity = Database["public"]["Tables"]["activities"]["Row"]
-export type SupabaseBooking = Database["public"]["Tables"]["bookings"]["Row"]
-export type SupabaseActivitySchedule =
-  Database["public"]["Tables"]["activity_schedules"]["Row"]
+// Manually define types to bypass issues with generated types.
+// These should eventually be replaced by correct auto-generated types.
+
+export type SupabaseActivity = {
+  id: number
+  title: string
+  description: string | null
+  price: number
+  b_price: number | null
+  location: string | null
+  address: string | null
+  latitude: number | null
+  longitude: number | null
+  owner_id: string
+  category_id: number | null
+  image_url: string | null
+  image_urls: string[] | null
+  created_at: string
+  updated_at: string
+  status: "published" | "unpublished" | "draft" | "archived"
+  average_rating?: number
+  [key: string]: any // Allow other properties
+}
+
+export type SupabaseBooking = {
+  id: string
+  activity_id: number
+  customer_id: string | null
+  customer_name: string | null
+  booking_date: string
+  status: "confirmed" | "pending" | "cancelled"
+  total_price: number
+  created_at: string
+  updated_at: string
+  participants: number
+  [key: string]: any
+}
+
+export type SupabaseActivitySchedule = {
+  id: string
+  activity_id: number
+  start_time: string
+  end_time: string
+  day_of_week: number
+  [key: string]: any
+}
+
+// This type was missing and causing errors
+export type ScheduledActivity = SupabaseActivity & {
+  schedules: SupabaseActivitySchedule[]
+}
 
 // Enriched Activity type for application use
 export type Activity = SupabaseActivity & {
-  // Optional enriched properties that may be joined or computed
   category_name?: string
-  average_rating?: number
   media?: { url: string; type: "image" | "video" }[]
   schedules?: SupabaseActivitySchedule[]
-  // Compatibility properties for different parts of the app
   name?: string // Fallback for title
-  price?: number
-  b_price?: number
-  image_urls?: string[]
-  location?: string
 }
 
 // Enriched Booking type with the related activity
 export type Booking = SupabaseBooking & {
-  // The related activity for a booking, which can be null if not joined
   activities: Activity | null
 }
 
