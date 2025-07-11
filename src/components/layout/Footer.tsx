@@ -1,9 +1,6 @@
 import Link from "next/link"
-import { useIsMobile } from '@/hooks/use-mobile'
 
 export const Footer = () => {
-  const isMobile = useIsMobile()
-  
   return (
     <footer className='w-full border-t bg-background'>
       <div className='mx-auto w-full max-w-[2000px] px-4 sm:px-6 lg:px-8'>
