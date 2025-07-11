@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client"
 import { getAdminClient, getAdminClientSafe } from "@/integrations/supabase/admin"
 import type { Database } from "@/integrations/supabase/types"
@@ -83,7 +82,7 @@ export const stripeService = {
     const client = getSupabaseClient()
     if (!client) throw new Error("Database connection not available")
 
-    const {  activity, error } = await client
+    const { data: activity, error } = await client
       .from("activities")
       .select("*")
       .eq("id", activityId)
@@ -97,9 +96,9 @@ export const stripeService = {
       payment_method_types: ["card"],
       line_items: [
         {
-          price_ {
+          price_data: {
             currency: "thb",
-            product_ {
+            product_data: {
               name: activity.title,
               description: activity.description ?? undefined,
             },
@@ -112,7 +111,7 @@ export const stripeService = {
       success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/booking/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/booking/cancelled`,
       customer_email: customerEmail,
-      meta {
+      metadata: {
         activityId: activityId.toString(),
         participants: participants.toString(),
         customerName,
@@ -139,9 +138,9 @@ export const stripeService = {
     const paymentLink = await stripe.paymentLinks.create({
       line_items: [
         {
-          price_ {
+          price_data: {
             currency: "thb",
-            product_ {
+            product_data: {
               name: `Commission Payment - Invoice ${invoiceNumber}`,
               description: `Payment for commission invoice ${invoiceNumber}`,
             },
@@ -150,7 +149,7 @@ export const stripeService = {
           quantity: 1,
         },
       ] as any,
-      meta {
+      metadata: {
         invoiceId,
         type: "commission_payment",
       },
@@ -197,7 +196,7 @@ export const stripeService = {
 
     try {
       // Create the booking
-      const {  booking, error: bookingError } = await client
+      const { data: booking, error: bookingError } = await client
         .from("bookings")
         .insert({
           activity_id: parseInt(activityId),
@@ -230,7 +229,7 @@ export const stripeService = {
   async processBookingConfirmation(booking: any, client: any) {
     try {
       // Get activity and owner details
-      const {  activity, error: activityError } = await client
+      const { data: activity, error: activityError } = await client
         .from("activities")
         .select(`
           *,
@@ -259,7 +258,7 @@ export const stripeService = {
       let partnerCommission = 0
 
       if (booking.establishment_id) {
-        const {  establishment, error: establishmentError } = await client
+        const { data: establishment, error: establishmentError } = await client
           .from("establishments")
           .select(`
             *,
@@ -422,7 +421,7 @@ export const stripeService = {
     if (!supabase) {
       throw new Error("Supabase client is not initialized.");
     }
-    const {  booking, error: bookingError } = await supabase
+    const { data: booking, error: bookingError } = await supabase
       .from("bookings")
       .select("*, activities(*)")
       .eq("id", bookingId)
