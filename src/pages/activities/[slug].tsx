@@ -39,7 +39,7 @@ export default function ActivityPage() {
   const { slug } = router.query
   const { user, isAuthenticated } = useAuth()
   const { toast } = useToast()
-  const [activity, setActivity] = useState<SupabaseActivity | null>(null)
+  const [activity, setActivity] = useState<Activity | null>(null)
   const [loading, setLoading] = useState(true)
   const [selectedDate, setSelectedDate] = useState<Date>()
   const [selectedParticipants, setSelectedParticipants] = useState(1)
@@ -228,32 +228,32 @@ export default function ActivityPage() {
   }
 
   // Get selected options from the database
-  const selectedHighlights = activity.selected_options?.filter(
+  const selectedHighlights = activity?.selected_options?.filter(
     opt => opt.activity_options?.type === 'highlight'
   ).map(opt => opt.activity_options?.name).filter(Boolean) || []
 
-  const selectedIncluded = activity.selected_options?.filter(
+  const selectedIncluded = activity?.selected_options?.filter(
     opt => opt.activity_options?.type === 'included'
   ).map(opt => opt.activity_options?.name).filter(Boolean) || []
 
-  const selectedNotIncluded = activity.selected_options?.filter(
+  const selectedNotIncluded = activity?.selected_options?.filter(
     opt => opt.activity_options?.type === 'not_included'
   ).map(opt => opt.activity_options?.name).filter(Boolean) || []
 
   // Combine with any legacy data (fallback)
   const allHighlights = [
     ...selectedHighlights,
-    ...(activity.highlights ? activity.highlights.split(',').map(h => h.trim()) : [])
+    ...(activity?.highlights ? activity.highlights.split(',').map(h => h.trim()) : [])
   ];
 
   const allIncluded = [
     ...selectedIncluded,
-    ...(activity.included ? activity.included.split(',').map(i => i.trim()) : [])
+    ...(activity?.included ? activity.included.split(',').map(i => i.trim()) : [])
   ];
 
   const allNotIncluded = [
     ...selectedNotIncluded,
-    ...(activity.not_included ? activity.not_included.split(',').map(n => n.trim()) : [])
+    ...(activity?.not_included ? activity.not_included.split(',').map(n => n.trim()) : [])
   ];
 
   console.log("Database selected options:", {
@@ -333,7 +333,7 @@ export default function ActivityPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="text-2xl sm:text-3xl font-bold text-primary">
-                    {formatPrice(activity.final_price || activity.b_price)}
+                    {formatPrice(activity?.final_price || activity?.b_price)}
                   </span>
                   <span className="text-muted-foreground">per person</span>
                 </div>
@@ -384,10 +384,7 @@ export default function ActivityPage() {
                   </TabsList>
 
                   <TabsContent value="overview" className="space-y-6">
-                    <ActivityDetails activity={{
-                      ...activity,
-                      activity_selected_options: activity.activity_selected_options as any
-                    }} />
+                    <ActivityDetails activity={activity} />
                   </TabsContent>
 
                   <TabsContent value="itinerary" className="space-y-6">
@@ -445,7 +442,7 @@ export default function ActivityPage() {
                       </Card>
                     )}
 
-                    {activity.schedule_instances && activity.schedule_instances.length > 0 && (
+                    {activity?.schedule_instances && activity.schedule_instances.length > 0 && (
                       <Card>
                         <CardHeader>
                           <CardTitle>Schedule & Availability</CardTitle>
@@ -603,7 +600,7 @@ export default function ActivityPage() {
                     <CardContent className="space-y-6">
                       <div className="text-center">
                         <div className="text-2xl font-bold text-primary">
-                          {formatPrice(activity.price)}
+                          {formatPrice(activity?.final_price || activity?.b_price)}
                         </div>
                         <div className="text-sm text-muted-foreground">per person</div>
                       </div>
@@ -611,8 +608,8 @@ export default function ActivityPage() {
                       <Separator />
 
                       <AvailabilityCalendar
-                        availableDates={activity.schedule_instances?.map(instance => instance.scheduled_date) || []}
-                        scheduleData={activity.schedule_instances || []}
+                        availableDates={activity?.schedule_instances?.map(instance => instance.scheduled_date) || []}
+                        scheduleData={activity?.schedule_instances || []}
                         selectedDate={selectedDate}
                         onDateSelect={setSelectedDate}
                       />
