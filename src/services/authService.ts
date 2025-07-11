@@ -1,4 +1,4 @@
-<![CDATA[import { supabase } from "@/integrations/supabase/client"
+import { supabase } from "@/integrations/supabase/client"
 import type {
   User,
   Session,
@@ -158,4 +158,3 @@ const authService = {
 }
 
 export default authService
-]]>
