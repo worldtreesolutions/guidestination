@@ -21,7 +21,7 @@ const authService = {
         throw new Error("Supabase client not initialized");
       }
 
-      const authResult = await supabase.auth.signInWithPassword({
+      const authResult: any = await supabase.auth.signInWithPassword({
         email,
         password,
       })
@@ -66,7 +66,7 @@ const authService = {
     if (!supabase) {
       throw new Error("Supabase client not initialized");
     }
-    const { error } = await supabase.auth.signOut()
+    const { error }: any = await supabase.auth.signOut()
     if (error) throw error
   },
 
@@ -76,7 +76,7 @@ const authService = {
         throw new Error("Supabase client not initialized");
       }
 
-      const { data, error } = await supabase.auth.signUp({ email, password });
+      const { data, error }: any = await supabase.auth.signUp({ email, password });
       if (error) {
         return { user: null, session: null, error };
       }
@@ -94,7 +94,7 @@ const authService = {
       return { error: new Error("Supabase client not initialized") };
     }
 
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    const { error }: any = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/dashboard/reset-password`,
     })
     return { error: error ? error : null };
@@ -105,7 +105,7 @@ const authService = {
       return { error: new Error("Supabase client not initialized") };
     }
 
-    const { error } = await supabase.auth.updateUser({
+    const { error }: any = await supabase.auth.updateUser({
       password,
     })
     return { error: error ? error : null };
@@ -161,3 +161,4 @@ const authService = {
 }
 
 export default authService
+  
