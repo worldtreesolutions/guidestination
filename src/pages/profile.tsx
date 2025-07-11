@@ -40,11 +40,12 @@ export default function ProfilePage() {
         .single()
 
       if (error && error.code === "PGRST116") { // Not found, create one
-        const { data: { user: authUser } } = await supabase.auth.getUser();
+        const {  authData } = await supabase.auth.getUser();
+        const authUser = authData.user;
         if (!authUser) {
             throw new Error("User not authenticated to create profile.");
         }
-        const { data: newProfile, error: insertError } = await supabase
+        const {  newProfile, error: insertError } = await supabase
           .from('customer_profiles')
           .insert({
             customer_id: user.id,
