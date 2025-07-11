@@ -17,20 +17,33 @@ interface ActivityListProps {
   activities: Activity[];
   onEdit?: (activity: Activity) => void;
   onView?: (activity: Activity) => void;
-  onStatusChange?: (activityId: number, newStatus: string) => void;
+  onStatusChange?: (activityId: number, newStatus: number) => void;
 }
 
 export function ActivityList({ activities, onEdit, onView, onStatusChange }: ActivityListProps) {
-  const getStatusColor = (status: string | undefined) => {
+  const getStatusColor = (status: number | null) => {
     switch (status) {
-      case "published":
+      case 1:
         return "bg-green-100 text-green-800"
-      case "draft":
+      case 0:
         return "bg-yellow-100 text-yellow-800"
-      case "unpublished":
+      case -1:
         return "bg-red-100 text-red-800"
       default:
         return "bg-gray-100 text-gray-800"
+    }
+  }
+
+  const getStatusText = (status: number | null) => {
+    switch (status) {
+      case 1:
+        return "published"
+      case 0:
+        return "draft"
+      case -1:
+        return "unpublished"
+      default:
+        return "draft"
     }
   }
 
@@ -91,7 +104,9 @@ export function ActivityList({ activities, onEdit, onView, onStatusChange }: Act
                       : "N/A"}
                   </TableCell>
                   <TableCell>
-                    <Badge className={getStatusColor(activity.status)} variant="outline">{activity.status || 'draft'}</Badge>
+                    <Badge className={getStatusColor(activity.status)} variant="outline">
+                      {getStatusText(activity.status)}
+                    </Badge>
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>
@@ -109,7 +124,7 @@ export function ActivityList({ activities, onEdit, onView, onStatusChange }: Act
                         <DropdownMenuItem
                           onClick={() => {
                             if (onStatusChange) {
-                              onStatusChange(activity.id, "archived")
+                              onStatusChange(activity.id, -1)
                             }
                           }}
                         >
