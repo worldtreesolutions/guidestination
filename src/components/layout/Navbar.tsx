@@ -1,54 +1,59 @@
-import Link from "next/link"
-import Image from "next/image"
-import MobileMenu from "./MobileMenu"
-import { LanguageSelector } from "./LanguageSelector"
-import { useAuth } from "@/contexts/AuthContext"
-import UserDropdown from "./UserDropdown"
-import { Button } from "@/components/ui/button"
-import { useRouter } from "next/router"
-import React from "react"
-import { useLanguage } from "@/contexts/LanguageContext"
-import { useIsMobile } from "@/hooks/use-mobile"
-import { Heart } from "lucide-react"
+import { useState } from "react";
+import Link from "next/link";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import { Menu, X } from "lucide-react";
+import UserDropdown from "./UserDropdown";
+import LanguageSelector from "./LanguageSelector";
+import CurrencySelector from "./CurrencySelector";
+import MobileMenu from "./MobileMenu";
 
-export function Navbar() {
-  const { user, isAuthenticated } = useAuth()
-  const router = useRouter()
-  const { t } = useLanguage()
-  const isMobile = useIsMobile()
+export default function Navbar() {
+  const { user } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <nav className="bg-white shadow-sm border-b">
+    <nav className="bg-white shadow-sm border-b sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <div className="flex-1"></div>
-          
-          <div className="flex items-center justify-center">
-            <Link href="/" className="flex-shrink-0 flex items-center">
-              <span className="text-2xl font-bold text-blue-600">Guidestination</span>
-            </Link>
-          </div>
+          <Link href="/" className="text-xl font-bold text-primary">
+            Guidestination
+          </Link>
 
-          <div className="flex-1 flex items-center justify-end space-x-4">
-            {isAuthenticated ? (
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-4">
+            <LanguageSelector />
+            <CurrencySelector />
+            
+            {user ? (
               <UserDropdown />
             ) : (
-              <>
+              <div className="flex items-center space-x-2">
                 <Link href="/auth/login">
-                  <Button variant="ghost" size="sm">
-                    Sign In
-                  </Button>
+                  <Button variant="ghost">Sign In</Button>
                 </Link>
                 <Link href="/auth/register">
-                  <Button size="sm">
-                    Sign Up
-                  </Button>
+                  <Button>Sign Up</Button>
                 </Link>
-              </>
+              </div>
             )}
+          </div>
+
+          {/* Mobile menu button */}
+          <div className="md:hidden">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </Button>
           </div>
         </div>
       </div>
+
+      {/* Mobile Menu */}
+      <MobileMenu isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
     </nav>
-  )
+  );
 }

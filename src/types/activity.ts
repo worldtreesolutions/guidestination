@@ -1,5 +1,4 @@
-
-    import { Database } from "@/integrations/supabase/types";
+import { Database } from "@/integrations/supabase/types";
 
 // Helper type to extract row types from the Database type.
 export type Tables<T extends keyof Database["public"]["Tables"]> =
@@ -98,4 +97,83 @@ export type ScheduledActivity = Activity & {
   date: Date;
   time: string;
 };
-  
+
+export interface Activity {
+  id: string;
+  title: string;
+  description: string;
+  price: number | null;
+  b_price: number | null;
+  location: string;
+  address: string;
+  latitude: number | null;
+  longitude: number | null;
+  duration: string | null;
+  max_participants: number | null;
+  min_participants: number | null;
+  difficulty_level: string | null;
+  category_id: string | null;
+  category_name?: string;
+  image_url: string | null;
+  gallery_images: string[] | null;
+  is_active: boolean;
+  average_rating: number | null;
+  total_reviews: number | null;
+  created_at: string;
+  updated_at: string;
+  slug: string;
+  activity_schedules?: ActivitySchedule[];
+  currency?: string; // Added currency field
+}
+
+export interface ActivityForHomepage {
+  id: string;
+  title: string;
+  price: number | null;
+  b_price: number | null;
+  location: string;
+  address: string;
+  average_rating: number | null;
+  image_url: string | null;
+  category_name?: string;
+  currency?: string; // Added currency field
+}
+
+export interface ActivitySchedule {
+  id: string;
+  activity_id: string;
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+  max_participants: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ActivityBooking {
+  id: string;
+  activity_id: string;
+  user_id: string;
+  booking_date: string;
+  participants: number;
+  total_amount: number;
+  status: "pending" | "confirmed" | "cancelled" | "completed";
+  payment_status: "pending" | "paid" | "refunded";
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ActivityReview {
+  id: string;
+  activity_id: string;
+  user_id: string;
+  rating: number;
+  comment: string | null;
+  created_at: string;
+  updated_at: string;
+  user?: {
+    full_name: string;
+    avatar_url: string | null;
+  };
+}
