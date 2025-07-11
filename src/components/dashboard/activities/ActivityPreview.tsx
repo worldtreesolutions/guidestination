@@ -93,6 +93,11 @@ export function ActivityPreview({ activityId }: ActivityPreviewProps) {
             <div className="absolute bottom-4 right-4">
               <Badge className="text-sm px-3 py-1">{activity.category_name || "Uncategorized"}</Badge>
             </div>
+            {activity.categories?.name && (
+              <Badge className="absolute top-2 left-2 bg-primary text-primary-foreground">
+                {activity.categories.name}
+              </Badge>
+            )}
           </div>
 
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -218,6 +223,37 @@ export function ActivityPreview({ activityId }: ActivityPreviewProps) {
                       "Not specified"}
                   </p>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {activity.activity_schedules && activity.activity_schedules.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Schedule</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {activity.activity_schedules.map((schedule, index) => (
+                    <div key={index} className="flex justify-between text-sm">
+                      <span>Day {schedule.day_of_week}</span>
+                      <span>{schedule.start_time} - {schedule.end_time}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {activity.activity_schedules && activity.activity_schedules.length > 0 && (
+            <div className="mt-4">
+              <h4 className="font-medium mb-2">Available Times</h4>
+              <div className="grid grid-cols-2 gap-2">
+                {activity.activity_schedules.map((schedule, index) => (
+                  <div key={index} className="text-sm p-2 bg-gray-50 rounded">
+                    {schedule.start_time} - {schedule.end_time}
+                  </div>
+                ))}
               </div>
             </div>
           )}

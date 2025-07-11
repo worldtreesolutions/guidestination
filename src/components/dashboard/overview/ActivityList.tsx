@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -12,6 +11,7 @@ import {
 import { Activity } from "@/types/activity"
 import Image from "next/image"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import Link from "next/link"
 
 interface ActivityListProps {
   activities: Activity[];
@@ -106,6 +106,11 @@ export function ActivityList({ activities, onEdit, onView }: ActivityListProps) 
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
+                  <Link href={`/dashboard/activities/${String(activity.id)}`}>
+                    <Button variant="outline" size="sm">
+                      Edit
+                    </Button>
+                  </Link>
                 </TableCell>
               </TableRow>
             ))}

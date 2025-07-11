@@ -133,10 +133,15 @@ export function ActivityCard({ activity, onEdit, onDelete, onPreview }: Activity
           </Badge>
         </div>
         <div className="absolute top-4 right-4">
-          <Badge variant={getStatusVariant(activity.status as any)}>
-            {activity.status}
+          <Badge variant={String(activity.status) as "published" | "draft" | "unpublished" | "archived"}>
+            {String(activity.status)}
           </Badge>
         </div>
+        {activity.categories?.name && (
+          <Badge className="absolute top-2 left-2 bg-primary text-primary-foreground">
+            {activity.categories.name}
+          </Badge>
+        )}
       </div>
 
       <CardHeader className="pb-2">

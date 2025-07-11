@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Edit, Eye, Trash2 } from "lucide-react"
+import { Edit, Eye, Trash2, MapPin } from "lucide-react"
 import Link from "next/link"
 
 interface ActivityListProps {
@@ -55,11 +55,16 @@ export function ActivityList({ activities, onDelete }: ActivityListProps) {
               activities.map((activity) => (
                 <TableRow key={activity.id}>
                   <TableCell className="font-medium">{activity.title}</TableCell>
-                  <TableCell>{activity.location || "Not specified"}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <MapPin className="h-4 w-4" />
+                      <span>{activity.pickup_location || "Location not specified"}</span>
+                    </div>
+                  </TableCell>
                   <TableCell>฿{activity.b_price?.toLocaleString()}</TableCell>
                   <TableCell>
-                    <Badge className={getStatusColor(activity.status || "draft")} variant="outline">
-                      {activity.status || "draft"}
+                    <Badge variant={String(activity.status) as "published" | "draft" | "unpublished" | "archived"}>
+                      {String(activity.status)}
                     </Badge>
                   </TableCell>
                   <TableCell>
