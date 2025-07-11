@@ -191,7 +191,7 @@ const activityService = {
     if (existingSchedules.length > 0) {
       const { error: updateError } = await supabase
         .from("activity_schedules")
-        .upsert(existingSchedules);
+        .upsert(existingSchedules as any);
       if (updateError) {
         console.error("Error updating existing schedules:", updateError);
         throw updateError;

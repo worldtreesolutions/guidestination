@@ -2,7 +2,8 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Activity } from "@/types/activity"
+import { ActivityWithDetails } from "@/types/activity"
+import BookingForm from "./BookingForm"
 
 interface BookingWidgetProps {
   activity: ActivityWithDetails;

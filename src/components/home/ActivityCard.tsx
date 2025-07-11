@@ -5,6 +5,8 @@ import { ActivityForHomepage } from "@/types/activity";
 import { currencyService } from "@/services/currencyService";
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 interface ActivityCardProps {
   activity: ActivityForHomepage;
@@ -59,13 +61,8 @@ export default function ActivityCard({ activity }: ActivityCardProps) {
           </div>
           
           <div className="text-right">
-            {activity.b_price && activity.b_price !== activity.price && (
-              <div className="text-sm text-gray-500 line-through">
-                {formatPrice(activity.b_price)}
-              </div>
-            )}
             <div className="font-semibold text-lg text-gray-900">
-              {formatPrice(activity.price)}
+              {formatPrice(activity.b_price)}
             </div>
           </div>
         </div>

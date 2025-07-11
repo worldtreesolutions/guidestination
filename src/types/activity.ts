@@ -1,4 +1,3 @@
-
 import type { Database } from "@/integrations/supabase/types";
 
 // Base types from Supabase
@@ -29,6 +28,7 @@ export type ActivityWithDetails = Activity & {
   reviews: Review[];
   image_urls?: string[];
   currency?: string;
+  location?: string | null;
   // Add dynamic fields as optional arrays of strings
   dynamic_highlights?: string[];
   dynamic_included?: string[];

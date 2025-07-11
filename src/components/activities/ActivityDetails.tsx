@@ -25,11 +25,9 @@ const parseStringToArray = (value: any): string[] => {
     if (Array.isArray(value)) return value;
     if (typeof value === 'string') {
         try {
-            // First, try to parse it as a JSON array
             const parsed = JSON.parse(value);
             if (Array.isArray(parsed)) return parsed;
         } catch (e) {
-            // If JSON parsing fails, assume it's a comma-separated string
             return value.split(',').map(item => item.trim()).filter(Boolean);
         }
     }
@@ -44,6 +42,10 @@ export function ActivityDetails({ activity }: ActivityDetailsProps) {
   const dynamicHighlights = parseStringToArray(activity.dynamic_highlights);
   const dynamicIncluded = parseStringToArray(activity.dynamic_included);
   const dynamicNotIncluded = parseStringToArray(activity.dynamic_not_included);
+
+  const allHighlights = [...highlights, ...dynamicHighlights];
+  const allIncluded = [...included, ...dynamicIncluded];
+  const allNotIncluded = [...notIncluded, ...dynamicNotIncluded];
 
   return (
     <div className="space-y-8 py-8">
@@ -70,43 +72,40 @@ export function ActivityDetails({ activity }: ActivityDetailsProps) {
         </CardContent>
       </Card>
 
-      {(highlights.length > 0 || dynamicHighlights.length > 0) && (
+      {allHighlights.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>Highlights</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2">
-              {highlights.map((item, index) => <ListItem key={`highlight-${index}`}>{item}</ListItem>)}
-              {dynamicHighlights.map((item, index) => <ListItem key={`dyn-highlight-${index}`}>{item}</ListItem>)}
+              {allHighlights.map((item, index) => <ListItem key={`highlight-${index}`}>{item}</ListItem>)}
             </ul>
           </CardContent>
         </Card>
       )}
 
-      {(included.length > 0 || dynamicIncluded.length > 0) && (
+      {allIncluded.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>What's Included</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2">
-              {included.map((item, index) => <ListItem key={`included-${index}`}>{item}</ListItem>)}
-              {dynamicIncluded.map((item, index) => <ListItem key={`dyn-included-${index}`}>{item}</ListItem>)}
+              {allIncluded.map((item, index) => <ListItem key={`included-${index}`}>{item}</ListItem>)}
             </ul>
           </CardContent>
         </Card>
       )}
 
-      {(notIncluded.length > 0 || dynamicNotIncluded.length > 0) && (
+      {allNotIncluded.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>What's Not Included</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2">
-              {notIncluded.map((item, index) => <NotIncludedListItem key={`not-included-${index}`}>{item}</NotIncludedListItem>)}
-              {dynamicNotIncluded.map((item, index) => <NotIncludedListItem key={`dyn-not-included-${index}`}>{item}</NotIncludedListItem>)}
+              {allNotIncluded.map((item, index) => <NotIncludedListItem key={`not-included-${index}`}>{item}</NotIncludedListItem>)}
             </ul>
           </CardContent>
         </Card>
