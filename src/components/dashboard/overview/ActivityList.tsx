@@ -106,7 +106,7 @@ export function ActivityList({ activities, onEdit, onView }: ActivityListProps) 
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
-                  <Link href={`/dashboard/activities/${activity.id}`}>
+                  <Link href={`/dashboard/activities/${activity.id.toString()}`}>
                     <Button variant="outline" size="sm">
                       Edit
                     </Button>
