@@ -151,13 +151,14 @@ export default function ActivityBookingPage() {
     try {
       const totalAmount = (activity.b_price || 0) * participants;
       const customerName = user.user_metadata.full_name || user.email;
-      const session = await stripeService.createCheckoutSession(
-        activity.id,
+      const session = await stripeService.createCheckoutSession({
+        activityId: activity.id,
         participants,
         totalAmount,
-        user.email,
-        customerName
-      );
+        customerEmail: user.email,
+        customerName,
+        selectedDate: selectedDate.toISOString(),
+      });
 
       if (session.url) {
         router.push(session.url);

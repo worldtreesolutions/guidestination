@@ -2,12 +2,21 @@ import { supabase } from "@/integrations/supabase/client"
 import { getAdminClient, getAdminClientSafe } from "@/integrations/supabase/admin"
 import type { Database } from "@/integrations/supabase/types"
 import emailService from "./emailService"
+import type Stripe from "stripe"
 
-// Only initialize Stripe on server-side
-let stripe: any = null
-if (typeof window === "undefined" && process.env.STRIPE_SECRET_KEY) {
-  const Stripe = require("stripe")
-  stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
+// This function ensures Stripe is only initialized on the server-side when needed.
+const getStripe = (): Stripe | null => {
+  if (typeof window !== "undefined") {
+    // This is client-side, so don't initialize Stripe
+    return null
+  }
+  if (!process.env.STRIPE_SECRET_KEY) {
+    console.error("STRIPE_SECRET_KEY is not set in the environment.")
+    return null
+  }
+  // Dynamically require Stripe to avoid bundling it on the client
+  const StripeConstructor = require("stripe")
+  return new StripeConstructor(process.env.STRIPE_SECRET_KEY)
 }
 
 // Create a safe supabase client that handles null checks
@@ -49,7 +58,8 @@ export const stripeService = {
     })
 
     if (!response.ok) {
-      throw new Error("Failed to create checkout session")
+      const error = await response.json();
+      throw new Error(error.message || "Failed to create checkout session")
     }
 
     return response.json()
@@ -64,6 +74,7 @@ export const stripeService = {
     customerName: string,
     establishmentId?: string
   ) {
+    const stripe = getStripe()
     if (!stripe) {
       throw new Error("Stripe not initialized on server")
     }
@@ -71,7 +82,7 @@ export const stripeService = {
     const client = getSupabaseClient()
     if (!client) throw new Error("Database connection not available")
 
-    const { data: activity, error } = await client
+    const {  activity, error } = await client
       .from("activities")
       .select("*")
       .eq("id", activityId)
@@ -85,11 +96,11 @@ export const stripeService = {
       payment_method_types: ["card"],
       line_items: [
         {
-          price_data: {
+          price_ {
             currency: "thb",
-            product_data: {
+            product_ {
               name: activity.title,
-              description: activity.description,
+              description: activity.description ?? undefined,
             },
             unit_amount: Math.round(totalAmount * 100),
           },
@@ -100,7 +111,7 @@ export const stripeService = {
       success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/booking/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/booking/cancelled`,
       customer_email: customerEmail,
-      metadata: {
+      meta {
         activityId: activityId.toString(),
         participants: participants.toString(),
         customerName,
@@ -117,15 +128,19 @@ export const stripeService = {
     providerEmail: string,
     invoiceNumber: string
   ) {
+    const stripe = getStripe()
+    if (!stripe) {
+      throw new Error("Stripe not initialized on server")
+    }
     const client = getSupabaseClient()
     if (!client) throw new Error("Database connection not available")
 
     const paymentLink = await stripe.paymentLinks.create({
       line_items: [
         {
-          price_data: {
+          price_ {
             currency: "thb",
-            product_data: {
+            product_ {
               name: `Commission Payment - Invoice ${invoiceNumber}`,
               description: `Payment for commission invoice ${invoiceNumber}`,
             },
@@ -134,7 +149,7 @@ export const stripeService = {
           quantity: 1,
         },
       ] as any,
-      metadata: {
+      meta {
         invoiceId,
         type: "commission_payment",
       },
@@ -181,7 +196,7 @@ export const stripeService = {
 
     try {
       // Create the booking
-      const { data: booking, error: bookingError } = await client
+      const {  booking, error: bookingError } = await client
         .from("bookings")
         .insert({
           activity_id: parseInt(activityId),
@@ -214,7 +229,7 @@ export const stripeService = {
   async processBookingConfirmation(booking: any, client: any) {
     try {
       // Get activity and owner details
-      const { data: activity, error: activityError } = await client
+      const {  activity, error: activityError } = await client
         .from("activities")
         .select(`
           *,
@@ -243,7 +258,7 @@ export const stripeService = {
       let partnerCommission = 0
 
       if (booking.establishment_id) {
-        const { data: establishment, error: establishmentError } = await client
+        const {  establishment, error: establishmentError } = await client
           .from("establishments")
           .select(`
             *,
@@ -347,10 +362,18 @@ export const stripeService = {
   },
 
   async retrieveSession(sessionId: string) {
+    const stripe = getStripe()
+    if (!stripe) {
+      throw new Error("Stripe not available")
+    }
     return await stripe.checkout.sessions.retrieve(sessionId)
   },
 
   async retrievePaymentIntent(paymentIntentId: string) {
+    const stripe = getStripe()
+    if (!stripe) {
+      throw new Error("Stripe not available")
+    }
     const client = getSupabaseClient()
     if (!client) throw new Error("Database connection not available")
 
@@ -358,6 +381,10 @@ export const stripeService = {
   },
 
   async createRefund(paymentIntentId: string, amount?: number) {
+    const stripe = getStripe()
+    if (!stripe) {
+      throw new Error("Stripe not available")
+    }
     const client = getSupabaseClient()
     if (!client) throw new Error("Database connection not available")
 
@@ -394,7 +421,7 @@ export const stripeService = {
     if (!supabase) {
       throw new Error("Supabase client is not initialized.");
     }
-    const { data: booking, error: bookingError } = await supabase
+    const {  booking, error: bookingError } = await supabase
       .from("bookings")
       .select("*, activities(*)")
       .eq("id", bookingId)
