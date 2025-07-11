@@ -1,98 +1,68 @@
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Calendar, MapPin, Users, Eye } from "lucide-react"
-import { Booking } from "@/services/customerService"
+import { Calendar, MapPin, Users, Clock } from "lucide-react"
+import { Booking } from "@/types/activity"
 import Image from "next/image"
 
 interface BookingCardProps {
-  booking: Booking
-  onViewDetails: (bookingId: string) => void
+  booking: Booking;
 }
 
-export default function BookingCard({ booking, onViewDetails }: BookingCardProps) {
+export default function BookingCard({ booking }: BookingCardProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "confirmed":
-        return "default"
-      case "completed":
-        return "secondary"
+        return "bg-green-100 text-green-800"
       case "pending":
-        return "outline"
+        return "bg-yellow-100 text-yellow-800"
       case "cancelled":
-        return "destructive"
+        return "bg-red-100 text-red-800"
       default:
-        return "outline"
+        return "bg-gray-100 text-gray-800"
     }
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric"
-    })
-  }
-
   return (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardContent className="p-4">
-        <div className="flex items-start gap-4">
-          {booking.activities?.image_url && (
-            <div className="relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
-              <Image
-                src={booking.activities.image_url}
-                alt={booking.activities.title || "Activity"}
-                fill
-                className="object-cover"
-              />
-            </div>
-          )}
-          
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between mb-2">
-              <h3 className="font-semibold text-lg truncate">
-                {booking.activities?.title || "Activity"}
-              </h3>
-              <Badge variant={getStatusColor(booking.status)} className="ml-2">
-                {booking.status}
-              </Badge>
-            </div>
-            
-            <div className="space-y-1 text-sm text-gray-600 mb-3">
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                <span>{formatDate(booking.booking_date)}</span>
-              </div>
-              
-              {booking.activities?.pickup_location && (
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4" />
-                  <span className="truncate">{booking.activities.pickup_location}</span>
-                </div>
-              )}
-              
-              <div className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                <span>{booking.participants} participant{booking.participants > 1 ? "s" : ""}</span>
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <span className="font-semibold text-lg">
-                ฿{booking.total_amount.toLocaleString()}
-              </span>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => onViewDetails(booking.id)}
-                className="flex items-center gap-2"
-              >
-                <Eye className="h-4 w-4" />
-                View Details
-              </Button>
-            </div>
-          </div>
+    <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+      <div className="aspect-video relative">
+        <Image
+          src={booking.activities?.image_url || "/placeholder-activity.jpg"}
+          alt={booking.activities?.title || "Activity"}
+          fill
+          className="object-cover"
+        />
+        <div className="absolute top-2 right-2">
+          <Badge className={getStatusColor(booking.status || "pending")}>
+            {booking.status || "pending"}
+          </Badge>
+        </div>
+      </div>
+      <CardHeader>
+        <CardTitle className="line-clamp-2">
+          {booking.activities?.title || "Unknown Activity"}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Calendar className="h-4 w-4" />
+          <span>{new Date(booking.created_at).toLocaleDateString()}</span>
+        </div>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Users className="h-4 w-4" />
+          <span>{booking.participants || 1} participants</span>
+        </div>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <MapPin className="h-4 w-4" />
+          <span>{booking.activities?.meeting_point || "Location TBD"}</span>
+        </div>
+        <div className="flex items-center justify-between pt-2 border-t">
+          <span className="text-lg font-semibold">
+            ${booking.total_amount || booking.total_price || 0}
+          </span>
+          <Button variant="outline" size="sm">
+            View Details
+          </Button>
         </div>
       </CardContent>
     </Card>
