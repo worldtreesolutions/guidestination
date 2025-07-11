@@ -19,8 +19,13 @@ export const activityService = {
       throw error;
     }
 
-    // Get user's currency and convert prices
-    const userCurrency = await currencyService.getUserCurrency();
+    // Get user's currency and convert prices with fallback
+    let userCurrency = "USD";
+    try {
+      userCurrency = await currencyService.getUserCurrency();
+    } catch (error) {
+      console.warn("Currency detection failed, using USD:", error);
+    }
     
     return (data || []).map(activity => ({
       ...activity,
@@ -57,8 +62,13 @@ export const activityService = {
       throw error;
     }
 
-    // Get user's currency and convert prices
-    const userCurrency = await currencyService.getUserCurrency();
+    // Get user's currency and convert prices with fallback
+    let userCurrency = "USD";
+    try {
+      userCurrency = await currencyService.getUserCurrency();
+    } catch (error) {
+      console.warn("Currency detection failed, using USD:", error);
+    }
 
     return (data || []).map(activity => ({
       ...activity,

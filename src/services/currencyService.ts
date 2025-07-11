@@ -90,18 +90,38 @@ export const currencyService = {
         return user.user_metadata.preferred_currency;
       }
 
-      // Try to detect from browser/IP geolocation
+      // Try to detect from browser/IP geolocation with timeout
       if (typeof window !== "undefined") {
         try {
-          const response = await fetch("https://ipapi.co/json/");
-          const data = await response.json();
-          const countryCode = data.country_code;
-          return COUNTRY_CURRENCY_MAP[countryCode] || "USD";
-        } catch {
-          // Fallback to browser locale
+          // Add timeout to prevent hanging
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
+          
+          const response = await fetch("https://ipapi.co/json/", {
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
+          
+          if (response.ok) {
+            const data = await response.json();
+            const countryCode = data.country_code;
+            if (countryCode && COUNTRY_CURRENCY_MAP[countryCode]) {
+              return COUNTRY_CURRENCY_MAP[countryCode];
+            }
+          }
+        } catch (error) {
+          console.warn("IP geolocation failed, using browser locale fallback:", error);
+        }
+        
+        // Fallback to browser locale
+        try {
           const locale = navigator.language || "en-US";
           const countryCode = locale.split("-")[1];
-          return COUNTRY_CURRENCY_MAP[countryCode] || "USD";
+          if (countryCode && COUNTRY_CURRENCY_MAP[countryCode]) {
+            return COUNTRY_CURRENCY_MAP[countryCode];
+          }
+        } catch (error) {
+          console.warn("Browser locale detection failed:", error);
         }
       }
 
