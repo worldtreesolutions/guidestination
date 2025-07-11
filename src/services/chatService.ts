@@ -23,19 +23,19 @@ const chatService = {
       throw new Error("Supabase client not initialized");
     }
 
-    const result = await supabase
+    const { data, error } = await supabase
       .from("chat_messages")
       .select("*")
       .eq("activity_id", activityId)
       .or(`and(sender_id.eq.${customerId},receiver_id.eq.${ownerId}),and(sender_id.eq.${ownerId},receiver_id.eq.${customerId})`)
       .order("created_at", { ascending: true })
 
-    if (result.error) {
-      console.error("Error fetching messages:", result.error)
-      throw result.error
+    if (error) {
+      console.error("Error fetching messages:", error)
+      throw error
     }
 
-    return (result.data || []).map((item: any) => ({
+    return (data || []).map((item: any) => ({
       id: item.id,
       sender_id: item.sender_id,
       receiver_id: item.receiver_id,
