@@ -82,17 +82,17 @@ export function ActivityReviews({ reviews }: ActivityReviewsProps) {
           {reviews.slice(0, visibleReviews).map((review) => (
             <div key={review.id} className="flex items-start gap-4">
               <Avatar>
-                <AvatarImage src={review.avatar} alt={review.author} />
+                <AvatarImage src={review.users?.avatar_url || undefined} alt={review.users?.full_name || "User"} />
                 <AvatarFallback>
-                  {review.author.charAt(0)}
+                  {review.users?.full_name?.charAt(0) || "U"}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-semibold">{review.author}</p>
+                    <p className="font-semibold">{review.users?.full_name || "Anonymous"}</p>
                     <p className="text-sm text-muted-foreground">
-                      {review.date}
+                      {new Date(review.created_at).toLocaleDateString()}
                     </p>
                   </div>
                   <div className="flex items-center gap-1">
@@ -108,7 +108,7 @@ export function ActivityReviews({ reviews }: ActivityReviewsProps) {
                     ))}
                   </div>
                 </div>
-                <p className="mt-2 text-muted-foreground">{review.text}</p>
+                <p className="mt-2 text-muted-foreground">{review.comment}</p>
               </div>
             </div>
           ))}

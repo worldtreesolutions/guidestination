@@ -43,7 +43,15 @@ const activityService = {
       console.error(`Error fetching activities:`, error);
       return [];
     }
-    return data as ActivityWithDetails[];
+    if (!data) {
+        return [];
+    }
+    return data.map((activity: any) => ({
+        ...activity,
+        categories: activity.categories && !activity.categories.error ? activity.categories : null,
+        activity_schedules: Array.isArray(activity.activity_schedules) ? activity.activity_schedules : [],
+        reviews: Array.isArray(activity.reviews) ? activity.reviews : [],
+    })) as ActivityWithDetails[];
   },
 
   async getActivityBySlug(slug: string): Promise<ActivityWithDetails | null> {
@@ -67,7 +75,16 @@ const activityService = {
       console.error(`Error fetching activity by slug ${slug}:`, error);
       return null;
     }
-    return data as ActivityWithDetails;
+    if (!data) {
+        return null;
+    }
+    const activity: any = data;
+    return {
+        ...activity,
+        categories: activity.categories && !activity.categories.error ? activity.categories : null,
+        activity_schedules: Array.isArray(activity.activity_schedules) ? activity.activity_schedules : [],
+        reviews: Array.isArray(activity.reviews) ? activity.reviews : [],
+    } as ActivityWithDetails;
   },
 
   async getActivityById(id: number): Promise<ActivityWithDetails | null> {
@@ -91,7 +108,16 @@ const activityService = {
       console.error(`Error fetching activity by id ${id}:`, error);
       return null;
     }
-    return data as ActivityWithDetails;
+    if (!data) {
+        return null;
+    }
+    const activity: any = data;
+    return {
+        ...activity,
+        categories: activity.categories && !activity.categories.error ? activity.categories : null,
+        activity_schedules: Array.isArray(activity.activity_schedules) ? activity.activity_schedules : [],
+        reviews: Array.isArray(activity.reviews) ? activity.reviews : [],
+    } as ActivityWithDetails;
   },
 
   async getActivitiesByProvider(providerId: string): Promise<any[]> {

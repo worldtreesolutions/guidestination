@@ -1,9 +1,10 @@
-import { useState } from "react"
+
+    import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ActivityWithDetails } from "@/types/activity"
-import BookingForm from "./BookingForm"
+import { BookingForm } from "./BookingForm"
 
 interface BookingWidgetProps {
   activity: ActivityWithDetails;
@@ -44,3 +45,4 @@ export function BookingWidget({ activity }: BookingWidgetProps) {
     </Card>
   );
 }
+  

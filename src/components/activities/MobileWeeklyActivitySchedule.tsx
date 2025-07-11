@@ -266,6 +266,70 @@ export const MobileWeeklyActivitySchedule = ({
     setActiveDay(dayKeys[newIndex])
   }
 
+  const renderHour = (hour: number) => {
+    const now = new Date();
+    const currentDay = now.getDay();
+    const dayIndex = days.findIndex(d => d.dayOfWeek === currentDay);
+    const isToday = dayIndex !== -1;
+
+    const scheduled = schedules.find(s => {
+      const startHour = parseInt(s.start_time.split(':')[0], 10);
+      const endHour = parseInt(s.end_time.split(':')[0], 10);
+      return s.day_of_week === days[activeDayIndex].dayOfWeek && hour >= startHour && hour < endHour;
+    });
+
+    const isBooked = bookings.some(b => {
+      const bookingDate = new Date(b.date);
+      const bookingHour = bookingDate.getHours();
+      const bookingDay = bookingDate.getDay();
+      return days[activeDayIndex].dayOfWeek === bookingDay && hour >= bookingHour && hour < (bookingHour + Number(b.duration || 1));
+    });
+
+    const isPast = isToday && hour < now.getHours();
+
+    return (
+      <div key={hour} className='flex items-stretch gap-2'>
+        <div className='w-16 flex items-center justify-center bg-primary/5 rounded-lg'>
+          <div className='flex flex-col items-center'>
+            <Clock className='h-3.5 w-3.5 text-primary' />
+            <span className='text-sm font-medium'>{formatHour(hour)}</span>
+          </div>
+        </div>
+        
+        {scheduled ? (
+          <div 
+            className='flex-1 relative bg-primary/5 rounded-lg'
+            style={{ 
+              height: Number(scheduled.duration || 60) > 1 
+                ? `${HOUR_HEIGHT * Number(scheduled.duration || 60) + (Number(scheduled.duration || 60) - 1) * 8}px` 
+                : `${HOUR_HEIGHT}px` 
+            }}
+          >
+            <ActivityCard 
+              activity={scheduled} 
+              onRemove={handleActivityRemove} 
+            />
+          </div>
+        ) : (
+          <DroppableCell
+            day={activeDay}
+            hour={hour}
+            isAvailable={isSlotAvailable(activeDay, hour)}
+            showUnavailable={!!draggedActivity}
+          >
+            <div className='h-full border-2 border-dashed border-gray-200 rounded-lg flex items-center justify-center'>
+              {isSlotAvailable(activeDay, hour) && !draggedActivity && (
+                <div className='text-xs text-gray-400'>
+                  {t("calendar.dropHere")}
+                </div>
+              )}
+            </div>
+          </DroppableCell>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div className='w-full'>
       <div className='flex items-center justify-between mb-4 bg-primary/10 rounded-lg p-2'>
@@ -296,57 +360,7 @@ export const MobileWeeklyActivitySchedule = ({
       </div>
 
       <div className='space-y-2'>
-        {hours.map(hour => {
-          if (skipCells[activeDay]?.[hour]) {
-            return null
-          }
-          
-          const activity = activitiesByDayAndHour[activeDay]?.[hour]
-          const isAvailable = activity ? true : isSlotAvailable(activeDay, hour)
-          const durationNum = activity ? parseInt(String(activity.duration) || '1', 10) : 1;
-          
-          return (
-            <div key={hour} className='flex items-stretch gap-2'>
-              <div className='w-16 flex items-center justify-center bg-primary/5 rounded-lg'>
-                <div className='flex flex-col items-center'>
-                  <Clock className='h-3.5 w-3.5 text-primary' />
-                  <span className='text-sm font-medium'>{formatHour(hour)}</span>
-                </div>
-              </div>
-              
-              {activity ? (
-                <div 
-                  className='flex-1 relative bg-primary/5 rounded-lg'
-                  style={{ 
-                    height: durationNum > 1 
-                      ? `${HOUR_HEIGHT * durationNum + (durationNum - 1) * 8}px` 
-                      : `${HOUR_HEIGHT}px` 
-                  }}
-                >
-                  <ActivityCard 
-                    activity={activity} 
-                    onRemove={handleActivityRemove} 
-                  />
-                </div>
-              ) : (
-                <DroppableCell
-                  day={activeDay}
-                  hour={hour}
-                  isAvailable={isAvailable}
-                  showUnavailable={!!draggedActivity}
-                >
-                  <div className='h-full border-2 border-dashed border-gray-200 rounded-lg flex items-center justify-center'>
-                    {isAvailable && !draggedActivity && (
-                      <div className='text-xs text-gray-400'>
-                        {t("calendar.dropHere")}
-                      </div>
-                    )}
-                  </div>
-                </DroppableCell>
-              )}
-            </div>
-          )
-        })}
+        {hours.map(renderHour)}
       </div>
       
       <div className='mt-4 flex justify-center'>

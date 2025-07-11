@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { useRouter } from "next/router"
@@ -34,8 +33,35 @@ export function BulkBookingWidget({ activities, onClearSelection }: BulkBookingW
     return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
   }
 
-  const handleBooking = () => {
-    router.push("/checkout")
+  const handleActivitySelection = (activity: ActivityWithDetails) => {
+    setSelectedActivities((prev) => {
+      const isSelected = prev.find((a) => a.id === activity.id);
+      if (isSelected) {
+        return prev.filter((a) => a.id !== activity.id);
+      }
+      return [...prev, activity];
+    });
+  };
+
+  const totalCost = selectedActivities.reduce((acc, activity) => acc + (activity.b_price || 0), 0);
+
+  const handleBooking = async () => {
+    if (selectedActivities.length === 0) {
+      router.push("/checkout")
+    } else {
+      const line_items = selectedActivities.map((activity) => ({
+        price_ {
+          currency: "usd",
+          product_ {
+            name: activity.title,
+            images: [activity.image_url || ""],
+          },
+          unit_amount: (activity.b_price || 0) * 100,
+        },
+        quantity: 1,
+      }));
+      router.push("/checkout", { line_items });
+    }
   }
 
   const totalActivities = activities.length

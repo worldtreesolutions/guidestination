@@ -147,6 +147,35 @@ const DroppableCell = ({
   )
 }
 
+const renderHour = (hour: number, day: Day) => {
+  const now = new Date();
+  const isToday = now.toDateString() === day.date.toDateString();
+
+  const scheduled = schedules.find(s => {
+    const startHour = parseInt(s.start_time.split(':')[0], 10);
+    const endHour = parseInt(s.end_time.split(':')[0], 10);
+    return s.day_of_week === day.dayOfWeek && hour >= startHour && hour < endHour;
+  });
+
+  const isBooked = bookings.some(b => {
+    const bookingDate = new Date(b.date);
+    const bookingHour = bookingDate.getHours();
+    const bookingDay = bookingDate.getDay();
+    return day.dayOfWeek === bookingDay && hour >= bookingHour && hour < (bookingHour + Number(b.duration || 1));
+  });
+
+  const isPast = isToday && hour < now.getHours();
+
+  return (
+    <td className={`p-2 border-r border-b border-gray-200 font-medium text-center ${isPast ? 'text-gray-400' : ''}`}>
+      <div className="flex items-center justify-center">
+        <Clock className="h-3.5 w-3.5 mr-1 text-primary" />
+        <span className="text-sm">{formatHour(hour)}</span>
+      </div>
+    </td>
+  );
+}
+
 export const WeeklyActivitySchedule = ({
   scheduledActivities,
   draggedActivity,
@@ -276,12 +305,7 @@ export const WeeklyActivitySchedule = ({
         <tbody>
           {hours.map(hour => (
             <tr key={hour} className={hour % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-              <td className="p-2 border-r border-b border-gray-200 font-medium text-center">
-                <div className="flex items-center justify-center">
-                  <Clock className="h-3.5 w-3.5 mr-1 text-primary" />
-                  <span className="text-sm">{formatHour(hour)}</span>
-                </div>
-              </td>
+              {renderHour(hour, { dayOfWeek: 0, date: new Date() })}
               {dayKeys.map(day => {
                 if (skipCells[day]?.[hour]) {
                   return null
@@ -292,18 +316,21 @@ export const WeeklyActivitySchedule = ({
                 const durationNum = activity ? parseInt(String(activity.duration) || '1', 10) : 1;
                 
                 if (activity) {
+                  const [hour, minute] = activity.start_time.split(':').map(Number);
+                  const topPosition = (hour - 8) * 60 + minute;
+                  const height = Number(activity.duration || 60);
                   return (
-                    <td 
-                      key={`${day}-${hour}`}
+                    <div
+                      key={activity.id}
                       className="p-1 border-r border-b border-gray-200 relative bg-primary/5"
-                      style={{ height: `${HOUR_HEIGHT}px` }}
+                      style={{ height: `${HOUR_HEIGHT}px`, top: `${topPosition}px` }}
                       rowSpan={durationNum}
                     >
                       <ActivityCard 
                         activity={activity} 
                         onRemove={handleActivityRemove} 
                       />
-                    </td>
+                    </div>
                   )
                 }
                 

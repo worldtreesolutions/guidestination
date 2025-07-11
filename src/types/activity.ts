@@ -1,4 +1,5 @@
-import type { Database } from "@/integrations/supabase/types";
+
+    import type { Database } from "@/integrations/supabase/types";
 
 // Base types from Supabase
 export type Activity = Database["public"]["Tables"]["activities"]["Row"];
@@ -15,9 +16,23 @@ export type ReviewUser = {
   full_name: string | null;
   avatar_url: string | null;
 };
-export type Review = Database["public"]["Tables"]["reviews"]["Row"] & {
-  users: ReviewUser | null;
-};
+
+// Manually define Review as it seems to be missing from generated types
+export interface Review {
+    id: number;
+    activity_id: number;
+    user_id: string;
+    rating: number;
+    comment: string | null;
+    created_at: string;
+    users: ReviewUser | null;
+    // Properties used in ActivityReviews component
+    author: string;
+    avatar: string;
+    date: string;
+    text: string;
+}
+
 export type ActivityOwner = Database["public"]["Tables"]["activity_owners"]["Row"];
 
 
@@ -37,8 +52,9 @@ export type ActivityWithDetails = Activity & {
 
 export type ActivityForHomepage = Pick<
   Activity,
-  "id" | "title" | "b_price" | "image_url" | "slug"
+  "id" | "title" | "b_price" | "image_url"
 > & {
+  slug: string | null;
   category_name: string | null;
   average_rating?: number;
   location?: string;
@@ -130,3 +146,4 @@ export interface CommissionStats {
 }
 
 export type SupabaseActivity = Activity;
+  
