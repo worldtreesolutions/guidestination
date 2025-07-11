@@ -8,6 +8,8 @@ const activityService = {
       console.error("Supabase client is not initialized.");
       return [];
     }
+    
+    // First, let's try to get activities with their categories through the junction table
     const { data, error } = await supabase
       .from("activities")
       .select(`
@@ -19,23 +21,61 @@ const activityService = {
         average_rating,
         review_count,
         currency_code,
-        categories(name)
+        activity_categories(
+          categories(
+            id,
+            name
+          )
+        )
       `)
       .eq("is_active", true)
       .limit(20);
 
     if (error) {
       console.error("Error fetching activities for homepage:", error);
-      throw error;
+      // Fallback to simpler query without categories if junction table fails
+      const { data: fallbackData, error: fallbackError } = await supabase
+        .from("activities")
+        .select(`
+          id, 
+          title, 
+          b_price, 
+          image_url, 
+          address,
+          average_rating,
+          review_count,
+          currency_code,
+          category
+        `)
+        .eq("is_active", true)
+        .limit(20);
+      
+      if (fallbackError) {
+        console.error("Fallback query also failed:", fallbackError);
+        throw fallbackError;
+      }
+      
+      return (fallbackData as any[]).map((activity) => ({
+        ...activity,
+        slug: `activity-${activity.id}`,
+        category_name: activity.category || null,
+        location: activity.address || "Location not specified",
+        currency: activity.currency_code || "THB",
+      }));
     }
 
-    return (data as any[]).map((activity) => ({
-      ...activity,
-      slug: `activity-${activity.id}`,
-      category_name: activity.categories?.name || null,
-      location: activity.address || "Location not specified",
-      currency: activity.currency_code || "THB",
-    }));
+    return (data as any[]).map((activity) => {
+      // Extract category name from the junction table relationship
+      const categoryName = activity.activity_categories?.[0]?.categories?.name || activity.category || null;
+      
+      return {
+        ...activity,
+        slug: `activity-${activity.id}`,
+        category_name: categoryName,
+        location: activity.address || "Location not specified",
+        currency: activity.currency_code || "THB",
+      };
+    });
   },
 
   async getActivities(): Promise<ActivityWithDetails[]> {
