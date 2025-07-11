@@ -113,7 +113,7 @@ export default function BookingsPage() {
                         {booking.participants || 1}
                       </TableCell>
                       <TableCell>
-                        ฿{(booking.provider_amount || 0).toLocaleString()}
+                        ฿{(booking.total_price || 0).toLocaleString()}
                       </TableCell>
                       <TableCell>
                         <Badge className={getStatusColor(booking.status || "pending")} variant="outline">

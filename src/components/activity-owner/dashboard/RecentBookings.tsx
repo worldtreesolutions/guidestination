@@ -49,7 +49,7 @@ export default function RecentBookings({ bookings }: RecentBookingsProps) {
                 </p>
               </div>
               <div className="ml-auto font-medium">
-                +${(booking.total_price ?? 0).toFixed(2)}
+                +฿{(booking.total_price ?? 0).toLocaleString()}
               </div>
             </div>
           ))

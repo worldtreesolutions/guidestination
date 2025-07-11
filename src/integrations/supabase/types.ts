@@ -397,6 +397,13 @@ export interface Database {
           total_amount: number
           created_at: string
           activities: any | null
+          provider_id: string | null
+          booking_date: string
+          total_price: number | null
+          participants: number | null
+          customer_name: string | null
+          provider_amount: number | null
+          platform_fee: number | null
         }
         Insert: {
           id?: string
@@ -406,6 +413,13 @@ export interface Database {
           total_amount: number
           created_at?: string
           activities?: any | null
+          provider_id?: string | null
+          booking_date?: string
+          total_price?: number | null
+          participants?: number | null
+          customer_name?: string | null
+          provider_amount?: number | null
+          platform_fee?: number | null
         }
         Update: {
           id?: string
@@ -415,6 +429,13 @@ export interface Database {
           total_amount?: number
           created_at?: string
           activities?: any | null
+          provider_id?: string | null
+          booking_date?: string
+          total_price?: number | null
+          participants?: number | null
+          customer_name?: string | null
+          provider_amount?: number | null
+          platform_fee?: number | null
         }
         Relationships: []
       }

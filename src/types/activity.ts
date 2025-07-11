@@ -71,6 +71,7 @@ export interface Booking extends SupabaseBooking {
   booking_date: string;
   total_price: number | null;
   participants?: number;
+  provider_id?: string | null;
 }
 
 export interface ActivityForHomepage {
