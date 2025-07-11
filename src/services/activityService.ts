@@ -84,13 +84,22 @@ const activityService = {
       return [];
     }
     
-    // First get activities with their category field values
+    // Get activities with their categories through the junction table
     const { data, error } = await supabase
       .from("activities")
       .select(`
         *,
         activity_schedules(*),
-        reviews(*, users(full_name, avatar_url))
+        reviews(*, users(full_name, avatar_url)),
+        activity_categories(
+          categories(
+            id,
+            name,
+            description,
+            icon,
+            color
+          )
+        )
       `)
       .eq("is_active", true);
 
@@ -102,28 +111,9 @@ const activityService = {
         return [];
     }
 
-    // Get all unique category values from activities
-    const categoryValues = Array.from(new Set(data.map(activity => activity.category).filter(Boolean) as string[]));
-    
-    // Fetch category details for these values
-    let categoriesMap: Record<string, any> = {};
-    if (categoryValues.length > 0) {
-      const { data: categoriesData, error: categoriesError } = await supabase
-        .from("categories")
-        .select("*")
-        .in("name", categoryValues);
-      
-      if (!categoriesError && categoriesData) {
-        categoriesMap = categoriesData.reduce((acc, cat) => {
-          acc[cat.name] = cat;
-          return acc;
-        }, {} as Record<string, any>);
-      }
-    }
-
     return data.map((activity: any) => ({
         ...activity,
-        categories: activity.category ? categoriesMap[activity.category] || null : null,
+        categories: activity.activity_categories?.[0]?.categories || null,
         activity_schedules: Array.isArray(activity.activity_schedules) ? activity.activity_schedules : [],
         reviews: Array.isArray(activity.reviews) ? activity.reviews : [],
     })) as ActivityWithDetails[];
@@ -149,7 +139,16 @@ const activityService = {
       .select(`
         *,
         activity_schedules(*),
-        reviews(*, users(full_name, avatar_url))
+        reviews(*, users(full_name, avatar_url)),
+        activity_categories(
+          categories(
+            id,
+            name,
+            description,
+            icon,
+            color
+          )
+        )
       `)
       .eq("id", activityId)
       .single();
@@ -162,24 +161,10 @@ const activityService = {
         return null;
     }
 
-    // Fetch category details if activity has a category
-    let categoryData = null;
-    if (data.category) {
-      const { data: catData, error: catError } = await supabase
-        .from("categories")
-        .select("*")
-        .eq("name", data.category)
-        .single();
-      
-      if (!catError && catData) {
-        categoryData = catData;
-      }
-    }
-
     const activity: any = data;
     return {
         ...activity,
-        categories: categoryData,
+        categories: activity.activity_categories?.[0]?.categories || null,
         activity_schedules: Array.isArray(activity.activity_schedules) ? activity.activity_schedules : [],
         reviews: Array.isArray(activity.reviews) ? activity.reviews : [],
     } as ActivityWithDetails;
@@ -196,7 +181,16 @@ const activityService = {
       .select(`
         *,
         activity_schedules(*),
-        reviews(*, users(full_name, avatar_url))
+        reviews(*, users(full_name, avatar_url)),
+        activity_categories(
+          categories(
+            id,
+            name,
+            description,
+            icon,
+            color
+          )
+        )
       `)
       .eq("id", id)
       .single();
@@ -209,24 +203,10 @@ const activityService = {
         return null;
     }
 
-    // Fetch category details if activity has a category
-    let categoryData = null;
-    if (data.category) {
-      const { data: catData, error: catError } = await supabase
-        .from("categories")
-        .select("*")
-        .eq("name", data.category)
-        .single();
-      
-      if (!catError && catData) {
-        categoryData = catData;
-      }
-    }
-
     const activity: any = data;
     return {
         ...activity,
-        categories: categoryData,
+        categories: activity.activity_categories?.[0]?.categories || null,
         activity_schedules: Array.isArray(activity.activity_schedules) ? activity.activity_schedules : [],
         reviews: Array.isArray(activity.reviews) ? activity.reviews : [],
     } as ActivityWithDetails;
@@ -379,7 +359,16 @@ const activityService = {
       .select(`
         *,
         activity_schedules(*),
-        reviews(*, users(full_name, avatar_url))
+        reviews(*, users(full_name, avatar_url)),
+        activity_categories(
+          categories(
+            id,
+            name,
+            description,
+            icon,
+            color
+          )
+        )
       `)
       .eq("provider_id", ownerId);
 
@@ -391,28 +380,9 @@ const activityService = {
         return [];
     }
 
-    // Get all unique category values from activities
-    const categoryValues = Array.from(new Set(data.map(activity => activity.category).filter(Boolean) as string[]));
-    
-    // Fetch category details for these values
-    let categoriesMap: Record<string, any> = {};
-    if (categoryValues.length > 0) {
-      const { data: categoriesData, error: categoriesError } = await supabase
-        .from("categories")
-        .select("*")
-        .in("name", categoryValues);
-      
-      if (!categoriesError && categoriesData) {
-        categoriesMap = categoriesData.reduce((acc, cat) => {
-          acc[cat.name] = cat;
-          return acc;
-        }, {} as Record<string, any>);
-      }
-    }
-
     return data.map((activity: any) => ({
         ...activity,
-        categories: activity.category ? categoriesMap[activity.category] || null : null,
+        categories: activity.activity_categories?.[0]?.categories || null,
         activity_schedules: Array.isArray(activity.activity_schedules) ? activity.activity_schedules : [],
         reviews: Array.isArray(activity.reviews) ? activity.reviews : [],
     })) as ActivityWithDetails[];
