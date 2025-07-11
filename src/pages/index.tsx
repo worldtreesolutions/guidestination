@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import ActivityCard from "@/components/home/ActivityCard";
-import CategoryNav from "@/components/home/CategoryNav";
-import SearchBar from "@/components/home/SearchBar";
+import { SearchBar } from "@/components/home/SearchBar";
 import { activityService } from "@/services/activityService";
 import { ActivityForHomepage } from "@/types/activity";
 
@@ -16,7 +15,7 @@ export default function HomePage() {
     const fetchActivities = async () => {
       try {
         setLoading(true);
-        setError(null); // Clear any previous errors
+        setError(null);
         console.log("Fetching activities...");
         const data = await activityService.getActivitiesForHomepage();
         console.log("Activities fetched:", data);
@@ -59,12 +58,6 @@ export default function HomePage() {
             Find and book unique activities and tours around the world
           </p>
           <SearchBar />
-        </div>
-      </section>
-
-      <section className="py-12">
-        <div className="max-w-7xl mx-auto px-4">
-          <CategoryNav />
         </div>
       </section>
 
