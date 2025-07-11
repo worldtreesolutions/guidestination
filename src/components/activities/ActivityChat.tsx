@@ -1,5 +1,4 @@
-
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,17 +25,8 @@ export function ActivityChat({ activity }: ActivityChatProps) {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  useEffect(() => {
-    if (isOpen && activity && user) {
-      loadMessages();
-    }
-  }, [isOpen, activity, user]);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const loadMessages = async () => {
+  const loadMessages = useCallback(async () => {
+    if (!activity?.id) return;
     try {
       setLoading(true);
       const activityMessages = await chatService.getMessages(String(activity.id));
@@ -46,7 +36,17 @@ export function ActivityChat({ activity }: ActivityChatProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [activity?.id]);
+
+  useEffect(() => {
+    if (isOpen && activity && user) {
+      loadMessages();
+    }
+  }, [isOpen, activity, user, loadMessages]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !user || !activity.provider_id) return;

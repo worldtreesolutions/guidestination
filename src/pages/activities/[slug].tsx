@@ -13,6 +13,9 @@ import activityService from "@/services/activityService";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MapPin, Clock, Users, Star, Shield, Utensils, Car } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Briefcase, User } from "lucide-react";
 
 export default function ActivityPage() {
   const router = useRouter();
@@ -140,6 +143,20 @@ export default function ActivityPage() {
         {loading ? renderLoading() : error ? renderError() : renderContent()}
       </main>
       <Footer />
+      
+      {/* Fixed Action Buttons */}
+      <div className="fixed bottom-4 left-4 flex flex-col space-y-2 z-50">
+        <Link href="/activity-owner">
+          <Button variant="secondary" className="rounded-full shadow-lg">
+            <Briefcase className="mr-2 h-4 w-4" /> List your Activity
+          </Button>
+        </Link>
+        <Link href="/partner">
+          <Button variant="secondary" className="rounded-full shadow-lg">
+            <User className="mr-2 h-4 w-4" /> Become a Partner
+          </Button>
+        </Link>
+      </div>
     </div>
   );
 }
