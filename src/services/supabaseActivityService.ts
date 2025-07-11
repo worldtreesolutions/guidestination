@@ -1,6 +1,30 @@
 
+    
 import { supabase } from "@/integrations/supabase/client"
 import { SupabaseActivity, Earning, ActivityForHomepage } from "@/types/activity"
+
+interface DbSchedule {
+  activity_id: number;
+  start_time: string;
+  end_time: string;
+  capacity: number;
+  booked_count: number;
+  price_override: string | null;
+  is_active: boolean;
+  recurrence_pattern: 'once' | 'weekly';
+  recurrence_day_of_week: number[] | null;
+  availability_start_date: string | null;
+  availability_end_date: string | null;
+}
+
+interface DbOption {
+  is_selected: boolean;
+  activity_options: {
+    id: number;
+    label: string;
+    type: string;
+  } | null;
+}
 
 export const supabaseActivityService = {
   async getActivities(filters?: {
@@ -123,7 +147,7 @@ export const supabaseActivityService = {
       }
       console.log("[Service] Raw options ", optionsData);
 
-      const generateScheduleInstances = (schedules: any[]) => {
+      const generateScheduleInstances = (schedules: DbSchedule[]) => {
         const instances: any[] = [];
         
         schedules.forEach(schedule => {
@@ -136,7 +160,7 @@ export const supabaseActivityService = {
               capacity: schedule.capacity,
               booked: schedule.booked_count || 0,
               available: schedule.capacity - (schedule.booked_count || 0),
-              price: parseFloat(schedule.price_override || activity.price || 0)
+              price: parseFloat(schedule.price_override || activity.price?.toString() || '0')
             });
           } else if (schedule.recurrence_pattern === 'weekly' && schedule.recurrence_day_of_week) {
             const startDate = new Date(schedule.availability_start_date || new Date());
@@ -144,7 +168,7 @@ export const supabaseActivityService = {
             
             let currentDate = new Date(startDate);
             while (currentDate <= endDate) {
-              const dayOfWeek = currentDate.getUTCDay();
+              const dayOfWeek = currentDate.getUTCDay(); // Sunday is 0, Monday is 1, etc.
               
               if (schedule.recurrence_day_of_week.includes(dayOfWeek)) {
                 instances.push({
@@ -154,7 +178,7 @@ export const supabaseActivityService = {
                   capacity: schedule.capacity,
                   booked: schedule.booked_count || 0,
                   available: schedule.capacity - (schedule.booked_count || 0),
-                  price: parseFloat(schedule.price_override || activity.price || 0)
+                  price: parseFloat(schedule.price_override || activity.price?.toString() || '0')
                 });
               }
               
@@ -167,13 +191,13 @@ export const supabaseActivityService = {
       };
 
       const formattedSchedules = scheduleData && Array.isArray(scheduleData)
-        ? generateScheduleInstances(scheduleData.filter((schedule: any) => schedule.is_active))
+        ? generateScheduleInstances(scheduleData.filter((schedule: DbSchedule) => schedule.is_active))
         : [];
 
       console.log("[Service] Formatted schedules (availableDates):", formattedSchedules);
 
       const formattedOptions = optionsData && Array.isArray(optionsData)
-        ? optionsData.map((selectedOption: any) => ({
+        ? (optionsData as DbOption[]).map((selectedOption) => ({
             id: selectedOption.activity_options?.id?.toString() || '',
             option_name: selectedOption.activity_options?.label || '',
             option_type: selectedOption.activity_options?.type || '',
@@ -187,33 +211,33 @@ export const supabaseActivityService = {
         id: activity.id,
         title: activity.title,
         name: activity.name || activity.title,
-        description: activity.description,
+        description: activity.description || null,
         category: (activity.categories as any)?.name || "Uncategorized",
         category_name: (activity.categories as any)?.name || "Uncategorized",
-        price: activity.price,
-        max_participants: activity.max_participants,
-        duration: activity.duration,
-        min_age: activity.min_age,
-        max_age: activity.max_age,
-        physical_effort_level: activity.physical_effort_level,
-        technical_skill_level: activity.technical_skill_level,
-        location: activity.location,
-        address: activity.address,
-        meeting_point: activity.meeting_point,
-        includes_pickup: activity.includes_pickup,
-        pickup_locations: activity.pickup_locations,
-        includes_meal: activity.includes_meal,
-        meal_description: activity.meal_description,
-        highlights: activity.highlights,
-        included: activity.included,
-        not_included: activity.not_included,
-        languages: activity.languages,
-        rating: activity.average_rating || activity.rating || 0,
-        average_rating: activity.average_rating,
-        review_count: activity.review_count,
-        image_urls: activity.image_urls,
+        price: activity.price || null,
+        max_participants: activity.max_participants || null,
+        duration: activity.duration || null,
+        min_age: activity.min_age || null,
+        max_age: activity.max_age || null,
+        physical_effort_level: activity.physical_effort_level || null,
+        technical_skill_level: activity.technical_skill_level || null,
+        location: activity.location || null,
+        address: activity.address || null,
+        meeting_point: activity.meeting_point || null,
+        includes_pickup: activity.includes_pickup || false,
+        pickup_locations: activity.pickup_locations || null,
+        includes_meal: activity.includes_meal || false,
+        meal_description: activity.meal_description || null,
+        highlights: activity.highlights || null,
+        included: activity.included || null,
+        not_included: activity.not_included || null,
+        languages: activity.languages || null,
+        rating: activity.average_rating || activity.rating || null,
+        average_rating: activity.average_rating || null,
+        review_count: activity.review_count || null,
+        image_urls: activity.image_urls || null,
         image_url: activity.image_urls?.[0] || null,
-        video_url: activity.video_url,
+        video_url: activity.video_url || null,
         provider_id: activity.provider_id,
         is_active: activity.is_active,
         created_at: activity.created_at,
@@ -222,15 +246,16 @@ export const supabaseActivityService = {
           availableDates: formattedSchedules
         },
         activity_selected_options: formattedOptions,
-        status: activity.status,
-        booking_type: activity.booking_type,
+        selectedOptions: (activity as any).selectedOptions || undefined,
+        status: (activity as any).status || undefined,
+        booking_type: (activity as any).booking_type || undefined,
       };
 
       console.log("[Service] Final activity object to be returned:", result);
       return result;
     } catch (error) {
       console.error("[Service] Critical error in getActivityById:", error);
-      throw error;
+      return null; // Return null on error to prevent crashing the page
     }
   },
 
@@ -333,3 +358,4 @@ export const supabaseActivityService = {
 }
 
 export default supabaseActivityService
+  
