@@ -29,9 +29,9 @@ export default function Navbar() {
               <Image
                 src="/logo-mcyznoc4.png"
                 alt="Guidestination"
-                width={200}
-                height={40}
-                className="h-8 w-auto"
+                width={280}
+                height={56}
+                className="h-12 w-auto"
                 priority
               />
             </Link>
