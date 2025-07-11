@@ -16,11 +16,14 @@ export default function HomePage() {
     const fetchActivities = async () => {
       try {
         setLoading(true);
+        setError(null); // Clear any previous errors
+        console.log("Fetching activities...");
         const data = await activityService.getActivitiesForHomepage();
+        console.log("Activities fetched:", data);
         setActivities(data);
       } catch (err) {
         console.error("Error fetching activities:", err);
-        setError("Failed to load activities");
+        setError(`Failed to load activities: ${err instanceof Error ? err.message : 'Unknown error'}`);
       } finally {
         setLoading(false);
       }
