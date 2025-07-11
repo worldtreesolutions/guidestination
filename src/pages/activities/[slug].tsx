@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/router"
 import Head from "next/head"
@@ -23,9 +24,6 @@ import {
   Calendar,
   MessageCircle
 } from "lucide-react"
-import { ActivityGallery } from "@/components/activities/ActivityGallery"
-import { AvailabilityCalendar } from "@/components/activities/AvailabilityCalendar"
-import { ActivityReviews } from "@/components/activities/ActivityReviews"
 import { useIsMobile } from "@/hooks/use-mobile"
 import activityService from "@/services/activityService"
 import customerService from "@/services/customerService"
@@ -302,11 +300,22 @@ export default function ActivityPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div className="lg:col-span-2 space-y-8">
-                <ActivityGallery 
-                  images={activity.image_url ? [activity.image_url] : []}
-                  videos={activity.video_url ? [activity.video_url] : []}
-                  title={activity.title}
-                />
+                {/* Activity Gallery Placeholder */}
+                <Card>
+                  <CardContent className="p-0">
+                    <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
+                      {activity.image_url ? (
+                        <img 
+                          src={activity.image_url} 
+                          alt={activity.title}
+                          className="w-full h-full object-cover rounded-lg"
+                        />
+                      ) : (
+                        <div className="text-muted-foreground">No image available</div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
 
                 <Tabs defaultValue="overview" className="w-full">
                   <TabsList className="grid w-full grid-cols-4">
@@ -467,11 +476,14 @@ export default function ActivityPage() {
                   </TabsContent>
 
                   <TabsContent value="reviews">
-                    <ActivityReviews 
-                      activityId={activity.id.toString()}
-                      rating={activity.average_rating || 0}
-                      reviewCount={activity.review_count || 0}
-                    />
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Reviews</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-muted-foreground">Reviews will be displayed here.</p>
+                      </CardContent>
+                    </Card>
                   </TabsContent>
                 </Tabs>
               </div>
@@ -495,12 +507,18 @@ export default function ActivityPage() {
 
                       <Separator />
 
-                      <AvailabilityCalendar
-                        availableDates={activity.schedule_instances?.map(instance => instance.scheduled_date) || []}
-                        scheduleData={activity.schedule_instances || []}
-                        selectedDate={selectedDate}
-                        onDateSelect={setSelectedDate}
-                      />
+                      <div className="space-y-4">
+                        <div>
+                          <h4 className="font-semibold mb-2">Available Dates</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Calendar will be displayed here
+                          </p>
+                        </div>
+                        
+                        <Button className="w-full" size="lg">
+                          Book Now
+                        </Button>
+                      </div>
                     </CardContent>
                   </Card>
                 </div>
