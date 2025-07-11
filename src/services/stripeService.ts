@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client"
 import { getAdminClient, getAdminClientSafe } from "@/integrations/supabase/admin"
 import type { Database } from "@/integrations/supabase/types"
