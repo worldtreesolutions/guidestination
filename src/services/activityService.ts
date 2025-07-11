@@ -1,118 +1,101 @@
 
-import { supabase } from "@/integrations/supabase/client";
+    
+import { supabase } from "@/integrations/supabase/client"
+import {
+  Activity,
+  ActivityScheduleInstance,
+  ActivitySelectedOption,
+  SupabaseActivity,
+} from "@/types/activity"
+import { Database } from "@/integrations/supabase/types"
 
-export interface Activity {
-  id: number;
-  title: string;
-  description: string;
-  b_price: number;
-  final_price: number;
-  image_url: string;
-  duration: string;
-  max_participants: number;
-  category_id: number;
-  provider_id: string;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-  highlights?: string;
-  included?: string;
-  not_included?: string;
-}
+type ActivityWithOptionsAndSchedule =
+  Database["public"]["Tables"]["activities"]["Row"] & {
+    activity_selected_options: (Database["public"]["Tables"]["activity_selected_options"]["Row"] & {
+      activity_options: Database["public"]["Tables"]["activity_options"]["Row"]
+    })[]
+    activity_schedule_instances: Database["public"]["Tables"]["activity_schedule_instances"]["Row"][]
+  }
 
-export interface ActivitySelectedOption {
-  id: number;
-  activity_id: number;
-  option_id: number;
-  created_at: string;
-  activity_options?: {
-    label: string;
-    type: string;
-    category: string;
-  };
-}
+const activityService = {
+  async getAllActivities(): Promise<SupabaseActivity[]> {
+    const { data, error } = await supabase.from("activities").select("*")
 
-export interface ActivityScheduleInstance {
-  id: number;
-  activity_id: number;
-  scheduled_date: string;
-  start_time: string;
-  end_time: string;
-  available_spots: number;
-  capacity: number;
-  booked_count: number;
-  is_active: boolean;
-  status: string;
-  price: number;
-  created_at: string;
-}
+    if (error) {
+      console.error("Error fetching activities:", error)
+      return []
+    }
 
-export const activityService = {
+    return data || []
+  },
+
   async getActivityById(id: number): Promise<Activity | null> {
     const { data, error } = await supabase
-      .from('activities')
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (error) {
-      console.error('Error fetching activity:', error);
-      return null;
-    }
-    return data;
-  },
-
-  async getActivitySelectedOptions(activityId: number): Promise<ActivitySelectedOption[]> {
-    const { data, error } = await supabase
-      .from('activity_selected_options')
-      .select(`
+      .from("activities")
+      .select(
+        `
         *,
-        activity_options (
-          label,
-          type,
-          category
-        )
-      `)
-      .eq('activity_id', activityId)
-      .order('created_at', { ascending: true });
+        activity_selected_options:activity_selected_options!inner (
+          *,
+          activity_options (*)
+        ),
+        activity_schedule_instances (*)
+      `
+      )
+      .eq("id", id)
+      .single()
 
     if (error) {
-      console.error('Error fetching activity options:', error);
-      return [];
+      console.error("Error fetching activity:", error)
+      return null
     }
-    return data || [];
-  },
 
-  async getActivityScheduleInstances(activityId: number): Promise<ActivityScheduleInstance[]> {
-    const { data, error } = await supabase
-      .from('activity_schedule_instances')
-      .select('*')
-      .eq('activity_id', activityId)
-      .eq('is_active', true)
-      .gte('scheduled_date', new Date().toISOString().split('T')[0])
-      .order('scheduled_date', { ascending: true })
-      .order('start_time', { ascending: true });
-
-    if (error) {
-      console.error('Error fetching activity schedule:', error);
-      return [];
-    }
-    return data || [];
-  },
-
-  async getActivityWithDetails(id: number) {
-    const [activity, selectedOptions, scheduleInstances] = await Promise.all([
-      this.getActivityById(id),
-      this.getActivitySelectedOptions(id),
-      this.getActivityScheduleInstances(id)
-    ]);
+    const activityData = data as ActivityWithOptionsAndSchedule
 
     return {
-      activity,
-      selectedOptions,
-      scheduleInstances
-    };
-  }
-};
+      ...activityData,
+      selected_options: activityData.activity_selected_options,
+      schedule_instances: activityData.activity_schedule_instances,
+    }
+  },
 
-export default activityService;
+  async getSelectedOptionsByActivityId(
+    activityId: number
+  ): Promise<ActivitySelectedOption[]> {
+    const { data, error } = await supabase
+      .from("activity_selected_options")
+      .select(
+        `
+        *,
+        activity_options (*)
+      `
+      )
+      .eq("activity_id", activityId)
+
+    if (error) {
+      console.error("Error fetching selected options:", error)
+      return []
+    }
+    return data as ActivitySelectedOption[]
+  },
+
+  async getScheduleInstancesByActivityId(
+    activityId: number
+  ): Promise<ActivityScheduleInstance[]> {
+    const { data, error } = await supabase
+      .from("activity_schedule_instances")
+      .select("*")
+      .eq("activity_id", activityId)
+      .order("scheduled_date", { ascending: true })
+      .order("start_time", { ascending: true })
+
+    if (error) {
+      console.error("Error fetching schedule instances:", error)
+      return []
+    }
+    return data
+  },
+}
+
+export default activityService
+  

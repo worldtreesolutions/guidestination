@@ -1,4 +1,5 @@
 
+    
 export type Json =
   | string
   | number
@@ -836,7 +837,7 @@ export type Database = {
           id: string
           establishment_id: string
           user_agent: string | null
-          metadata: Json | null
+          meta Json | null
           created_at: string
         }
         Insert: {
@@ -868,7 +869,7 @@ export type Database = {
           establishment_id: string
           session_id: string
           user_agent: string | null
-          metadata: Json | null
+          meta Json | null
           visit_date: string
         }
         Insert: {
@@ -1317,3 +1318,4 @@ export type Enums<
   : PublicEnumNameOrOptions extends keyof Database["public"]["Enums"]
   ? Database["public"]["Enums"][PublicEnumNameOrOptions]
   : never
+  
