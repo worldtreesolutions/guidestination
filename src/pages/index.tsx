@@ -8,6 +8,9 @@ import CategorySection from "@/components/home/CategorySection";
 import { SearchBar } from "@/components/home/SearchBar";
 import { activityService } from "@/services/activityService";
 import { ActivityForHomepage } from "@/types/activity";
+import { ShoppingCart, User, Briefcase } from "lucide-react";
+import Navbar from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
 
 export default function HomePage() {
   const [activities, setActivities] = useState<ActivityForHomepage[]>([]);
@@ -19,9 +22,7 @@ export default function HomePage() {
       try {
         setLoading(true);
         setError(null);
-        console.log("Fetching activities...");
         const data = await activityService.getActivitiesForHomepage();
-        console.log("Activities fetched:", data);
         setActivities(data);
       } catch (err) {
         console.error("Error fetching activities:", err);
@@ -34,23 +35,6 @@ export default function HomePage() {
     fetchActivities();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center text-white">Loading activities...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center text-red-500">{error}</div>
-      </div>
-    );
-  }
-
-  // Group activities by category for Netflix-style layout
   const groupedActivities = activities.reduce((acc, activity) => {
     const category = activity.category_name || 'Other';
     if (!acc[category]) {
@@ -61,56 +45,79 @@ export default function HomePage() {
   }, {} as Record<string, ActivityForHomepage[]>);
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      {/* Hero Section */}
-      <section className="relative h-screen bg-gradient-to-b from-transparent to-black">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20" />
-        <div className="relative z-10 flex flex-col justify-center items-center h-full px-4 text-center">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">
-            Discover Amazing Experiences
-          </h1>
-          <p className="text-xl md:text-2xl mb-8 opacity-90 max-w-2xl">
-            Find and book unique activities and tours around the world
-          </p>
-          <SearchBar />
-        </div>
-      </section>
-
-      {/* Category Navigation */}
-      <CategoryNav />
-
-      {/* Netflix-style Activity Sections */}
-      <div className="px-4 md:px-8 lg:px-12 space-y-8 pb-20">
-        {/* Featured Activities */}
-        {activities.length > 0 && (
-          <section>
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold">Featured Activities</h2>
-              <Link href="/activities">
-                <Button variant="ghost" className="text-white hover:text-gray-300">
-                  View All
-                </Button>
-              </Link>
-            </div>
-            <ActivityRow activities={activities.slice(0, 10)} />
-          </section>
-        )}
-
-        {/* Category Sections */}
-        {Object.entries(groupedActivities).map(([category, categoryActivities]) => (
-          <CategorySection
-            key={category}
-            title={category}
-            activities={categoryActivities}
-          />
-        ))}
-
-        {activities.length === 0 && (
-          <div className="text-center py-20">
-            <p className="text-gray-400 text-lg">No activities available at the moment.</p>
+    <div className="min-h-screen bg-white text-black">
+      <Navbar />
+      <main className="relative">
+        <section className="w-full py-8 bg-gray-50 border-b">
+          <div className="max-w-4xl mx-auto px-4">
+            <SearchBar />
           </div>
-        )}
-      </div>
+        </section>
+
+        <CategoryNav />
+
+        <div className="px-4 md:px-8 lg:px-12 space-y-8 py-8">
+          {loading && (
+            <div className="text-center py-20">
+              <p className="text-gray-500 text-lg">Loading activities...</p>
+            </div>
+          )}
+          {error && (
+            <div className="text-center py-20">
+              <p className="text-red-500">{error}</p>
+            </div>
+          )}
+          {!loading && !error && (
+            <>
+              {activities.length > 0 ? (
+                <>
+                  <section>
+                    <div className="flex justify-between items-center mb-4">
+                      <h2 className="text-2xl font-bold">Featured Activities</h2>
+                      <Link href="/activities">
+                        <Button variant="link" className="text-primary">
+                          View All
+                        </Button>
+                      </Link>
+                    </div>
+                    <ActivityRow activities={activities.slice(0, 10)} />
+                  </section>
+                  {Object.entries(groupedActivities).map(([category, categoryActivities]) => (
+                    <CategorySection
+                      key={category}
+                      title={category}
+                      activities={categoryActivities}
+                    />
+                  ))}
+                </>
+              ) : (
+                <div className="text-center py-20">
+                  <p className="text-gray-500 text-lg">No activities available at the moment.</p>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        <div className="fixed bottom-4 right-4 z-50">
+          <Button size="icon" className="rounded-full w-14 h-14 shadow-lg">
+            <ShoppingCart className="h-6 w-6" />
+          </Button>
+        </div>
+        <div className="fixed bottom-4 left-4 flex flex-col space-y-2 z-50">
+          <Link href="/activity-owner">
+            <Button variant="secondary" className="rounded-full shadow-lg">
+              <Briefcase className="mr-2 h-4 w-4" /> List your Activity
+            </Button>
+          </Link>
+          <Link href="/partner">
+            <Button variant="secondary" className="rounded-full shadow-lg">
+              <User className="mr-2 h-4 w-4" /> Become a Partner
+            </Button>
+          </Link>
+        </div>
+      </main>
+      <Footer />
     </div>
   );
 }

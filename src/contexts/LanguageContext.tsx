@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { useRouter } from "next/router";
 import { currencyService } from "@/services/currencyService";
@@ -6,6 +7,7 @@ interface LanguageContextType {
   language: string;
   setLanguage: (language: string) => void;
   translations: any;
+  t: (key: string) => string;
   currency: string;
   setCurrency: (currency: string) => void;
   formatCurrency: (amount: number) => string;
@@ -34,7 +36,6 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       const response = await fetch(`/translations/${lang}.json`);
       if (!response.ok) {
         console.error(`Failed to load ${lang}.json`);
-        // Fallback to English if the language file is not found
         if (lang !== "en") {
           await fetchTranslations("en");
         }
@@ -55,7 +56,6 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     const initialLanguage = savedLanguage || "en";
     setLanguageState(initialLanguage);
     
-    // Set currency based on language
     if (initialLanguage === 'fr') {
       setCurrency('EUR');
     } else if (initialLanguage === 'en') {
@@ -72,7 +72,6 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("language", lang);
     fetchTranslations(lang);
     
-    // Update currency when language changes
     if (lang === 'fr') {
       setCurrency('EUR');
     } else if (lang === 'en') {
@@ -81,23 +80,32 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       setCurrency('THB');
     }
 
-    // Optional: force a reload to ensure all components re-render with the new language
     router.push(router.pathname, router.asPath, { locale: lang });
   };
 
   const formatCurrency = (amountInThb: number) => {
-    const convertedAmount = currencyService.convert(amountInThb, "THB", currency);
-    const symbol = currencyService.getCurrencySymbol(currency);
-    return `${symbol}${convertedAmount.toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`;
+    const convertedAmount = currencyService.convertFromTHB(amountInThb, currency);
+    return currencyService.formatCurrency(convertedAmount, currency);
   };
+
+  const t = useCallback((key: string): string => {
+    const keys = key.split('.');
+    let result: any = translations;
+    for (const k of keys) {
+      if (result && typeof result === 'object' && k in result) {
+        result = result[k];
+      } else {
+        return key;
+      }
+    }
+    return typeof result === 'string' ? result : key;
+  }, [translations]);
 
   const value = {
     language,
     setLanguage,
     translations,
+    t,
     currency,
     setCurrency,
     formatCurrency,

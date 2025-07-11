@@ -1,11 +1,11 @@
-import { useState } from "react"
-import Head from "next/head"
-import { Navbar } from "@/components/layout/Navbar"
-import { Footer } from "@/components/layout/Footer"
-import { PartnerRegistrationForm } from "@/components/partner/PartnerRegistrationForm"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { useState } from "react";
+import Head from "next/head";
+import Navbar from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
+import { PartnerRegistrationForm } from "@/components/partner/PartnerRegistrationForm";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { 
   Building2, 
   Users, 
@@ -16,9 +16,12 @@ import {
   MapPin,
   Phone,
   Mail,
-  Globe
-} from "lucide-react"
-import { useLanguage } from "@/contexts/LanguageContext"
+  Globe,
+  Briefcase,
+  User
+} from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
+import Link from "next/link";
 
 export default function PartnerPage() {
   const { t } = useLanguage()
@@ -90,7 +93,19 @@ export default function PartnerPage() {
         
         <Footer />
       </div>
-    )
+      <div className="fixed bottom-4 left-4 flex flex-col space-y-2 z-50">
+        <Link href="/activity-owner">
+          <Button variant="secondary" className="rounded-full shadow-lg">
+            <Briefcase className="mr-2 h-4 w-4" /> List your Activity
+          </Button>
+        </Link>
+        <Link href="/partner">
+          <Button variant="secondary" className="rounded-full shadow-lg">
+            <User className="mr-2 h-4 w-4" /> Become a Partner
+          </Button>
+        </Link>
+      </div>
+    </>
   }
 
   return (
@@ -270,6 +285,18 @@ export default function PartnerPage() {
       </main>
       
       <Footer />
+      <div className="fixed bottom-4 left-4 flex flex-col space-y-2 z-50">
+        <Link href="/activity-owner">
+          <Button variant="secondary" className="rounded-full shadow-lg">
+            <Briefcase className="mr-2 h-4 w-4" /> List your Activity
+          </Button>
+        </Link>
+        <Link href="/partner">
+          <Button variant="secondary" className="rounded-full shadow-lg">
+            <User className="mr-2 h-4 w-4" /> Become a Partner
+          </Button>
+        </Link>
+      </div>
     </div>
   )
 }

@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 
 const categories = [
@@ -22,7 +21,7 @@ export default function CategoryNav() {
           <Button
             key={category}
             variant="ghost"
-            className="flex-shrink-0 text-white hover:text-gray-300 hover:bg-gray-800/50 border border-gray-600 rounded-full px-6"
+            className="flex-shrink-0 text-gray-700 hover:text-black hover:bg-gray-100 border border-gray-200 rounded-full px-6"
           >
             {category}
           </Button>

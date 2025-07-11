@@ -1,4 +1,3 @@
-
 import { Database } from "@/integrations/supabase/types";
 
 // Helper type to extract row types from the Database type.
@@ -24,18 +23,18 @@ export interface Activity extends SupabaseActivity {
   category_name?: string;
   media?: { url: string; type: "image" | "video" }[];
   schedules?: SupabaseActivitySchedule[];
-  name?: string; // Fallback for title
-  duration?: number | null;
-  max_participants?: number | null;
-  meeting_point?: string | null;
-  highlights?: string[] | null;
-  languages?: string[] | null;
-  included?: string[] | null;
-  not_included?: string[] | null;
-  includes_pickup?: boolean | null;
-  pickup_locations?: string | null;
-  includes_meal?: boolean | null;
-  meal_description?: string | null;
+  name?: string;
+  duration: string | null;
+  max_participants: number | null;
+  meeting_point: string | null;
+  highlights: string[] | null;
+  languages: string[] | null;
+  included: string[] | null;
+  not_included: string[] | null;
+  includes_pickup: boolean | null;
+  pickup_locations: string | null;
+  includes_meal: boolean | null;
+  meal_description: string | null;
   activity_schedules?: ActivitySchedule[];
   currency?: string;
 }
@@ -49,7 +48,7 @@ export interface Booking extends Omit<SupabaseBooking, "status"> {
 
 // Slimmed-down type for homepage activity cards
 export interface ActivityForHomepage {
-  id: string;
+  id: number;
   slug: string;
   title: string;
   price: number | null;

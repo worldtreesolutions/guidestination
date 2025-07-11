@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
@@ -13,47 +14,49 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <nav className="bg-white shadow-sm border-b sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <Link href="/" className="text-xl font-bold text-primary">
-            Guidestination
-          </Link>
+    <header className="bg-white shadow-sm border-b sticky top-0 z-40">
+      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          <div className="flex-1 flex items-center"></div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-4">
-            <LanguageSelector />
-            <CurrencySelector />
-            
-            {user ? (
-              <UserDropdown />
-            ) : (
-              <div className="flex items-center space-x-2">
-                <Link href="/auth/login">
-                  <Button variant="ghost">Sign In</Button>
-                </Link>
-                <Link href="/auth/register">
-                  <Button>Sign Up</Button>
-                </Link>
-              </div>
-            )}
+          <div className="flex-shrink-0">
+            <Link href="/" className="text-2xl font-bold text-primary">
+              Guidestination
+            </Link>
           </div>
 
-          {/* Mobile menu button */}
-          <div className="md:hidden">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
-              {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </Button>
+          <div className="flex-1 flex items-center justify-end space-x-4">
+            <div className="hidden md:flex items-center space-x-2">
+              <LanguageSelector />
+              <CurrencySelector />
+              {user ? (
+                <UserDropdown />
+              ) : (
+                <>
+                  <Link href="/auth/login">
+                    <Button variant="ghost">Sign In</Button>
+                  </Link>
+                  <Link href="/auth/register">
+                    <Button>Sign Up</Button>
+                  </Link>
+                </>
+              )}
+            </div>
+            <div className="md:hidden">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              >
+                <span className="sr-only">Open menu</span>
+                {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
+      </nav>
 
-      {/* Mobile Menu */}
       <MobileMenu isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
-    </nav>
+    </header>
   );
 }
