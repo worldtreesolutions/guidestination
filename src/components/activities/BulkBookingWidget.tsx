@@ -1,71 +1,61 @@
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { useRouter } from "next/router"
-import { ShoppingCart, Trash2, Calendar } from "lucide-react"
-import { useIsMobile } from "@/hooks/use-mobile"
-import { useLanguage } from "@/contexts/LanguageContext"
-import { motion } from "framer-motion"
-import { SupabaseActivity, ScheduledActivity, Activity } from "@/types/activity"
-import Image from "next/image"
 
-type ActivityItem = SupabaseActivity | ScheduledActivity;
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useRouter } from "next/router";
+import { ShoppingCart, Trash2, Calendar } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { motion } from "framer-motion";
+import { SupabaseActivity, ScheduledActivity, Activity, ActivityWithDetails } from "@/types/activity";
+import Image from "next/image";
+
+type ActivityItem = (Activity | ActivityWithDetails | ScheduledActivity) & { b_price?: number | null, price?: number | null, image_url?: string | null };
 
 interface BulkBookingWidgetProps {
   activities: ActivityItem[];
   onClearSelection: () => void;
 }
 
-const isScheduledActivity = (activity: ActivityItem): activity is ScheduledActivity => {
-    return "date" in activity && "time" in activity;
-};
-
 export function BulkBookingWidget({ activities, onClearSelection }: BulkBookingWidgetProps) {
-  const router = useRouter()
-  const isMobile = useIsMobile()
-  const { t } = useLanguage()
+  const router = useRouter();
+  const isMobile = useIsMobile();
+  const { t } = useLanguage();
   
   const totalPrice = activities.reduce((sum, activity) => {
-    const price = (activity as Activity).price ?? (activity as SupabaseActivity).b_price;
+    const price = activity.b_price ?? activity.price;
     return sum + (Number(price) || 0);
-  }, 0)
+  }, 0);
 
   const formatPrice = (price: number) => {
-    return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-  }
-
-  const handleActivitySelection = (activity: ActivityWithDetails) => {
-    setSelectedActivities((prev) => {
-      const isSelected = prev.find((a) => a.id === activity.id);
-      if (isSelected) {
-        return prev.filter((a) => a.id !== activity.id);
-      }
-      return [...prev, activity];
-    });
+    return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
 
-  const totalCost = selectedActivities.reduce((acc, activity) => acc + (activity.b_price || 0), 0);
-
   const handleBooking = async () => {
-    if (selectedActivities.length === 0) {
-      router.push("/checkout")
-    } else {
-      const line_items = selectedActivities.map((activity) => ({
+    if (activities.length === 0) {
+      return;
+    }
+    
+    const line_items = activities.map((activity) => {
+      const price = activity.b_price ?? activity.price;
+      return {
         price_ {
           currency: "usd",
           product_ {
             name: activity.title,
             images: [activity.image_url || ""],
           },
-          unit_amount: (activity.b_price || 0) * 100,
+          unit_amount: (Number(price) || 0) * 100,
         },
         quantity: 1,
-      }));
-      router.push("/checkout", { line_items });
-    }
-  }
+      };
+    });
 
-  const totalActivities = activities.length
-  const hasActivities = totalActivities > 0
+    localStorage.setItem("checkout_items", JSON.stringify(line_items));
+    router.push("/checkout");
+  };
+
+  const totalActivities = activities.length;
+  const hasActivities = totalActivities > 0;
 
   return (
     <Card className="w-full max-w-md">
@@ -75,7 +65,7 @@ export function BulkBookingWidget({ activities, onClearSelection }: BulkBookingW
       </CardHeader>
       <CardContent className="space-y-4">
         {activities.map((activity) => {
-          const price = (activity as Activity).price ?? (activity as SupabaseActivity).b_price;
+          const price = activity.b_price ?? activity.price;
           const imageUrl = activity.image_url || "/placeholder.svg";
 
           return (
@@ -94,7 +84,7 @@ export function BulkBookingWidget({ activities, onClearSelection }: BulkBookingW
                 </p>
               </div>
             </div>
-          )
+          );
         })}
         <div className="space-y-4">
           <div className="flex justify-between items-center p-3 bg-primary/5 rounded-lg">
@@ -148,5 +138,5 @@ export function BulkBookingWidget({ activities, onClearSelection }: BulkBookingW
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
