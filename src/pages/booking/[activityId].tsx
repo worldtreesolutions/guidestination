@@ -25,7 +25,7 @@ import BookingForm from "@/components/activities/BookingForm";
 import { ActivityReviews } from "@/components/activities/ActivityReviews";
 import { useIsMobile } from "@/hooks/use-mobile";
 import activityService from "@/services/activityService";
-import { Activity, SupabaseActivity, ActivityWithDetails } from "@/types/activity";
+import { Activity, SupabaseActivity, ActivityWithDetails, ActivityScheduleInstance } from "@/types/activity";
 import { Check, X } from "lucide-react";
 import stripeService from "@/services/stripeService";
 import { useToast } from "@/hooks/use-toast";
