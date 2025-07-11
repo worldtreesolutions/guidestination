@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client"
 import { getAdminClient, getAdminClientSafe } from "@/integrations/supabase/admin"
 import type { Database } from "@/integrations/supabase/types"
@@ -97,9 +96,9 @@ export const stripeService = {
       payment_method_types: ["card"],
       line_items: [
         {
-          price_ {
+          price_data: {
             currency: "thb",
-            product_ {
+            product_data: {
               name: activity.title,
               description: activity.description ?? undefined,
             },
@@ -112,7 +111,7 @@ export const stripeService = {
       success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/booking/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/booking/cancelled`,
       customer_email: customerEmail,
-      meta {
+      metadata: {
         activityId: activityId.toString(),
         participants: participants.toString(),
         customerName,
@@ -139,9 +138,9 @@ export const stripeService = {
     const paymentLink = await stripe.paymentLinks.create({
       line_items: [
         {
-          price_ {
+          price_data: {
             currency: "thb",
-            product_ {
+            product_data: {
               name: `Commission Payment - Invoice ${invoiceNumber}`,
               description: `Payment for commission invoice ${invoiceNumber}`,
             },
@@ -150,7 +149,7 @@ export const stripeService = {
           quantity: 1,
         },
       ] as any,
-      meta {
+      metadata: {
         invoiceId,
         type: "commission_payment",
       },
