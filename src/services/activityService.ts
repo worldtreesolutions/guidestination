@@ -1,258 +1,212 @@
 import { supabase } from "@/integrations/supabase/client";
-import { Activity, SupabaseActivity, ActivitySchedule, ActivityScheduleInstance, TablesInsert, TablesUpdate } from "@/types/activity";
+import type { Database } from "@/integrations/supabase/types";
+import { ActivityForHomepage, ActivityWithDetails, ActivitySchedule, Booking } from "@/types/activity";
 
-class ActivityService {
-  private _mapStatus(status: number | null): string {
-    switch (status) {
-      case 1:
-        return "published";
-      case 2:
-        return "unpublished";
-      case 3:
-        return "draft";
-      case 4:
-        return "archived";
-      default:
-        return "draft";
-    }
-  }
-
-  private _transformActivity(
-    activity: SupabaseActivity,
-    categoryName?: string
-  ): Activity {
-    const {
-      highlights,
-      languages,
-      included,
-      not_included,
-      status,
-      duration,
-      ...rest
-    } = activity;
-
-    return {
-      ...rest,
-      slug: activity.title.toLowerCase().replace(/\s+/g, "-"),
-      category_name: categoryName || "Uncategorized",
-      price: activity.b_price,
-      currency: "THB",
-      highlights: highlights ? JSON.parse(highlights) : [],
-      languages: languages ? JSON.parse(languages) : ["English"],
-      included: included ? JSON.parse(included) : [],
-      not_included: not_included ? JSON.parse(not_included) : [],
-      status: this._mapStatus(status),
-      duration: duration ? parseInt(duration, 10) : null,
-    };
-  }
-
-  async getActivities(): Promise<Activity[]> {
+const activityService = {
+  async getActivitiesForHomepage(): Promise<ActivityForHomepage[]> {
     if (!supabase) {
-      console.error("Supabase client not initialized");
+      console.error("Supabase client is not initialized.");
       return [];
     }
-
     const { data, error } = await supabase
       .from("activities")
-      .select("*, categories(name)")
-      .eq("is_active", true);
-
-    if (error) {
-      console.error("Error fetching activities:", error);
-      throw error;
-    }
-
-    return data.map((activity) =>
-      this._transformActivity(activity as any, (activity as any).categories?.name)
-    );
-  }
-
-  async getActivitiesForHomepage(): Promise<any[]> {
-    if (!supabase) {
-      console.error("Supabase client not initialized");
-      return [];
-    }
-
-    const { data, error } = await supabase
-      .from("activities")
-      .select("id, title, b_price, address, average_rating, image_url, categories(name), duration, min_age, max_age, description, max_participants, technical_skill_level, physical_effort_level, includes_pickup, includes_meal")
-      .eq("is_active", true)
-      .limit(50);
+      .select("id, title, b_price, image_url, slug, categories(name)")
+      .limit(10);
 
     if (error) {
       console.error("Error fetching activities for homepage:", error);
-      throw error;
+      return [];
     }
 
-    return data.map((activity: any) => ({
-      id: activity.id,
-      slug: activity.title.toLowerCase().replace(/\s+/g, "-"),
-      title: activity.title,
-      price: activity.b_price,
-      b_price: activity.b_price,
-      location: activity.address,
-      address: activity.address,
-      average_rating: activity.average_rating,
-      image_url: activity.image_url,
-      category_name: activity.categories?.name || 'Uncategorized',
-      currency: 'THB',
-      duration: activity.duration,
-      min_age: activity.min_age,
-      max_age: activity.max_age,
-      description: activity.description,
-      max_participants: activity.max_participants,
-      technical_skill_level: activity.technical_skill_level,
-      physical_effort_level: activity.physical_effort_level,
-      includes_pickup: activity.includes_pickup,
-      includes_meal: activity.includes_meal,
+    return (data as any[]).map((activity) => ({
+      ...activity,
+      category_name: activity.categories?.name || null,
     }));
-  }
+  },
 
-  async getActivityById(id: number): Promise<Activity> {
+  async getActivityBySlug(slug: string): Promise<ActivityWithDetails | null> {
     if (!supabase) {
-      throw new Error("Supabase client not initialized");
+      console.error("Supabase client is not initialized.");
+      return null;
     }
-
-    const { data: activity, error } = await supabase
+    const { data, error } = await supabase
       .from("activities")
-      .select("*, categories(name)")
+      .select(
+        `*,
+        categories(*),
+        activity_schedules(*),
+        reviews(*, users(full_name, avatar_url))
+        `
+      )
+      .eq("slug", slug)
+      .single();
+
+    if (error) {
+      console.error(`Error fetching activity by slug ${slug}:`, error);
+      return null;
+    }
+    return data as ActivityWithDetails;
+  },
+
+  async getActivityById(id: number): Promise<ActivityWithDetails | null> {
+    if (!supabase) {
+      console.error("Supabase client is not initialized.");
+      return null;
+    }
+    const { data, error } = await supabase
+      .from("activities")
+      .select(
+        `*,
+        categories(*),
+        activity_schedules(*),
+        reviews(*, users(full_name, avatar_url))
+        `
+      )
       .eq("id", id)
       .single();
 
-    if (error) throw error;
-    if (!activity) throw new Error("Activity not found");
+    if (error) {
+      console.error(`Error fetching activity by id ${id}:`, error);
+      return null;
+    }
+    return data as ActivityWithDetails;
+  },
 
-    const schedulesResponse = await supabase
-      .from("activity_schedules")
-      .select("*")
-      .eq("activity_id", id);
-
-    const scheduleInstancesResponse = await supabase
-      .from("activity_schedule_instances")
-      .select("*")
-      .eq("activity_id", id);
-
-    const transformedActivity = this._transformActivity(
-      activity as any,
-      (activity as any).categories?.name
-    );
-
-    return {
-      ...transformedActivity,
-      schedules: (schedulesResponse.data as ActivitySchedule[]) || [],
-      schedule_instances: scheduleInstancesResponse.data || [],
-    };
-  }
-
-  async getActivityBySlug(slug: string): Promise<Activity | null> {
+  async getActivitiesByProvider(providerId: string): Promise<any[]> {
+    if (!supabase) {
+      console.error("Supabase client is not initialized.");
+      return [];
+    }
     const { data, error } = await supabase
       .from("activities")
-      .select("*, categories(name)")
-      .eq("is_active", true);
+      .select("*")
+      .eq("provider_id", providerId);
 
     if (error) {
-      console.error("Error fetching activities:", error);
-      throw error;
+      console.error("Error fetching activities by provider:", error);
+      return [];
     }
+    return data;
+  },
 
-    const activity = data.find(
-      (act) => act.title.toLowerCase().replace(/\s+/g, "-") === slug
-    );
-
-    if (!activity) return null;
-
-    return this.getActivityById(activity.id);
-  }
-
-  async fetchActivitiesByOwner(ownerId: string): Promise<Activity[]> {
+  async createActivity(activityData: any): Promise<any> {
+    if (!supabase) {
+      throw new Error("Supabase client is not initialized.");
+    }
     const { data, error } = await supabase
       .from("activities")
-      .select("*, categories(name)")
-      .eq("provider_id", ownerId);
-
-    if (error) throw error;
-
-    return data.map((activity) =>
-      this._transformActivity(activity as any, (activity as any).categories?.name)
-    );
-  }
-
-  async createActivity(
-    activityData: TablesInsert<"activities">
-  ): Promise<SupabaseActivity> {
-    const { data, error } = await supabase
-      .from("activities")
-      .insert(activityData)
+      .insert([activityData])
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error("Error creating activity:", error);
+      throw error;
+    }
     return data;
-  }
+  },
 
-  async updateActivity(
-    id: number,
-    activityData: TablesUpdate<"activities">
-  ): Promise<SupabaseActivity> {
+  async updateActivity(activityId: number, activityData: any): Promise<any> {
+    if (!supabase) {
+      throw new Error("Supabase client is not initialized.");
+    }
     const { data, error } = await supabase
       .from("activities")
       .update(activityData)
-      .eq("id", id)
+      .eq("id", activityId)
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error("Error updating activity:", error);
+      throw error;
+    }
     return data;
-  }
+  },
 
-  async deleteActivity(id: number): Promise<void> {
-    const { error } = await supabase.from("activities").delete().eq("id", id);
-    if (error) throw error;
-  }
+  async deleteActivity(activityId: number): Promise<any> {
+    if (!supabase) {
+      throw new Error("Supabase client is not initialized.");
+    }
+    const { data, error } = await supabase
+      .from("activities")
+      .delete()
+      .eq("id", activityId);
 
-  async getSchedulesForActivity(activityId: number): Promise<ActivitySchedule[]> {
+    if (error) {
+      console.error("Error deleting activity:", error);
+      throw error;
+    }
+    return data;
+  },
+
+  async getActivitySchedules(activityId: number): Promise<ActivitySchedule[]> {
+    if (!supabase) {
+      console.error("Supabase client is not initialized.");
+      return [];
+    }
     const { data, error } = await supabase
       .from("activity_schedules")
       .select("*")
       .eq("activity_id", activityId);
-    if (error) throw error;
-    return data as ActivitySchedule[];
-  }
 
-  async updateSchedulesForActivity(
-    activityId: number,
-    schedules: Partial<ActivitySchedule>[]
-  ): Promise<ActivitySchedule[]> {
-    const schedulesToUpsert = schedules.map((s) => ({
-      ...s,
-      activity_id: activityId,
-    }));
-
-    const { data, error } = await supabase
-      .from("activity_schedules")
-      .upsert(schedulesToUpsert)
-      .select();
-
-    if (error) throw error;
-    return data as ActivitySchedule[];
-  }
-
-  async getScheduleInstances(
-    activityId: number,
-    startDate: string,
-    endDate: string
-  ): Promise<ActivityScheduleInstance[]> {
-    const { data, error } = await supabase
-      .from("activity_schedule_instances")
-      .select("*")
-      .eq("activity_id", activityId)
-      .gte("scheduled_date", startDate)
-      .lte("scheduled_date", endDate);
-
-    if (error) throw error;
+    if (error) {
+      console.error("Error fetching activity schedules:", error);
+      return [];
+    }
     return data;
-  }
-}
+  },
 
-const activityService = new ActivityService();
+  async updateActivitySchedules(activityId: number, schedules: Partial<ActivitySchedule>[]): Promise<any> {
+    if (!supabase) {
+      throw new Error("Supabase client is not initialized.");
+    }
+    // Separate schedules into new and existing
+    const newSchedules = schedules.filter((s) => !s.id);
+    const existingSchedules = schedules.filter((s) => s.id);
+
+    // Upsert existing schedules
+    if (existingSchedules.length > 0) {
+      const { error: updateError } = await supabase
+        .from("activity_schedules")
+        .upsert(existingSchedules);
+      if (updateError) {
+        console.error("Error updating existing schedules:", updateError);
+        throw updateError;
+      }
+    }
+
+    // Insert new schedules
+    if (newSchedules.length > 0) {
+        const schedulesToInsert = newSchedules.map(s => ({...s, activity_id: activityId, day_of_week: s.day_of_week as number, start_time: s.start_time as string, end_time: s.end_time as string}));
+        const { error: insertError } = await supabase
+        .from("activity_schedules")
+        .insert(schedulesToInsert);
+      if (insertError) {
+        console.error("Error inserting new schedules:", insertError);
+        throw insertError;
+      }
+    }
+
+    return { success: true };
+  },
+
+  async bookActivity(bookingData: Omit<Booking, "id" | "created_at" | "status">): Promise<Booking> {
+    if (!supabase) {
+      throw new Error("Supabase client is not initialized.");
+    }
+    const { data, error } = await supabase
+      .from("bookings")
+      .insert([{ ...bookingData, status: "pending" }])
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error booking activity:", error);
+      throw error;
+    }
+    return data as Booking;
+  },
+};
+
 export default activityService;

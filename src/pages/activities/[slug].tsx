@@ -66,186 +66,70 @@ export default function ActivityPage() {
   );
 
   const renderContent = () => {
-    if (!activity) return null;
+    if (!activity) {
+      return <div>Activity not found</div>;
+    }
 
-    const images = activity.image_url ? activity.image_url.split(",").map(s => s.trim()) : [];
-    const videos = activity.video_url ? activity.video_url.split(",").map(s => s.trim()) : [];
+    const images = (activity.image_urls || []).map(url => ({ 
+      url,
+      thumbnail: url
+    }));
 
     return (
-      <div className="container py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-8">
-          {/* Activity Gallery */}
-          {images.length > 0 && (
-            <ActivityGallery images={images} videos={videos} title={activity.title} />
-          )}
-
-          {/* Activity Header */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary">{activity.category}</Badge>
-              {activity.average_rating && (
-                <div className="flex items-center gap-1">
-                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  <span className="text-sm font-medium">{activity.average_rating}</span>
-                </div>
-              )}
-            </div>
-            <h1 className="text-3xl font-bold">{activity.title}</h1>
-            <div className="flex items-center gap-4 text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <MapPin className="h-4 w-4" />
-                <span className="text-sm">{activity.address}</span>
-              </div>
-              {activity.duration && (
-                <div className="flex items-center gap-1">
-                  <Clock className="h-4 w-4" />
-                  <span className="text-sm">{activity.duration}</span>
-                </div>
-              )}
-              {activity.max_participants && (
-                <div className="flex items-center gap-1">
-                  <Users className="h-4 w-4" />
-                  <span className="text-sm">Up to {activity.max_participants} people</span>
-                </div>
-              )}
-            </div>
+      <div className="bg-white text-black">
+        <div className="container py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
+            <ActivityGallery images={images} />
+            <ActivityDetails activity={activity} />
+            <ActivityReviews reviews={activity.reviews || []} />
           </div>
-
-          {/* Activity Details */}
-          <ActivityDetails activity={activity} />
-
-          {/* What's Included */}
-          <Card>
-            <CardHeader>
-              <CardTitle>What's Included</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {activity.includes_pickup && (
-                  <div className="flex items-center gap-2">
-                    <Car className="h-4 w-4 text-green-600" />
-                    <span className="text-sm">Hotel pickup included</span>
-                  </div>
-                )}
-                {activity.includes_meal && (
-                  <div className="flex items-center gap-2">
-                    <Utensils className="h-4 w-4 text-green-600" />
-                    <span className="text-sm">Meal included</span>
-                  </div>
-                )}
-                {activity.includes_guide && (
-                  <div className="flex items-center gap-2">
-                    <Shield className="h-4 w-4 text-green-600" />
-                    <span className="text-sm">Professional guide</span>
-                  </div>
-                )}
-                {activity.includes_equipment && (
-                  <div className="flex items-center gap-2">
-                    <Shield className="h-4 w-4 text-green-600" />
-                    <span className="text-sm">Safety equipment</span>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Activity Requirements */}
-          {(activity.min_age || activity.max_age || activity.technical_skill_level || activity.physical_effort_level) && (
+          <div className="lg:col-span-1">
             <Card>
               <CardHeader>
-                <CardTitle>Requirements & Difficulty</CardTitle>
+                <CardTitle>Availability</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {(activity.min_age || activity.max_age) && (
-                    <div>
-                      <h4 className="font-medium mb-2">Age Requirements</h4>
-                      <p className="text-sm text-muted-foreground">
-                        {activity.min_age && activity.max_age 
-                          ? `Ages ${activity.min_age} - ${activity.max_age}`
-                          : activity.min_age 
-                          ? `Minimum age: ${activity.min_age}`
-                          : `Maximum age: ${activity.max_age}`
-                        }
-                      </p>
-                    </div>
-                  )}
-                  {activity.technical_skill_level && (
-                    <div>
-                      <h4 className="font-medium mb-2">Technical Skill Level</h4>
-                      <Badge variant="outline">{activity.technical_skill_level}</Badge>
-                    </div>
-                  )}
-                  {activity.physical_effort_level && (
-                    <div>
-                      <h4 className="font-medium mb-2">Physical Effort Level</h4>
-                      <Badge variant="outline">{activity.physical_effort_level}</Badge>
-                    </div>
-                  )}
-                </div>
+                <AvailabilityCalendar 
+                  activityId={String(activity.id)} 
+                  scheduleData={scheduleData}
+                />
               </CardContent>
             </Card>
-          )}
-
-          {/* Activity Reviews */}
-          <ActivityReviews 
-            activityId={String(activity.id)} 
-            rating={activity.average_rating || 0}
-            reviewCount={0}
-          />
-        </div>
-
-        <div className="lg:col-span-1 space-y-6">
-          {/* Availability Calendar */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Availability</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <AvailabilityCalendar 
-                activityId={String(activity.id)} 
-                scheduleData={scheduleData}
-              />
-            </CardContent>
-          </Card>
-
-          {/* Booking Widget */}
-          <Card>
-            <CardContent className="p-0">
-              <BookingWidget activity={activity} />
-            </CardContent>
-          </Card>
-
-          {/* Quick Info */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Quick Info</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Duration</span>
-                <span className="text-sm font-medium">{activity.duration || "Varies"}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Group Size</span>
-                <span className="text-sm font-medium">
-                  {activity.max_participants ? `Up to ${activity.max_participants}` : "Varies"}
-                </span>
-              </div>
-              {activity.languages && (
+            <Card>
+              <CardContent className="p-0">
+                <BookingWidget activity={activity} />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Quick Info</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Language</span>
-                  <span className="text-sm font-medium">{activity.languages}</span>
+                  <span className="text-sm text-muted-foreground">Duration</span>
+                  <span className="text-sm font-medium">{activity.duration || "Varies"}</span>
                 </div>
-              )}
-              {activity.cancellation_policy && (
                 <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Cancellation</span>
-                  <span className="text-sm font-medium">{activity.cancellation_policy}</span>
+                  <span className="text-sm text-muted-foreground">Group Size</span>
+                  <span className="text-sm font-medium">
+                    {activity.max_participants ? `Up to ${activity.max_participants}` : "Varies"}
+                  </span>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+                {activity.languages && (
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Language</span>
+                    <span className="text-sm font-medium">{activity.languages}</span>
+                  </div>
+                )}
+                {activity.cancellation_policy && (
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Cancellation</span>
+                    <span className="text-sm font-medium">{activity.cancellation_policy}</span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     );
@@ -254,7 +138,7 @@ export default function ActivityPage() {
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <Navbar />
-      <main className="flex-1">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {loading ? renderLoading() : error ? renderError() : renderContent()}
       </main>
       <Footer />

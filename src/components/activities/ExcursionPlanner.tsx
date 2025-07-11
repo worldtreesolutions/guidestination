@@ -1,15 +1,15 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { DndProvider, useDrag, useDrop } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Trash2 } from "lucide-react";
 import activityService from "@/services/activityService";
-import { Activity, SupabaseActivity } from "@/types/activity";
-import { PlanningContext } from "@/contexts/PlanningContext";
-import { useToast } from "@/hooks/use-toast";
+import { ActivityWithDetails, ScheduledActivity } from "@/types/activity";
 
 interface ExcursionPlannerProps {
-  activities: Activity[];
+  activities: ActivityWithDetails[];
   onPlanComplete: (plan: any) => void;
 }
 
@@ -17,10 +17,7 @@ export function ExcursionPlanner({
   activities,
   onPlanComplete,
 }: ExcursionPlannerProps) {
-  const { addActivity } = useContext(PlanningContext);
-  const { toast } = useToast();
-
-  const [filteredActivities, setFilteredActivities] = useState<Activity[]>([]);
+  const [filteredActivities, setFilteredActivities] = useState<ActivityWithDetails[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedActivity, setSelectedActivity] = useState<ScheduledActivity | null>(null);
   const [loading, setLoading] = useState(true);
@@ -49,7 +46,7 @@ export function ExcursionPlanner({
     }
   };
 
-  const handleSelectActivity = (activity: Activity, time: string) => {
+  const handleSelectActivity = (activity: ActivityWithDetails, time: string) => {
     if (!selectedDate) {
       toast({
         title: "Please select a date",
@@ -78,7 +75,7 @@ export function ExcursionPlanner({
     }
   };
 
-  const getAvailableTimes = (activity: Activity): string[] => {
+  const getAvailableTimes = (activity: ActivityWithDetails): string[] => {
     if (!selectedDate || !activity.schedules) return [];
     const dayOfWeek = selectedDate.getDay(); // Sunday is 0
     const adjustedDayOfWeek = dayOfWeek === 0 ? 7 : dayOfWeek; // Adjust to Monday=1..Sunday=7
