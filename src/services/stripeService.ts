@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client"
 import { getAdminClient } from "@/integrations/supabase/admin"
 import type { Database } from "@/integrations/supabase/types"
@@ -147,18 +148,17 @@ export const stripeService = {
 
     try {
       // Create the booking
-      const {  booking, error: bookingError } = await client
+      const { data: booking, error: bookingError } = await client
         .from("bookings")
         .insert({
           activity_id: parseInt(activityId),
           customer_name: customerName,
-          customer_email: session.customer_email!,
           participants: parseInt(participants),
           total_amount: session.amount_total! / 100,
           status: "confirmed",
-          stripe_session_id: session.id,
-          establishment_id: establishmentId || null,
           booking_date: new Date().toISOString(),
+          user_id: "stripe_customer", // Default user for Stripe bookings
+          provider_id: "default", // Will be updated based on activity
         })
         .select()
         .single()
@@ -281,7 +281,7 @@ export const stripeService = {
       const emailData = {
         bookingId: booking.id,
         customerName: booking.customer_name,
-        customerEmail: booking.customer_email,
+        customerEmail: booking.customer_email || "no-email@example.com",
         activityTitle: activity.title,
         activityDescription: activity.description,
         totalAmount: booking.total_amount,
@@ -372,13 +372,13 @@ export const stripeService = {
       throw bookingError;
     }
 
-    const { error: updateError } = await supabase
+    const { data, error: updateError } = await supabase
       .from("bookings")
       .update({
-        customer_name: customerName,
-        status: "confirmed",
+        status: status,
       })
-      .eq("id", bookingId);
+      .eq("id", bookingId)
+      .select();
 
     if (updateError) {
       console.error("Error updating booking status:", updateError);

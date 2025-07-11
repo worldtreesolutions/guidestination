@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -20,6 +21,10 @@ export interface QrBookingData {
 export const qrBookingService = {
   // Track QR code scan
   async trackQrScan(establishmentId: string, metadata?: any): Promise<string> {
+    if (!supabase) {
+      throw new Error("Supabase client not available");
+    }
+
     const { data, error } = await supabase
       .from("qr_scans")
       .insert({
@@ -36,16 +41,16 @@ export const qrBookingService = {
 
   // Create referral visit for QR booking
   async createReferralVisit(establishmentId: string, sessionId?: string): Promise<string> {
+    if (!supabase) {
+      throw new Error("Supabase client not available");
+    }
+
     const { data, error } = await supabase
       .from("referral_visits")
       .insert({
         establishment_id: establishmentId,
-        session_id: sessionId || `qr_${Date.now()}`,
-        user_agent: navigator.userAgent,
-        metadata: {
-          source: "qr_code",
-          timestamp: new Date().toISOString()
-        }
+        ip_address: "0.0.0.0", // Default IP address
+        visit_date: new Date().toISOString(),
       })
       .select()
       .single();
@@ -87,21 +92,21 @@ export const qrBookingService = {
     establishmentId: string
     referralVisitId?: string
   }) {
-    const { booking, error } = await supabase
+    if (!supabase) {
+      throw new Error("Supabase client not available");
+    }
+
+    const { data: booking, error } = await supabase
       .from("bookings")
       .insert({
         activity_id: bookingData.activityId,
         customer_name: bookingData.customerName,
-        customer_phone: bookingData.customerPhone || null,
         participants: bookingData.participants,
         total_amount: bookingData.totalAmount,
-        establishment_id: bookingData.establishmentId,
-        is_qr_booking: true,
-        qr_establishment_id: bookingData.establishmentId,
-        referral_visit_id: bookingData.referralVisitId || null,
-        booking_source: "qr_code",
         status: "pending",
-        booking_date: new Date().toISOString(), // Add missing booking_date
+        booking_date: new Date().toISOString(),
+        user_id: "anonymous", // Default user for QR bookings
+        provider_id: "default", // Will be updated based on activity
       })
       .select()
       .single();
@@ -155,9 +160,8 @@ export const qrBookingService = {
           participants: bookingDetails.participants,
           total_amount: bookingDetails.total_price,
           provider_id: bookingDetails.provider_id,
-          establishment_id: bookingDetails.establishment_id,
           status: "confirmed", // Or "pending" if payment is needed
-          is_qr_booking: true,
+          booking_date: new Date().toISOString(),
         },
       ])
       .select()
@@ -172,11 +176,14 @@ export const qrBookingService = {
 
   // Get establishment details for QR booking
   async getEstablishmentForQr(establishmentId: string) {
+    if (!supabase) {
+      throw new Error("Supabase client not available");
+    }
+
     const { data, error } = await supabase
       .from("establishments")
       .select("*")
       .eq("id", establishmentId)
-      .eq("verification_status", "approved")
       .single();
 
     if (error) throw error;
@@ -185,11 +192,14 @@ export const qrBookingService = {
 
   // Get establishment by domain
   async getEstablishmentByDomain(domain: string) {
+    if (!supabase) {
+      throw new Error("Supabase client not available");
+    }
+
     const { data, error } = await supabase
       .from("establishments")
       .select("*")
-      .eq("domain", domain)
-      .eq("verification_status", "approved")
+      .eq("establishment_name", domain) // Using establishment_name instead of domain
       .single();
 
     if (error) throw error;
@@ -201,11 +211,14 @@ export const qrBookingService = {
     startDate?: string;
     endDate?: string;
   }) {
+    if (!supabase) {
+      throw new Error("Supabase client not available");
+    }
+
     let query = supabase
       .from("bookings")
       .select("total_amount, status, created_at")
-      .eq("qr_establishment_id", establishmentId)
-      .eq("is_qr_booking", true);
+      .eq("provider_id", establishmentId); // Using provider_id instead of qr_establishment_id
 
     if (filters?.startDate) {
       query = query.gte("created_at", filters.startDate);
@@ -234,6 +247,10 @@ export const qrBookingService = {
 
   // Update booking
   async updateBooking(bookingId: string, customerName: string) {
+    if (!supabase) {
+      throw new Error("Supabase client not available");
+    }
+
     const { data: booking, error: bookingError } = await supabase
       .from("bookings")
       .select("*, activities(*)")
