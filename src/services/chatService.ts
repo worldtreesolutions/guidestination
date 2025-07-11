@@ -1,6 +1,6 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { Message } from "@/types/activity";
-import type { PostgrestResponse } from "@supabase/supabase-js";
 
 export interface ChatMessage {
   id: string;

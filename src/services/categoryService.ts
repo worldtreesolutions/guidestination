@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import type { Activity } from "@/types/activity";
 
@@ -55,17 +56,16 @@ export const categoryService = {
       return null;
     }
     
-    const d = result.data;
-    const categoryData = d ? {
-      id: d.id,
-      name: d.name,
-      description: d.description || undefined,
-      image_url: d.image_url || undefined,
-      created_at: d.created_at || undefined,
-      updated_at: d.updated_at || undefined,
-    } : null;
+    if (!result.data) return null;
     
-    return categoryData;
+    return {
+      id: result.data.id,
+      name: result.data.name,
+      description: result.data.description || undefined,
+      image_url: result.data.image_url || undefined,
+      created_at: result.data.created_at || undefined,
+      updated_at: result.data.updated_at || undefined,
+    };
   },
 
   async getActivitiesByCategoryId(categoryId: number): Promise<{ activities: Activity[] | null; error: any | null }> {
