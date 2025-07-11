@@ -61,7 +61,10 @@ export default function SearchBar() {
         </div>
 
         <div className="flex items-end">
-          <Button onClick={handleSearch} className="w-full h-10 rounded-full">
+          <Button 
+            onClick={handleSearch} 
+            className="w-full h-10 rounded-full bg-gradient-to-r from-[#eb1d51] to-[#faaa15] hover:from-[#d11845] hover:to-[#e89c13] text-white border-0"
+          >
             <Search className="h-4 w-4 mr-2" />
             Search
           </Button>
