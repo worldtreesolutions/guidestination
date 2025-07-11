@@ -58,7 +58,8 @@ export default function ActivityPage() {
           const transformedScheduleData = (scheduleData || []).map(schedule => ({
             ...schedule,
             notes: schedule.notes || null,
-            available_spots: schedule.capacity - schedule.booked_count
+            available_spots: schedule.capacity - schedule.booked_count,
+            price: schedule.price_override || activityData.b_price || 0
           }));
           setScheduleInstances(transformedScheduleData);
         }
