@@ -32,26 +32,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    // Update invoice status
-    const updatedInvoice = await commissionService.updateInvoiceStatus(
-      invoice_id,
-      status
-    );
+    const invoice = await commissionService.getCommissionInvoice(invoice_id);
+    
+    if (!invoice) {
+      return res.status(404).json({ error: "Invoice not found" });
+    }
 
-    // If marking as paid, create payment record
-    if (status === "paid" && payment_data) {
+    // Update the invoice status
+    await commissionService.updateInvoiceStatus(invoice_id, status);
+
+    // If marking as paid, create a commission payment record
+    if (status === "paid") {
       await commissionService.createCommissionPayment({
-        invoiceId: invoice_id,
-        paymentAmount: payment_data.amount || updatedInvoice.platform_commission_amount,
-        paymentMethod: payment_data.method || "manual",
-        paymentReference: payment_data.reference,
-        stripePaymentIntentId: payment_data.stripe_payment_intent_id
+        invoice_id: invoice_id,
+        amount: invoice.platform_commission_amount,
+        paid_at: new Date().toISOString(),
       });
     }
 
     res.status(200).json({
       success: true,
-      data: updatedInvoice
+      data: invoice
     });
 
   } catch (error) {

@@ -66,7 +66,7 @@ const customerService = {
     return {
       ...data,
       full_name: `${data.first_name || ''} ${data.last_name || ''}`.trim(),
-      date_of_birth: data.date_of_birth || null,
+      date_of_birth: null,
       user_id: data.customer_id
     } as CustomerProfile;
   },
@@ -89,7 +89,7 @@ const customerService = {
     return {
       ...data,
       full_name: `${data.first_name || ''} ${data.last_name || ''}`.trim(),
-      date_of_birth: data.date_of_birth || null,
+      date_of_birth: null,
       user_id: data.customer_id
     } as CustomerProfile;
   },
@@ -132,7 +132,7 @@ const customerService = {
         )
       `
       )
-      .eq("id", parseInt(bookingId))
+      .eq("id", bookingId)
       .single()
 
     if (error) {
@@ -168,7 +168,7 @@ const customerService = {
   async addToWishlist(userId: string, activityId: number) {
     const { data, error } = await supabase
       .from("wishlist")
-      .insert([{ customer_id: userId, activity_id: activityId }])
+      .insert([{ user_id: userId, activity_id: activityId }])
     if (error) throw error
     return data
   },
@@ -177,7 +177,7 @@ const customerService = {
     const { error } = await supabase
       .from("wishlist")
       .delete()
-      .eq("customer_id", userId)
+      .eq("user_id", userId)
       .eq("activity_id", activityId)
 
     if (error) {

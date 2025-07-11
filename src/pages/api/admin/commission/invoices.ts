@@ -36,13 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       : undefined;
 
     // Get commission invoices with filters
-    const { data: invoices, count } = await commissionService.getCommissionInvoices({
-      providerId: provider_id as string,
-      status: statusFilter,
-      establishmentId: establishment_id as string,
-      limit: parseInt(limit as string),
-      offset: parseInt(offset as string)
-    });
+    const invoices = await commissionService.fetchCommissionInvoices();
 
     // Enrich data with provider and establishment details
     const enrichedInvoices = await Promise.all(
@@ -68,7 +62,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // Get booking details
         const { data: booking } = await supabase
           .from("bookings")
-          .select("activity_id, customer_email, booking_date")
+          .select("activity_id, booking_date")
           .eq("id", invoice.booking_id)
           .single();
 
@@ -99,10 +93,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       data: {
         invoices: enrichedInvoices,
         pagination: {
-          total: count,
+          total: invoices.length,
           limit: parseInt(limit as string),
           offset: parseInt(offset as string),
-          hasMore: count > parseInt(offset as string) + parseInt(limit as string)
+          hasMore: invoices.length > parseInt(offset as string) + parseInt(limit as string)
         }
       }
     });

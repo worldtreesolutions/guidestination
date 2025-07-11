@@ -103,7 +103,8 @@ export const commissionService = {
       .from("commission_invoices")
       .insert([{
         ...invoiceData,
-        invoice_status: invoiceData.invoice_status as "pending" | "paid" | "overdue" | "cancelled"
+        invoice_status: invoiceData.invoice_status as "pending" | "paid" | "overdue" | "cancelled",
+        booking_id: invoiceData.booking_id || ""
       }])
       .select()
       .single();
