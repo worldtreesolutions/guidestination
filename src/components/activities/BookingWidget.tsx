@@ -37,21 +37,24 @@ export function BookingWidget({ activity }: BookingWidgetProps) {
     try {
       setLoading(true);
       
-      // Create Stripe checkout session
+      // Create Stripe checkout session via API
       const checkoutData = {
         activityId: activity.id,
         participants,
         selectedDate,
         totalAmount: totalPrice,
         customerEmail: user.email || "",
-        successUrl: `${window.location.origin}/booking/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancelUrl: `${window.location.origin}/activities/${activity.id}`
+        customerName: user.user_metadata?.full_name || user.email || "Guest"
       };
 
-      const result = await (stripeService.createCheckoutSession as any)(checkoutData);
+      const result = await stripeService.createCheckoutSession(checkoutData);
       
       // Redirect to Stripe checkout
-      window.location.href = result.sessionUrl;
+      if (result.url) {
+        window.location.href = result.url;
+      } else {
+        throw new Error("No checkout URL received");
+      }
     } catch (error) {
       console.error("Error creating checkout session:", error);
       alert("Failed to create booking. Please try again.");

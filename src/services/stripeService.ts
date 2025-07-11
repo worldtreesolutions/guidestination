@@ -1,10 +1,14 @@
 import { supabase } from "@/integrations/supabase/client"
 import { getAdminClient, getAdminClientSafe } from "@/integrations/supabase/admin"
 import type { Database } from "@/integrations/supabase/types"
-import Stripe from "stripe"
 import emailService from "./emailService"
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
+// Only initialize Stripe on server-side
+let stripe: any = null
+if (typeof window === "undefined" && process.env.STRIPE_SECRET_KEY) {
+  const Stripe = require("stripe")
+  stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
+}
 
 // Create a safe supabase client that handles null checks
 const getSupabaseClient = () => {
@@ -26,7 +30,33 @@ const getAdminSupabaseClient = () => {
 }
 
 export const stripeService = {
-  async createCheckoutSession(
+  // Client-side method to create checkout session via API
+  async createCheckoutSession(checkoutData: {
+    activityId: number;
+    participants: number;
+    totalAmount: number;
+    customerEmail: string;
+    customerName: string;
+    selectedDate: string;
+    establishmentId?: string;
+  }) {
+    const response = await fetch("/api/stripe/create-checkout-session", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(checkoutData),
+    })
+
+    if (!response.ok) {
+      throw new Error("Failed to create checkout session")
+    }
+
+    return response.json()
+  },
+
+  // Server-side method for API routes
+  async createServerCheckoutSession(
     activityId: number,
     participants: number,
     totalAmount: number,
@@ -34,6 +64,10 @@ export const stripeService = {
     customerName: string,
     establishmentId?: string
   ) {
+    if (!stripe) {
+      throw new Error("Stripe not initialized on server")
+    }
+
     const client = getSupabaseClient()
     if (!client) throw new Error("Database connection not available")
 
