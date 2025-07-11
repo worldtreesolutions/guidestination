@@ -69,6 +69,15 @@ export default function ActivityCard({ activity }: ActivityCardProps) {
             </div>
           </div>
         </div>
+        <div className="flex items-center justify-between mt-4">
+          <div>
+            <span className="font-bold text-lg">{activity.currency || '$'}{activity.b_price}</span>
+            <span className="text-sm text-muted-foreground"> / person</span>
+          </div>
+          <Button size="sm" asChild>
+            <Link href={`/activities/${activity.slug}`}>Book Now</Link>
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

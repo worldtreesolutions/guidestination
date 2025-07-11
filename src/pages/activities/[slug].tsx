@@ -69,10 +69,7 @@ export default function ActivityPage() {
       return <div>Activity not found</div>;
     }
 
-    const images = (activity.image_url ? [activity.image_url] : (activity.image_urls || [])).map(url => ({ 
-      url,
-      thumbnail: url
-    }));
+    const images = activity.image_url ? [activity.image_url] : (activity.image_urls || []);
 
     return (
       <div className="bg-white text-black">

@@ -4,7 +4,13 @@ import type { Database } from "@/integrations/supabase/types";
 // Base types from Supabase
 export type Activity = Database["public"]["Tables"]["activities"]["Row"];
 export type Category = Database["public"]["Tables"]["categories"]["Row"];
-export type ActivitySchedule = Database["public"]["Tables"]["activity_schedules"]["Row"];
+export type ActivitySchedule = Database["public"]["Tables"]["activity_schedules"]["Row"] & {
+  // Custom fields for calendar etc.
+  scheduled_date?: string;
+  available_spots?: number;
+  capacity?: number;
+  price_override?: number;
+};
 export type BaseBooking = Database["public"]["Tables"]["bookings"]["Row"];
 export type ReviewUser = {
   full_name: string | null;
@@ -13,13 +19,20 @@ export type ReviewUser = {
 export type Review = Database["public"]["Tables"]["reviews"]["Row"] & {
   users: ReviewUser | null;
 };
+export type ActivityOwner = Database["public"]["Tables"]["activity_owners"]["Row"];
+
 
 // Extended / Custom types for the application
 export type ActivityWithDetails = Activity & {
   categories: Category | null;
   activity_schedules: ActivitySchedule[];
   reviews: Review[];
-  image_urls?: string[]; // Make it optional
+  image_urls?: string[];
+  currency?: string;
+  // Add dynamic fields as optional arrays of strings
+  dynamic_highlights?: string[];
+  dynamic_included?: string[];
+  dynamic_not_included?: string[];
 };
 
 export type ActivityForHomepage = Pick<
@@ -35,6 +48,7 @@ export type ActivityForHomepage = Pick<
 // Add properties that are not in the base table but are needed in the app
 export type Booking = BaseBooking & {
   activities?: Activity;
+  customer_id?: string; // As seen in profile.tsx error
 };
 
 export interface ScheduledActivity {
@@ -44,6 +58,11 @@ export interface ScheduledActivity {
   time: string;
   activity: ActivityWithDetails;
   date: Date;
+  // Add properties from activity for easier access
+  duration?: number | string | null;
+  hour?: string;
+  image_url?: string | null;
+  price?: number | null;
 }
 
 export type ActivityScheduleInstance = ActivitySchedule;
@@ -68,7 +87,7 @@ export interface Location {
 // Placeholder types for business logic
 export interface Earning {
   month: string;
-  total: number;
+  amount: number; // Changed from total
 }
 
 export interface CommissionInvoice {
@@ -85,6 +104,7 @@ export interface CommissionInvoice {
     };
     is_qr_booking?: boolean;
     partner_commission_amount?: number;
+    booking_id?: string; // Added
 }
 
 export interface Provider {
@@ -99,6 +119,14 @@ export interface CommissionStats {
     total_commission: number;
     pending_commission: number;
     paid_commission: number;
+    // Add missing fields
+    totalInvoices: number;
+    paidInvoices: number;
+    pendingInvoices: number;
+    overdueInvoices: number;
+    totalCommissionAmount: number;
+    totalPaidAmount: number;
+    totalPendingAmount: number;
 }
 
 export type SupabaseActivity = Activity;

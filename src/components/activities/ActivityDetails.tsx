@@ -1,126 +1,116 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import { Activity } from "@/types/activity"
-import * as LucideIcons from "lucide-react"
+
+import { ActivityWithDetails } from "@/types/activity";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CheckCircle, XCircle, MapPin, Users, Clock } from "lucide-react";
 
 interface ActivityDetailsProps {
-  activity: Activity
+  activity: ActivityWithDetails;
 }
 
-export const ActivityDetails = ({ activity }: ActivityDetailsProps) => {
-  const { 
-    description, 
-    highlights, 
-    included, 
-    not_included,
-    dynamic_highlights,
-    dynamic_included,
-    dynamic_not_included
-  } = activity
+const ListItem = ({ children }: { children: React.ReactNode }) => (
+  <li className="flex items-start">
+    <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-1 flex-shrink-0" />
+    <span>{children}</span>
+  </li>
+);
 
-  // Helper function to render icon from string
-  const renderIcon = (iconName: string) => {
-    const IconComponent = (LucideIcons as any)[iconName];
-    if (IconComponent) {
-      return <IconComponent className="h-4 w-4 text-blue-600" />;
+const NotIncludedListItem = ({ children }: { children: React.ReactNode }) => (
+    <li className="flex items-start">
+        <XCircle className="h-5 w-5 text-red-500 mr-3 mt-1 flex-shrink-0" />
+        <span>{children}</span>
+    </li>
+);
+
+const parseStringToArray = (value: any): string[] => {
+    if (Array.isArray(value)) return value;
+    if (typeof value === 'string') {
+        try {
+            // First, try to parse it as a JSON array
+            const parsed = JSON.parse(value);
+            if (Array.isArray(parsed)) return parsed;
+        } catch (e) {
+            // If JSON parsing fails, assume it's a comma-separated string
+            return value.split(',').map(item => item.trim()).filter(Boolean);
+        }
     }
-    return <LucideIcons.Star className="h-4 w-4 text-blue-600" />; // fallback icon
-  };
+    return [];
+};
 
-  // Combine static and dynamic highlights
-  const allHighlights = [
-    ...(highlights || []),
-    ...(dynamic_highlights || []).map(option => option.label)
-  ];
 
-  // Combine static and dynamic included items
-  const allIncluded = [
-    ...(included || []),
-    ...(dynamic_included || []).map(option => option.label)
-  ];
-
-  // Combine static and dynamic not included items
-  const allNotIncluded = [
-    ...(not_included || []),
-    ...(dynamic_not_included || []).map(option => option.label)
-  ];
+export function ActivityDetails({ activity }: ActivityDetailsProps) {
+  const highlights = parseStringToArray(activity.highlights);
+  const included = parseStringToArray(activity.included);
+  const notIncluded = parseStringToArray(activity.not_included);
+  const dynamicHighlights = parseStringToArray(activity.dynamic_highlights);
+  const dynamicIncluded = parseStringToArray(activity.dynamic_included);
+  const dynamicNotIncluded = parseStringToArray(activity.dynamic_not_included);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 py-8">
       <Card>
         <CardHeader>
-          <CardTitle>About this activity</CardTitle>
+          <CardTitle>{activity.title}</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">
-            {description || "No description available for this activity."}
-          </p>
-
-          {allHighlights.length > 0 && (
-            <>
-              <Separator className="my-6" />
-              <div className="space-y-4">
-                <h4 className="font-semibold">Highlights</h4>
-                <ul className="space-y-2 text-muted-foreground">
-                  {/* Static highlights */}
-                  {highlights?.map((highlight, index) => (
-                    <li key={`static-highlight-${index}`} className="flex items-start gap-2">
-                      <LucideIcons.Star className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                      <span>{highlight}</span>
-                    </li>
-                  ))}
-                  {/* Dynamic highlights */}
-                  {dynamic_highlights?.map((option, index) => (
-                    <li key={`dynamic-highlight-${index}`} className="flex items-start gap-2">
-                      {renderIcon(option.icon)}
-                      <span>{option.label}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </>
-          )}
-
-          {(allIncluded.length > 0 || allNotIncluded.length > 0) && (
-            <>
-              <Separator className="my-6" />
-              <div className="space-y-4">
-                <h4 className="font-semibold">What's included</h4>
-                <ul className="space-y-2 text-muted-foreground">
-                  {/* Static included items */}
-                  {included?.map((item, index) => (
-                    <li key={`static-included-${index}`} className="flex items-start gap-2">
-                      <LucideIcons.Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                  {/* Dynamic included items */}
-                  {dynamic_included?.map((option, index) => (
-                    <li key={`dynamic-included-${index}`} className="flex items-start gap-2">
-                      {renderIcon(option.icon)}
-                      <span>{option.label}</span>
-                    </li>
-                  ))}
-                  {/* Static not included items */}
-                  {not_included?.map((item, index) => (
-                    <li key={`static-not-included-${index}`} className="flex items-start gap-2">
-                      <LucideIcons.X className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                  {/* Dynamic not included items */}
-                  {dynamic_not_included?.map((option, index) => (
-                    <li key={`dynamic-not-included-${index}`} className="flex items-start gap-2">
-                      {renderIcon(option.icon)}
-                      <span>{option.label}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </>
-          )}
+          <p className="text-muted-foreground">{activity.description}</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6 text-sm">
+            <div className="flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-primary" />
+              <span>{activity.location || "Location not specified"}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Users className="w-4 h-4 text-primary" />
+              <span>Up to {activity.max_participants} people</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4 text-primary" />
+              <span>{activity.duration}</span>
+            </div>
+          </div>
         </CardContent>
       </Card>
+
+      {(highlights.length > 0 || dynamicHighlights.length > 0) && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Highlights</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2">
+              {highlights.map((item, index) => <ListItem key={`highlight-${index}`}>{item}</ListItem>)}
+              {dynamicHighlights.map((item, index) => <ListItem key={`dyn-highlight-${index}`}>{item}</ListItem>)}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
+
+      {(included.length > 0 || dynamicIncluded.length > 0) && (
+        <Card>
+          <CardHeader>
+            <CardTitle>What's Included</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2">
+              {included.map((item, index) => <ListItem key={`included-${index}`}>{item}</ListItem>)}
+              {dynamicIncluded.map((item, index) => <ListItem key={`dyn-included-${index}`}>{item}</ListItem>)}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
+
+      {(notIncluded.length > 0 || dynamicNotIncluded.length > 0) && (
+        <Card>
+          <CardHeader>
+            <CardTitle>What's Not Included</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2">
+              {notIncluded.map((item, index) => <NotIncludedListItem key={`not-included-${index}`}>{item}</NotIncludedListItem>)}
+              {dynamicNotIncluded.map((item, index) => <NotIncludedListItem key={`dyn-not-included-${index}`}>{item}</NotIncludedListItem>)}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
     </div>
-  )
+  );
 }

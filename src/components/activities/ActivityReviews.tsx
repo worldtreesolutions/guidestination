@@ -4,39 +4,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Star } from "lucide-react"
+import { Review } from "@/types/activity"
 
 interface ActivityReviewsProps {
-  activityId: string
-  rating: number
-  reviewCount: number
+  reviews: Review[];
 }
-
-const mockReviews = [
-  {
-    id: "rev-1",
-    author: "Emily R.",
-    avatar: "https://randomuser.me/api/portraits/women/44.jpg",
-    date: "May 2025",
-    rating: 5,
-    text: "Absolutely amazing experience! The views from Doi Suthep were breathtaking, and our guide was so knowledgeable. The Hmong village visit was a real cultural immersion. Highly recommended!",
-  },
-  {
-    id: "rev-2",
-    author: "John D.",
-    avatar: "https://randomuser.me/api/portraits/men/32.jpg",
-    date: "April 2025",
-    rating: 4,
-    text: "A great half-day tour. Well-organized and informative. The temple is beautiful, but can be crowded. The lunch provided was delicious. Good value for money.",
-  },
-  {
-    id: "rev-3",
-    author: "Maria S.",
-    avatar: "https://randomuser.me/api/portraits/women/65.jpg",
-    date: "April 2025",
-    rating: 5,
-    text: "I loved this tour! Our guide, 'Sunny', was fantastic and made the trip so much fun. Learning about the local traditions was the highlight for me. Don't miss this if you're in Chiang Mai.",
-  },
-]
 
 const ratingDistribution = [
   { stars: 5, percentage: 85 },
@@ -46,20 +18,38 @@ const ratingDistribution = [
   { stars: 1, percentage: 1 },
 ]
 
-export function ActivityReviews({
-  activityId,
-  rating = 0,
-  reviewCount = 0,
-}: ActivityReviewsProps) {
+export function ActivityReviews({ reviews }: ActivityReviewsProps) {
   const [visibleReviews, setVisibleReviews] = useState(2)
 
   const showMoreReviews = () => {
-    setVisibleReviews(mockReviews.length)
+    setVisibleReviews(reviews.length)
+  }
+
+  if (!reviews || reviews.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Star className="h-5 w-5 text-yellow-400 fill-yellow-400" />
+            <span>
+              0.0 (0 reviews)
+            </span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-8">
+          <div className="text-center">
+            <Button variant="outline" onClick={showMoreReviews}>
+              Show all 0 reviews
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    )
   }
 
   // Ensure safe values with proper fallbacks
-  const safeRating = typeof rating === 'number' && !isNaN(rating) && isFinite(rating) ? rating : 0;
-  const safeReviewCount = typeof reviewCount === 'number' && !isNaN(reviewCount) && isFinite(reviewCount) ? reviewCount : 0;
+  const safeRating = typeof reviews[0].rating === 'number' && !isNaN(reviews[0].rating) && isFinite(reviews[0].rating) ? reviews[0].rating : 0;
+  const safeReviewCount = typeof reviews.length === 'number' && !isNaN(reviews.length) && isFinite(reviews.length) ? reviews.length : 0;
 
   return (
     <Card>
@@ -89,7 +79,7 @@ export function ActivityReviews({
 
         {/* Individual Reviews */}
         <div className="space-y-6">
-          {mockReviews.slice(0, visibleReviews).map((review) => (
+          {reviews.slice(0, visibleReviews).map((review) => (
             <div key={review.id} className="flex items-start gap-4">
               <Avatar>
                 <AvatarImage src={review.avatar} alt={review.author} />
@@ -124,10 +114,10 @@ export function ActivityReviews({
           ))}
         </div>
 
-        {visibleReviews < mockReviews.length && (
+        {visibleReviews < reviews.length && (
           <div className="text-center">
             <Button variant="outline" onClick={showMoreReviews}>
-              Show all {mockReviews.length} reviews
+              Show all {reviews.length} reviews
             </Button>
           </div>
         )}
