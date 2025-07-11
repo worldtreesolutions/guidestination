@@ -47,6 +47,11 @@ class ActivityService {
   }
 
   async getActivities(): Promise<Activity[]> {
+    if (!supabase) {
+      console.error("Supabase client not initialized");
+      return [];
+    }
+
     const { data, error } = await supabase
       .from("activities")
       .select("*, categories(name)")
@@ -63,6 +68,11 @@ class ActivityService {
   }
 
   async getActivitiesForHomepage(): Promise<any[]> {
+    if (!supabase) {
+      console.error("Supabase client not initialized");
+      return [];
+    }
+
     const { data, error } = await supabase
       .from("activities")
       .select("id, title, b_price, address, average_rating, image_url, categories(name), duration, min_age, max_age, description, max_participants, technical_skill_level, physical_effort_level, includes_pickup, includes_meal")
@@ -99,6 +109,10 @@ class ActivityService {
   }
 
   async getActivityById(id: number): Promise<Activity> {
+    if (!supabase) {
+      throw new Error("Supabase client not initialized");
+    }
+
     const { data: activity, error } = await supabase
       .from("activities")
       .select("*, categories(name)")
