@@ -24,7 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // First, clean up any existing test user
     const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers()
-    const existingUser = existingUsers.users.find(u => u.email === testEmail)
+    const existingUser = existingUsers.users.find((u: any) => u.email === testEmail)
     
     if (existingUser) {
       console.log("Deleting existing user:", existingUser.id)

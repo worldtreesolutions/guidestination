@@ -1,9 +1,35 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { Database } from "@/integrations/supabase/types";
 
-type Establishment = Database["public"]["Tables"]["establishments"]["Row"];
-type EstablishmentInsert = Database["public"]["Tables"]["establishments"]["Insert"];
-type EstablishmentUpdate = Database["public"]["Tables"]["establishments"]["Update"];
+interface Establishment {
+  id: string;
+  establishment_name: string;
+  establishment_type: string;
+  establishment_address: string;
+  room_count?: number;
+  partner_id: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  created_by?: string;
+  updated_by?: string;
+}
+
+interface EstablishmentInsert {
+  establishment_name: string;
+  establishment_type: string;
+  establishment_address: string;
+  room_count?: number;
+  partner_id: string;
+  is_active?: boolean;
+}
+
+interface EstablishmentUpdate {
+  establishment_name?: string;
+  establishment_type?: string;
+  establishment_address?: string;
+  room_count?: number;
+  is_active?: boolean;
+}
 
 export const establishmentService = {
   async getEstablishmentsByPartnerId(partnerId: string) {

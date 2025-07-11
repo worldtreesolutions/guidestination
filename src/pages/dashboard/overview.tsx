@@ -4,10 +4,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSelector } from "@/components/layout/LanguageSelector";
 import { useRouter } from "next/router";
 import { supabase } from "@/integrations/supabase/client";
-import type { Database } from "@/integrations/supabase/types";
 import { DashboardLayout } from "@/components/dashboard/layout/DashboardLayout";
-
-type BookingRow = Database["public"]["Tables"]["bookings"]["Row"];
 
 interface BookingData {
   id: number;
