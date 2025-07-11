@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client"
-import { User, Session } from "@supabase/supabase-js"
+import type { User, Session } from "@supabase/supabase-js"
 
 export interface SignInResponse {
   user: User | null;
@@ -29,18 +29,22 @@ const authService = {
       if (error) throw error
 
       // If login successful, check if user is an activity owner and fetch provider_id
-      let provider_id = undefined;
+      let provider_id: string | undefined = undefined;
       if (data.user && supabase) {
-        // Check if user is an activity owner
-        const ownerResult = await supabase
-          .from('activity_owners')
-          .select('id')
-          .eq('user_id', data.user.id)
-          .single();
+        try {
+          // Check if user is an activity owner
+          const { data: ownerData, error: ownerError } = await supabase
+            .from('activity_owners')
+            .select('id')
+            .eq('user_id', data.user.id)
+            .single();
 
-        if (!ownerResult.error && ownerResult.data) {
-          provider_id = ownerResult.data.id;
-          console.log("Found provider_id:", provider_id);
+          if (!ownerError && ownerData) {
+            provider_id = ownerData.id;
+            console.log("Found provider_id:", provider_id);
+          }
+        } catch (ownerErr) {
+          console.log("User is not an activity owner");
         }
       }
 

@@ -112,14 +112,21 @@ const customerService = {
         )
       `
       )
-      .eq("customer_id", userId)
+      .eq("user_id", userId)
       .order("booking_date", { ascending: false })
 
     if (result.error) {
       console.error("Error fetching bookings:", result.error)
       throw result.error
     }
-    return (result.data || []) as Booking[]
+
+    // Transform the data to match our Booking interface
+    const transformedBookings = (result.data || []).map((booking: any) => ({
+      ...booking,
+      customer_id: booking.user_id || booking.customer_id
+    }))
+
+    return transformedBookings as Booking[]
   },
 
   async getBookingById(bookingId: string): Promise<Booking> {
@@ -147,7 +154,14 @@ const customerService = {
       console.error("Error fetching booking by id:", result.error)
       throw result.error
     }
-    return result.data as Booking
+
+    // Transform the data to match our Booking interface
+    const transformedBooking = {
+      ...result.data,
+      customer_id: result.data.user_id || result.data.customer_id
+    }
+
+    return transformedBooking as Booking
   },
 
   async getWishlist(userId: string): Promise<WishlistItem[]> {
@@ -168,13 +182,20 @@ const customerService = {
         )
       `
       )
-      .eq("customer_id", userId)
+      .eq("user_id", userId)
 
     if (result.error) {
       console.error("Error fetching wishlist:", result.error)
       throw result.error
     }
-    return (result.data || []) as WishlistItem[]
+
+    // Transform the data to match our WishlistItem interface
+    const transformedWishlist = (result.data || []).map((item: any) => ({
+      ...item,
+      customer_id: item.user_id || item.customer_id
+    }))
+
+    return transformedWishlist as WishlistItem[]
   },
 
   async addToWishlist(userId: string, activityId: number) {

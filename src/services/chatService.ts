@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client"
-import { Database } from "@/integrations/supabase/types"
+import type { Database } from "@/integrations/supabase/types"
 
 export type ChatMessage = Database["public"]["Tables"]["chat_messages"]["Row"]
 export type SendMessageData = Database["public"]["Tables"]["chat_messages"]["Insert"]
@@ -10,19 +10,19 @@ const chatService = {
       throw new Error("Supabase client not initialized");
     }
 
-    const result = await supabase
+    const { data, error } = await supabase
       .from("chat_messages")
       .select("*")
       .eq("activity_id", activityId)
       .or(`and(sender_id.eq.${customerId},receiver_id.eq.${ownerId}),and(sender_id.eq.${ownerId},receiver_id.eq.${customerId})`)
       .order("created_at", { ascending: true })
 
-    if (result.error) {
-      console.error("Error fetching messages:", result.error)
-      throw result.error
+    if (error) {
+      console.error("Error fetching messages:", error)
+      throw error
     }
 
-    return result.data || []
+    return data || []
   },
 
   async sendMessage(messageData: SendMessageData): Promise<ChatMessage> {
@@ -30,18 +30,18 @@ const chatService = {
       throw new Error("Supabase client not initialized");
     }
 
-    const result = await supabase
+    const { data, error } = await supabase
       .from("chat_messages")
       .insert(messageData)
       .select()
       .single()
 
-    if (result.error) {
-      console.error("Error sending message:", result.error)
-      throw result.error
+    if (error) {
+      console.error("Error sending message:", error)
+      throw error
     }
 
-    return result.data
+    return data
   },
 
   async markAsRead(messageId: string): Promise<void> {
@@ -49,14 +49,14 @@ const chatService = {
       throw new Error("Supabase client not initialized");
     }
 
-    const result = await supabase
+    const { error } = await supabase
       .from("chat_messages")
       .update({ read_at: new Date().toISOString() })
       .eq("id", messageId)
 
-    if (result.error) {
-      console.error("Error marking message as read:", result.error)
-      throw result.error
+    if (error) {
+      console.error("Error marking message as read:", error)
+      throw error
     }
   },
 
@@ -65,18 +65,18 @@ const chatService = {
       throw new Error("Supabase client not initialized");
     }
 
-    const result = await supabase
+    const { count, error } = await supabase
       .from("chat_messages")
       .select("*", { count: "exact", head: true })
       .eq("receiver_id", userId)
       .is("read_at", null)
 
-    if (result.error) {
-      console.error("Error getting unread count:", result.error)
-      throw result.error
+    if (error) {
+      console.error("Error getting unread count:", error)
+      throw error
     }
 
-    return result.count || 0
+    return count || 0
   }
 }
 
