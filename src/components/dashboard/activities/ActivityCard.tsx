@@ -68,11 +68,13 @@ export function ActivityCard({ activity, onEdit, onDelete, onPreview }: Activity
     }).format(price)
   }
 
-  const getStatusColor = (isActive: boolean) => {
+  const getStatusColor = (isActive: boolean | null) => {
+    if (isActive === null) return "bg-gray-100 text-gray-800"
     return isActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
   }
 
-  const getStatusText = (isActive: boolean) => {
+  const getStatusText = (isActive: boolean | null) => {
+    if (isActive === null) return "Unknown"
     return isActive ? "Active" : "Inactive"
   }
 
@@ -126,8 +128,8 @@ export function ActivityCard({ activity, onEdit, onDelete, onPreview }: Activity
           />
         </Link>
         <div className="absolute top-2 right-2">
-          <Badge className={getStatusColor(activity.is_active ?? false)}>
-            {getStatusText(activity.is_active ?? false)}
+          <Badge className={getStatusColor(activity.is_active)}>
+            {getStatusText(activity.is_active)}
           </Badge>
         </div>
         <div className="absolute top-4 right-4">

@@ -371,6 +371,21 @@ export interface Database {
           email: string
           created_at: string
           commission_invoices: any[]
+          owner_name?: string | null
+          phone?: string | null
+          business_type?: string | null
+          tax_id?: string | null
+          address?: string | null
+          description?: string | null
+          tourism_license_number?: string | null
+          tat_license_number?: string | null
+          guide_card_number?: string | null
+          insurance_policy_number?: string | null
+          insurance_coverage_amount?: number | null
+          location?: any | null
+          document_urls?: string[] | null
+          approved?: string | null
+          provider_id?: string | null
         }
         Insert: {
           id?: string
@@ -378,6 +393,21 @@ export interface Database {
           email: string
           created_at?: string
           commission_invoices?: any[]
+          owner_name?: string | null
+          phone?: string | null
+          business_type?: string | null
+          tax_id?: string | null
+          address?: string | null
+          description?: string | null
+          tourism_license_number?: string | null
+          tat_license_number?: string | null
+          guide_card_number?: string | null
+          insurance_policy_number?: string | null
+          insurance_coverage_amount?: number | null
+          location?: any | null
+          document_urls?: string[] | null
+          approved?: string | null
+          provider_id?: string | null
         }
         Update: {
           id?: string
@@ -385,6 +415,21 @@ export interface Database {
           email?: string
           created_at?: string
           commission_invoices?: any[]
+          owner_name?: string | null
+          phone?: string | null
+          business_type?: string | null
+          tax_id?: string | null
+          address?: string | null
+          description?: string | null
+          tourism_license_number?: string | null
+          tat_license_number?: string | null
+          guide_card_number?: string | null
+          insurance_policy_number?: string | null
+          insurance_coverage_amount?: number | null
+          location?: any | null
+          document_urls?: string[] | null
+          approved?: string | null
+          provider_id?: string | null
         }
         Relationships: []
       }

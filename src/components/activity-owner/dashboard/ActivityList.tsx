@@ -56,7 +56,7 @@ export function ActivityList({ activities, onDelete }: ActivityListProps) {
                 <TableRow key={activity.id}>
                   <TableCell className="font-medium">{activity.title}</TableCell>
                   <TableCell>{activity.location || "Not specified"}</TableCell>
-                  <TableCell>฿{activity.price?.toLocaleString()}</TableCell>
+                  <TableCell>฿{activity.b_price?.toLocaleString()}</TableCell>
                   <TableCell>
                     <Badge className={getStatusColor(activity.status || "draft")} variant="outline">
                       {activity.status || "draft"}
