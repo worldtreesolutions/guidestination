@@ -220,12 +220,12 @@ export default function HomePage() {
         </div>
         <div className="fixed bottom-4 left-4 flex flex-row space-x-2 z-50">
           <Link href="/activity-owner">
-            <Button variant="secondary" className="rounded-full shadow-lg bg-[#018fcd] hover:bg-[#0177b8] text-white border-[#018fcd]">
+            <Button variant="secondary" className="rounded-full shadow-lg bg-gradient-to-r from-[#018fcd] to-[#00ac50] hover:from-[#0177b8] hover:to-[#009a47] text-white border-0">
               <Briefcase className="mr-2 h-4 w-4" /> List your Activity
             </Button>
           </Link>
           <Link href="/partner">
-            <Button variant="secondary" className="rounded-full shadow-lg bg-[#018fcd] hover:bg-[#0177b8] text-white border-[#018fcd]">
+            <Button variant="secondary" className="rounded-full shadow-lg bg-gradient-to-r from-[#018fcd] to-[#00ac50] hover:from-[#0177b8] hover:to-[#009a47] text-white border-0">
               <User className="mr-2 h-4 w-4" /> Become a Partner
             </Button>
           </Link>
