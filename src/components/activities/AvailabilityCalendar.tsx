@@ -1,5 +1,4 @@
-
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { Calendar } from "@/components/ui/calendar"
 import { Badge } from "@/components/ui/badge"
 import { CalendarDays, Clock } from "lucide-react"
@@ -34,26 +33,30 @@ export function AvailabilityCalendar({
     }
   }
 
-  // Mock data when no real data is provided - memoized to prevent re-creation
-  const mockAvailableDates = useMemo(() => [
-    new Date(2025, 6, 15).toISOString().split('T')[0], // July 15, 2025
-    new Date(2025, 6, 16).toISOString().split('T')[0], // July 16, 2025
-    new Date(2025, 6, 18).toISOString().split('T')[0], // July 18, 2025
-    new Date(2025, 6, 20).toISOString().split('T')[0], // July 20, 2025
-    new Date(2025, 6, 22).toISOString().split('T')[0], // July 22, 2025
-  ], [])
+  // Extract available dates from schedule data
+  const availableDatesFromSchedule = useMemo(() => {
+    if (scheduleData.length === 0) return [];
+    
+    // Get unique dates from schedule instances
+    const uniqueDates = [...new Set(scheduleData.map(schedule => schedule.scheduled_date))];
+    return uniqueDates.filter(date => date && date.length > 0);
+  }, [scheduleData]);
 
-  // Use provided dates or fallback to mock data - memoized
-  const datesToUse = useMemo(() => 
-    availableDates.length > 0 ? availableDates : mockAvailableDates,
-    [availableDates, mockAvailableDates]
-  )
+  // Use schedule dates if available, otherwise use provided dates
+  const datesToUse = useMemo(() => {
+    if (availableDatesFromSchedule.length > 0) {
+      return availableDatesFromSchedule;
+    }
+    return availableDates;
+  }, [availableDatesFromSchedule, availableDates]);
 
   // Convert string dates to Date objects - memoized to prevent re-creation
   const availableDateObjects = useMemo(() => {
-    const validAvailableDates = Array.isArray(datesToUse) 
-      ? datesToUse.filter(date => date && typeof date === 'string' && date.length > 0)
-      : [];
+    if (!Array.isArray(datesToUse)) return [];
+    
+    const validAvailableDates = datesToUse.filter(date => 
+      date && typeof date === 'string' && date.length > 0
+    );
 
     return validAvailableDates.map(dateStr => {
       try {
@@ -62,13 +65,12 @@ export function AvailabilityCalendar({
           console.warn("Invalid date format:", dateStr);
           return null;
         }
-        const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
-        return dateObj;
+        return new Date(parts[0], parts[1] - 1, parts[2]);
       } catch (error) {
         console.error("Error parsing date:", dateStr, error);
         return null;
       }
-    }).filter(date => date !== null) as Date[];
+    }).filter((date): date is Date => date !== null);
   }, [datesToUse])
 
   // Disable dates that are not available or in the past - simplified logic
@@ -118,10 +120,7 @@ export function AvailabilityCalendar({
   // Get unique time slots from all schedule data - memoized
   const availableTimes = useMemo(() => {
     if (scheduleData.length === 0) {
-      return [
-        { startTime: "09:00", endTime: "12:00" },
-        { startTime: "14:00", endTime: "17:00" }
-      ]
+      return [];
     }
 
     const uniqueTimes = scheduleData.reduce((acc: any[], schedule) => {
@@ -189,7 +188,7 @@ export function AvailabilityCalendar({
         </div>
       )}
 
-      {datesToUse.length > 0 && !localSelectedDate && (
+      {datesToUse.length > 0 && !localSelectedDate && availableTimes.length > 0 && (
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <Clock className="h-4 w-4" />
@@ -209,21 +208,23 @@ export function AvailabilityCalendar({
       {datesToUse.length === 0 && (
         <div className="text-center py-4">
           <p className="text-sm text-muted-foreground">
-            No available dates at the moment
+            No scheduled dates available for this activity
           </p>
         </div>
       )}
 
-      <div className="text-xs text-muted-foreground space-y-1">
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-primary rounded-full"></div>
-          <span>Available dates ({datesToUse.length})</span>
+      {datesToUse.length > 0 && (
+        <div className="text-xs text-muted-foreground space-y-1">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-primary rounded-full"></div>
+            <span>Available dates ({datesToUse.length})</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-muted rounded-full"></div>
+            <span>Unavailable dates</span>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-muted rounded-full"></div>
-          <span>Unavailable dates</span>
-        </div>
-      </div>
+      )}
     </div>
   )
 }

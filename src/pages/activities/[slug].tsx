@@ -7,7 +7,7 @@ import { ActivityGallery } from "@/components/activities/ActivityGallery";
 import { ActivityReviews } from "@/components/activities/ActivityReviews";
 import { BookingWidget } from "@/components/activities/BookingWidget";
 import { AvailabilityCalendar } from "@/components/activities/AvailabilityCalendar";
-import { Activity } from "@/types/activity";
+import { Activity, ActivityScheduleInstance } from "@/types/activity";
 import activityService from "@/services/activityService";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,6 +18,7 @@ export default function ActivityPage() {
   const router = useRouter();
   const { slug } = router.query;
   const [activity, setActivity] = useState<Activity | null>(null);
+  const [scheduleData, setScheduleData] = useState<ActivityScheduleInstance[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,6 +33,9 @@ export default function ActivityPage() {
         const data = await activityService.getActivityBySlug(slug);
         if (data) {
           setActivity(data);
+          // Fetch schedule data for this activity
+          const schedules = await activityService.getActivitySchedules(data.id);
+          setScheduleData(schedules);
         } else {
           setError("Activity not found.");
         }
@@ -204,7 +208,10 @@ export default function ActivityPage() {
               <CardTitle>Availability</CardTitle>
             </CardHeader>
             <CardContent>
-              <AvailabilityCalendar activityId={activity.id} />
+              <AvailabilityCalendar 
+                activityId={activity.id} 
+                scheduleData={scheduleData}
+              />
             </CardContent>
           </Card>
 
