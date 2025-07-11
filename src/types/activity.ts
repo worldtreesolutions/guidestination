@@ -40,8 +40,7 @@ export type Activity = SupabaseActivity & {
 
 export type Booking = Omit<SupabaseBooking, "status"> & {
   status: BookingStatus | null;
-  activities: Activity | null;
-  activity_title?: string | null;
+  activities: SupabaseActivity | null;
   platform_fee?: number;
   provider_amount?: number;
 };
@@ -74,10 +73,12 @@ export type EarningsData = {
 };
 
 // Specific type for recent bookings list in the dashboard
-export type RecentBooking = Pick<
-  Booking,
-  "id" | "customer_name" | "total_price" | "booking_date" | "status"
-> & {
+export type RecentBooking = {
+  id: string;
+  customer_name: string | null;
+  total_price: number | null;
+  booking_date: string;
+  status: BookingStatus | null;
   activity_title: string | null;
 };
 

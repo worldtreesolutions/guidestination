@@ -288,7 +288,7 @@ export default function EarningsPage() {
                         .map((booking) => (
                           <TableRow key={booking.id}>
                             <TableCell>{new Date(booking.booking_date).toLocaleDateString()}</TableCell>
-                            <TableCell>{booking.activity_title}</TableCell>
+                            <TableCell>{booking.activities?.title}</TableCell>
                             <TableCell>{booking.customer_name}</TableCell>
                             <TableCell>{booking.participants}</TableCell>
                             <TableCell>{formatCurrency(booking.total_price || 0)}</TableCell>
