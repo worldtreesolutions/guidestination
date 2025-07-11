@@ -65,7 +65,7 @@ export function BookingForm({ activity, selectedDate, participants, onParticipan
     }
   }
 
-  const totalPrice = (activity.price || 0) * participants
+  const totalPrice = (activity.b_price || 0) * participants
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -113,13 +113,13 @@ export function BookingForm({ activity, selectedDate, participants, onParticipan
       <div className="space-y-2">
         <div className="flex justify-between items-center">
           <span className="text-muted-foreground">
-            {formatPrice(activity.price || 0)} x {participants} person(s)
+            {formatPrice(activity.b_price || 0)} x {participants} person(s)
           </span>
           <span className="font-medium">{formatPrice(totalPrice)}</span>
         </div>
         <div className="flex items-center justify-between text-lg font-semibold">
           <span>Total</span>
-          <span>{formatPrice((activity.price || 0) * participants)}</span>
+          <span>{formatPrice((activity.b_price || 0) * participants)}</span>
         </div>
       </div>
 

@@ -47,7 +47,7 @@ function DraggableActivityCard({ activity, onRemove }: { activity: SupabaseActiv
         <div className="relative">
           <div className="aspect-video relative overflow-hidden">
             <Image
-              src={activity.image_urls?.[0] || '/placeholder.svg'}
+              src={activity.image_url || '/placeholder.svg'}
               alt={activity.title}
               width={64}
               height={36}
@@ -73,7 +73,7 @@ function DraggableActivityCard({ activity, onRemove }: { activity: SupabaseActiv
                 <span>{activity.duration}h</span>
                 <span className="mx-1">•</span>
                 <MapPin className="h-3 w-3" />
-                <span>฿{formatPrice(activity.price || 0)}</span>
+                <span>฿{formatPrice(activity.b_price || 0)}</span>
               </div>
             </div>
           </div>
@@ -89,21 +89,15 @@ function DraggableActivityCard({ activity, onRemove }: { activity: SupabaseActiv
                   <Users className="h-3 w-3" />
                   <span>Max {activity.max_participants || 10}</span>
                 </div>
-                {activity.rating && (
-                  <div className="flex items-center gap-1">
-                    <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                    <span>{activity.rating}</span>
-                  </div>
-                )}
               </div>
 
               <div className="flex items-center justify-between">
                 <Badge variant="secondary" className="text-xs">
-                  {activity.category_name || "Activity"}
+                  Activity
                 </Badge>
                 <div className="text-right">
                   <div className="font-bold text-primary">
-                    ฿{formatPrice(activity.price || 0)}
+                    ฿{formatPrice(activity.b_price || 0)}
                   </div>
                   <div className="text-xs text-muted-foreground">per person</div>
                 </div>

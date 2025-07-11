@@ -112,7 +112,7 @@ export function ActivityCard({ activity, onEdit, onDelete, onView, onTogglePubli
       <div className="aspect-video relative">
         <Link href={`/dashboard/activities/${activity.id}`}>
           <Image
-            src={activity.image_urls?.[0] || '/placeholder.svg'}
+            src={activity.image_url || '/placeholder.svg'}
             alt={activity.title}
             width={300}
             height={169}
@@ -165,7 +165,7 @@ export function ActivityCard({ activity, onEdit, onDelete, onView, onTogglePubli
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div className="flex items-center gap-2">
             <DollarSign className="h-4 w-4 text-muted-foreground" />
-            <span className="font-medium">{formatPrice(activity.price)}</span>
+            <span className="font-medium">{formatPrice(activity.b_price)}</span>
           </div>
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-muted-foreground" />
@@ -173,22 +173,16 @@ export function ActivityCard({ activity, onEdit, onDelete, onView, onTogglePubli
           </div>
           <div className="flex items-center gap-2">
             <MapPin className="h-4 w-4 text-muted-foreground" />
-            <span className="truncate">{activity.location}</span>
+            <span className="truncate">{activity.meeting_point}</span>
           </div>
-          {activity.rating && (
-            <div className="flex items-center gap-2">
-              <Star className="h-4 w-4 text-yellow-500" />
-              <span>{activity.rating} ({activity.review_count || 0})</span>
-            </div>
-          )}
         </div>
 
         <div className="flex items-center justify-between pt-2 border-t">
           <Badge variant="outline">
-            {activity.category_name || "Uncategorized"}
+            Uncategorized
           </Badge>
           <div className="text-xs text-muted-foreground">
-            {activity.booking_type === "daily" ? "Daily" : "Hourly"} booking
+            {activity.booking_type_id === 1 ? "Daily" : "Hourly"} booking
           </div>
         </div>
 
@@ -197,12 +191,12 @@ export function ActivityCard({ activity, onEdit, onDelete, onView, onTogglePubli
             {activity.max_participants} participants
           </p>
           <p className="text-lg font-semibold">
-            ฿{activity.price?.toLocaleString()}
+            ฿{activity.b_price?.toLocaleString()}
           </p>
         </div>
       </CardContent>
       <CardFooter className="flex justify-end gap-2 bg-gray-50 p-4">
-        {activity.status && getStatusPill(activity.status)}
+        {activity.status && getStatusPill(activity.status as "published" | "unpublished" | "draft" | "archived")}
       </CardFooter>
     </Card>
   )
