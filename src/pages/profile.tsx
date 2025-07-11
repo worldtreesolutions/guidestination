@@ -1,4 +1,3 @@
-
 import Head from "next/head"
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/router"
@@ -12,14 +11,14 @@ import BookingDetailsModal from "@/components/profile/BookingDetailsModal"
 import { supabase } from "@/integrations/supabase/client"
 import { Booking, Activity } from "@/types/activity"
 import { useAuth } from "@/contexts/AuthContext"
+import { Tables } from "@/integrations/supabase/types"
 
-interface UserProfile {
-  id: string
-  email: string
-  full_name?: string
-  phone?: string
-  date_of_birth?: string
-  avatar_url?: string
+type CustomerProfile = Tables<'customer_profiles'>;
+
+interface UserProfile extends CustomerProfile {
+  full_name?: string;
+  date_of_birth?: string;
+  avatar_url?: string;
 }
 
 export default function ProfilePage() {
@@ -37,15 +36,28 @@ export default function ProfilePage() {
       const { data, error } = await supabase
         .from("customer_profiles")
         .select("*")
-        .eq("id", user.id)
+        .eq("customer_id", user.id)
         .single()
 
       if (error && error.code !== "PGRST116") {
         console.error("Error fetching profile:", error)
+      } else if (data) {
+        setProfile({
+            ...data,
+            full_name: `${data.first_name} ${data.last_name}`.trim(),
+        })
       } else {
-        setProfile((data as UserProfile) || {
-          id: user.id,
-          email: user.email || "",
+        // Create a default profile structure if none exists
+        const {  userData } = await supabase.auth.getUser();
+        setProfile({
+          customer_id: user.id,
+          email: userData.user?.email || "",
+          first_name: "",
+          last_name: "",
+          phone: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          full_name: "",
         })
       }
     } catch (error) {
@@ -120,8 +132,11 @@ export default function ProfilePage() {
     }
   }, [user, fetchProfile, fetchBookings, fetchWishlist])
 
-  const handleProfileUpdate = (updatedProfile: UserProfile) => {
-    setProfile(updatedProfile)
+  const handleProfileUpdate = (updatedProfile: CustomerProfile) => {
+    setProfile({
+        ...updatedProfile,
+        full_name: `${updatedProfile.first_name} ${updatedProfile.last_name}`.trim(),
+    })
   }
 
   const handleBookingClick = (booking: Booking) => {
@@ -238,7 +253,7 @@ export default function ProfilePage() {
                       {wishlist.map((activity) => (
                         <WishlistCard
                           key={activity.id}
-                          activity={activity}
+                          activity={activity as any}
                           onRemove={() => handleRemoveFromWishlist(activity.id)}
                         />
                       ))}

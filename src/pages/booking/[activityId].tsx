@@ -172,7 +172,7 @@ export default function ActivityBookingPage() {
                     <ActivityGallery 
                       images={activity.image_url ? [activity.image_url] : []}
                       videos={activity.video_url ? [{url: activity.video_url, thumbnail: activity.video_thumbnail_url || undefined}] : []}
-                      title={activity.title}
+                      title={activity.title || ""}
                     />
                   </CardContent>
                 </Card>
@@ -314,7 +314,7 @@ export default function ActivityBookingPage() {
                       <Separator />
 
                       <BookingForm
-                        activity={activity as SupabaseActivity}
+                        activity={activity as Activity}
                         selectedDate={selectedDate}
                         participants={selectedParticipants}
                         onParticipantsChange={setSelectedParticipants}

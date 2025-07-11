@@ -4,15 +4,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import activityService from "@/services/activityService";
-import { Activity, ScheduledActivity } from "@/types/activity";
+import { Activity, SupabaseActivity } from "@/types/activity";
 import { PlanningContext } from "@/contexts/PlanningContext";
 import { useToast } from "@/hooks/use-toast";
 
-export function ExcursionPlanner() {
+interface ExcursionPlannerProps {
+  activities: Activity[];
+  onPlanComplete: (plan: any) => void;
+}
+
+export function ExcursionPlanner({
+  activities,
+  onPlanComplete,
+}: ExcursionPlannerProps) {
   const { addActivity } = useContext(PlanningContext);
   const { toast } = useToast();
 
-  const [activities, setActivities] = useState<Activity[]>([]);
   const [filteredActivities, setFilteredActivities] = useState<Activity[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedActivity, setSelectedActivity] = useState<ScheduledActivity | null>(null);
@@ -24,7 +31,6 @@ export function ExcursionPlanner() {
       try {
         setLoading(true);
         const fetchedActivities = await activityService.getActivities();
-        setActivities(fetchedActivities);
         setFilteredActivities(fetchedActivities);
         setError(null);
       } catch (err) {

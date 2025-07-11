@@ -11,17 +11,17 @@ import {
 } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast"
-import { SupabaseActivity } from "@/types/activity"
+import { Activity, SupabaseActivity } from "@/types/activity"
 import { Users, Minus, Plus } from "lucide-react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
 
 interface BookingFormProps {
-  activity: SupabaseActivity;
-  selectedDate?: Date;
+  activity: Activity;
+  selectedDate: Date | undefined;
   participants: number;
-  onParticipantsChange: (participants: number) => void;
+  onParticipantsChange: (value: number) => void;
 }
 
 const bookingSchema = z.object({

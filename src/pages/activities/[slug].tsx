@@ -24,23 +24,14 @@ export default function ActivityPage() {
 
   useEffect(() => {
     const fetchActivity = async () => {
-      if (typeof slug !== "string") {
-        return;
-      }
+      if (typeof slug !== "string") return;
       try {
         setLoading(true);
-        setError(null);
-        const data = await activityService.getActivityBySlug(slug);
-        if (data) {
-          setActivity(data);
-          // Use the schedule data that's already included in the activity object
-          setScheduleData(data.schedule_instances || []);
-        } else {
-          setError("Activity not found.");
-        }
-      } catch (err) {
+        const activityData = await activityService.getActivityBySlug(slug);
+        setActivity(activityData);
+      } catch (error) {
+        console.error("Error fetching activity:", error);
         setError("Failed to load activity details.");
-        console.error(err);
       } finally {
         setLoading(false);
       }

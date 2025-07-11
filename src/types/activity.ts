@@ -1,7 +1,12 @@
+
 import { Database } from "@/integrations/supabase/types";
 
 export type Tables<T extends keyof Database["public"]["Tables"]> =
   Database["public"]["Tables"][T]["Row"];
+export type TablesInsert<T extends keyof Database["public"]["Tables"]> =
+  Database["public"]["Tables"][T]["Insert"];
+export type TablesUpdate<T extends keyof Database["public"]["Tables"]> =
+  Database["public"]["Tables"][T]["Update"];
 
 export type SupabaseActivity = Tables<"activities">;
 export type SupabaseBooking = Tables<"bookings">;
@@ -16,8 +21,8 @@ export type Provider = Tables<"activity_owners">;
 export type BookingStatus = "confirmed" | "pending" | "cancelled" | "completed";
 
 export interface ActivitySchedule {
-  id: string;
-  activity_id: string;
+  id: number;
+  activity_id: number;
   day_of_week: number;
   start_time: string;
   end_time: string;
@@ -54,8 +59,6 @@ export interface Activity extends Omit<SupabaseActivity, "highlights" | "languag
   includes_equipment?: boolean | null;
   location?: string | null;
   status?: string;
-  review_count?: number;
-  average_rating: number | null;
   duration?: number | null;
   booking_type_id?: number | null;
 }
@@ -68,10 +71,7 @@ export interface Booking extends SupabaseBooking {
   activity_schedules?: ActivitySchedule[];
   schedule_instances?: ActivityScheduleInstance[];
   customer_name?: string | null;
-  booking_date: string;
-  total_price: number | null;
   participants?: number;
-  provider_id?: string | null;
 }
 
 export interface ActivityForHomepage {

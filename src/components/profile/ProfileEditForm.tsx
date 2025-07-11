@@ -1,4 +1,3 @@
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -6,25 +5,24 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { CustomerProfile } from "@/services/customerService"
 import { User, Phone, Calendar, Mail } from "lucide-react"
+import { Tables } from "@/integrations/supabase/types"
 
 interface ProfileEditFormProps {
-  profile: CustomerProfile | null
-  onSave: (updates: Partial<CustomerProfile>) => Promise<void>
-  onCancel: () => void
-  loading?: boolean
+  profile: CustomerProfile & { full_name?: string, date_of_birth?: string, avatar_url?: string };
+  onUpdate: (profile: CustomerProfile) => void;
 }
 
-export default function ProfileEditForm({ profile, onSave, onCancel, loading }: ProfileEditFormProps) {
+export default function ProfileEditForm({ profile, onUpdate }: ProfileEditFormProps) {
   const [formData, setFormData] = useState({
-    first_name: profile?.first_name || "",
-    last_name: profile?.last_name || "",
-    phone: profile?.phone || "",
-    date_of_birth: profile?.date_of_birth || ""
+    first_name: profile.first_name || "",
+    last_name: profile.last_name || "",
+    phone: profile.phone || "",
+    date_of_birth: profile.date_of_birth || ""
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    await onSave(formData)
+    await onUpdate(formData)
   }
 
   const handleChange = (field: string, value: string) => {

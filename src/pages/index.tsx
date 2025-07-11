@@ -11,6 +11,8 @@ import { ActivityForHomepage } from "@/types/activity";
 import { ShoppingCart, User, Briefcase } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import Head from "next/head";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function HomePage() {
   const [activities, setActivities] = useState<ActivityForHomepage[]>([]);
@@ -67,6 +69,9 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-white text-black">
+      <Head>
+        <title>Home Page</title>
+      </Head>
       <Navbar />
       <main className="relative">
         <section className="w-full py-8 bg-white border-b">

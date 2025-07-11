@@ -6,18 +6,18 @@ import { Badge } from "@/components/ui/badge"
 import { ChevronLeft, ChevronRight, Play, Camera, X } from "lucide-react"
 
 interface ActivityGalleryProps {
-  images: string[]
-  videos?: string[]
-  title: string
+  images: string[];
+  videos: { url: string; thumbnail?: string }[];
+  title: string;
 }
 
-export function ActivityGallery({ images, videos = [], title }: ActivityGalleryProps) {
+export function ActivityGallery({ images, videos, title }: ActivityGalleryProps) {
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [isGalleryOpen, setIsGalleryOpen] = useState(false)
 
   const allMedia = [
     ...images.map(url => ({ type: "image" as const, url })),
-    ...videos.map(url => ({ type: "video" as const, url }))
+    ...videos.map(video => ({ type: "video" as const, url: video.url, thumbnail: video.thumbnail }))
   ]
 
   const nextImage = () => {
@@ -125,12 +125,23 @@ export function ActivityGallery({ images, videos = [], title }: ActivityGalleryP
             </div>
 
             <div className="flex-1 relative">
-              <Image
-                src={allMedia[selectedIndex].url}
-                alt={`${title} ${selectedIndex + 1}`}
-                fill
-                className="object-contain"
-              />
+              {allMedia[selectedIndex].type === "video" ? (
+                <video
+                  src={allMedia[selectedIndex].url}
+                  controls
+                  poster={allMedia[selectedIndex].thumbnail}
+                  className="w-full h-full object-cover"
+                >
+                  Your browser does not support the video tag.
+                </video>
+              ) : (
+                <Image
+                  src={allMedia[selectedIndex].url}
+                  alt={`${title} ${selectedIndex + 1}`}
+                  fill
+                  className="object-contain"
+                />
+              )}
 
               {allMedia[selectedIndex].type === "video" && (
                 <div className="absolute inset-0 flex items-center justify-center">

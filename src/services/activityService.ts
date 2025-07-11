@@ -1,5 +1,6 @@
+
 import { supabase } from "@/integrations/supabase/client";
-import { Activity, SupabaseActivity, ActivitySchedule, ActivityScheduleInstance } from "@/types/activity";
+import { Activity, SupabaseActivity, ActivitySchedule, ActivityScheduleInstance, TablesInsert, TablesUpdate } from "@/types/activity";
 
 class ActivityService {
   private _mapStatus(status: number | null): string {
@@ -43,7 +44,6 @@ class ActivityService {
       not_included: not_included ? JSON.parse(not_included) : [],
       status: this._mapStatus(status),
       duration: duration ? parseInt(duration, 10) : null,
-      average_rating: activity.average_rating || 0,
     };
   }
 
@@ -59,12 +59,12 @@ class ActivityService {
     }
 
     return data.map((activity) =>
-      this._transformActivity(activity, (activity as any).categories?.name)
+      this._transformActivity(activity as any, (activity as any).categories?.name)
     );
   }
 
   async getActivityById(id: number): Promise<Activity> {
-    const { data: activity, error } = await supabase
+    const {  activity, error } = await supabase
       .from("activities")
       .select("*, categories(name)")
       .eq("id", id)
@@ -90,9 +90,29 @@ class ActivityService {
 
     return {
       ...transformedActivity,
-      schedules: schedulesResponse.data || [],
+      schedules: (schedulesResponse.data as ActivitySchedule[]) || [],
       schedule_instances: scheduleInstancesResponse.data || [],
     };
+  }
+
+  async getActivityBySlug(slug: string): Promise<Activity | null> {
+    const { data, error } = await supabase
+      .from("activities")
+      .select("*, categories(name)")
+      .eq("is_active", true);
+
+    if (error) {
+      console.error("Error fetching activities:", error);
+      throw error;
+    }
+
+    const activity = data.find(
+      (act) => act.title.toLowerCase().replace(/\s+/g, "-") === slug
+    );
+
+    if (!activity) return null;
+
+    return this.getActivityById(activity.id);
   }
 
   async fetchActivitiesByOwner(ownerId: string): Promise<Activity[]> {
@@ -104,12 +124,12 @@ class ActivityService {
     if (error) throw error;
 
     return data.map((activity) =>
-      this._transformActivity(activity, (activity as any).categories?.name)
+      this._transformActivity(activity as any, (activity as any).categories?.name)
     );
   }
 
   async createActivity(
-    activityData: Partial<SupabaseActivity>
+    activityData: TablesInsert<"activities">
   ): Promise<SupabaseActivity> {
     const { data, error } = await supabase
       .from("activities")
@@ -123,7 +143,7 @@ class ActivityService {
 
   async updateActivity(
     id: number,
-    activityData: Partial<SupabaseActivity>
+    activityData: TablesUpdate<"activities">
   ): Promise<SupabaseActivity> {
     const { data, error } = await supabase
       .from("activities")
@@ -147,16 +167,13 @@ class ActivityService {
       .select("*")
       .eq("activity_id", activityId);
     if (error) throw error;
-    return data;
+    return data as ActivitySchedule[];
   }
 
   async updateSchedulesForActivity(
     activityId: number,
     schedules: Partial<ActivitySchedule>[]
   ): Promise<ActivitySchedule[]> {
-    // This is a complex operation, typically involving deleting old schedules
-    // and inserting new ones to avoid conflicts.
-    // For simplicity, we'll just upsert.
     const schedulesToUpsert = schedules.map((s) => ({
       ...s,
       activity_id: activityId,
@@ -164,11 +181,11 @@ class ActivityService {
 
     const { data, error } = await supabase
       .from("activity_schedules")
-      .upsert(schedulesToUpsert, { onConflict: "id" })
+      .upsert(schedulesToUpsert)
       .select();
 
     if (error) throw error;
-    return data;
+    return data as ActivitySchedule[];
   }
 
   async getScheduleInstances(
