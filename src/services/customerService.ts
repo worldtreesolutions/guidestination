@@ -158,7 +158,7 @@ const customerService = {
     // Transform the data to match our Booking interface
     const transformedBooking = {
       ...result.data,
-      customer_id: result.data.user_id || result.data.customer_id
+      customer_id: result.data.user_id
     }
 
     return transformedBooking as Booking

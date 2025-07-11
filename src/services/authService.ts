@@ -1,16 +1,15 @@
 import { supabase } from "@/integrations/supabase/client"
-import type { User, Session } from "@supabase/supabase-js"
 
 export interface SignInResponse {
-  user: User | null;
-  session: Session | null;
+  user: any | null;
+  session: any | null;
   provider_id?: string;
   error: Error | null;
 }
 
 export interface SignUpResponse {
-  user: User | null;
-  session: Session | null;
+  user: any | null;
+  session: any | null;
   error: Error | null;
 }
 

@@ -1,8 +1,19 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { Database } from "@/integrations/supabase/types";
 
-export type Category = Database["public"]["Tables"]["categories"]["Row"];
-type Activity = Database["public"]["Tables"]["activities"]["Row"];
+export interface Category {
+  id: number;
+  name: string;
+  description?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface Activity {
+  id: number;
+  title: string;
+  category_id: number;
+  [key: string]: any;
+}
 
 export const categoryService = {
   async getAllCategories(): Promise<Category[]> {

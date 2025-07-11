@@ -1,8 +1,21 @@
 import { supabase } from "@/integrations/supabase/client"
-import type { Database } from "@/integrations/supabase/types"
 
-export type ChatMessage = Database["public"]["Tables"]["chat_messages"]["Row"]
-export type SendMessageData = Database["public"]["Tables"]["chat_messages"]["Insert"]
+export interface ChatMessage {
+  id: string;
+  sender_id: string;
+  receiver_id: string;
+  activity_id: number;
+  message: string;
+  created_at: string;
+  read_at?: string;
+}
+
+export interface SendMessageData {
+  sender_id: string;
+  receiver_id: string;
+  activity_id: number;
+  message: string;
+}
 
 const chatService = {
   async getMessages(customerId: string, ownerId: string, activityId: number): Promise<ChatMessage[]> {

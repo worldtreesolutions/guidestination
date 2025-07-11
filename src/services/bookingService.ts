@@ -1,5 +1,4 @@
 import { supabase } from "@/integrations/supabase/client"
-import type { Booking } from "@/types/activity"
 
 const BOOKINGS_TABLE = "bookings"
 const ACTIVITIES_TABLE = "activities"
