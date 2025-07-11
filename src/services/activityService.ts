@@ -16,16 +16,23 @@ const toActivity = (activity: SupabaseActivity & {
   // Convert b_price from string to number if needed
   const bPrice = typeof activity.b_price === 'string' ? parseFloat(activity.b_price) : activity.b_price;
 
-  // Process activity options by type
+  // Process activity options by type with better null safety
   const processOptions = (type: string) => {
-    if (!activity.activity_selected_options) return [];
+    if (!activity.activity_selected_options || !Array.isArray(activity.activity_selected_options)) {
+      return [];
+    }
+    
     return activity.activity_selected_options
-      .filter((selectedOption: any) => selectedOption.activity_options?.type === type)
+      .filter((selectedOption: any) => {
+        return selectedOption && 
+               selectedOption.activity_options && 
+               selectedOption.activity_options.type === type;
+      })
       .map((selectedOption: any) => ({
-        id: selectedOption.activity_options?.id,
-        label: selectedOption.activity_options?.label,
-        icon: selectedOption.activity_options?.icon,
-        type: selectedOption.activity_options?.type
+        id: selectedOption.activity_options.id,
+        label: selectedOption.activity_options.label || '',
+        icon: selectedOption.activity_options.icon || 'Star',
+        type: selectedOption.activity_options.type
       }));
   };
 
