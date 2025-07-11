@@ -143,15 +143,17 @@ export const activityService = {
         return null;
       }
       
+      console.log("Fetching activity with ID:", activityId);
+      
       const { data, error } = await supabase
         .from("activities")
         .select(`
           *,
           activity_schedules(*),
           activity_schedule_instances(*),
-          activity_selected_options(
+          activity_selected_options!inner(
             option_id,
-            activity_options(
+            activity_options!inner(
               id,
               label,
               icon,
@@ -164,32 +166,64 @@ export const activityService = {
         .single();
 
       if (error) {
-        console.error("Error fetching activity by slug:", error);
+        console.error("Supabase error fetching activity by slug:", error);
+        
+        // Try fallback query without activity_selected_options if the join fails
+        console.log("Trying fallback query without options...");
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from("activities")
+          .select(`
+            *,
+            activity_schedules(*),
+            activity_schedule_instances(*)
+          `)
+          .eq("id", activityId)
+          .eq("is_active", true)
+          .single();
+
+        if (fallbackError) {
+          console.error("Fallback query also failed:", fallbackError);
+          return null;
+        }
+
+        if (!fallbackData) {
+          console.log("No activity found with ID:", activityId);
+          return null;
+        }
+
+        console.log("Using fallback data without options");
+        const userCurrency = currencyService.getUserCurrency();
+        return toActivity(fallbackData, userCurrency);
+      }
+
+      if (!data) {
+        console.log("No activity data returned for ID:", activityId);
         return null;
       }
 
-      if (!data) return null;
-
+      console.log("Successfully fetched activity data:", data.title);
       const userCurrency = currencyService.getUserCurrency();
 
       return toActivity(data, userCurrency);
     } catch (error) {
-      console.error("Error in getActivityBySlug:", error);
+      console.error("Unexpected error in getActivityBySlug:", error);
       return null;
     }
   },
 
   async getActivityById(activityId: number): Promise<Activity | null> {
     try {
+      console.log("Fetching activity by ID:", activityId);
+      
       const { data, error } = await supabase
         .from("activities")
         .select(`
           *,
           activity_schedules(*),
           activity_schedule_instances(*),
-          activity_selected_options(
+          activity_selected_options!inner(
             option_id,
-            activity_options(
+            activity_options!inner(
               id,
               label,
               icon,
@@ -202,17 +236,47 @@ export const activityService = {
         .single();
 
       if (error) {
-        console.error("Error fetching activity by ID:", error);
+        console.error("Supabase error fetching activity by ID:", error);
+        
+        // Try fallback query without activity_selected_options if the join fails
+        console.log("Trying fallback query without options...");
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from("activities")
+          .select(`
+            *,
+            activity_schedules(*),
+            activity_schedule_instances(*)
+          `)
+          .eq("id", activityId)
+          .eq("is_active", true)
+          .single();
+
+        if (fallbackError) {
+          console.error("Fallback query also failed:", fallbackError);
+          return null;
+        }
+
+        if (!fallbackData) {
+          console.log("No activity found with ID:", activityId);
+          return null;
+        }
+
+        console.log("Using fallback data without options");
+        const userCurrency = currencyService.getUserCurrency();
+        return toActivity(fallbackData, userCurrency);
+      }
+
+      if (!data) {
+        console.log("No activity data returned for ID:", activityId);
         return null;
       }
 
-      if (!data) return null;
-
+      console.log("Successfully fetched activity data:", data.title);
       const userCurrency = currencyService.getUserCurrency();
 
       return toActivity(data, userCurrency);
     } catch (error) {
-      console.error("Error in getActivityById:", error);
+      console.error("Unexpected error in getActivityById:", error);
       return null;
     }
   },
