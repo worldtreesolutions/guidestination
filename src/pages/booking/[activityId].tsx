@@ -16,7 +16,8 @@ import {
   CheckCircle, 
   XCircle,
   Calendar,
-  ArrowLeft
+  ArrowLeft,
+  Languages
 } from "lucide-react";
 import { ActivityGallery } from "@/components/activities/ActivityGallery";
 import { AvailabilityCalendar } from "@/components/activities/AvailabilityCalendar";
@@ -29,28 +30,35 @@ import { Activity, SupabaseActivity } from "@/types/activity";
 export default function ActivityBookingPage() {
   const router = useRouter();
   const { activityId } = router.query;
-  const [activity, setActivity] = useState<Activity | null>(null);
+  const [activity, setActivity] = useState<ActivityWithDetails | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState<Date>();
-  const [selectedParticipants, setSelectedParticipants] = useState(1);
+  const [error, setError] = useState<string | null>(null);
+  const [participants, setParticipants] = useState(1);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const isMobile = useIsMobile();
 
   useEffect(() => {
     const fetchActivity = async () => {
-      if (!activityId || typeof activityId !== "string") return
-      
+      if (typeof activityId !== "string") return;
       try {
         setLoading(true);
-        const activityData = await activityService.getActivityById(parseInt(activityId as string));
+        const activityIdAsNumber = parseInt(activityId, 10);
+        if (isNaN(activityIdAsNumber)) {
+          throw new Error("Invalid activity ID");
+        }
+        const activityData = await activityService.getActivityById(activityIdAsNumber);
         setActivity(activityData);
       } catch (error) {
         console.error("Error fetching activity:", error);
+        setError("Failed to load activity details.");
       } finally {
         setLoading(false);
       }
-    }
+    };
 
-    fetchActivity();
+    if (activityId) {
+      fetchActivity();
+    }
   }, [activityId]);
 
   if (loading) {
@@ -61,6 +69,22 @@ export default function ActivityBookingPage() {
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
             <p>Loading activity details...</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold mb-4">Error</h1>
+            <p className="text-muted-foreground mb-4">{error}</p>
+            <Button onClick={() => router.push("/")}>Back to Home</Button>
           </div>
         </main>
         <Footer />
@@ -186,13 +210,13 @@ export default function ActivityBookingPage() {
                       {activity.description}
                     </p>
 
-                    {activity.highlights && (
+                    {Array.isArray(activity.highlights) && activity.highlights.length > 0 && (
                       <div>
-                        <h3 className="font-semibold mb-3">Highlights</h3>
-                        <ul className="space-y-2">
+                        <h2 className="text-xl font-semibold mb-2">Highlights</h2>
+                        <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
                           {activity.highlights.map((highlight, index) => (
                             <li key={index} className="flex items-start gap-2">
-                              <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                              <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                               <span>{highlight}</span>
                             </li>
                           ))}
@@ -208,14 +232,18 @@ export default function ActivityBookingPage() {
                       <CardTitle className="text-green-600">What's Included</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <ul className="space-y-2">
-                        {activity.included?.map((item, index) => (
-                          <li key={index} className="flex items-start gap-2">
-                            <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                            <span className="text-sm">{item}</span>
-                          </li>
-                        ))}
-                      </ul>
+                      {Array.isArray(activity.included) && activity.included.length > 0 && (
+                        <div>
+                          <ul className="space-y-2">
+                            {activity.included.map((item, index) => (
+                              <li key={index} className="flex items-start gap-2">
+                                <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                                <span>{item}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
 
@@ -224,14 +252,18 @@ export default function ActivityBookingPage() {
                       <CardTitle className="text-red-600">What's Not Included</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <ul className="space-y-2">
-                        {activity.not_included?.map((item, index) => (
-                          <li key={index} className="flex items-start gap-2">
-                            <XCircle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
-                            <span className="text-sm">{item}</span>
-                          </li>
-                        ))}
-                      </ul>
+                      {Array.isArray(activity.not_included) && activity.not_included.length > 0 && (
+                        <div>
+                          <ul className="space-y-2">
+                            {activity.not_included.map((item, index) => (
+                              <li key={index} className="flex items-start gap-2">
+                                <X className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
+                                <span>{item}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 </div>
@@ -275,11 +307,25 @@ export default function ActivityBookingPage() {
                   </CardContent>
                 </Card>
 
-                <ActivityReviews 
-                  activityId={activity.id.toString()}
-                  rating={activity.average_rating || 0}
-                  reviewCount={activity.review_count || 0}
-                />
+                {activity.activity_schedules && activity.activity_schedules.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Schedule</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        {activity.activity_schedules.map((schedule, index) => (
+                          <div key={index} className="flex justify-between text-sm">
+                            <span>Day {schedule.day_of_week}</span>
+                            <span>{schedule.start_time} - {schedule.end_time}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                <ActivityReviews reviews={activity.reviews || []} />
               </div>
 
               <div className="lg:col-span-1">
@@ -316,8 +362,8 @@ export default function ActivityBookingPage() {
                       <BookingForm
                         activity={activity as Activity}
                         selectedDate={selectedDate}
-                        participants={selectedParticipants}
-                        onParticipantsChange={setSelectedParticipants}
+                        participants={participants}
+                        onParticipantsChange={setParticipants}
                       />
                     </CardContent>
                   </Card>

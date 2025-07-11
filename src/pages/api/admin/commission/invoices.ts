@@ -50,15 +50,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         // Get establishment details if QR booking
         let establishment = null;
-        if (invoice.establishment_id) {
-          const { data: est } = await supabase
-            .from("establishments")
-            .select("name, email, phone")
-            .eq("id", invoice.establishment_id)
-            .single();
-          establishment = est;
-        }
-
+        
         // Get booking details
         const { data: booking } = await supabase
           .from("bookings")

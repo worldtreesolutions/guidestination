@@ -1,5 +1,4 @@
-
-    import { NextApiRequest, NextApiResponse } from "next"
+import { NextApiRequest, NextApiResponse } from "next"
     import Stripe from "stripe"
     import { buffer } from "micro"
     import { getAdminClient } from "@/integrations/supabase/admin"
@@ -65,6 +64,20 @@
           })
 
         if (insertError) throw insertError
+
+        // Create commission payment record for partner
+        const { error: partnerPaymentError } = await supabase
+          .from("commission_payments")
+          .insert([{
+            invoice_id: invoiceId,
+            amount: invoice.platform_commission_amount,
+            paid_at: new Date().toISOString(),
+          }]);
+
+        if (partnerPaymentError) {
+          console.error("Error creating partner commission payment:", partnerPaymentError);
+          throw partnerPaymentError;
+        }
 
         console.log(`Successfully processed payment for invoice ${invoiceId}`)
       } catch (error) {
