@@ -47,9 +47,11 @@ export function ActivityPreview({ activityId }: ActivityPreviewProps) {
 
   if (!activity) return null;
 
-  const formatDuration = (duration: number | null) => {
+  const formatDuration = (duration: string | number | null) => {
     if (duration === null) return "N/A";
-    switch (duration) {
+    const durationNum = typeof duration === 'string' ? parseInt(duration, 10) : duration;
+    if (isNaN(durationNum)) return "N/A";
+    switch (durationNum) {
       case 2:
         return "2 Hours";
       case 4:
@@ -57,7 +59,7 @@ export function ActivityPreview({ activityId }: ActivityPreviewProps) {
       case 8:
         return "Full Day (8 Hours)";
       default:
-        return `${duration} hours`;
+        return `${durationNum} hours`;
     }
   };
 

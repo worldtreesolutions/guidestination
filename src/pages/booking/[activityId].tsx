@@ -118,9 +118,11 @@ export default function ActivityBookingPage() {
     }).format(price)
   }
 
-  const formatDuration = (duration: number | null | undefined) => {
+  const formatDuration = (duration: string | number | null | undefined) => {
     if (duration === null || duration === undefined) return "";
-    return `${duration} hours`;
+    const durationNum = typeof duration === 'string' ? parseInt(duration, 10) : duration;
+    if (isNaN(durationNum)) return "";
+    return `${durationNum} hours`;
   }
 
   return (
