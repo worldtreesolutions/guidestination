@@ -1,16 +1,16 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { Activity, ActivityForHomepage, SupabaseActivity } from "@/types/activity";
+import { Activity, ActivityForHomepage, SupabaseActivity, ActivityOption } from "@/types/activity";
 import { currencyService } from "./currencyService";
 
 const toActivity = (activity: SupabaseActivity, userCurrency: string): Activity => {
-  const splitString = (str: string | null): string[] | null => {
-    if (!str || str.trim() === '') return null;
-    return str.split(',').map(s => s.trim());
+  const splitString = (str: string | null): string[] => {
+    if (!str || str.trim() === "") return [];
+    return str.split(",").map(s => s.trim());
   };
 
   // Convert b_price from string to number if needed
-  const bPrice = typeof activity.b_price === 'string' ? parseFloat(activity.b_price) : activity.b_price;
+  const bPrice = typeof activity.b_price === "string" ? parseFloat(activity.b_price) : activity.b_price;
 
   return {
     ...activity,
@@ -87,7 +87,7 @@ export const activityService = {
       const userCurrency = currencyService.getUserCurrency();
 
       return (data || []).map(activity => {
-        const bPrice = typeof activity.b_price === 'string' ? parseFloat(activity.b_price) : activity.b_price;
+        const bPrice = typeof activity.b_price === "string" ? parseFloat(activity.b_price) : activity.b_price;
         const convertedPrice = bPrice ? currencyService.convertFromTHB(bPrice, userCurrency) : null;
 
         return {
@@ -108,15 +108,13 @@ export const activityService = {
 
   async getActivityBySlug(slug: string): Promise<Activity | null> {
     try {
-      const activityIdStr = slug.replace('activity-', '');
+      const activityIdStr = slug.replace("activity-", "");
       const activityId = parseInt(activityIdStr, 10);
 
       if (isNaN(activityId)) {
         console.error("Invalid activity slug:", slug);
         return null;
       }
-      
-      console.log("Fetching activity with ID:", activityId);
       
       // Fetch activity data
       const {  activityData, error: activityError } = await supabase
@@ -127,28 +125,36 @@ export const activityService = {
         .single();
 
       if (activityError || !activityData) {
-        console.error("Error fetching activity:", activityError);
+        console.error("Error fetching activity:", activityError?.message || "Activity not found");
         return null;
       }
 
       // Fetch schedules
-      const {  schedules } = await supabase
+      const {  schedules, error: schedulesError } = await supabase
         .from("activity_schedules")
         .select("*")
         .eq("activity_id", activityId);
+      
+      if (schedulesError) {
+        console.warn("Could not fetch activity schedules:", schedulesError.message);
+      }
 
       // Fetch schedule instances
-      const {  scheduleInstances } = await supabase
+      const {  scheduleInstances, error: instancesError } = await supabase
         .from("activity_schedule_instances")
         .select("*")
         .eq("activity_id", activityId);
 
+      if (instancesError) {
+        console.warn("Could not fetch schedule instances:", instancesError.message);
+      }
+
       // Fetch selected options with activity options
-      const {  selectedOptions } = await supabase
+      const {  selectedOptions, error: optionsError } = await supabase
         .from("activity_selected_options")
         .select(`
           option_id,
-          activity_options(
+          activity_options (
             id,
             label,
             icon,
@@ -157,30 +163,39 @@ export const activityService = {
         `)
         .eq("activity_id", activityId);
 
+      if (optionsError) {
+        console.warn("Could not fetch activity options:", optionsError.message);
+      }
+
       const userCurrency = currencyService.getUserCurrency();
       const activity = toActivity(activityData, userCurrency);
 
       // Process dynamic options
-      const processOptions = (type: string) => {
+      const processOptions = (type: string): ActivityOption[] => {
         if (!selectedOptions) return [];
         return selectedOptions
-          .filter(opt => opt.activity_options && opt.activity_options.type === type)
-          .map(opt => ({
-            id: opt.activity_options.id,
-            label: opt.activity_options.label || '',
-            icon: opt.activity_options.icon || 'Star',
-            type: opt.activity_options.type
-          }));
+          .filter(opt => {
+            const relatedOption = opt.activity_options as any; // Cast to any to check properties
+            return relatedOption && !relatedOption.error && relatedOption.type === type;
+          })
+          .map(opt => {
+            const relatedOption = opt.activity_options as any;
+            return {
+              id: relatedOption.id,
+              label: relatedOption.label || "",
+              icon: relatedOption.icon || "Star",
+              type: relatedOption.type
+            };
+          });
       };
 
       // Add dynamic data
-      activity.dynamic_highlights = processOptions('highlight');
-      activity.dynamic_included = processOptions('included');
-      activity.dynamic_not_included = processOptions('not_included');
+      activity.dynamic_highlights = processOptions("highlight");
+      activity.dynamic_included = processOptions("included");
+      activity.dynamic_not_included = processOptions("not_included");
       activity.activity_schedules = schedules || [];
       activity.schedule_instances = scheduleInstances || [];
 
-      console.log("Successfully fetched activity:", activity.title);
       return activity;
     } catch (error) {
       console.error("Error in getActivityBySlug:", error);
