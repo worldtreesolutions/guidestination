@@ -2,9 +2,9 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Heart, ShoppingCart } from "lucide-react"
-import { WishlistItem } from "@/services/customerService"
 import Image from "next/image"
 import { Activity, ActivityForHomepage } from "@/types/activity"
+import Link from "next/link"
 
 interface WishlistCardProps {
   activity: Activity | ActivityForHomepage;
@@ -35,20 +35,21 @@ export default function WishlistCard({ activity, onRemove }: WishlistCardProps) 
           <Button
             variant="outline"
             size="sm"
-            onClick={() => onRemove()}
+            onClick={onRemove}
             className="flex-1 flex items-center gap-2"
           >
             <Heart className="h-4 w-4" />
             Remove
           </Button>
-          <Button
-            size="sm"
-            onClick={() => onBookNow(item.activity_id)}
-            className="flex-1 flex items-center gap-2"
-          >
-            <ShoppingCart className="h-4 w-4" />
-            Book
-          </Button>
+          <Link href={activity.slug ? `/activities/${activity.slug}` : `/booking/${activity.id}`} passHref>
+            <Button
+              size="sm"
+              className="flex-1 flex items-center gap-2"
+            >
+              <ShoppingCart className="h-4 w-4" />
+              Book
+            </Button>
+          </Link>
         </div>
       </CardContent>
     </Card>

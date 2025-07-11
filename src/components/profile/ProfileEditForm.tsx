@@ -1,33 +1,83 @@
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { CustomerProfile } from "@/services/customerService"
-import { User, Phone, Calendar, Mail } from "lucide-react"
-import { Tables } from "@/integrations/supabase/types"
+
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { User, Phone } from "lucide-react";
+import { Tables } from "@/integrations/supabase/types";
+
+type CustomerProfile = Tables<"customer_profiles">;
 
 interface ProfileEditFormProps {
-  profile: CustomerProfile & { full_name?: string, date_of_birth?: string, avatar_url?: string };
+  profile: CustomerProfile & {
+    full_name?: string;
+    date_of_birth?: string;
+    avatar_url?: string;
+  };
   onUpdate: (profile: CustomerProfile) => void;
 }
 
-export default function ProfileEditForm({ profile, onUpdate }: ProfileEditFormProps) {
+export default function ProfileEditForm({
+  profile,
+  onUpdate,
+}: ProfileEditFormProps) {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     first_name: profile.first_name || "",
     last_name: profile.last_name || "",
     phone: profile.phone || "",
-    date_of_birth: profile.date_of_birth || ""
-  })
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    await onUpdate(formData)
-  }
+    e.preventDefault();
+    if (!user) return;
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("customer_profiles")
+        .update({
+          first_name: formData.first_name,
+          last_name: formData.last_name,
+          phone: formData.phone,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("customer_id", user.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast({ title: "Profile updated successfully!" });
+      if (data) {
+        onUpdate(data as CustomerProfile);
+      }
+    } catch (error) {
+      toast({
+        title: "Error updating profile",
+        description: (error as Error).message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-  }
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
   return (
     <Card>
@@ -36,9 +86,7 @@ export default function ProfileEditForm({ profile, onUpdate }: ProfileEditFormPr
           <User className="h-5 w-5" />
           Edit Profile
         </CardTitle>
-        <CardDescription>
-          Update your personal information
-        </CardDescription>
+        <CardDescription>Update your personal information</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -52,7 +100,7 @@ export default function ProfileEditForm({ profile, onUpdate }: ProfileEditFormPr
                 placeholder="Enter your first name"
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="last_name">Last Name</Label>
               <Input
@@ -72,22 +120,9 @@ export default function ProfileEditForm({ profile, onUpdate }: ProfileEditFormPr
             <Input
               id="phone"
               type="tel"
-              value={formData.phone}
+              value={formData.phone || ""}
               onChange={(e) => handleChange("phone", e.target.value)}
               placeholder="Enter your phone number"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="date_of_birth" className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              Date of Birth
-            </Label>
-            <Input
-              id="date_of_birth"
-              type="date"
-              value={formData.date_of_birth}
-              onChange={(e) => handleChange("date_of_birth", e.target.value)}
             />
           </div>
 
@@ -95,12 +130,9 @@ export default function ProfileEditForm({ profile, onUpdate }: ProfileEditFormPr
             <Button type="submit" disabled={loading}>
               {loading ? "Saving..." : "Save Changes"}
             </Button>
-            <Button type="button" variant="outline" onClick={onCancel}>
-              Cancel
-            </Button>
           </div>
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }

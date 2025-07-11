@@ -33,35 +33,39 @@ export default function ProfilePage() {
     if (!user) return
 
     try {
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from("customer_profiles")
         .select("*")
         .eq("customer_id", user.id)
         .single()
 
-      if (error && error.code !== "PGRST116") {
-        console.error("Error fetching profile:", error)
-      } else if (data) {
+      if (error && error.code === "PGRST116") { // Not found, create one
+        const {  { user: authUser } } = await supabase.auth.getUser();
+        const {  newProfile, error: insertError } = await supabase
+          .from('customer_profiles')
+          .insert({
+            customer_id: user.id,
+            email: authUser?.email || "",
+            first_name: "",
+            last_name: "",
+          })
+          .select()
+          .single();
+        
+        if (insertError) throw insertError;
+        data = newProfile;
+      } else if (error) {
+        throw error;
+      }
+
+      if (data) {
         setProfile({
             ...data,
-            full_name: `${data.first_name} ${data.last_name}`.trim(),
-        })
-      } else {
-        // Create a default profile structure if none exists
-        const {  userData } = await supabase.auth.getUser();
-        setProfile({
-          customer_id: user.id,
-          email: userData.user?.email || "",
-          first_name: "",
-          last_name: "",
-          phone: null,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          full_name: "",
+            full_name: `${data.first_name || ''} ${data.last_name || ''}`.trim(),
         })
       }
     } catch (error) {
-      console.error("Error fetching profile:", error)
+      console.error("Error fetching/creating profile:", error)
     }
   }, [user])
 
@@ -133,10 +137,12 @@ export default function ProfilePage() {
   }, [user, fetchProfile, fetchBookings, fetchWishlist])
 
   const handleProfileUpdate = (updatedProfile: CustomerProfile) => {
-    setProfile({
-        ...updatedProfile,
-        full_name: `${updatedProfile.first_name} ${updatedProfile.last_name}`.trim(),
-    })
+    setProfile(prev => {
+      if (!prev) return null;
+      const newProfile = { ...prev, ...updatedProfile };
+      newProfile.full_name = `${newProfile.first_name || ''} ${newProfile.last_name || ''}`.trim();
+      return newProfile;
+    });
   }
 
   const handleBookingClick = (booking: Booking) => {

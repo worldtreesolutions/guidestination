@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Activity, SupabaseActivity, ActivitySchedule, ActivityScheduleInstance, TablesInsert, TablesUpdate } from "@/types/activity";
 

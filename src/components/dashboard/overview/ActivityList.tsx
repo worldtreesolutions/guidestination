@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -8,34 +9,28 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { SupabaseActivity } from "@/types/activity"
+import { Activity } from "@/types/activity"
 import Image from "next/image"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 interface ActivityListProps {
-  activities: SupabaseActivity[];
-  onEdit?: (activity: SupabaseActivity) => void;
-  onView?: (activity: SupabaseActivity) => void;
+  activities: Activity[];
+  onEdit?: (activity: Activity) => void;
+  onView?: (activity: Activity) => void;
 }
 
 export function ActivityList({ activities, onEdit, onView }: ActivityListProps) {
-  const formatPrice = (price: number | null) => {
-    if (!price) return "Free"
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "THB",
-      minimumFractionDigits: 0,
-    }).format(price)
-  }
-
-  const getStatusColor = (isActive: boolean | null) => {
-    if (isActive === null) return "bg-gray-100 text-gray-800"
-    return isActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-  }
-
-  const getStatusText = (isActive: boolean | null) => {
-    if (isActive === null) return "Unknown"
-    return isActive ? "Active" : "Inactive"
+  const getStatusColor = (status: string | undefined) => {
+    switch (status) {
+      case "published":
+        return "bg-green-100 text-green-800"
+      case "draft":
+        return "bg-yellow-100 text-yellow-800"
+      case "unpublished":
+        return "bg-red-100 text-red-800"
+      default:
+        return "bg-gray-100 text-gray-800"
+    }
   }
 
   if (activities.length === 0) {
@@ -66,6 +61,7 @@ export function ActivityList({ activities, onEdit, onView }: ActivityListProps) 
               <TableHead>Location</TableHead>
               <TableHead>Price</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -90,7 +86,7 @@ export function ActivityList({ activities, onEdit, onView }: ActivityListProps) 
                     : "N/A"}
                 </TableCell>
                 <TableCell>
-                  <Badge variant="outline">{activity.status}</Badge>
+                  <Badge className={getStatusColor(activity.status)} variant="outline">{activity.status || 'draft'}</Badge>
                 </TableCell>
                 <TableCell>
                   <DropdownMenu>

@@ -1,4 +1,3 @@
-
 import { Database } from "@/integrations/supabase/types";
 
 export type Tables<T extends keyof Database["public"]["Tables"]> =
@@ -65,7 +64,7 @@ export interface Activity extends Omit<SupabaseActivity, "highlights" | "languag
 
 export interface Booking extends SupabaseBooking {
   status: BookingStatus | null;
-  activities: SupabaseActivity | null;
+  activities: Partial<SupabaseActivity> | null;
   platform_fee?: number;
   provider_amount?: number;
   activity_schedules?: ActivitySchedule[];
