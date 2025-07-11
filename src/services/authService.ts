@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client"
 
 export interface SignInResponse {
@@ -29,17 +30,17 @@ const authService = {
 
       // If login successful, check if user is an activity owner and fetch provider_id
       let provider_id: string | undefined = undefined;
-      if (data.user && supabase) {
+      if (data.user) {
         try {
           // Check if user is an activity owner
-          const { data: ownerData, error: ownerError } = await supabase
+          const ownerResult = await supabase
             .from('activity_owners')
             .select('id')
             .eq('user_id', data.user.id)
             .single();
 
-          if (!ownerError && ownerData) {
-            provider_id = ownerData.id;
+          if (!ownerResult.error && ownerResult.data) {
+            provider_id = ownerResult.data.id;
             console.log("Found provider_id:", provider_id);
           }
         } catch (ownerErr) {

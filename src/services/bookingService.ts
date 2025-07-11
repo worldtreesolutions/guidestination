@@ -36,16 +36,16 @@ export const bookingService = {
       throw new Error("Supabase client not initialized");
     }
 
-    const { data: activitiesData, error: activitiesError } = await supabase
+    const activitiesResult = await supabase
       .from(ACTIVITIES_TABLE)
       .select("id")
       .eq("owner_id", ownerId)
 
-    if (activitiesError) {
-      throw new Error(activitiesError.message)
+    if (activitiesResult.error) {
+      throw new Error(activitiesResult.error.message)
     }
 
-    const activityIds = activitiesData?.map((a: any) => a.id) || []
+    const activityIds = activitiesResult.data?.map((a: any) => a.id) || []
 
     if (activityIds.length === 0) {
       return {
@@ -56,17 +56,17 @@ export const bookingService = {
       }
     }
 
-    const { data: bookingsData, error: bookingsError } = await supabase
+    const bookingsResult = await supabase
       .from(BOOKINGS_TABLE)
       .select("total_amount, status")
       .in("activity_id", activityIds)
 
-    if (bookingsError) {
-      console.error("Error fetching booking stats:", bookingsError)
-      throw new Error(bookingsError.message)
+    if (bookingsResult.error) {
+      console.error("Error fetching booking stats:", bookingsResult.error)
+      throw new Error(bookingsResult.error.message)
     }
 
-    const stats = (bookingsData || []).reduce(
+    const stats = (bookingsResult.data || []).reduce(
       (acc: BookingStats, booking: { total_amount?: number; status: string }) => {
         if (booking.status === "confirmed") {
           acc.totalRevenue += booking.total_amount || 0
