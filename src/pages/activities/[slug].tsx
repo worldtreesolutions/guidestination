@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Navbar from "@/components/layout/Navbar";
@@ -191,7 +190,11 @@ export default function ActivityPage() {
           )}
 
           {/* Activity Reviews */}
-          <ActivityReviews activityId={activity.id} />
+          <ActivityReviews 
+            activityId={activity.id} 
+            rating={activity.average_rating || 0}
+            reviewCount={0}
+          />
         </div>
 
         <div className="lg:col-span-1 space-y-6">

@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { useRouter } from "next/router";
 import { currencyService } from "@/services/currencyService";
@@ -39,19 +38,35 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     try {
       const response = await fetch(`/translations/${lang}.json`);
       if (!response.ok) {
-        console.error(`Failed to load ${lang}.json`);
-        if (lang !== "en") {
-          await fetchTranslations("en");
-        }
+        console.warn(`Failed to load ${lang}.json, using fallback translations`);
+        // Set basic fallback translations to prevent app from breaking
+        setTranslations({
+          common: {
+            loading: "Loading...",
+            error: "Error",
+            search: "Search",
+            book: "Book",
+            cancel: "Cancel",
+            confirm: "Confirm"
+          }
+        });
         return;
       }
       const data = await response.json();
       setTranslations(data);
     } catch (error) {
-      console.error("Error fetching translations:", error);
-      if (lang !== "en") {
-        await fetchTranslations("en");
-      }
+      console.warn("Error fetching translations, using fallback:", error);
+      // Set basic fallback translations to prevent app from breaking
+      setTranslations({
+        common: {
+          loading: "Loading...",
+          error: "Error",
+          search: "Search",
+          book: "Book",
+          cancel: "Cancel",
+          confirm: "Confirm"
+        }
+      });
     }
   }, []);
 
@@ -77,7 +92,23 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
         setCurrency('THB');
       }
 
-      await fetchTranslations(initialLanguage);
+      // Only fetch translations on client side to avoid SSR issues
+      if (typeof window !== "undefined") {
+        await fetchTranslations(initialLanguage);
+      } else {
+        // Set basic fallback for SSR
+        setTranslations({
+          common: {
+            loading: "Loading...",
+            error: "Error",
+            search: "Search",
+            book: "Book",
+            cancel: "Cancel",
+            confirm: "Confirm"
+          }
+        });
+      }
+      
       setIsLoading(false);
     };
 
@@ -92,7 +123,10 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       localStorage.setItem("language", lang);
     }
     
-    fetchTranslations(lang);
+    // Only fetch translations on client side
+    if (typeof window !== "undefined") {
+      fetchTranslations(lang);
+    }
     
     if (lang === 'fr') {
       setCurrency('EUR');
@@ -102,7 +136,9 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       setCurrency('THB');
     }
 
-    router.push(router.pathname, router.asPath, { locale: lang });
+    if (typeof window !== "undefined") {
+      router.push(router.pathname, router.asPath, { locale: lang });
+    }
   };
 
   const formatCurrency = (amountInThb: number) => {
