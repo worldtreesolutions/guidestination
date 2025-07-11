@@ -27,6 +27,13 @@ export interface ActivitySchedule {
   updated_at: string;
 }
 
+export interface ActivityOption {
+  id: number;
+  label: string;
+  icon: string;
+  type: string;
+}
+
 export interface Activity extends Omit<SupabaseActivity, 'highlights' | 'languages' | 'included' | 'not_included'> {
   slug?: string;
   category_name?: string;
@@ -38,6 +45,10 @@ export interface Activity extends Omit<SupabaseActivity, 'highlights' | 'languag
   languages: string[] | null;
   included: string[] | null;
   not_included: string[] | null;
+  // Dynamic options from activity_selected_options
+  dynamic_highlights?: ActivityOption[];
+  dynamic_included?: ActivityOption[];
+  dynamic_not_included?: ActivityOption[];
   activity_schedules?: ActivitySchedule[];
   schedule_instances?: ActivityScheduleInstance[];
 }
