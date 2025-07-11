@@ -152,41 +152,57 @@ export const activityService = {
       
       console.log("Fetching activity with ID:", activityId);
       
-      // First try with optional activity_selected_options join
-      const { data, error } = await supabase
+      // Fetch activity data first
+      const { data: activityData, error: activityError } = await supabase
         .from("activities")
-        .select(`
-          *,
-          activity_schedules(*),
-          activity_schedule_instances(*),
-          activity_selected_options(
-            option_id,
-            activity_options(
-              id,
-              label,
-              icon,
-              type
-            )
-          )
-        `)
+        .select("*")
         .eq("id", activityId)
         .eq("is_active", true)
         .single();
 
-      if (error) {
-        console.error("Supabase error fetching activity by slug:", error);
+      if (activityError || !activityData) {
+        console.error("Error fetching activity:", activityError);
         return null;
       }
 
-      if (!data) {
-        console.log("No activity found with ID:", activityId);
-        return null;
-      }
+      // Fetch schedules separately
+      const { data: schedules } = await supabase
+        .from("activity_schedules")
+        .select("*")
+        .eq("activity_id", activityId);
 
-      console.log("Successfully fetched activity data:", data.title);
+      // Fetch schedule instances separately
+      const { data: scheduleInstances } = await supabase
+        .from("activity_schedule_instances")
+        .select("*")
+        .eq("activity_id", activityId);
+
+      // Fetch selected options separately
+      const { data: selectedOptions } = await supabase
+        .from("activity_selected_options")
+        .select(`
+          option_id,
+          activity_options(
+            id,
+            label,
+            icon,
+            type
+          )
+        `)
+        .eq("activity_id", activityId);
+
+      // Combine the data
+      const combinedData = {
+        ...activityData,
+        activity_schedules: schedules || [],
+        activity_schedule_instances: scheduleInstances || [],
+        activity_selected_options: selectedOptions || []
+      };
+
+      console.log("Successfully fetched activity data:", combinedData.title);
       const userCurrency = currencyService.getUserCurrency();
 
-      return toActivity(data, userCurrency);
+      return toActivity(combinedData, userCurrency);
     } catch (error) {
       console.error("Unexpected error in getActivityBySlug:", error);
       return null;
@@ -197,41 +213,57 @@ export const activityService = {
     try {
       console.log("Fetching activity by ID:", activityId);
       
-      // First try with optional activity_selected_options join
-      const { data, error } = await supabase
+      // Fetch activity data first
+      const { data: activityData, error: activityError } = await supabase
         .from("activities")
-        .select(`
-          *,
-          activity_schedules(*),
-          activity_schedule_instances(*),
-          activity_selected_options(
-            option_id,
-            activity_options(
-              id,
-              label,
-              icon,
-              type
-            )
-          )
-        `)
+        .select("*")
         .eq("id", activityId)
         .eq("is_active", true)
         .single();
 
-      if (error) {
-        console.error("Supabase error fetching activity by ID:", error);
+      if (activityError || !activityData) {
+        console.error("Error fetching activity:", activityError);
         return null;
       }
 
-      if (!data) {
-        console.log("No activity data returned for ID:", activityId);
-        return null;
-      }
+      // Fetch schedules separately
+      const { data: schedules } = await supabase
+        .from("activity_schedules")
+        .select("*")
+        .eq("activity_id", activityId);
 
-      console.log("Successfully fetched activity data:", data.title);
+      // Fetch schedule instances separately
+      const { data: scheduleInstances } = await supabase
+        .from("activity_schedule_instances")
+        .select("*")
+        .eq("activity_id", activityId);
+
+      // Fetch selected options separately
+      const { data: selectedOptions } = await supabase
+        .from("activity_selected_options")
+        .select(`
+          option_id,
+          activity_options(
+            id,
+            label,
+            icon,
+            type
+          )
+        `)
+        .eq("activity_id", activityId);
+
+      // Combine the data
+      const combinedData = {
+        ...activityData,
+        activity_schedules: schedules || [],
+        activity_schedule_instances: scheduleInstances || [],
+        activity_selected_options: selectedOptions || []
+      };
+
+      console.log("Successfully fetched activity data:", combinedData.title);
       const userCurrency = currencyService.getUserCurrency();
 
-      return toActivity(data, userCurrency);
+      return toActivity(combinedData, userCurrency);
     } catch (error) {
       console.error("Unexpected error in getActivityById:", error);
       return null;
