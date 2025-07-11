@@ -27,6 +27,9 @@ export default function ActivityCard({ activity }: ActivityCardProps) {
     return currencyService.formatCurrency(price, userCurrency);
   };
 
+  // Generate slug if not provided
+  const activitySlug = activity.slug || `activity-${activity.id}`;
+
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-105 bg-white border border-gray-200 text-black">
       <div className="aspect-video relative">
@@ -72,7 +75,7 @@ export default function ActivityCard({ activity }: ActivityCardProps) {
             <span className="text-sm text-muted-foreground"> / person</span>
           </div>
           <Button size="sm" asChild>
-            <Link href={`/activities/${activity.slug}`}>Book Now</Link>
+            <Link href={`/activities/${activitySlug}`}>Book Now</Link>
           </Button>
         </div>
       </CardContent>
