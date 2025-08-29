@@ -57,10 +57,14 @@ export const stripeService = {
     selectedDate: string;
     establishmentId?: string;
   }) {
+    // Get session ID for anonymous user tracking
+    const sessionId = referralService.getOrCreateSessionId();
+    
     const response = await fetch("/api/stripe/create-checkout-session", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "x-session-id": sessionId,
       },
       body: JSON.stringify(checkoutData),
     })
@@ -223,8 +227,8 @@ export const stripeService = {
               activity_id: item.activityId,
               customer_name: customerName,
               customer_email: customerEmail,
-              customer_id: typeof session.customer === 'string' ? session.customer : "stripe_customer",
-              participants: item.quantity,
+                customer_id: typeof session.customer === 'string' ? session.customer : "stripe_customer",
+                participants: item.quant,
               total_amount: itemAmount,
               status: "confirmed",
               booking_date: new Date().toISOString(),
@@ -267,8 +271,8 @@ export const stripeService = {
             activity_id: parseInt(activityId),
             customer_name: customerName || session.customer_details?.name || 'Customer',
             customer_email: customerEmail || session.customer_details?.email || "",
-            customer_id: typeof session.customer === 'string' ? session.customer : "stripe_customer",
-            participants: parseInt(participants),
+              customer_id: typeof session.customer === 'string' ? session.customer : "stripe_customer",
+              participants: parseInt(participants),
             total_amount: session.amount_total! / 100,
             status: "confirmed",
             booking_date: new Date().toISOString(),
@@ -316,14 +320,45 @@ export const stripeService = {
         };
         console.log(`[Commission] Using QR establishment link: ${establishmentCommissionData.establishmentId}`);
       }
-      // 2. Fall back to old referralData system
-      else if (referralData) {
-        hasEstablishmentCommission = true;
-        establishmentCommissionData = {
-          establishmentId: referralData.establishmentId,
-          source: 'legacy_referral'
-        };
-        console.log(`[Commission] Using legacy referral data: ${establishmentCommissionData.establishmentId}`);
+      // 2. Fall back to checking for active establishment link (both user and session-based)
+      else {
+        try {
+          const userId = session?.metadata?.userId || null;
+          const sessionId = session?.metadata?.sessionId || null;
+          
+          let activeLink = null;
+          
+          // First try user-based link (if registered)
+          if (userId) {
+            activeLink = await referralService.getActiveEstablishmentLink(userId);
+          }
+          
+          // Fallback to session-based link (if anonymous)
+          if (!activeLink && sessionId) {
+            activeLink = await referralService.getActiveEstablishmentLink(null, sessionId);
+          }
+          
+          if (activeLink) {
+            hasEstablishmentCommission = true;
+            establishmentCommissionData = {
+              establishmentId: activeLink.establishment_id,
+              referralVisitId: activeLink.id,
+              source: 'qr_code_link'
+            };
+            console.log(`[Commission] Found active establishment link: ${establishmentCommissionData.establishmentId}`);
+          }
+          // 3. Fall back to old referralData system
+          else if (referralData) {
+            hasEstablishmentCommission = true;
+            establishmentCommissionData = {
+              establishmentId: referralData.establishmentId,
+              source: 'legacy_referral'
+            };
+            console.log(`[Commission] Using legacy referral data: ${establishmentCommissionData.establishmentId}`);
+          }
+        } catch (error) {
+          console.error('[Commission] Error checking establishment link:', error);
+        }
       }
       
       let establishmentCommission = 0;

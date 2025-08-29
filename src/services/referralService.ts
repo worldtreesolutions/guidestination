@@ -77,13 +77,24 @@ export const referralService = {
 
     if (error) throw error;
 
-    // Store visit ID in session for later booking attribution (guard for SSR)
-    if (typeof sessionStorage !== 'undefined') {
+    // Store referral data for potential claiming when user registers
+    if (typeof window !== "undefined") {
       try {
-        sessionStorage.setItem('referral_visit_id', data.id);
-        sessionStorage.setItem('establishment_id', establishmentId);
-        sessionStorage.setItem('establishment_link_expires', expiresAt.toISOString());
-      } catch (_) {}
+        // Store in both session and local storage for persistence
+        const referralData = {
+          referral_visit_id: data.id,
+          establishment_id: establishmentId,
+          expires_at: expiresAt.toISOString(),
+          created_at: new Date().toISOString()
+        };
+        
+        sessionStorage.setItem("referral_visit_id", data.id);
+        sessionStorage.setItem("establishment_id", establishmentId);
+        sessionStorage.setItem("establishment_link_expires", expiresAt.toISOString());
+        localStorage.setItem("referral_data", JSON.stringify(referralData));
+      } catch (e) {
+        console.warn("Failed to store referral data:", e);
+      }
     }
 
     return data as ReferralVisit;
@@ -99,13 +110,13 @@ export const referralService = {
     return sessionStorage.getItem('establishment_id')
   },
 
-  async getActiveEstablishmentLink(sessionId?: string, userId?: string): Promise<ReferralVisit | null> {
+  async getActiveEstablishmentLink(userId?: string, sessionId?: string): Promise<ReferralVisit | null> {
     const currentSessionId = sessionId || this.getOrCreateSessionId();
     const { data: { user } } = await supabase.auth.getUser();
     const currentUserId = userId || user?.id;
 
     try {
-      // Use a simple query and cast to any to avoid TS type issues
+      // Get all referral visits and filter client-side to avoid TypeScript issues
       const { data: visits, error } = await supabase
         .from("referral_visits")
         .select("*") as any;
@@ -117,15 +128,18 @@ export const referralService = {
       
       // Filter for active, non-expired visits that match current user/session
       const activeVisits = visits.filter((visit: any) => {
+        // Check if active and not expired
         if (!visit.is_active) return false;
         
         const expiresAt = visit.expires_at ? new Date(visit.expires_at) : null;
         if (!expiresAt || expiresAt <= now) return false;
         
-        const matchesUser = currentUserId && visit.visitor_id === currentUserId;
-        const matchesSession = !currentUserId && visit.session_id === currentSessionId;
-        
-        return matchesUser || matchesSession;
+        // Match by user ID if registered, or by session ID if anonymous
+        if (currentUserId) {
+          return visit.visitor_id === currentUserId;
+        } else {
+          return visit.session_id === currentSessionId && visit.visitor_id === null;
+        }
       });
 
       // Return the most recent active visit
@@ -153,6 +167,103 @@ export const referralService = {
     
     const expiryDate = new Date(expiryString);
     return new Date() > expiryDate;
+  },
+
+  async claimReferralForUser(userId: string): Promise<ReferralVisit | null> {
+    if (!userId) throw new Error("userId required");
+    
+    let referralData = null;
+    
+    // Try to get stored referral data
+    try {
+      if (typeof window !== "undefined") {
+        const storedData = localStorage.getItem("referral_data");
+        if (storedData) {
+          referralData = JSON.parse(storedData);
+        }
+        
+        // Fallback to session storage
+        if (!referralData) {
+          const referralVisitId = sessionStorage.getItem("referral_visit_id");
+          const establishmentId = sessionStorage.getItem("establishment_id");
+          if (referralVisitId && establishmentId) {
+            referralData = { referral_visit_id: referralVisitId, establishment_id: establishmentId };
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to retrieve referral data:", e);
+    }
+
+    if (!referralData?.referral_visit_id) {
+      console.log("No referral data to claim");
+      return null;
+    }
+
+    // Check if referral is still valid and unclaimed by getting all visits and filtering
+    const { data: allVisits, error: visitError } = await supabase
+      .from("referral_visits")
+      .select("*") as any;
+
+    if (visitError) {
+      console.error("Failed to fetch referral visits:", visitError);
+      return null;
+    }
+
+    const existingVisit = allVisits?.find((visit: any) => 
+      visit.id === referralData.referral_visit_id &&
+      visit.is_active === true &&
+      new Date(visit.expires_at) > new Date() &&
+      visit.visitor_id === null
+    );
+
+    if (!existingVisit) {
+      console.log("Referral visit not found or already claimed");
+      // Clean up stored data
+      try {
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("referral_data");
+          sessionStorage.removeItem("referral_visit_id");
+          sessionStorage.removeItem("establishment_id");
+        }
+      } catch (e) {
+        console.warn("Failed to clear referral data:", e);
+      }
+      return null;
+    }
+
+    // Update the referral visit to link it to the user
+    const { data, error } = await supabase
+      .from("referral_visits")
+      .update({ visitor_id: userId } as any)
+      .eq("id", referralData.referral_visit_id)
+      .select()
+      .single() as any;
+
+    if (error) {
+      console.error("Failed to claim referral:", error);
+      return null;
+    }
+
+    // Clear stored referral data after successful claiming
+    try {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("referral_data");
+        sessionStorage.removeItem("referral_visit_id");
+        sessionStorage.removeItem("establishment_id");
+        
+        // Store claimed referral info for confirmation
+        sessionStorage.setItem("claimed_referral", JSON.stringify({
+          establishment_id: data.establishment_id,
+          claimed_at: new Date().toISOString()
+        }));
+      }
+    } catch (e) {
+      console.warn("Failed to clear referral data:", e);
+    }
+
+    console.log("Successfully claimed referral for establishment:", data.establishment_id);
+    return data as ReferralVisit;
   },
 
   async createCommission(

@@ -75,12 +75,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Check for active establishment link (QR scan linking)
     let activeEstablishmentLink = null;
+    let sessionId = null;
+    let userId = null;
+    
     try {
       // Try to get session ID from custom header or generate one
-      const sessionId = req.headers['x-session-id'] as string || req.headers['session-id'] as string;
-      const userId = customerId;
+      sessionId = req.headers['x-session-id'] as string || req.headers['session-id'] as string;
+      userId = customerId;
       
-      activeEstablishmentLink = await referralService.getActiveEstablishmentLink(sessionId, userId);
+      activeEstablishmentLink = await referralService.getActiveEstablishmentLink(userId, sessionId);
       
       if (activeEstablishmentLink) {
         console.log(`[Stripe Checkout] Active establishment link found for ${activeEstablishmentLink.establishment_id}`);
@@ -185,6 +188,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       metadata.linkedEstablishmentId = activeEstablishmentLink.establishment_id;
       metadata.hasActiveEstablishmentLink = 'true';
       console.log(`[Stripe Checkout] Adding establishment link to session metadata: ${activeEstablishmentLink.establishment_id}`);
+    }
+
+    // Add session and user info for commission lookup fallback
+    if (sessionId) {
+      metadata.sessionId = sessionId;
+    }
+    if (userId) {
+      metadata.userId = userId;
     }
 
     // Create checkout session
