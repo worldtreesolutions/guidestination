@@ -97,7 +97,7 @@ const authService = {
     }
 
     const { error } = await supabaseAny.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/dashboard/reset-password`,
+      redirectTo: `${window.location.origin}/auth/reset-callback`,
     })
     return { error: error ? error : null };
   },
