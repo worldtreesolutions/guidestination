@@ -7,6 +7,9 @@ import Navbar from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { supabase } from "@/integrations/supabase/client"
 
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
 function parseTokenFromUrl() {
   if (typeof window === 'undefined') return null
 
@@ -33,21 +36,16 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    // Prefer token from sessionStorage (set by reset-callback). Fall back to URL.
+    const stored = typeof window !== 'undefined' ? sessionStorage.getItem('supabaseResetToken') : null
+    if (stored) {
+      setTokenInfo({ access_token: stored, refresh_token: typeof window !== 'undefined' ? sessionStorage.getItem('supabaseResetRefresh') : null })
+      return
+    }
+
     const t = parseTokenFromUrl()
     if (t && t.access_token) {
       setTokenInfo(t)
-      // try to restore session silently so updateUser works
-      ;(async () => {
-        try {
-          // setSession is used to set the auth session from tokens
-          if ((supabase as any)?.auth?.setSession) {
-            await (supabase as any).auth.setSession({ access_token: t.access_token, refresh_token: t.refresh_token })
-          }
-        } catch (e) {
-          // ignore; user may still be allowed to update password via the recover flow
-          console.warn('Failed to set session from token', e)
-        }
-      })()
     }
   }, [])
 
@@ -64,16 +62,44 @@ export default function ResetPasswordPage() {
         return
       }
 
-      // attempt to update user password
-      const { error: updateError } = await (supabase as any).auth.updateUser({ password })
-      if (updateError) {
-        console.error('Error updating password:', updateError)
-        setError(updateError.message || 'Failed to update password')
+      // attempt to update user password using the reset token via Supabase REST API
+      const token = (typeof window !== 'undefined') ? sessionStorage.getItem('supabaseResetToken') || tokenInfo?.access_token : tokenInfo?.access_token
+      if (!token) {
+        setError('No reset token available')
         setLoading(false)
         return
       }
 
-      setMessage('Your password has been updated. You can now log in with your new password.')
+      if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+        setError('Missing Supabase configuration')
+        setLoading(false)
+        return
+      }
+
+      const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          apikey: SUPABASE_ANON_KEY || '',
+        },
+        body: JSON.stringify({ password }),
+      })
+
+      if (!res.ok) {
+        let body: any = null
+        try { body = await res.json() } catch (e) {}
+        const msg = body?.error_description || body?.message || 'Failed to update password'
+        setError(msg)
+        setLoading(false)
+        return
+      }
+
+      // clear any stored tokens and ensure no session remains
+      try { sessionStorage.removeItem('supabaseResetToken'); sessionStorage.removeItem('supabaseResetRefresh') } catch (e) {}
+      try { await supabase.auth.signOut() } catch (e) {}
+
+      setMessage('Your password has been updated. Please sign in with your new password.')
       setPassword('')
     } catch (err: any) {
       console.error(err)
