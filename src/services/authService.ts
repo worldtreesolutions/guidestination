@@ -30,6 +30,30 @@ const authService = {
 
       if (authResult.error) throw authResult.error
 
+      // Verify user is a customer before allowing login
+      if (authResult.data.user) {
+        try {
+          const customerQuery = await supabaseAny
+            .from('customers')
+            .select('id')
+            .eq('user_id', authResult.data.user.id)
+            .maybeSingle()
+
+          if (!customerQuery.data) {
+            // User is not a customer - sign them out and deny access
+            await supabaseAny.auth.signOut()
+            throw new Error("Access restricted to customers only")
+          }
+        } catch (customerErr) {
+          // If customer check fails, sign out and deny access
+          await supabaseAny.auth.signOut()
+          if (customerErr instanceof Error && customerErr.message === "Access restricted to customers only") {
+            throw customerErr
+          }
+          throw new Error("Unable to verify customer status")
+        }
+      }
+
       let provider_id: string | undefined = undefined;
       if (authResult.data.user) {
         try {
