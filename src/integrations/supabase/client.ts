@@ -7,17 +7,22 @@ import type { Database } from "./types";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl) {
-  console.error("Supabase URL is missing from environment variables. Please set NEXT_PUBLIC_SUPABASE_URL.");
-}
-if (!supabaseAnonKey) {
-  console.error("Supabase Anon Key is missing from environment variables. Please set NEXT_PUBLIC_SUPABASE_ANON_KEY.");
-}
-
 // Create a fallback client if environment variables are missing
 const createSupabaseClient = () => {
+  // During build time, allow missing env vars but warn
   if (!supabaseUrl || !supabaseAnonKey) {
-    console.warn("Supabase client not properly configured. Using mock client.");
+    if (typeof window === 'undefined' && process.env.NODE_ENV === 'production') {
+      // Server-side in production - log warnings but don't throw
+      console.warn("Supabase environment variables not set. Client will be null.");
+      console.warn("Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in Vercel.");
+      return null;
+    } else if (typeof window !== 'undefined') {
+      // Client-side - throw meaningful error
+      const missing = [];
+      if (!supabaseUrl) missing.push('NEXT_PUBLIC_SUPABASE_URL');
+      if (!supabaseAnonKey) missing.push('NEXT_PUBLIC_SUPABASE_ANON_KEY');
+      throw new Error(`Supabase configuration missing: ${missing.join(', ')}`);
+    }
     return null;
   }
   return createClient<Database>(supabaseUrl, supabaseAnonKey);

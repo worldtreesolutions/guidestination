@@ -14,12 +14,16 @@ const getEnvVar = (key: string): string | undefined => {
 // Check if required environment variables are available
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
-if (!supabaseUrl) {
-  throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL environment variable");
-}
-
 // Function to create admin client lazily
 const createAdminClient = () => {
+  if (!supabaseUrl) {
+    if (typeof window === 'undefined' && process.env.NODE_ENV === 'production') {
+      // Server-side in production - log warning but don't throw during build
+      console.warn("NEXT_PUBLIC_SUPABASE_URL not set. Admin client will be unavailable.");
+    }
+    return null;
+  }
+  
   const supabaseServiceRoleKey = getEnvVar('SUPABASE_SERVICE_ROLE_KEY');
   
   if (!supabaseServiceRoleKey) {
