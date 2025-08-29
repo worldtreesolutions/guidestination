@@ -228,7 +228,7 @@ export const stripeService = {
               customer_name: customerName,
               customer_email: customerEmail,
                 customer_id: typeof session.customer === 'string' ? session.customer : "stripe_customer",
-                participants: item.quant,
+                participants: item.quantity,
               total_amount: itemAmount,
               status: "confirmed",
               booking_date: new Date().toISOString(),
