@@ -3,10 +3,13 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import Navbar from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
-import { supabase } from '@/integrations/supabase/client'
+
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 export default function ConfirmEmailPage() {
   const [status, setStatus] = useState<'checking'|'success'|'error'|'none'>('checking')
+  const [userEmail, setUserEmail] = useState<string | null>(null)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -16,11 +19,42 @@ export default function ConfirmEmailPage() {
       return
     }
 
-    // We do not want to create a session here. Optionally, you could hit the
-    // Supabase REST endpoint to verify the token. For now, display success and
-    // clear the token so the user can sign in manually.
-    try { sessionStorage.removeItem('supabaseConfirmToken'); sessionStorage.removeItem('supabaseConfirmRefresh') } catch (e) {}
-    setStatus('success')
+    // Verify token by calling Supabase Auth REST endpoint. We intentionally
+    // avoid creating a client session here.
+    ;(async () => {
+      if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+        setStatus('error')
+        try { sessionStorage.removeItem('supabaseConfirmToken'); sessionStorage.removeItem('supabaseConfirmRefresh') } catch (e) {}
+        return
+      }
+
+      try {
+        const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            apikey: SUPABASE_ANON_KEY,
+          },
+        })
+
+        if (!res.ok) {
+          setStatus('error')
+          try { sessionStorage.removeItem('supabaseConfirmToken'); sessionStorage.removeItem('supabaseConfirmRefresh') } catch (e) {}
+          return
+        }
+
+        const body = await res.json()
+        // body contains the user data when token is valid
+        setUserEmail(body?.email || null)
+        setStatus('success')
+
+        // clear stored tokens after verification
+        try { sessionStorage.removeItem('supabaseConfirmToken'); sessionStorage.removeItem('supabaseConfirmRefresh') } catch (e) {}
+      } catch (err) {
+        setStatus('error')
+        try { sessionStorage.removeItem('supabaseConfirmToken'); sessionStorage.removeItem('supabaseConfirmRefresh') } catch (e) {}
+      }
+    })()
   }, [])
 
   return (
@@ -41,6 +75,7 @@ export default function ConfirmEmailPage() {
           {status === 'success' && (
             <>
               <h1 className="text-xl font-semibold mb-4">Email confirmed</h1>
+              {userEmail && <p className="mb-2">Confirmed: <strong>{userEmail}</strong></p>}
               <p className="mb-4">Your email address has been confirmed. Please sign in to continue.</p>
               <Link href="/auth/login" className="underline">Sign in</Link>
             </>
