@@ -5,6 +5,9 @@ import { Heart, ShoppingCart, Trash2 } from "lucide-react"
 import Image from "next/image"
 import { Activity, ActivityForHomepage } from "@/types/activity"
 import Link from "next/link"
+import { useLanguage } from "@/contexts/LanguageContext"
+import { useCurrency } from "@/context/CurrencyContext"
+import { formatCurrency } from "@/utils/currency"
 
 interface WishlistCardProps {
   activity: Activity | ActivityForHomepage;
@@ -12,6 +15,9 @@ interface WishlistCardProps {
 }
 
 export default function WishlistCard({ activity, onRemove }: WishlistCardProps) {
+  const { t } = useLanguage();
+  const { currency, convert } = useCurrency();
+
   const generateSlug = (activity: Activity | ActivityForHomepage) => {
     if ('slug' in activity && activity.slug) {
       return activity.slug;
@@ -23,7 +29,7 @@ export default function WishlistCard({ activity, onRemove }: WishlistCardProps) 
 
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow relative">
-       {onRemove && (
+      {onRemove && (
         <Button
           variant="destructive"
           size="icon"
@@ -35,10 +41,19 @@ export default function WishlistCard({ activity, onRemove }: WishlistCardProps) 
       )}
       <div className="aspect-video relative">
         <Image
-          src={activity.image_url || "/placeholder-activity.jpg"}
+          src={(() => {
+            const imageUrl = activity.image_url as any;
+            if (Array.isArray(imageUrl)) {
+              return imageUrl.length > 0 && imageUrl[0] ? imageUrl[0] : "/placeholder-activity.jpg";
+            }
+            return imageUrl || "/placeholder-activity.jpg";
+          })()}
           alt={activity.title}
           fill
           className="object-cover"
+          onError={(e) => {
+            (e.target as HTMLImageElement).src = "/placeholder-activity.jpg";
+          }}
         />
       </div>
       <CardContent className="p-4">
@@ -47,11 +62,11 @@ export default function WishlistCard({ activity, onRemove }: WishlistCardProps) 
         </h3>
         <div className="flex items-center justify-between">
           <div className="text-lg font-bold">
-            ${activity.b_price}
+            {formatCurrency(convert(activity.b_price, currency), currency)}
           </div>
           <Button size="sm" asChild>
             <Link href={`/activities/${activitySlug}`}>
-              View Details
+              {t('profile.messages.viewDetails')}
             </Link>
           </Button>
         </div>

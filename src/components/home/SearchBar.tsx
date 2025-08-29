@@ -2,16 +2,47 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Search, MapPin, Calendar as CalendarIcon, Users } from "lucide-react"
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 
-export default function SearchBar() {
+interface SearchBarProps {
+  onSearch?: (params: { destination: string; date?: Date; guests: string }) => void;
+}
+import { Calendar } from "@/components/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+
+export default function SearchBar({ onSearch }: SearchBarProps) {
   const [destination, setDestination] = useState("")
-  const [date, setDate] = useState("")
+  const inputRef = useRef<HTMLInputElement>(null)
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null)
+  const [date, setDate] = useState<Date | undefined>(undefined)
   const [guests, setGuests] = useState("1")
 
   const handleSearch = () => {
-    console.log({ destination, date, guests })
+    if (onSearch) {
+      onSearch({ destination, date, guests });
+    } else {
+      console.log({ destination, date, guests });
+    }
   }
+
+  // Google Places Autocomplete setup
+  useEffect(() => {
+    if (!window.google || !window.google.maps || !window.google.maps.places) return;
+    if (!inputRef.current) return;
+    if (autocompleteRef.current) return;
+    autocompleteRef.current = new window.google.maps.places.Autocomplete(inputRef.current!, {
+      types: ["(cities)", "(regions)", "(countries)"],
+      fields: ["formatted_address", "name", "geometry", "place_id", "address_components", "types"],
+    });
+    autocompleteRef.current.addListener("place_changed", () => {
+      const place = autocompleteRef.current!.getPlace();
+      if (place && place.formatted_address) {
+        setDestination(place.formatted_address);
+      } else if (place && place.name) {
+        setDestination(place.name);
+      }
+    });
+  }, []);
 
   return (
     <div className="w-full max-w-2xl mx-auto bg-white shadow-lg rounded-2xl p-6">
@@ -20,25 +51,36 @@ export default function SearchBar() {
           <div className="relative">
             <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Destination"
+              ref={inputRef}
+              placeholder="Destination (city or country)"
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
               className="pl-10 rounded-full"
+              autoComplete="off"
             />
           </div>
         </div>
 
         <div className="relative">
-          <div className="relative">
-            <CalendarIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              type="date"
-              placeholder="Date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="pl-10 rounded-full"
-            />
-          </div>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full justify-start pl-10 rounded-full text-left font-normal h-10"
+              >
+                <CalendarIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                {date ? date.toLocaleDateString() : "Select date"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={date}
+                onSelect={setDate}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
         </div>
 
         <div className="relative">

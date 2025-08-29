@@ -12,7 +12,11 @@ import Link from "next/link";
 
 export default function ActivityOwnerDashboard() {
   const { user } = useAuth()
-  const { t } = useLanguage()
+  const { t ,language} = useLanguage()
+
+  console.log('Current language:', language)
+  console.log('Legal title translation:', t("activityOwner.benefits.legal.title"))
+  console.log('Home translation (should work):', t("nav.home"))
 
   return (
     <>
@@ -39,7 +43,7 @@ export default function ActivityOwnerDashboard() {
               <div className="grid md:grid-cols-2 gap-8 mb-12">
                 <Card>
                   <CardHeader>
-                    <Shield className="h-10 w-10 text-primary mb-4" />
+                    <Shield className="h-10 w-10 text-black mb-4" />
                     <CardTitle>{t("activityOwner.benefits.legal.title") || "Legal Protection"}</CardTitle>
                     <CardDescription>
                       {t("activityOwner.benefits.legal.description") || "Get comprehensive insurance coverage and legal protection for your activities"}
@@ -49,7 +53,7 @@ export default function ActivityOwnerDashboard() {
 
                 <Card>
                   <CardHeader>
-                    <Building2 className="h-10 w-10 text-primary mb-4" />
+                    <Building2 className="h-10 w-10 text-black mb-4" />
                     <CardTitle>{t("activityOwner.benefits.growth.title") || "Business Growth"}</CardTitle>
                     <CardDescription>
                       {t("activityOwner.benefits.growth.description") || "Expand your reach and grow your business with our marketing support"}
@@ -59,7 +63,7 @@ export default function ActivityOwnerDashboard() {
 
                 <Card>
                   <CardHeader>
-                    <Award className="h-10 w-10 text-primary mb-4" />
+                    <Award className="h-10 w-10 text-black mb-4" />
                     <CardTitle>{t("activityOwner.benefits.quality.title") || "Quality Standards"}</CardTitle>
                     <CardDescription>
                       {t("activityOwner.benefits.quality.description") || "Maintain high quality standards with our verification and review system"}
@@ -69,7 +73,7 @@ export default function ActivityOwnerDashboard() {
 
                 <Card>
                   <CardHeader>
-                    <Clock className="h-10 w-10 text-primary mb-4" />
+                    <Clock className="h-10 w-10 text-black mb-4" />
                     <CardTitle>{t("activityOwner.benefits.flexible.title") || "Flexible Schedule"}</CardTitle>
                     <CardDescription>
                       {t("activityOwner.benefits.flexible.description") || "Set your own schedule and manage bookings at your convenience"}

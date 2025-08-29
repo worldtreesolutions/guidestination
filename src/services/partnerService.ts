@@ -106,12 +106,13 @@ export const partnerService = {
       }
 
       newUserId = authData.user.id;
+      console.log(`User created successfully with ID: ${newUserId}`)
 
-      // Step 2: Create partner registration record with user_id as foreign key
+      // Step 2: Create partner registration record with id as foreign key to auth.users.id
       const { data: partnerRegistrationData, error: partnerError } = await supabase
         .from("partner_registrations")
         .insert([{
-          user_id: authData.user.id,
+          id: authData.user.id, // Use id as foreign key to auth.users.id
           business_name: data.business_name,
           owner_name: data.owner_name,
           email: data.email,
@@ -123,15 +124,21 @@ export const partnerService = {
           commission_package: data.commission_package,
           supporting_documents: data.supporting_documents || [],
           status: 'pending',
-          room_count: 0,
-          created_by: authData.user.id
-        }])
+          room_count: 0
+        } as any]) // Type assertion to bypass incorrect TypeScript types
         .select()
 
       if (partnerError) {
         console.error("Partner registration error:", partnerError)
-        throw new Error(`Registration failed: ${partnerError.message}. Please try again or contact support.`)
+        // This will trigger the rollback in the catch block
+        throw new Error(`Failed to create partner registration: ${partnerError.message}. Please try again or contact support.`)
       }
+
+      if (!partnerRegistrationData || partnerRegistrationData.length === 0) {
+        throw new Error("Failed to create partner registration record. Please try again.")
+      }
+
+      console.log(`Partner registration created successfully for user: ${newUserId}`)
 
       return {
         user: authData.user,
@@ -139,22 +146,32 @@ export const partnerService = {
         message: 'Registration successful! Please check your email to verify your account before you can access your partner dashboard.'
       }
     } catch (error: any) {
-      // Rollback: Delete user from auth.users if partner registration failed
+      console.error('Error in partner registration:', error)
+      
+      // Rollback: Delete user from auth.users if it was created but registration failed
       if (newUserId) {
+        console.log(`Attempting to rollback user account: ${newUserId}`)
         try {
-          await fetch('/api/auth/delete-user', {
+          const response = await fetch('/api/auth/delete-user', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userId: newUserId }),
           });
+          
+          if (response.ok) {
+            console.log(`Successfully rolled back user account: ${newUserId}`)
+          } else {
+            const errorData = await response.json()
+            console.error(`Failed to rollback user account: ${newUserId}`, errorData)
+            // Note: We don't throw here to avoid masking the original error
+          }
         } catch (rollbackError) {
-          console.error("CRITICAL: User rollback failed.", rollbackError);
+          console.error("CRITICAL: User rollback failed for user:", newUserId, rollbackError);
+          // Note: We don't throw here to avoid masking the original error
         }
       }
       
-      console.error('Error in partner registration:', error)
-      
-      // Re-throw the error with user-friendly message
+      // Re-throw the original error with user-friendly message
       if (error.message) {
         throw error
       } else {

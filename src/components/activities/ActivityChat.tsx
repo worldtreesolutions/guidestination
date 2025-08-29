@@ -6,8 +6,38 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Send, MessageCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import chatService, { ChatMessage } from "@/services/chatService";
 import { ActivityWithDetails } from "@/types/activity";
+
+// Helper function to generate deterministic UUID from activity data (same as chatService)
+function generateActivityConversationId(activityId: string, customerId: string, providerId: string): string {
+  // Create a deterministic string
+  const baseString = `activity-${activityId}-${customerId}-${providerId}`;
+  
+  // Simple hash function for browser compatibility
+  let hash = 0;
+  for (let i = 0; i < baseString.length; i++) {
+    const char = baseString.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  
+  // Convert to positive number and pad with zeros
+  const hashStr = Math.abs(hash).toString(16).padStart(8, '0');
+  
+  // Format as UUID: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
+  const uuid = [
+    hashStr.substring(0, 8),
+    hashStr.substring(0, 4),
+    '4' + hashStr.substring(1, 4), // Version 4 UUID
+    '8' + hashStr.substring(1, 4), // Variant bits
+    hashStr.repeat(3).substring(0, 12)
+  ].join('-');
+  
+  console.log(`🔍 ActivityChat - Generated UUID for ${baseString}: ${uuid}`);
+  return uuid;
+}
 
 interface ActivityChatProps {
   activity: ActivityWithDetails;
@@ -21,22 +51,71 @@ export function ActivityChat({ activity }: ActivityChatProps) {
   const [isOpen, setIsOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Debug logging
+  console.log("ActivityChat - User:", user);
+  console.log("ActivityChat - Activity:", activity);
+  console.log("ActivityChat - Provider ID:", activity?.provider_id || activity?.created_by);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   const loadMessages = useCallback(async () => {
-    if (!activity?.id) return;
+    if (!activity?.id || !user) return;
     try {
       setLoading(true);
-      const activityMessages = await chatService.getMessages(String(activity.id));
-      setMessages(activityMessages);
+      console.log("Loading messages for user:", user.id, "and activity:", activity.id);
+      
+      // Create activity-specific conversation UUID - MUST match chatService format
+      const providerId = activity.provider_id || activity.created_by;
+      const activityConversationId = generateActivityConversationId(
+        String(activity.id),
+        user.id,
+        providerId
+      );
+      
+      console.log("🔍 ActivityChat - Generated conversation UUID:", activityConversationId);
+      console.log("🔍 ActivityChat - Activity ID:", activity.id);
+      console.log("🔍 ActivityChat - Customer ID:", user.id);
+      console.log("🔍 ActivityChat - Provider ID:", providerId);
+      
+      // Load messages from support_messages table filtered by this activity conversation
+      const supabaseAny = supabase as any;
+      const { data: messages, error } = await supabaseAny
+        .from('support_messages')
+        .select('*')
+        .eq('conversation_id', activityConversationId)
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        console.error('Error loading messages:', error);
+        setMessages([]);
+        return;
+      }
+
+      // Convert to ChatMessage format
+      const formattedMessages: ChatMessage[] = messages?.map((msg: any) => ({
+        id: msg.id,
+        conversation_id: msg.conversation_id,
+        sender_id: msg.sender_id,
+        receiver_id: msg.receiver_id,
+        sender_name: msg.sender_name,
+        message: msg.message,
+        sender_type: msg.sender_type,
+        is_read: msg.is_read,
+        created_at: msg.created_at
+      })) || [];
+
+      console.log("Loaded activity-specific messages:", formattedMessages);
+      console.log("Activity conversation UUID:", activityConversationId);
+      setMessages(formattedMessages);
     } catch (error) {
       console.error("Error loading messages:", error);
+      setMessages([]);
     } finally {
       setLoading(false);
     }
-  }, [activity?.id]);
+  }, [activity?.id, activity?.provider_id, activity?.created_by, user]);
 
   useEffect(() => {
     if (isOpen && activity && user) {
@@ -49,21 +128,41 @@ export function ActivityChat({ activity }: ActivityChatProps) {
   }, [messages]);
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !user || !activity.provider_id) return;
+    if (!newMessage.trim() || !user) return;
+
+    // Use created_by as the provider_id if provider_id is not available
+    const providerId = activity.provider_id || activity.created_by;
+    if (!providerId) {
+      console.error("No provider ID found for this activity");
+      alert("Unable to identify activity provider. Please contact support.");
+      return;
+    }
 
     try {
       const messageData = {
-        sender_id: user.id,
-        receiver_id: activity.provider_id,
+        customer_id: user.id,
+        activity_provider_id: providerId,
         activity_id: String(activity.id),
-        message: newMessage.trim()
+        message: newMessage.trim(),
+        sender_type: "customer" as const,
+        sender_name: user.email || "Customer", // Use email or fallback to "Customer"
+        sender_email: user.email || "customer@example.com"
       };
 
+      console.log("Sending message with updated data:", messageData);
+      
       const sentMessage = await chatService.sendMessage(messageData);
-      setMessages(prev => [...prev, sentMessage]);
       setNewMessage("");
+      
+      console.log("Message sent successfully:", sentMessage);
+      
+      // Reload messages to show the new message
+      await loadMessages();
+      
     } catch (error) {
       console.error("Error sending message:", error);
+      // Show user-friendly error message
+      alert("Failed to send message. Please try again.");
     }
   };
 

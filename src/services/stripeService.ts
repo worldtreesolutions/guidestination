@@ -3,6 +3,7 @@ import { getAdminClient, getAdminClientSafe } from "@/integrations/supabase/admi
 import type { Database } from "@/integrations/supabase/types"
 import emailService from "./emailService"
 import type Stripe from "stripe"
+import { referralService } from "@/services/referralService"
 
 // This function ensures Stripe is only initialized on the server-side when needed.
 const getStripe = (): Stripe | null => {
@@ -199,37 +200,190 @@ export const stripeService = {
     const client = getAdminSupabaseClient()
     if (!client) return
 
-    const { activityId, participants, customerName, establishmentId } = session.metadata!
-
+    const isCartCheckout = session.metadata?.isCartCheckout === 'true'
+    
     try {
-      // Create the booking
-      const { data: booking, error: bookingError } = await client
-        .from("bookings")
-        .insert({
-          activity_id: parseInt(activityId),
-          customer_name: customerName,
-          participants: parseInt(participants),
-          total_amount: session.amount_total! / 100,
-          status: "confirmed",
-          booking_date: new Date().toISOString(),
-          user_id: "stripe_customer", // Default user for Stripe bookings
-          provider_id: "default", // Will be updated based on activity
-        })
-        .select()
-        .single()
+      if (isCartCheckout) {
+        // Handle cart checkout - create multiple bookings
+        const cartItems = session.metadata?.cartItems ? JSON.parse(session.metadata.cartItems) : []
+        const customerName = session.metadata?.customerName || session.customer_details?.name || 'Customer'
+        const customerEmail = session.metadata?.customerEmail || session.customer_details?.email || ''
+        
+        console.log('🛒 Processing cart checkout with', cartItems.length, 'items')
+        
+        const createdBookings = []
+        
+        for (const item of cartItems) {
+          // Create individual booking for each cart item
+          const itemAmount = (item.price * item.quantity)
+          
+          const { data: booking, error: bookingError } = await client
+            .from("bookings")
+            .insert({
+              activity_id: item.activityId,
+              customer_name: customerName,
+              customer_email: customerEmail,
+              customer_id: typeof session.customer === 'string' ? session.customer : "stripe_customer",
+              participants: item.quantity,
+              total_amount: itemAmount,
+              status: "confirmed",
+              booking_date: new Date().toISOString(),
+            } as any)
+            .select()
+            .single()
 
-      if (bookingError || !booking) {
-        console.error("Error creating booking:", bookingError)
-        return
+          if (bookingError) {
+            console.error("Error creating cart booking:", bookingError)
+            continue
+          }
+
+          console.log("Cart booking created successfully:", booking.id)
+          createdBookings.push(booking)
+
+          // Calculate and apply commissions for each booking
+          await this.calculateBookingCommissions(booking, null, client, session)
+          
+          // Process commission and send confirmation emails for each booking
+          await this.processBookingConfirmation(booking, client)
+        }
+        
+        console.log('✅ Cart checkout completed:', createdBookings.length, 'bookings created')
+        
+      } else {
+        // Handle single booking checkout
+        const { 
+          activityId, 
+          participants, 
+          customerName, 
+          customerEmail, 
+          establishmentId, 
+          referralData 
+        } = session.metadata!
+
+        // Create the booking
+        const { data: booking, error: bookingError } = await client
+          .from("bookings")
+          .insert({
+            activity_id: parseInt(activityId),
+            customer_name: customerName || session.customer_details?.name || 'Customer',
+            customer_email: customerEmail || session.customer_details?.email || "",
+            customer_id: typeof session.customer === 'string' ? session.customer : "stripe_customer",
+            participants: parseInt(participants),
+            total_amount: session.amount_total! / 100,
+            status: "confirmed",
+            booking_date: new Date().toISOString(),
+          } as any)
+          .select()
+          .single()
+
+        if (bookingError || !booking) {
+          console.error("Error creating booking:", bookingError)
+          return
+        }
+
+        console.log("Single booking created successfully:", booking.id)
+
+        // Calculate and apply commissions
+        await this.calculateBookingCommissions(booking, referralData ? JSON.parse(referralData) : null, client, session)
+
+        // Process commission and send confirmation emails
+        await this.processBookingConfirmation(booking, client)
       }
-
-      console.log("Booking created successfully:", booking.id)
-
-      // Process commission and send confirmation emails
-      await this.processBookingConfirmation(booking, client)
 
     } catch (error) {
       console.error("Error in handleCheckoutSessionCompleted:", error)
+    }
+  },
+
+  async calculateBookingCommissions(booking: any, referralData: any, client: any, session?: Stripe.Checkout.Session) {
+    try {
+      const bookingTotal = booking.total_amount;
+      
+      // Platform always gets 20% of booking total
+      const platformFee = bookingTotal * 0.20;
+      
+      // Check for establishment commission sources (prioritize new QR linking system)
+      let hasEstablishmentCommission = false;
+      let establishmentCommissionData: any = null;
+      
+      // 1. Check for new QR establishment link (from session metadata)
+      if (session?.metadata?.hasActiveEstablishmentLink === 'true') {
+        hasEstablishmentCommission = true;
+        establishmentCommissionData = {
+          establishmentId: session.metadata.linkedEstablishmentId,
+          referralVisitId: session.metadata.establishmentLinkId,
+          source: 'qr_code_link'
+        };
+        console.log(`[Commission] Using QR establishment link: ${establishmentCommissionData.establishmentId}`);
+      }
+      // 2. Fall back to old referralData system
+      else if (referralData) {
+        hasEstablishmentCommission = true;
+        establishmentCommissionData = {
+          establishmentId: referralData.establishmentId,
+          source: 'legacy_referral'
+        };
+        console.log(`[Commission] Using legacy referral data: ${establishmentCommissionData.establishmentId}`);
+      }
+      
+      let establishmentCommission = 0;
+      let platformNet = platformFee;
+      
+      if (hasEstablishmentCommission) {
+        // Establishment gets 50% of platform's 20% = 10% of booking total
+        establishmentCommission = platformFee * 0.50; // 50% of platform fee
+        platformNet = platformFee - establishmentCommission; // Platform keeps remaining 50% of their 20%
+        
+        // Create commission record in establishment_commissions table
+        try {
+          await referralService.createCommission(
+            establishmentCommissionData.establishmentId,
+            booking.id,
+            booking.activity_id,
+            booking.customer_id,
+            bookingTotal,
+            10.0, // 10% commission rate
+            establishmentCommissionData.referralVisitId
+          );
+          console.log(`[Commission] Created establishment commission record for ${establishmentCommissionData.establishmentId}`);
+        } catch (commissionError) {
+          console.error("[Commission] Error creating establishment commission record:", commissionError);
+        }
+      }
+      
+      // Activity provider gets everything else (80% of booking)
+      const providerAmount = bookingTotal - platformFee;
+      
+      // Update booking with commission data
+      const { error: updateError } = await client
+        .from("bookings")
+        .update({
+          platform_fee: platformFee,
+          provider_amount: providerAmount,
+          referral_commission: establishmentCommission,
+          referred_by_establishment: hasEstablishmentCommission ? establishmentCommissionData.establishmentId : null,
+          has_referral: hasEstablishmentCommission,
+          commission_calculated_at: new Date().toISOString()
+        })
+        .eq("id", booking.id);
+
+      if (updateError) {
+        console.error("Error updating booking with commission data:", updateError);
+      } else {
+        console.log(`Commission calculated for booking ${booking.id}:`, {
+          bookingTotal,
+          platformFee,
+          platformNet,
+          providerAmount,
+          establishmentCommission,
+          hasEstablishmentCommission,
+          establishmentId: establishmentCommissionData?.establishmentId,
+          source: establishmentCommissionData?.source
+        });
+      }
+
+    } catch (error) {
+      console.error("Error calculating booking commissions:", error);
     }
   },
 
@@ -332,14 +486,16 @@ export const stripeService = {
         .update({ commission_invoice_generated: true })
         .eq("id", booking.id)
 
-      // Prepare email data
+      // Prepare email data with explicit multi-currency fallback logic
+      const currency = booking.currency ? booking.currency : 'THB';
+      const convertedTotalAmount = booking.converted_total_amount ? booking.converted_total_amount : booking.total_amount;
       const emailData = {
         bookingId: booking.id,
         customerName: booking.customer_name,
         customerEmail: booking.customer_email || "no-email@example.com",
         activityTitle: activity.title,
         activityDescription: activity.description,
-        totalAmount: booking.total_amount,
+        totalAmount: booking.total_amount, // always THB for now, but could be original amount
         participants: booking.participants,
         bookingDate: booking.booking_date,
         activityOwnerEmail: (activity as any).activity_owners.email,
@@ -348,7 +504,9 @@ export const stripeService = {
         partnerEmail: partnerData?.email,
         partnerName: partnerData?.owner_name,
         partnerCommission: partnerCommission > 0 ? partnerCommission : undefined,
-        establishmentName: (establishmentData as any)?.name
+        establishmentName: (establishmentData as any)?.name,
+        currency,
+        convertedTotalAmount,
       }
 
       // Send confirmation emails

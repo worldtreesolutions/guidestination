@@ -1,7 +1,7 @@
-
 import { createContext, useContext, useEffect, useState } from "react"
 import { supabase } from "@/integrations/supabase/client"
 import { Session, User } from "@supabase/supabase-js"
+import customerService from "@/services/customerService"
 
 interface AuthContextType {
   user: User | null
@@ -13,6 +13,7 @@ interface AuthContextType {
   signOut: () => Promise<{ error: any }>
   resetPassword: (email: string) => Promise<{ error: any }>
   login: (email: string, password: string) => Promise<{ error: any }>
+  ensureCustomerRecords: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -24,7 +25,8 @@ const AuthContext = createContext<AuthContextType>({
   signUp: async () => ({ error: null }),
   signOut: async () => ({ error: null }),
   resetPassword: async () => ({ error: null }),
-  login: async () => ({ error: null })
+  login: async () => ({ error: null }),
+  ensureCustomerRecords: async () => {}
 })
 
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -107,6 +109,27 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
         return { error }
       }
 
+      // If user was created successfully, create customer record only
+      if (data.user && !error) {
+        try {
+          const fullName = `${metadata?.first_name || ''} ${metadata?.last_name || ''}`.trim();
+          
+          // Create customer record only
+          await customerService.createCustomer({
+            cus_id: data.user.id,
+            email: data.user.email || email.trim(),
+            full_name: fullName || 'New User',
+            phone: metadata?.phone || null,
+            is_active: true
+          });
+          console.log("Customer record created successfully for:", data.user.email);
+        } catch (customerError) {
+          console.error("Error creating customer record:", customerError);
+          // Don't return this error as the auth signup was successful
+          // The customer record can be created later if needed
+        }
+      }
+
       console.log("Sign up successful:", data.user?.email)
       return { error: null }
     } catch (error) {
@@ -146,6 +169,35 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     }
   }
 
+  const ensureCustomerRecords = async () => {
+    if (!user) return;
+    
+    try {
+      const userMetadata = user.user_metadata || {};
+      const fullName = `${userMetadata.first_name || ''} ${userMetadata.last_name || ''}`.trim();
+      
+      // Check if customer exists, create if not
+      const supabaseAny = supabase as any;
+      const { data: existingCustomer } = await supabaseAny
+        .from("customers")
+        .select("*")
+        .eq("cus_id", user.id)
+        .single();
+
+      if (!existingCustomer) {
+        await customerService.createCustomer({
+          cus_id: user.id,
+          email: user.email || '',
+          full_name: fullName || 'User',
+          phone: userMetadata.phone || null,
+          is_active: true
+        });
+      }
+    } catch (error) {
+      console.error("Error ensuring customer records:", error);
+    }
+  }
+
   return (
     <AuthContext.Provider value={{ 
       user, 
@@ -156,7 +208,8 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
       signUp, 
       signOut, 
       resetPassword,
-      login
+      login,
+      ensureCustomerRecords
     }}>
       {children}
     </AuthContext.Provider>

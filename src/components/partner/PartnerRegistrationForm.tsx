@@ -66,10 +66,11 @@ export const PartnerRegistrationForm = () => {
     setIsSubmitting(true)
     setUploadProgress("Starting submission...")
     
+    let documentUrls: string[] = []
+    let createdUserId: string | undefined = undefined
+    
     try {
-      let documentUrls: string[] = []
-      
-      // Upload supporting documents to Supabase CDN if any files are selected
+      // Step 1: Upload supporting documents first (if any)
       if (uploadedFiles.length > 0) {
         setUploadProgress("Uploading documents...")
         
@@ -98,20 +99,18 @@ export const PartnerRegistrationForm = () => {
         // Generate unique partner ID for document organization
         const partnerId = `partner_${Date.now()}_${Math.random().toString(36).substring(2)}`
         
-        // Upload to Supabase storage with CDN URLs
+        // Upload to Supabase storage and store file paths
         documentUrls = await uploadService.uploadPartnerDocuments(filesToUpload, partnerId)
-        
         if (documentUrls.length !== filesToUpload.length) {
           const failedCount = filesToUpload.length - documentUrls.length
           throw new Error(`${failedCount} document(s) failed to upload. Please try again.`)
         }
-        
-        setUploadProgress("Documents uploaded successfully to Supabase CDN!")
+        setUploadProgress("Documents uploaded successfully to private bucket!")
       }
 
+      // Step 2: Create partner registration (which creates user and registration record)
       setUploadProgress("Creating partner registration...")
 
-      // Create partner registration with user creation and email verification
       const registrationData = {
         business_name: values.businessName,
         owner_name: values.ownerName,
@@ -122,11 +121,12 @@ export const PartnerRegistrationForm = () => {
         longitude: values.longitude,
         place_id: values.placeId,
         commission_package: values.commissionPackage as "basic" | "premium",
-        supporting_documents: documentUrls,
+  supporting_documents: documentUrls,
         status: "pending" as const,
       };
 
       const result = await partnerService.createPartnerRegistration(registrationData as any);
+      createdUserId = result.user?.id
       
       setUploadProgress("Registration completed successfully!")
       
@@ -135,10 +135,10 @@ export const PartnerRegistrationForm = () => {
 
 ${result.message}
 
-Documents uploaded to Supabase CDN: ${documentUrls.length} files
-CDN URLs generated for secure access and fast delivery.`)
+Documents uploaded to private bucket: ${documentUrls.length} files
+Private URLs generated for secure access.`)
       
-      // Reset form
+      // Reset form on success
       form.reset()
       setUploadedFiles([])
       setUploadProgress("")
@@ -147,18 +147,53 @@ CDN URLs generated for secure access and fast delivery.`)
       console.error("Error submitting partner registration:", error)
       setUploadProgress("")
       
-      // Handle specific error cases with better user feedback
-      if (error.message?.includes("Too many registration attempts")) {
-        alert(`Rate Limit: ${error.message}`)
-      } else if (error.message?.includes("User already registered") || error.message?.includes("already exists")) {
-        alert("An account with this email already exists. Please use a different email address or contact support.")
-      } else if (error.message?.includes("Invalid email")) {
-        alert("Please enter a valid email address.")
-      } else if (error.message?.includes("upload") || error.message?.includes("Failed to process file")) {
-        alert(`Upload Error: ${error.message}`)
-      } else {
-        alert(`Registration Error: ${error.message || "An unexpected error occurred. Please try again."}`)
+      // Comprehensive rollback logic
+      let rollbackErrors: string[] = []
+      
+      // If user was created but registration failed, delete the user
+      if (createdUserId) {
+        try {
+          setUploadProgress("Rolling back user account...")
+          await fetch('/api/auth/delete-user', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: createdUserId }),
+          });
+          console.log("User account rolled back successfully")
+        } catch (rollbackError) {
+          console.error("CRITICAL: User rollback failed:", rollbackError)
+          rollbackErrors.push("Failed to clean up user account")
+        }
       }
+      
+      // If documents were uploaded but registration failed, optionally clean them up
+      // Note: We keep documents in private bucket for security, but this could be enhanced
+      // to delete them if needed
+      if (documentUrls.length > 0 && !createdUserId) {
+        console.log(`${documentUrls.length} documents remain in private bucket and may need manual cleanup`)
+      }
+      
+      // Handle specific error cases with better user feedback
+      let errorMessage = "An unexpected error occurred. Please try again."
+      
+      if (error.message?.includes("Too many registration attempts")) {
+        errorMessage = `Rate Limit: ${error.message}`
+      } else if (error.message?.includes("User already registered") || error.message?.includes("already exists")) {
+        errorMessage = "An account with this email already exists. Please use a different email address or contact support."
+      } else if (error.message?.includes("Invalid email")) {
+        errorMessage = "Please enter a valid email address."
+      } else if (error.message?.includes("upload") || error.message?.includes("Failed to process file")) {
+        errorMessage = `Upload Error: ${error.message}`
+      } else if (error.message) {
+        errorMessage = `Registration Error: ${error.message}`
+      }
+      
+      // Add rollback error info if any
+      if (rollbackErrors.length > 0) {
+        errorMessage += `\n\nAdditional cleanup issues: ${rollbackErrors.join(", ")}`
+      }
+      
+      alert(errorMessage)
     } finally {
       setIsSubmitting(false)
       setUploadProgress("")
@@ -207,15 +242,15 @@ CDN URLs generated for secure access and fast delivery.`)
             </ul>
           </div>
 
-          <h3 className="text-lg font-medium">{t("form.section.business")}</h3>
+          <h3 className="text-lg font-medium">{t("partner.form.section.business")}</h3>
           <FormField
             control={form.control}
             name="businessName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Business Name</FormLabel>
+                <FormLabel>{t("partner.form.field.businessName")}</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter your business name" {...field} />
+                  <Input placeholder={t("partner.form.placeholder.businessName")} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -273,17 +308,17 @@ CDN URLs generated for secure access and fast delivery.`)
             name="address"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Business Address</FormLabel>
+                <FormLabel>{t("partner.form.field.businessAddress")}</FormLabel>
                 <FormControl>
                   <PlacesAutocomplete
                     value={field.value || ""}
                     onChange={field.onChange}
                     onPlaceSelect={handlePlaceSelect}
-                    placeholder="Enter business address"
+                    placeholder={t("partner.form.placeholder.businessAddress")}
                   />
                 </FormControl>
                 <FormDescription>
-                  Please provide the complete address of your business
+                  {t("partner.form.description.businessAddress")}
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -309,7 +344,7 @@ CDN URLs generated for secure access and fast delivery.`)
                     maxSize={10 * 1024 * 1024}
                     acceptedFileTypes={[".pdf", ".jpg", ".jpeg", ".png", ".doc", ".docx"]}
                     label={t("partner.form.field.supportingDocuments")}
-                    description="Upload documents - Business license, tax registration, hotel registration, etc. (PDF, JPG, PNG, DOC, DOCX - Max 10MB each)"
+                    description={t("partner.form.documents.description")}
                     disabled={isSubmitting}
                   />
                 </FormControl>
@@ -324,14 +359,13 @@ CDN URLs generated for secure access and fast delivery.`)
               {t("partner.form.documents.title")}
             </h4>
             <p className="text-sm text-green-700 mb-2">
-              Files will be securely uploaded to Supabase CDN with fast global delivery. {t("partner.form.documents.description")}
+              {t("partner.form.documents.description")}
             </p>
             <ul className="text-sm text-green-700 space-y-1">
               <li>• {t("partner.form.documents.item1")}</li>
               <li>• {t("partner.form.documents.item2")}</li>
               <li>• {t("partner.form.documents.item3")}</li>
               <li>• {t("partner.form.documents.item4")}</li>
-              <li>• CDN-enabled for fast, secure access worldwide</li>
             </ul>
           </div>
         </div>

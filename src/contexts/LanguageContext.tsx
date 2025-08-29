@@ -1,14 +1,14 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { useRouter } from "next/router";
 import { currencyService } from "@/services/currencyService";
+import { translations, getTranslationValue, interpolate, type SupportedLanguage } from "@/lib/translations";
 
-export type Language = "en" | "th" | "fr";
+export type Language = SupportedLanguage;
 
 interface LanguageContextType {
   language: Language;
   setLanguage: (language: Language) => void;
-  translations: any;
-  t: (key: string) => string;
+  t: (key: string, params?: Record<string, string | number>) => string;
   currency: string;
   setCurrency: (currency: string) => void;
   formatCurrency: (amount: number) => string;
@@ -29,49 +29,56 @@ export function useLanguage() {
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>("en");
-  const [translations, setTranslations] = useState({});
+  const [currentTranslations, setCurrentTranslations] = useState<any>(translations.en);
   const [currency, setCurrency] = useState("THB");
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  const fetchTranslations = useCallback(async (lang: Language) => {
-    try {
-      const response = await fetch(`/translations/${lang}.json`);
-      if (!response.ok) {
-        console.warn(`Failed to load ${lang}.json, using fallback translations`);
-        // Set basic fallback translations to prevent app from breaking
-        setTranslations({
-          common: {
-            loading: "Loading...",
-            error: "Error",
-            search: "Search",
-            book: "Book",
-            cancel: "Cancel",
-            confirm: "Confirm"
-          }
-        });
-        return;
-      }
-      const data = await response.json();
-      setTranslations(data);
-    } catch (error) {
-      console.warn("Error fetching translations, using fallback:", error);
-      // Set basic fallback translations to prevent app from breaking
-      setTranslations({
-        common: {
-          loading: "Loading...",
-          error: "Error",
-          search: "Search",
-          book: "Book",
-          cancel: "Cancel",
-          confirm: "Confirm"
-        }
-      });
+  // Enhanced translation function with interpolation support
+  const t = useCallback((key: string, params?: Record<string, string | number>) => {
+    const value = getTranslationValue(currentTranslations, key, key);
+    
+    if (params) {
+      return interpolate(value, params);
     }
-  }, []);
+    
+    return value;
+  }, [currentTranslations]);
 
+  // Set language and update currency
+  const setLanguage = useCallback((newLanguage: Language) => {
+    setLanguageState(newLanguage);
+    setCurrentTranslations(translations[newLanguage] as any);
+    
+    // Auto-update currency based on language
+    if (newLanguage === 'fr') {
+      setCurrency('EUR');
+    } else if (newLanguage === 'en') {
+      setCurrency('USD');
+    } else {
+      setCurrency('THB');
+    }
+    
+    // Save to localStorage
+    if (typeof window !== "undefined") {
+      localStorage.setItem("language", newLanguage);
+    }
+
+    // Update router locale if needed
+    if (typeof window !== "undefined") {
+      router.push(router.pathname, router.asPath, { locale: newLanguage });
+    }
+  }, [router]);
+
+  // Format currency using the currency service
+  const formatCurrency = useCallback((amountInThb: number) => {
+    const convertedAmount = currencyService.convertFromTHB(amountInThb, currency);
+    return currencyService.formatCurrency(convertedAmount, currency);
+  }, [currency]);
+
+  // Initialize language from localStorage
   useEffect(() => {
-    const initializeLanguage = async () => {
+    const initializeLanguage = () => {
       setIsLoading(true);
       
       let initialLanguage: Language = "en";
@@ -79,11 +86,16 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       // Only access localStorage on client side
       if (typeof window !== "undefined") {
         const savedLanguage = localStorage.getItem("language") as Language;
-        initialLanguage = savedLanguage || "en";
+        if (savedLanguage && translations[savedLanguage]) {
+          initialLanguage = savedLanguage;
+        }
       }
       
+      // Initialize without calling setLanguage to avoid infinite loop
       setLanguageState(initialLanguage);
+      setCurrentTranslations(translations[initialLanguage] as any);
       
+      // Auto-update currency based on language
       if (initialLanguage === 'fr') {
         setCurrency('EUR');
       } else if (initialLanguage === 'en') {
@@ -91,78 +103,16 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       } else {
         setCurrency('THB');
       }
-
-      // Only fetch translations on client side to avoid SSR issues
-      if (typeof window !== "undefined") {
-        await fetchTranslations(initialLanguage);
-      } else {
-        // Set basic fallback for SSR
-        setTranslations({
-          common: {
-            loading: "Loading...",
-            error: "Error",
-            search: "Search",
-            book: "Book",
-            cancel: "Cancel",
-            confirm: "Confirm"
-          }
-        });
-      }
       
       setIsLoading(false);
     };
 
     initializeLanguage();
-  }, [fetchTranslations]);
-
-  const setLanguage = (lang: Language) => {
-    setLanguageState(lang);
-    
-    // Only access localStorage on client side
-    if (typeof window !== "undefined") {
-      localStorage.setItem("language", lang);
-    }
-    
-    // Only fetch translations on client side
-    if (typeof window !== "undefined") {
-      fetchTranslations(lang);
-    }
-    
-    if (lang === 'fr') {
-      setCurrency('EUR');
-    } else if (lang === 'en') {
-      setCurrency('USD');
-    } else {
-      setCurrency('THB');
-    }
-
-    if (typeof window !== "undefined") {
-      router.push(router.pathname, router.asPath, { locale: lang });
-    }
-  };
-
-  const formatCurrency = (amountInThb: number) => {
-    const convertedAmount = currencyService.convertFromTHB(amountInThb, currency);
-    return currencyService.formatCurrency(convertedAmount, currency);
-  };
-
-  const t = useCallback((key: string): string => {
-    const keys = key.split('.');
-    let result: any = translations;
-    for (const k of keys) {
-      if (result && typeof result === 'object' && k in result) {
-        result = result[k];
-      } else {
-        return key;
-      }
-    }
-    return typeof result === 'string' ? result : key;
-  }, [translations]);
+  }, []); // Empty dependency array to run only once
 
   const value = {
     language,
     setLanguage,
-    translations,
     t,
     currency,
     setCurrency,

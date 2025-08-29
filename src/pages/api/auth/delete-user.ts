@@ -1,4 +1,4 @@
-import supabaseAdmin from "@/integrations/supabase/admin";
+import { getAdminClient } from "@/integrations/supabase/admin";
 import { NextApiRequest, NextApiResponse } from "next";
 
 type Data = {
@@ -20,6 +20,12 @@ export default async function handler(
 
     if (!userId || typeof userId !== 'string') {
       return res.status(400).json({ error: 'User ID is required and must be a string.' });
+    }
+
+    const supabaseAdmin = getAdminClient();
+    
+    if (!supabaseAdmin) {
+      return res.status(500).json({ error: 'Admin client not available.' });
     }
 
     const { error } = await supabaseAdmin.auth.admin.deleteUser(userId);

@@ -1,6 +1,8 @@
 "use client"
 
 import * as React from "react"
+import { useCurrency } from "@/context/CurrencyContext";
+import { formatCurrency } from "@/utils/currency";
 import * as RechartsPrimitive from "recharts"
 
 import { cn } from "@/lib/utils"
@@ -239,9 +241,15 @@ const ChartTooltipContent = React.forwardRef<
                         </span>
                       </div>
                       {item.value && (
-                        <span className="font-mono font-medium tabular-nums text-foreground">
-                          {item.value.toLocaleString()}
-                        </span>
+                        (() => {
+                          const { currency, convert } = useCurrency();
+                          const valueNum = typeof item.value === 'number' ? item.value : Number(item.value);
+                          return (
+                            <span className="font-mono font-medium tabular-nums text-foreground">
+                              {formatCurrency(convert(valueNum, currency), currency)}
+                            </span>
+                          );
+                        })()
                       )}
                     </div>
                   </>

@@ -1,16 +1,13 @@
 import { supabase } from "@/integrations/supabase/client"
 
-export interface CustomerProfile {
-  customer_id: string
+export interface Customer {
+  cus_id: string
   email: string
-  first_name: string | null
-  last_name: string | null
-  full_name: string | null
+  full_name: string
   phone: string | null
-  date_of_birth: string | null
-  created_at: string
-  updated_at: string
-  user_id: string | null
+  is_active: boolean
+  created_at?: string
+  updated_at?: string
 }
 
 export interface Booking {
@@ -48,50 +45,93 @@ export interface WishlistItem {
 }
 
 const customerService = {
-  async getCustomerProfile(customerId: string): Promise<CustomerProfile | null> {
+  async createCustomer(userData: {
+    cus_id: string;
+    email: string;
+    full_name: string;
+    phone?: string;
+    is_active?: boolean;
+  }): Promise<any> {
     if (!supabase) {
       console.error("Supabase client is not initialized.");
       return null;
     }
-    const { data, error } = await supabase
-      .from("customer_profiles")
-      .select("*")
-      .eq("customer_id", customerId)
-      .single();
 
-    if (error) {
-      console.error("Error fetching customer profile:", error);
-      return null;
+    try {
+      // Use supabaseAny to bypass TypeScript type checking for customers table
+      const supabaseAny = supabase as any;
+      const { data, error } = await supabaseAny
+        .from("customers")
+        .insert({
+          cus_id: userData.cus_id,
+          email: userData.email,
+          full_name: userData.full_name,
+          phone: userData.phone || null,
+          is_active: userData.is_active !== false // default to true
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error creating customer:", error);
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error("Error in createCustomer:", error);
+      throw error;
     }
-    return {
-      ...data,
-      full_name: `${data.first_name || ''} ${data.last_name || ''}`.trim(),
-      date_of_birth: null,
-      user_id: data.customer_id
-    } as CustomerProfile;
   },
 
-  async updateCustomerProfile(customerId: string, profileData: Partial<CustomerProfile>): Promise<CustomerProfile | null> {
+  async getCustomer(customerId: string): Promise<Customer | null> {
+    if (!supabase) {
+      console.error("Supabase client is not initialized.");
+      return null;
+    }
+    
+    try {
+      const supabaseAny = supabase as any;
+      const { data, error } = await supabaseAny
+        .from("customers")
+        .select("*")
+        .eq("cus_id", customerId)
+        .single();
+
+      if (error) {
+        console.error("Error fetching customer:", error);
+        return null;
+      }
+      return data as Customer;
+    } catch (error) {
+      console.error("Error in getCustomer:", error);
+      return null;
+    }
+  },
+
+  async updateCustomer(customerId: string, customerData: Partial<Customer>): Promise<Customer | null> {
     if (!supabase) {
       throw new Error("Supabase client is not initialized.");
     }
-    const { data, error } = await supabase
-      .from("customer_profiles")
-      .update(profileData)
-      .eq("customer_id", customerId)
-      .select()
-      .single();
+    
+    try {
+      const supabaseAny = supabase as any;
+      const { data, error } = await supabaseAny
+        .from("customers")
+        .update(customerData)
+        .eq("cus_id", customerId)
+        .select()
+        .single();
 
-    if (error) {
-      console.error("Error updating customer profile:", error);
+      if (error) {
+        console.error("Error updating customer:", error);
+        throw error;
+      }
+      return data as Customer;
+    } catch (error) {
+      console.error("Error in updateCustomer:", error);
       throw error;
     }
-    return {
-      ...data,
-      full_name: `${data.first_name || ''} ${data.last_name || ''}`.trim(),
-      date_of_birth: null,
-      user_id: data.customer_id
-    } as CustomerProfile;
   },
 
   async getBookings(userId: string): Promise<Booking[]> {
@@ -101,18 +141,8 @@ const customerService = {
 
     const result = await supabase
       .from("bookings")
-      .select(
-        `
-        *,
-        activities (
-          title,
-          description,
-          image_url,
-          pickup_location
-        )
-      `
-      )
-      .eq("user_id", userId)
+      .select("*")
+      .eq("customer_id", userId)
       .order("booking_date", { ascending: false })
 
     if (result.error) {
@@ -158,7 +188,7 @@ const customerService = {
     // Transform the data to match our Booking interface
     const transformedBooking = {
       ...result.data,
-      customer_id: result.data.user_id
+      customer_id: result.data.customer_id
     }
 
     return transformedBooking as Booking
@@ -171,18 +201,8 @@ const customerService = {
 
     const result = await supabase
       .from("wishlist")
-      .select(
-        `
-        *,
-        activities (
-          title,
-          b_price,
-          image_url,
-          pickup_location
-        )
-      `
-      )
-      .eq("user_id", userId)
+      .select("*")
+      .eq("customer_id", userId)
 
     if (result.error) {
       console.error("Error fetching wishlist:", result.error)
@@ -192,7 +212,7 @@ const customerService = {
     // Transform the data to match our WishlistItem interface
     const transformedWishlist = (result.data || []).map((item: any) => ({
       ...item,
-      customer_id: item.user_id || item.customer_id
+      customer_id: item.customer_id || item.user_id
     }))
 
     return transformedWishlist as WishlistItem[]
@@ -203,10 +223,27 @@ const customerService = {
       throw new Error("Supabase client not initialized");
     }
 
+    // Check if item is already in wishlist to prevent duplicates
+    const { data: existing } = await supabase
+      .from("wishlist")
+      .select("id")
+      .eq("customer_id", userId)
+      .eq("activity_id", activityId)
+      .single()
+
+    if (existing) {
+      // Item already exists, return success
+      return existing
+    }
+
     const { data, error } = await supabase
       .from("wishlist")
-      .insert([{ user_id: userId, activity_id: activityId }])
-    if (error) throw error
+      .insert([{ customer_id: userId, activity_id: activityId }])
+    
+    if (error) {
+      console.error("Error adding to wishlist:", error)
+      throw error
+    }
     return data
   },
 
@@ -218,7 +255,7 @@ const customerService = {
     const { error } = await supabase
       .from("wishlist")
       .delete()
-      .eq("user_id", userId)
+      .eq("customer_id", userId)
       .eq("activity_id", activityId)
 
     if (error) {
@@ -226,7 +263,8 @@ const customerService = {
       throw error
     }
     return true
-  },
+  }
+
 }
 
 export default customerService

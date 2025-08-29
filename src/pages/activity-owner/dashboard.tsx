@@ -59,15 +59,17 @@ export default function ActivityOwnerDashboard() {
         })
         
         // Map service bookings to type bookings with required activities field
-        const mappedBookings: Booking[] = recentBookingsData.map(booking => ({
+        const mappedBookings: any[] = recentBookingsData.map(booking => ({
           ...booking,
+          customer_name: booking.customer_name || "",
+          customer_email: booking.customer_email || "",
           user_id: booking.user_id || booking.customer_id || "",
           provider_id: booking.provider_id || "",
           total_price: booking.total_price || booking.total_amount,
           provider_amount: booking.provider_amount || 0,
           platform_fee: booking.platform_fee || 0,
           activities: booking.activities
-        }))
+        }));
         
         setRecentBookings(mappedBookings)
         setEarnings(earningsData)

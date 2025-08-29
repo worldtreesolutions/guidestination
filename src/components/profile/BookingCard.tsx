@@ -1,15 +1,22 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useCurrency } from '@/context/CurrencyContext';
+import { formatCurrency } from '@/utils/currency';
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Calendar, MapPin, Users, Clock } from "lucide-react"
 import { Booking } from "@/types/activity"
 import Image from "next/image"
+import { useLanguage } from "@/contexts/LanguageContext"
 
 interface BookingCardProps {
   booking: Booking;
+  onViewDetails?: (booking: Booking) => void;
 }
 
-export default function BookingCard({ booking }: BookingCardProps) {
+export default function BookingCard({ booking, onViewDetails }: BookingCardProps) {
+  const { currency, convert } = useCurrency();
+  const { t } = useLanguage();
+  
   const getStatusColor = (status: string) => {
     switch (status) {
       case "confirmed":
@@ -34,13 +41,13 @@ export default function BookingCard({ booking }: BookingCardProps) {
         />
         <div className="absolute top-2 right-2">
           <Badge className={getStatusColor(booking.status || "pending")}>
-            {booking.status || "pending"}
+            {t(`profile.bookingDetails.status.${booking.status || "pending"}`)}
           </Badge>
         </div>
       </div>
       <CardHeader>
         <CardTitle className="line-clamp-2">
-          {booking.activities?.title || "Unknown Activity"}
+          {booking.activities?.title || t('profile.bookingDetails.labels.unknownActivity')}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -50,18 +57,21 @@ export default function BookingCard({ booking }: BookingCardProps) {
         </div>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Users className="h-4 w-4" />
-          <span>{booking.participants || 1} participants</span>
+          <span>{booking.participants || 1} {t('profile.bookingDetails.labels.participantsCount')}</span>
         </div>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <MapPin className="h-4 w-4" />
-          <span>{booking.activities?.meeting_point || "Location TBD"}</span>
+          <span>{booking.activities?.meeting_point || t('profile.bookingDetails.labels.locationTBD')}</span>
         </div>
         <div className="flex items-center justify-between pt-2 border-t">
           <span className="text-lg font-semibold">
-            ${booking.total_amount || booking.total_price || 0}
+            {formatCurrency(
+              convert(booking.total_amount || booking.total_price || 0, currency),
+              currency
+            )}
           </span>
-          <Button variant="outline" size="sm">
-            View Details
+          <Button variant="outline" size="sm" onClick={() => onViewDetails && onViewDetails(booking)}>
+            {t('profile.bookingDetails.buttons.viewDetails')}
           </Button>
         </div>
       </CardContent>

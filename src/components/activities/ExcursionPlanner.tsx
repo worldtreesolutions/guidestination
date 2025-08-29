@@ -8,6 +8,7 @@ import { ActivityWithDetails, ScheduledActivity } from "@/types/activity";
 import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
 import { PlanningContext } from "@/contexts/PlanningContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ExcursionPlannerProps {
   activities: ActivityWithDetails[];
@@ -18,6 +19,7 @@ export function ExcursionPlanner({
   activities,
   onPlanComplete,
 }: ExcursionPlannerProps) {
+  const { t } = useLanguage();
   const [filteredActivities, setFilteredActivities] = useState<ActivityWithDetails[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedActivity, setSelectedActivity] = useState<ScheduledActivity | null>(null);
@@ -99,7 +101,7 @@ export function ExcursionPlanner({
       <div>
         <Card>
           <CardHeader>
-            <CardTitle>Select Date</CardTitle>
+            <CardTitle>{t('activity.details.selectDate')}</CardTitle>
           </CardHeader>
           <CardContent>
             <Calendar
@@ -114,7 +116,7 @@ export function ExcursionPlanner({
       <div>
         <Card>
           <CardHeader>
-            <CardTitle>Available Excursions</CardTitle>
+            <CardTitle>{t('activity.details.availableExcursions')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {filteredActivities.length > 0 ? (
@@ -142,7 +144,7 @@ export function ExcursionPlanner({
                 );
               })
             ) : (
-              <p>No activities available for the selected date.</p>
+              <p>{t('activity.details.noActivitiesAvailable')}</p>
             )}
           </CardContent>
         </Card>

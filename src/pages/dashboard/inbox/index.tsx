@@ -14,13 +14,14 @@ import { LanguageSelector } from "@/components/layout/LanguageSelector";
 
 interface Message {
   id: string
+  conversation_id: string
   sender_id: string
   receiver_id: string
-  content: string
+  sender_name: string
+  message: string
+  sender_type: string
+  is_read: boolean
   created_at: string
-  read: boolean
-  sender_name?: string
-  sender_avatar?: string
 }
 
 interface Conversation {
@@ -31,6 +32,8 @@ interface Conversation {
   last_message?: string
   last_message_time?: string
   unread_count: number
+  activity_id?: string
+  activity_title?: string
 }
 
 export default function InboxPage() {
@@ -78,219 +81,281 @@ export default function InboxPage() {
     const fetchConversations = async () => {
       setLoading(true)
       
-      // This is a mock implementation - in a real app, you would fetch from Supabase
-      // Example of how it might look with real data:
-      /*
-      const { data, error } = await supabase
-        .from('conversations')
-        .select('*')
-        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
-      */
-      
-      // Mock data for demonstration
-      const mockConversations: Conversation[] = [
-        {
-          id: "1",
-          user_id: "activity-owner-1",
-          user_name: "Mountain Trek Tours",
-          user_avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-          last_message: t("dashboard.inbox.messages.tourStart") || "When does the tour start tomorrow?",
-          last_message_time: new Date(Date.now() - 3600000).toISOString(),
-          unread_count: 2
-        },
-        {
-          id: "2",
-          user_id: "activity-owner-2",
-          user_name: "Cooking Class Thailand",
-          last_message: t("dashboard.inbox.messages.menuUpdate") || "We've updated the menu for your class",
-          last_message_time: new Date(Date.now() - 86400000).toISOString(),
-          unread_count: 1
-        },
-        {
-          id: "3",
-          user_id: "activity-owner-3",
-          user_name: "Elephant Sanctuary",
-          last_message: t("dashboard.inbox.messages.bookingConfirmed") || "Your booking is confirmed for next Monday",
-          last_message_time: new Date(Date.now() - 172800000).toISOString(),
-          unread_count: 0
+      try {
+        // Fetch real conversations from support_messages table
+        const supabaseAny = supabase as any
+        const { data: messages, error } = await supabaseAny
+          .from('support_messages')
+          .select('*')
+          .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
+          .order('created_at', { ascending: false })
+
+        if (error) {
+          console.error('Error fetching conversations:', error)
+          setConversations([])
+          setLoading(false)
+          return
         }
-      ]
-      
-      setConversations(mockConversations)
-      if (mockConversations.length > 0 && !activeConversation) {
-        setActiveConversation(mockConversations[0].id)
+
+        // Group messages by conversation_id and extract activity info
+        const conversationMap = new Map<string, Conversation>()
+        
+        // First, try to get conversation metadata from support_conversations table
+        const { data: conversationRecords, error: convError } = await supabaseAny
+          .from('support_conversations')
+          .select('id, subject, participant_type, participant_name')
+        
+        const conversationMetadata = new Map<string, any>()
+        if (!convError && conversationRecords) {
+          conversationRecords.forEach((conv: any) => {
+            conversationMetadata.set(conv.id, conv)
+          })
+        }
+        
+        messages?.forEach((msg: any) => {
+          const conversationId = msg.conversation_id
+          
+          if (!conversationMap.has(conversationId)) {
+            // Get activity info from conversation metadata if available
+            const metadata = conversationMetadata.get(conversationId)
+            let activityId = null
+            let activityTitle = null
+            
+            if (metadata?.subject) {
+              // Extract activity ID from subject like "Activity #123 Discussion"
+              const activityMatch = metadata.subject.match(/Activity #(\d+)/)
+              if (activityMatch) {
+                activityId = activityMatch[1]
+                activityTitle = `Activity #${activityId}`
+              } else {
+                activityTitle = metadata.subject
+              }
+            } else {
+              // Fallback: Check if we can extract activity info from message content
+              const messageContent = msg.message || ''
+              if (messageContent.includes('activity') || messageContent.includes('booking')) {
+                activityTitle = 'Activity Conversation'
+              }
+            }
+            
+            // Determine the other participant (not the current user)
+            const isUserSender = msg.sender_id === user.id
+            const otherUserId = isUserSender ? msg.receiver_id : msg.sender_id
+            const otherUserName = isUserSender ? 
+              (msg.sender_type === 'customer' ? 'Provider' : msg.sender_name || 'Customer') :
+              msg.sender_name || (msg.sender_type === 'customer' ? 'Customer' : 'Provider')
+            
+            conversationMap.set(conversationId, {
+              id: conversationId,
+              user_id: otherUserId,
+              user_name: otherUserName,
+              last_message: msg.message,
+              last_message_time: msg.created_at,
+              unread_count: 0, // We'll calculate this below
+              activity_id: activityId,
+              activity_title: activityTitle
+            })
+          } else {
+            // Update last message if this message is newer
+            const existing = conversationMap.get(conversationId)!
+            if (new Date(msg.created_at) > new Date(existing.last_message_time!)) {
+              existing.last_message = msg.message
+              existing.last_message_time = msg.created_at
+            }
+          }
+          
+          // Count unread messages for this user
+          if (msg.receiver_id === user.id && !msg.is_read) {
+            const conversation = conversationMap.get(conversationId)!
+            conversation.unread_count++
+          }
+        })
+
+        const conversationsList = Array.from(conversationMap.values())
+        setConversations(conversationsList)
+        
+        if (conversationsList.length > 0 && !activeConversation) {
+          setActiveConversation(conversationsList[0].id)
+        }
+        
+        console.log('Loaded conversations:', conversationsList)
+      } catch (error) {
+        console.error('Error in fetchConversations:', error)
+        setConversations([])
       }
+      
       setLoading(false)
     }
 
     fetchConversations()
-  }, [user, activeConversation, t])
+  }, [user, activeConversation])
 
   // Fetch messages for active conversation
   useEffect(() => {
     if (!activeConversation || !user) return
 
     const fetchMessages = async () => {
-      // This is a mock implementation - in a real app, you would fetch from Supabase
-      // Example of how it might look with real data:
-      /*
-      const { data, error } = await supabase
-        .from('messages')
-        .select('*')
-        .or(`(sender_id.eq.${user.id}.and.receiver_id.eq.${activeUser}),(sender_id.eq.${activeUser}.and.receiver_id.eq.${user.id})`)
-        .order('created_at', { ascending: true })
-      */
-      
-      // Mock data for demonstration
-      const mockMessages: Message[] = []
-      
-      if (activeConversation === "1") {
-        mockMessages.push(
-          {
-            id: "m1",
-            sender_id: user.id,
-            receiver_id: "activity-owner-1",
-            content: t("dashboard.inbox.messages.bookedTour") || "Hi, I've booked your mountain trek tour for tomorrow",
-            created_at: new Date(Date.now() - 7200000).toISOString(),
-            read: true
-          },
-          {
-            id: "m2",
-            sender_id: "activity-owner-1",
-            receiver_id: user.id,
-            content: t("dashboard.inbox.messages.lookingForward") || "Hello! Yes, we're looking forward to having you join us.",
-            created_at: new Date(Date.now() - 5400000).toISOString(),
-            read: true,
-            sender_name: "Mountain Trek Tours"
-          },
-          {
-            id: "m3",
-            sender_id: "activity-owner-1",
-            receiver_id: user.id,
-            content: t("dashboard.inbox.messages.bringFootwear") || "Please make sure to bring appropriate footwear and a water bottle.",
-            created_at: new Date(Date.now() - 5300000).toISOString(),
-            read: true,
-            sender_name: "Mountain Trek Tours"
-          },
-          {
-            id: "m4",
-            sender_id: user.id,
-            receiver_id: "activity-owner-1",
-            content: t("dashboard.inbox.messages.arrivalTime") || "Great, thanks for the reminder. What time should I arrive?",
-            created_at: new Date(Date.now() - 3700000).toISOString(),
-            read: true
-          },
-          {
-            id: "m5",
-            sender_id: "activity-owner-1",
-            receiver_id: user.id,
-            content: t("dashboard.inbox.messages.tourStart") || "When does the tour start tomorrow?",
-            created_at: new Date(Date.now() - 3600000).toISOString(),
-            read: false,
-            sender_name: "Mountain Trek Tours"
-          }
-        )
-      } else if (activeConversation === "2") {
-        mockMessages.push(
-          {
-            id: "m6",
-            sender_id: user.id,
-            receiver_id: "activity-owner-2",
-            content: t("dashboard.inbox.messages.cookingQuestion") || "I have a question about the cooking class I booked",
-            created_at: new Date(Date.now() - 172800000).toISOString(),
-            read: true
-          },
-          {
-            id: "m7",
-            sender_id: "activity-owner-2",
-            receiver_id: user.id,
-            content: t("dashboard.inbox.messages.howCanHelp") || "Of course, how can I help?",
-            created_at: new Date(Date.now() - 172700000).toISOString(),
-            read: true,
-            sender_name: "Cooking Class Thailand"
-          },
-          {
-            id: "m8",
-            sender_id: "activity-owner-2",
-            receiver_id: user.id,
-            content: t("dashboard.inbox.messages.menuUpdate") || "We've updated the menu for your class",
-            created_at: new Date(Date.now() - 86400000).toISOString(),
-            read: false,
-            sender_name: "Cooking Class Thailand"
-          }
-        )
-      } else if (activeConversation === "3") {
-        mockMessages.push(
-          {
-            id: "m9",
-            sender_id: "activity-owner-3",
-            receiver_id: user.id,
-            content: t("dashboard.inbox.messages.bookingConfirmed") || "Your booking is confirmed for next Monday",
-            created_at: new Date(Date.now() - 172800000).toISOString(),
-            read: true,
-            sender_name: "Elephant Sanctuary"
-          },
-          {
-            id: "m10",
-            sender_id: user.id,
-            receiver_id: "activity-owner-3",
-            content: t("dashboard.inbox.messages.thankYou") || "Thank you! I'm looking forward to it.",
-            created_at: new Date(Date.now() - 172700000).toISOString(),
-            read: true
-          }
-        )
+      try {
+        // Load real messages from support_messages table for this specific conversation
+        const supabaseAny = supabase as any
+        const { data: realMessages, error } = await supabaseAny
+          .from('support_messages')
+          .select('*')
+          .eq('conversation_id', activeConversation)
+          .order('created_at', { ascending: true })
+
+        if (error) {
+          console.error('Error fetching messages:', error)
+          setMessages([])
+          return
+        }
+
+        // Convert to the expected format
+        const formattedMessages: Message[] = realMessages?.map((msg: any) => ({
+          id: msg.id,
+          conversation_id: msg.conversation_id,
+          sender_id: msg.sender_id,
+          receiver_id: msg.receiver_id,
+          sender_name: msg.sender_name,
+          message: msg.message,
+          sender_type: msg.sender_type,
+          is_read: msg.is_read,
+          created_at: msg.created_at
+        })) || []
+
+        setMessages(formattedMessages)
+        console.log('Loaded real messages for conversation:', activeConversation, formattedMessages)
+      } catch (error) {
+        console.error('Error in fetchMessages:', error)
+        setMessages([])
       }
-      
-      setMessages(mockMessages)
-      
-      // Mark messages as read in a real app
-      // await supabase.from('messages').update({ read: true }).match({ receiver_id: user.id, conversation_id: activeConversation })
     }
 
     fetchMessages()
-  }, [activeConversation, user, t])
+  }, [activeConversation, user])
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !activeConversation || !user) return
+    if (!newMessage.trim() || !user || !activeConversation) return
 
-    const activeConvo = conversations.find(c => c.id === activeConversation)
-    if (!activeConvo) return
-
-    // In a real app, you would save to Supabase
-    // const { data, error } = await supabase.from('messages').insert({
-    //   sender_id: user.id,
-    //   receiver_id: activeConvo.user_id,
-    //   content: newMessage,
-    //   conversation_id: activeConversation,
-    //   created_at: new Date().toISOString(),
-    //   read: false
-    // })
-
-    // Mock implementation
-    const newMsg: Message = {
-      id: `m${Date.now()}`,
-      sender_id: user.id,
-      receiver_id: activeConvo.user_id,
-      content: newMessage,
-      created_at: new Date().toISOString(),
-      read: false
-    }
-
-    setMessages([...messages, newMsg])
-    setNewMessage("")
-
-    // Update conversation last message
-    const updatedConversations = conversations.map(conv => {
-      if (conv.id === activeConversation) {
-        return {
-          ...conv,
-          last_message: newMessage,
-          last_message_time: new Date().toISOString()
-        }
+    try {
+      // Send message to the specific conversation (which includes activity context)
+      const supabaseAny = supabase as any
+      
+      // Extract receiver info from the active conversation
+      const activeConv = conversations.find(c => c.id === activeConversation)
+      if (!activeConv) {
+        console.error('No active conversation found')
+        alert('Please select a conversation first')
+        return
       }
-      return conv
-    })
-    setConversations(updatedConversations)
+      
+      // Ensure conversation exists in support_conversations table before sending message
+      await ensureConversationExists(activeConversation, {
+        sender_name: user.email || 'Provider',
+        sender_email: user.email || 'provider@example.com',
+        participant_type: 'activity_provider',
+        activity_id: activeConv.activity_id
+      })
+      
+      const messageData = {
+        conversation_id: activeConversation,
+        sender_id: user.id,
+        receiver_id: activeConv.user_id,
+        sender_name: user.email || 'Provider',
+        message: newMessage.trim(),
+        sender_type: 'provider',
+        is_read: false
+      }
+
+      console.log('Sending message to conversation:', activeConversation, messageData)
+
+      const { data: result, error } = await supabaseAny
+        .from('support_messages')
+        .insert([messageData])
+        .select()
+        .single()
+
+      if (error) {
+        console.error('Error sending message:', error)
+        alert('Failed to send message')
+        return
+      }
+
+      // Add to local state for immediate UI update
+      const newMsg: Message = {
+        id: result.id,
+        conversation_id: result.conversation_id,
+        sender_id: result.sender_id,
+        receiver_id: result.receiver_id,
+        sender_name: result.sender_name,
+        message: result.message,
+        sender_type: result.sender_type,
+        is_read: result.is_read,
+        created_at: result.created_at
+      }
+
+      setMessages([...messages, newMsg])
+      setNewMessage("")
+      
+      console.log('Message sent successfully to activity conversation:', result)
+    } catch (error) {
+      console.error('Error in handleSendMessage:', error)
+      alert('Failed to send message')
+    }
+  }
+
+  // Helper function to ensure conversation exists in support_conversations table
+  const ensureConversationExists = async (conversationId: string, metadata: any) => {
+    const supabaseAny = supabase as any
+    
+    try {
+      // Check if conversation already exists
+      const { data: existingConversation, error: checkError } = await supabaseAny
+        .from("support_conversations")
+        .select("id")
+        .eq("id", conversationId)
+        .single();
+
+      if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows returned
+        console.error("Error checking conversation existence:", checkError);
+        throw checkError;
+      }
+
+      if (existingConversation) {
+        console.log("🔍 Conversation already exists:", conversationId);
+        return; // Conversation already exists
+      }
+
+      // Create new conversation record
+      const conversationRecord = {
+        id: conversationId,
+        subject: `Activity Conversation`,
+        participant_type: metadata.participant_type || 'activity_provider', // Use valid enum value
+        participant_name: metadata.sender_name || 'Provider',
+        participant_email: metadata.sender_email || user?.email || 'provider@example.com',
+        status: 'open',
+        priority: 'medium',
+        activity_id: metadata.activity_id || null
+      };
+
+      console.log("🔍 Creating new conversation:", conversationRecord);
+
+      const { data: newConversation, error: createError } = await supabaseAny
+        .from("support_conversations")
+        .insert([conversationRecord])
+        .select()
+        .single();
+
+      if (createError) {
+        console.error("Error creating conversation:", createError);
+        throw createError;
+      }
+
+      console.log("✅ Conversation created successfully:", newConversation);
+    } catch (error) {
+      console.error("Error in ensureConversationExists:", error);
+      throw error;
+    }
   }
 
   const formatDate = (dateString: string) => {
@@ -370,7 +435,12 @@ export default function InboxPage() {
                       </Avatar>
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-center">
-                          <p className="font-medium truncate">{conversation.user_name}</p>
+                          <div className="flex flex-col">
+                            <p className="font-medium truncate">{conversation.user_name}</p>
+                            {conversation.activity_title && (
+                              <p className="text-xs text-blue-600 truncate">{conversation.activity_title}</p>
+                            )}
+                          </div>
                           {conversation.last_message_time && (
                             <span className="text-xs text-muted-foreground">
                               {formatDate(conversation.last_message_time)}
@@ -433,7 +503,14 @@ export default function InboxPage() {
                         )}
                       </Avatar>
                       <CardTitle className="text-lg">
-                        {conversations.find(c => c.id === activeConversation)?.user_name}
+                        <div className="flex flex-col">
+                          <span>{conversations.find(c => c.id === activeConversation)?.user_name}</span>
+                          {conversations.find(c => c.id === activeConversation)?.activity_title && (
+                            <span className="text-sm text-blue-600 font-normal">
+                              {conversations.find(c => c.id === activeConversation)?.activity_title}
+                            </span>
+                          )}
+                        </div>
                       </CardTitle>
                     </div>
                   </CardHeader>
@@ -442,16 +519,16 @@ export default function InboxPage() {
                       {messages.map((message) => (
                         <div 
                           key={message.id} 
-                          className={`flex ${message.sender_id === user.id ? 'justify-end' : 'justify-start'}`}
+                          className={`flex ${message.sender_type === 'provider' ? 'justify-end' : 'justify-start'}`}
                         >
                           <div 
                             className={`max-w-[80%] rounded-lg p-3 ${
-                              message.sender_id === user.id 
+                              message.sender_type === 'provider'
                                 ? 'bg-[#ededed] text-foreground' 
                                 : 'bg-muted'
                             }`}
                           >
-                            <p className="break-words">{message.content}</p>
+                            <p className="break-words">{message.message}</p>
                             <p className="text-xs mt-1 opacity-70">
                               {formatDate(message.created_at)}
                             </p>

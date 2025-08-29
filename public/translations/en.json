@@ -1,4 +1,36 @@
 {
+  "seo": {
+    "title": "Guidestination - Discover Amazing Activities",
+    "description": "Find and book unique experiences around the world"
+  },
+  "hero": {
+    "title": "Discover Amazing Activities",
+    "subtitle": "Find and book unique experiences around the world",
+    "searchPlaceholder": "Search for activities...",
+    "searchButton": "Search"
+  },
+  "home": {
+    "recommendedTitle": "Recommended from us",
+    "recommendedSubtitle": "Discover our top-rated experiences",
+    "viewAll": "View All",
+    "popular": "Popular",
+    "noActivities": "No activities available at the moment.",
+    "loadingActivities": "Loading activities...",
+    "categoryActivities": "Activities",
+    "noCategoryActivities": "No activities available in",
+    "welcomeMessage": "Welcome back, {{userName}}! Ready for your next adventure?",
+    "activitiesCount": "We have {{count}} amazing activities waiting for you to explore!",
+    "hero": {
+      "title": "Discover the Magic of Chiang Mai"
+    },
+    "search": {
+      "placeholder": "Search for activities...",
+      "button": "Search"
+    },
+    "popularSection": {
+      "title": "Popular Experiences in Chiang Mai"
+    }
+  },
   "nav": {
     "home": "Home",
     "activities": "Activities",
@@ -7,19 +39,16 @@
     "logout": "Logout",
     "register": "Register",
     "listActivities": "List Your Activities",
-    "becomePartner": "Become a Partner"
-  },
-  "home": {
-    "hero": {
-      "title": "Discover the Magic of Chiang Mai"
-    },
-    "search": {
-      "placeholder": "Search for activities...",
-      "button": "Search"
-    },
-    "popular": {
-      "title": "Popular Experiences in Chiang Mai"
-    }
+    "listActivitiesFull": "List Your Activities",
+    "becomePartner": "Become a Partner",
+    "becomePartnerFull": "Become a Partner",
+    "profile": "Profile",
+    "myBookings": "My Bookings",
+    "wishlist": "Wishlist",
+    "settings": "Settings",
+    "myAccount": "My Account",
+    "signingOut": "Signing out...",
+    "signOut": "Sign out"
   },
   "language": {
     "english": "English",
@@ -1173,4 +1202,6 @@
       }
     }
   }
+  ,
+  "profile.bookingDetails.labels.activityProvider": "Activity Provider / Owner"
 }

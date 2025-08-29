@@ -3,7 +3,10 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Calendar, MapPin, Users, Clock, Phone, Mail } from "lucide-react"
 import { Booking } from "@/types/activity"
+import { useCurrency } from "@/context/CurrencyContext";
+import { formatCurrency } from "@/utils/currency";
 import Image from "next/image"
+import { useLanguage } from "@/contexts/LanguageContext"
 
 interface BookingDetailsModalProps {
   booking: Booking;
@@ -12,6 +15,9 @@ interface BookingDetailsModalProps {
 }
 
 export default function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetailsModalProps) {
+  const { t } = useLanguage();
+  const { currency, convert } = useCurrency();
+  
   const getStatusColor = (status: string) => {
     switch (status) {
       case "confirmed":
@@ -29,7 +35,7 @@ export default function BookingDetailsModal({ booking, isOpen, onClose }: Bookin
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Booking Details</DialogTitle>
+          <DialogTitle>{t('profile.bookingDetails.title')}</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-6">
@@ -41,18 +47,18 @@ export default function BookingDetailsModal({ booking, isOpen, onClose }: Bookin
               className="object-cover"
             />
             <div className="absolute top-2 right-2">
-              <Badge className={getStatusColor(booking.status || "pending")}>
-                {booking.status || "pending"}
+              <Badge className={getStatusColor(booking.status || "pending")}> 
+                {t(`profile.bookingDetails.status.${booking.status || "pending"}`)}
               </Badge>
             </div>
           </div>
 
           <div>
             <h2 className="text-xl font-semibold mb-2">
-              {booking.activities?.title || "Unknown Activity"}
+              {booking.activities?.title || t('profile.bookingDetails.labels.unknownActivity')}
             </h2>
             <p className="text-muted-foreground">
-              {booking.activities?.description || "No description available"}
+              {booking.activities?.description || t('profile.bookingDetails.labels.noDescription')}
             </p>
           </div>
 
@@ -61,32 +67,71 @@ export default function BookingDetailsModal({ booking, isOpen, onClose }: Bookin
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm">
-                  Booking Date: {new Date(booking.created_at).toLocaleDateString()}
+                  {t('profile.bookingDetails.labels.bookingDate')}: {new Date(booking.created_at).toLocaleDateString()}
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm">
-                  Participants: {booking.participants || 1}
+                  {t('profile.bookingDetails.labels.participants')}: {booking.participants || 1}
                 </span>
               </div>
-              <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">
-                  Location: {booking.activities?.meeting_point || "Location TBD"}
-                </span>
-              </div>
+              {/* Pickup Location */}
+              {booking.activities?.pickup_location_formatted_address && (
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">
+                    {t('profile.bookingDetails.labels.pickupLocation')}: {booking.activities.pickup_location_formatted_address}
+                  </span>
+                </div>
+              )}
+              {/* Meeting Point */}
+              {booking.activities?.meeting_point && (
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">
+                    {t('profile.bookingDetails.labels.meetingPoint')}: {booking.activities.meeting_point}
+                  </span>
+                </div>
+              )}
+              {/* Activity Provider/Owner */}
+              {(booking.activities?.provider_name || booking.activities?.provider_email || booking.activities?.provider_phone) && (
+                <div className="flex flex-col gap-1 mt-2">
+                  {booking.activities?.provider_name && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">
+                        {t('profile.bookingDetails.labels.activityProvider')}: {booking.activities.provider_name}
+                      </span>
+                    </div>
+                  )}
+                  {booking.activities?.provider_email && (
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">{booking.activities.provider_email}</span>
+                    </div>
+                  )}
+                  {booking.activities?.provider_phone && (
+                    <div className="flex items-center gap-2">
+                      <Phone className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">{booking.activities.provider_phone}</span>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             
             <div className="space-y-3">
               <div className="text-sm">
-                <span className="font-medium">Total Amount:</span>
+                <span className="font-medium">{t('profile.bookingDetails.labels.totalAmount')}:</span>
                 <span className="ml-2 text-lg font-semibold">
-                  ${booking.total_amount || booking.total_price || 0}
+                  {formatCurrency(
+                    convert(booking.total_amount || booking.total_price || 0, currency),
+                    currency
+                  )}
                 </span>
               </div>
               <div className="text-sm">
-                <span className="font-medium">Booking ID:</span>
+                <span className="font-medium">{t('profile.bookingDetails.labels.bookingId')}:</span>
                 <span className="ml-2 font-mono text-xs">
                   {booking.id}
                 </span>
@@ -96,11 +141,11 @@ export default function BookingDetailsModal({ booking, isOpen, onClose }: Bookin
 
           <div className="flex justify-end gap-2 pt-4 border-t">
             <Button variant="outline" onClick={onClose}>
-              Close
+              {t('profile.bookingDetails.buttons.close')}
             </Button>
             {booking.status === "confirmed" && (
               <Button variant="destructive">
-                Cancel Booking
+                {t('profile.bookingDetails.buttons.cancelBooking')}
               </Button>
             )}
           </div>

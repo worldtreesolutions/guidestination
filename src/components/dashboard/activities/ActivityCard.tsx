@@ -1,4 +1,6 @@
 import { useState } from "react"
+import { useCurrency } from "@/context/CurrencyContext";
+import { convertCurrency, formatCurrency } from "@/utils/currency";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -58,14 +60,12 @@ export function ActivityCard({ activity, onEdit, onDelete, onPreview }: Activity
     }
   }
 
+  const { currency } = useCurrency();
   const formatPrice = (price: number | null) => {
-    if (!price) return "Free"
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "THB",
-      minimumFractionDigits: 0,
-    }).format(price)
-  }
+    if (!price) return "Free";
+    const converted = convertCurrency(price, currency);
+    return formatCurrency(converted, currency);
+  };
 
   const getStatusColor = (isActive: boolean | null) => {
     if (isActive === null) return "bg-gray-100 text-gray-800"
@@ -119,11 +119,20 @@ export function ActivityCard({ activity, onEdit, onDelete, onPreview }: Activity
       <div className="aspect-video relative">
         <Link href={`/dashboard/activities/${activity.id}`}>
           <Image
-            src={activity.image_url || '/placeholder.svg'}
+            src={(() => {
+              const imageUrl = activity.image_url as any;
+              if (Array.isArray(imageUrl)) {
+                return imageUrl.length > 0 && imageUrl[0] ? imageUrl[0] : '/placeholder.svg';
+              }
+              return imageUrl || '/placeholder.svg';
+            })()}
             alt={activity.title}
             width={300}
             height={169}
             className="w-full h-full object-cover"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = '/placeholder.svg';
+            }}
           />
         </Link>
         <div className="absolute top-2 right-2">
@@ -131,9 +140,18 @@ export function ActivityCard({ activity, onEdit, onDelete, onPreview }: Activity
             {getStatusText(activity.is_active)}
           </Badge>
         </div>
-        {activity.categories?.name && (
+        {(() => {
+          const imageUrl = activity.image_url as any;
+          const imageCount = Array.isArray(imageUrl) ? imageUrl.length : (imageUrl ? 1 : 0);
+          return imageCount > 1 ? (
+            <Badge className="absolute bottom-2 right-2 bg-black/70 text-white text-xs">
+              +{imageCount - 1} more
+            </Badge>
+          ) : null;
+        })()}
+        {Array.isArray(activity.categories) && activity.categories.length > 0 && activity.categories[0]?.name && (
           <Badge className="absolute top-2 left-2 bg-primary text-primary-foreground">
-            {activity.categories.name}
+            {activity.categories[0].name}
           </Badge>
         )}
       </div>
@@ -191,7 +209,7 @@ export function ActivityCard({ activity, onEdit, onDelete, onPreview }: Activity
 
         <div className="flex items-center justify-between pt-2 border-t">
           <Badge variant="outline">
-            {activity.categories?.name || "Uncategorized"}
+            {Array.isArray(activity.categories) && activity.categories.length > 0 ? activity.categories[0]?.name || "Uncategorized" : "Uncategorized"}
           </Badge>
           <div className="text-xs text-muted-foreground">
             {activity.duration ? `${activity.duration} hours` : ''}
@@ -203,7 +221,7 @@ export function ActivityCard({ activity, onEdit, onDelete, onPreview }: Activity
             {activity.max_participants} participants
           </p>
           <p className="text-lg font-semibold">
-            ฿{activity.b_price?.toLocaleString()}
+            {formatPrice(activity.b_price)}
           </p>
         </div>
       </CardContent>

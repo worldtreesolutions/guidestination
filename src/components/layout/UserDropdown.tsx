@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { useRouter } from "next/router"
 import { useAuth } from "@/contexts/AuthContext"
+import { useLanguage } from "@/contexts/LanguageContext"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -15,6 +16,7 @@ import { User, Heart, Settings, LogOut, Calendar } from "lucide-react"
 
 export default function UserDropdown() {
   const { user, signOut } = useAuth()
+  const { t } = useLanguage()
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
 
@@ -54,7 +56,7 @@ export default function UserDropdown() {
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">My Account</p>
+            <p className="text-sm font-medium leading-none">{t('nav.myAccount')}</p>
             <p className="text-xs leading-none text-muted-foreground">
               {user.email}
             </p>
@@ -63,24 +65,24 @@ export default function UserDropdown() {
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => navigateToTab("overview")}>
           <User className="mr-2 h-4 w-4" />
-          <span>Profile</span>
+          <span>{t('nav.profile')}</span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => navigateToTab("bookings")}>
           <Calendar className="mr-2 h-4 w-4" />
-          <span>My Bookings</span>
+          <span>{t('nav.myBookings')}</span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => navigateToTab("wishlist")}>
           <Heart className="mr-2 h-4 w-4" />
-          <span>Wishlist</span>
+          <span>{t('nav.wishlist')}</span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => navigateToTab("settings")}>
           <Settings className="mr-2 h-4 w-4" />
-          <span>Settings</span>
+          <span>{t('nav.settings')}</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut} disabled={isLoading}>
           <LogOut className="mr-2 h-4 w-4" />
-          <span>{isLoading ? "Signing out..." : "Sign out"}</span>
+          <span>{isLoading ? t('nav.signingOut') : t('nav.signOut')}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

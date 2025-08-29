@@ -14,7 +14,7 @@ export interface Database {
           id: number
           title: string
           description: string | null
-          image_url: string | null
+          image_url: string[] | null
           pickup_location: string | null
           dropoff_location: string | null
           discounts: number | null
@@ -79,7 +79,7 @@ export interface Database {
           id?: number
           title: string
           description?: string | null
-          image_url?: string | null
+          image_url?: string[] | null
           pickup_location?: string | null
           dropoff_location?: string | null
           discounts?: number | null
@@ -144,7 +144,7 @@ export interface Database {
           id?: number
           title?: string
           description?: string | null
-          image_url?: string | null
+          image_url?: string[] | null
           pickup_location?: string | null
           dropoff_location?: string | null
           discounts?: number | null
@@ -225,6 +225,42 @@ export interface Database {
             columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      activity_categories: {
+        Row: {
+          id: number
+          activity_id: number
+          category_id: number
+          created_at: string | null
+        }
+        Insert: {
+          id?: number
+          activity_id: number
+          category_id: number
+          created_at?: string | null
+        }
+        Update: {
+          id?: number
+          activity_id?: number
+          category_id?: number
+          created_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_categories_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
             referencedColumns: ["id"]
           }
         ]
@@ -437,7 +473,7 @@ export interface Database {
         Row: {
           id: string
           activity_id: number
-          user_id: string
+          customer_id: string
           status: string | null
           total_amount: number
           created_at: string
@@ -453,13 +489,13 @@ export interface Database {
         Insert: {
           id?: string
           activity_id: number
-          user_id: string
+          customer_id: string
           status?: string | null
           total_amount: number
           created_at?: string
           activities?: any | null
           provider_id?: string | null
-          booking_date?: string
+          booking_date: string
           total_price?: number | null
           participants?: number | null
           customer_name?: string | null
@@ -469,7 +505,7 @@ export interface Database {
         Update: {
           id?: string
           activity_id?: number
-          user_id?: string
+          customer_id?: string
           status?: string | null
           total_amount?: number
           created_at?: string
@@ -778,19 +814,19 @@ export interface Database {
       wishlist: {
         Row: {
           id: string
-          user_id: string
+          customer_id: string
           activity_id: number
           created_at: string
         }
         Insert: {
           id?: string
-          user_id: string
+          customer_id: string
           activity_id: number
           created_at?: string
         }
         Update: {
           id?: string
-          user_id?: string
+          customer_id?: string
           activity_id?: number
           created_at?: string
         }

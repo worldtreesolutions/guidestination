@@ -31,7 +31,7 @@ const createFormSchema = (t: (key: string) => string) => z.object({
   businessName: z.string().min(2, t('form.validation.businessName')),
   ownerName: z.string().min(2, t('form.validation.ownerName')),
   email: z.string().email(t('form.validation.email')),
-  password: z.string().min(8, 'Password must be at least 8 characters.'),
+  password: z.string().min(8, t('form.validation.password')),
   passwordConfirmation: z.string(),
   phone: z.string().min(10, t('form.validation.phone')),
   businessType: z.string().optional(),
@@ -47,7 +47,7 @@ const createFormSchema = (t: (key: string) => string) => z.object({
     message: t('form.validation.terms'),
   }),
 }).refine(data => data.password === data.passwordConfirmation, {
-  message: "Passwords don't match",
+  message: t('form.validation.passwordConfirmation'),
   path: ["passwordConfirmation"],
 });
 
@@ -115,24 +115,22 @@ export const ActivityOwnerRegistrationForm = () => {
       newUserId = signUpResponse.user.id;
 
       // Step 2: Upload documents
-      let documentUrls: string[] = []
+      let ownerSupportingDocuments: string[] = []
       if (uploadedFiles.length > 0) {
         toast({
           title: "Uploading Documents",
           description: "Uploading documents...",
         });
-        
         const filesToUpload: File[] = uploadedFiles;
-        
         if (filesToUpload.length > 0) {
-            documentUrls = await uploadService.uploadActivityOwnerDocuments(filesToUpload, newUserId);
-            if (documentUrls.length !== filesToUpload.length) {
-              throw new Error("Some documents failed to upload.");
-            }
-            toast({
-              title: "Upload Complete",
-              description: `Successfully uploaded ${documentUrls.length} documents.`,
-            });
+          ownerSupportingDocuments = await uploadService.uploadActivityOwnerDocuments(filesToUpload, newUserId);
+          if (ownerSupportingDocuments.length !== filesToUpload.length) {
+            throw new Error("Some documents failed to upload.");
+          }
+          toast({
+            title: "Upload Complete",
+            description: `Successfully uploaded ${ownerSupportingDocuments.length} documents.`,
+          });
         }
       }
 
@@ -153,7 +151,7 @@ export const ActivityOwnerRegistrationForm = () => {
         insurance_policy_number: values.insurancePolicy,
         insurance_coverage_amount: parseFloat(values.insuranceAmount),
         location: locationData,
-        document_urls: documentUrls,
+        owner_supporting_documents: ownerSupportingDocuments,
         approved: 'pending',
       };
 
@@ -246,7 +244,7 @@ export const ActivityOwnerRegistrationForm = () => {
             name='businessName'
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Business Name</FormLabel>
+                <FormLabel>{t('form.field.businessName')}</FormLabel>
                 <FormControl>
                   <Input placeholder={t('form.placeholder.businessName')} {...field} />
                 </FormControl>
@@ -364,9 +362,9 @@ export const ActivityOwnerRegistrationForm = () => {
               name='password'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel>{t('form.field.password')}</FormLabel>
                   <FormControl>
-                    <Input placeholder="********" type='password' {...field} />
+                    <Input placeholder={t('form.placeholder.password')} type='password' {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -377,9 +375,9 @@ export const ActivityOwnerRegistrationForm = () => {
               name='passwordConfirmation'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Confirm Password</FormLabel>
+                  <FormLabel>{t('form.field.passwordConfirmation')}</FormLabel>
                   <FormControl>
-                    <Input placeholder="********" type='password' {...field} />
+                    <Input placeholder={t('form.placeholder.passwordConfirmation')} type='password' {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

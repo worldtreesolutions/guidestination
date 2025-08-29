@@ -23,12 +23,16 @@ export const uploadService = {
     userId?: string
   ): Promise<UploadResult> {
     try {
+      console.log(`Starting upload: file=${file.name}, size=${file.size}, bucket=${bucket}, folder=${folder}`)
+      
       const fileExt = file.name.split(".").pop()
       const timestamp = Date.now()
       const randomId = Math.random().toString(36).substring(2)
       const fileName = userId 
         ? `${folder}/${userId}/${timestamp}-${randomId}.${fileExt}`
         : `${folder}/${timestamp}-${randomId}.${fileExt}`
+
+      console.log(`Upload path: ${fileName}`)
 
       // Upload file to Supabase Storage
       const { data, error } = await supabase.storage
@@ -39,14 +43,18 @@ export const uploadService = {
         })
 
       if (error) {
-        console.error("Upload error:", error)
+        console.error(`Upload error for ${file.name}:`, error)
         return { url: "", path: "", error: error.message }
       }
+
+      console.log(`Upload successful for ${file.name}, data:`, data)
 
       // Get public CDN URL
       const { data: { publicUrl } } = supabase.storage
         .from(bucket)
         .getPublicUrl(data.path)
+
+      console.log(`Public URL generated: ${publicUrl}`)
 
       return {
         url: publicUrl,
@@ -112,9 +120,10 @@ export const uploadService = {
     const folder = activityId ? `activities/${activityId}` : 'activities'
     const results = await this.uploadMultipleFiles(files, 'activity-media', folder, userId)
     
+    // Return only the private file paths for storage in DB
     return results
-      .filter(result => !result.error && result.url)
-      .map(result => result.url)
+      .filter(result => !result.error && result.path)
+      .map(result => result.path)
   },
 
   /**
@@ -158,7 +167,7 @@ export const uploadService = {
   },
 
   /**
-   * Upload partner registration documents with CDN
+   * Upload partner registration documents with CDN (uses private bucket for security)
    * @param files - Array of document files to upload
    * @param partnerId - Partner identifier
    * @param userId - Optional user ID
@@ -166,7 +175,18 @@ export const uploadService = {
    */
   async uploadPartnerDocuments(files: File[], partnerId?: string, userId?: string): Promise<string[]> {
     const folder = partnerId ? `partner-registrations/${partnerId}` : 'partner-registrations'
-    const results = await this.uploadMultipleFiles(files, 'documents', folder, userId)
+    
+    console.log(`Uploading ${files.length} files to bucket 'registration-documents', folder: ${folder}`)
+    
+    const results = await this.uploadMultipleFiles(files, 'registration-documents', folder, userId)
+    
+    console.log('Upload results:', results)
+    
+    // Log any errors
+    const errors = results.filter(result => result.error)
+    if (errors.length > 0) {
+      console.error('Upload errors:', errors)
+    }
     
     return results
       .filter(result => !result.error && result.url)
@@ -174,7 +194,7 @@ export const uploadService = {
   },
 
   /**
-   * Upload activity owner registration documents with CDN
+   * Upload activity owner registration documents with CDN (uses private bucket for security)
    * @param files - Array of document files to upload
    * @param ownerId - Activity owner identifier
    * @param userId - Optional user ID
@@ -182,11 +202,11 @@ export const uploadService = {
    */
   async uploadActivityOwnerDocuments(files: File[], ownerId?: string, userId?: string): Promise<string[]> {
     const folder = ownerId ? `activity-owner-registrations/${ownerId}` : 'activity-owner-registrations'
-    const results = await this.uploadMultipleFiles(files, 'documents', folder, userId)
-    
+    const results = await this.uploadMultipleFiles(files, 'registration-documents', folder, userId)
+    // Return only the private file paths for storage in DB
     return results
-      .filter(result => !result.error && result.url)
-      .map(result => result.url)
+      .filter(result => !result.error && result.path)
+      .map(result => result.path)
   },
 
   /**

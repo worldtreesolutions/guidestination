@@ -2,6 +2,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/contexts/AuthContext"
+import { useLanguage } from "@/contexts/LanguageContext"
 import authService from "@/services/authService"
 import LanguageSelector from "./LanguageSelector"
 import CurrencySelector from "./CurrencySelector"
@@ -13,6 +14,7 @@ interface MobileMenuProps {
 
 export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   if (!isOpen) return null;
 
@@ -39,18 +41,18 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
               }}
               className="block w-full text-left py-2 text-gray-700 hover:text-primary"
             >
-              Sign Out
+              {t('nav.logout')}
             </button>
           </div>
         ) : (
           <div className="space-y-2">
             <Link href="/auth/login" className="block" onClick={onClose}>
               <Button variant="ghost" className="w-full justify-start">
-                Sign In
+                {t('nav.login')}
               </Button>
             </Link>
             <Link href="/auth/register" className="block" onClick={onClose}>
-              <Button className="w-full">Sign Up</Button>
+              <Button className="w-full">{t('nav.register')}</Button>
             </Link>
           </div>
         )}

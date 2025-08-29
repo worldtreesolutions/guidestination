@@ -5,6 +5,8 @@ import { X, Clock, Calendar, MapPin } from "lucide-react"
 import { ScheduledActivity } from "@/types/activity"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { useMemo, useCallback } from "react"
+import { useCurrency } from "@/context/CurrencyContext";
+import { formatCurrency } from "@/utils/currency";
 
 interface WeeklyActivityScheduleProps {
   scheduledActivities: ScheduledActivity[]
@@ -44,6 +46,7 @@ const RemoveButton = ({
 }
 
 const ActivityCard = ({ activity, onRemove }: { activity: ScheduledActivity; onRemove: (id: string) => void }) => {
+  const { currency, convert } = useCurrency();
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: activity.id,
     data: { activity }
@@ -91,7 +94,10 @@ const ActivityCard = ({ activity, onRemove }: { activity: ScheduledActivity; onR
                 </div>
                 <div className="text-xs bg-primary/80 rounded-full px-2 py-1 inline-flex items-center gap-1 w-fit">
                   <MapPin className="h-3 w-3" />
-                  ฿{(activity.price || 0).toLocaleString()}
+                  {formatCurrency(
+                    convert(Number(activity.activity?.final_price || activity.price || 0), currency),
+                    currency
+                  )}
                 </div>
               </div>
             </div>

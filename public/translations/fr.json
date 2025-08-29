@@ -7,7 +7,16 @@
     "logout": "Déconnexion",
     "register": "S'inscrire",
     "listActivities": "Lister Vos Activités",
-    "becomePartner": "Devenir Partenaire"
+    "listActivitiesFull": "Lister Vos Activités",
+    "becomePartner": "Devenir Partenaire",
+    "becomePartnerFull": "Devenir Partenaire",
+    "profile": "Profil",
+    "myBookings": "Mes Réservations",
+    "wishlist": "Liste de Souhaits",
+    "settings": "Paramètres",
+    "myAccount": "Mon Compte",
+    "signingOut": "Déconnexion...",
+    "signOut": "Se déconnecter"
   },
   "home": {
     "hero": {
@@ -1092,4 +1101,6 @@
       }
     }
   }
+  ,
+  "profile.bookingDetails.labels.activityProvider": "Prestataire / Propriétaire de l'activité"
 }

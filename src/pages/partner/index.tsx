@@ -97,12 +97,12 @@ export default function PartnerPage() {
         <div className="fixed bottom-4 left-4 flex flex-col space-y-2 z-50">
           <Link href="/activity-owner">
             <Button variant="secondary" className="rounded-full shadow-lg">
-              <Briefcase className="mr-2 h-4 w-4" /> List your Activity
+              <Briefcase className="mr-2 h-4 w-4" /> {t("partner.buttons.listActivity")}
             </Button>
           </Link>
           <Link href="/partner">
             <Button variant="secondary" className="rounded-full shadow-lg">
-              <User className="mr-2 h-4 w-4" /> Become a Partner
+              <User className="mr-2 h-4 w-4" /> {t("partner.buttons.becomePartner")}
             </Button>
           </Link>
         </div>
@@ -135,7 +135,7 @@ export default function PartnerPage() {
                 {benefits.map((benefit, index) => (
                   <Card key={index} className="text-center hover:shadow-lg transition-shadow">
                     <CardContent className="p-6">
-                      <benefit.icon className="h-12 w-12 text-primary mx-auto mb-4" />
+                      <benefit.icon className="h-12 w-12 text-black mx-auto mb-4" />
                       <h3 className="font-semibold mb-2">{benefit.title}</h3>
                       <p className="text-sm text-muted-foreground">{benefit.description}</p>
                     </CardContent>
@@ -177,7 +177,7 @@ export default function PartnerPage() {
                   <Card className="p-6">
                     <CardHeader>
                       <div className="flex items-center gap-3 mb-4">
-                        <Building2 className="h-8 w-8 text-primary" />
+                        <Building2 className="h-8 w-8 text-black" />
                         <div>
                           <CardTitle>{t("partner.dashboard.title") || "Partner Dashboard"}</CardTitle>
                           <CardDescription>{t("partner.dashboard.subtitle") || "Manage your business efficiently"}</CardDescription>
@@ -272,12 +272,12 @@ export default function PartnerPage() {
       <div className="fixed bottom-4 left-4 flex flex-col space-y-2 z-50">
         <Link href="/activity-owner">
           <Button variant="secondary" className="rounded-full shadow-lg">
-            <Briefcase className="mr-2 h-4 w-4" /> List your Activity
+            <Briefcase className="mr-2 h-4 w-4" /> {t("partner.buttons.listActivity")}
           </Button>
         </Link>
         <Link href="/partner">
           <Button variant="secondary" className="rounded-full shadow-lg">
-            <User className="mr-2 h-4 w-4" /> Become a Partner
+            <User className="mr-2 h-4 w-4" /> {t("partner.buttons.becomePartner")}
           </Button>
         </Link>
       </div>

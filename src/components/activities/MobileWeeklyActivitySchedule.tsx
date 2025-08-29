@@ -6,6 +6,8 @@ import { X, Clock, MapPin, ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ScheduledActivity } from "@/types/activity"
 import { useLanguage } from "@/contexts/LanguageContext"
+import { useCurrency } from "@/context/CurrencyContext";
+import { formatCurrency } from "@/utils/currency";
 
 interface MobileWeeklyActivityScheduleProps {
   scheduledActivities: ScheduledActivity[]
@@ -45,6 +47,7 @@ const RemoveButton = ({
 }
 
 const ActivityCard = ({ activity, onRemove }: { activity: ScheduledActivity; onRemove: (id: string) => void }) => {
+  const { currency, convert } = useCurrency();
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: activity.id,
     data: { activity }
@@ -92,7 +95,10 @@ const ActivityCard = ({ activity, onRemove }: { activity: ScheduledActivity; onR
                 </div>
                 <div className="text-xs bg-primary/80 rounded-full px-2 py-1 inline-flex items-center gap-1 w-fit">
                   <MapPin className="h-3 w-3" />
-                  ฿{(activity.price || 0).toLocaleString()}
+                  {formatCurrency(
+                    convert(Number(activity.price || 0), currency),
+                    currency
+                  )}
                 </div>
               </div>
             </div>
@@ -156,6 +162,7 @@ export const MobileWeeklyActivitySchedule = ({
   onActivityRemove
 }: MobileWeeklyActivityScheduleProps) => {
   const { t } = useLanguage()
+  const { currency, convert } = useCurrency();
   const [activeDay, setActiveDay] = useState("monday")
   
   const days = useMemo(() => [
@@ -190,76 +197,102 @@ export const MobileWeeklyActivitySchedule = ({
     scheduledActivities.forEach(activity => {
       const activityHour = activity.hour ? parseInt(activity.hour, 10) : -1;
       if (activity.day && activityHour !== -1 && !isNaN(activityHour)) {
-        if (!result[activity.day]) {
-          result[activity.day] = {}
-        }
-        result[activity.day][activityHour] = activity
-      }
-    })
-    return result
-  }, [scheduledActivities, dayKeys])
-
-  const skipCells = useMemo(() => {
-    const result: { [key: string]: { [key: number]: boolean } } = {}
-    dayKeys.forEach(day => {
-      result[day] = {}
-      hours.forEach(hour => {
-        result[day][hour] = false
-      })
-      scheduledActivities.forEach(activity => {
-        const durationNum = parseInt(String(activity.duration) || '1', 10);
-        const activityHour = activity.hour ? parseInt(activity.hour, 10) : -1;
-        if (activity.day === day && activityHour !== -1 && !isNaN(activityHour) && durationNum) {
-          for (let i = 1; i < durationNum; i++) {
-            const hourToSkip = activityHour + i
-            if (hourToSkip <= 17) {
-              result[day][hourToSkip] = true
-            }
+// ...existing code...
+  const activeDayIndex = dayKeys.indexOf(activeDay);
+  const goToPreviousDay = () => {
+    const newIndex = (activeDayIndex - 1 + dayKeys.length) % dayKeys.length;
+    setActiveDay(dayKeys[newIndex]);
+  };
+  const goToNextDay = () => {
+    const newIndex = (activeDayIndex + 1) % dayKeys.length;
+    setActiveDay(dayKeys[newIndex]);
+  };
+  return (
+    <div className='w-full'>
+      <div className='flex items-center justify-between mb-4 bg-primary/10 rounded-lg p-2'>
+        <Button 
+          variant='ghost' 
+          size='icon' 
+          onClick={goToPreviousDay}
+          className='h-8 w-8'
+          aria-label={t("calendar.previousDay")}
+        >
+          <ChevronLeft className='h-5 w-5' />
+        </Button>
+        <div className='text-center'>
+          <h3 className='font-bold text-primary'>{days[activeDayIndex]}</h3>
+          <p className='text-xs text-muted-foreground'>{t("calendar.day")} {activeDayIndex + 1}</p>
+        </div>
+        <Button 
+          variant='ghost' 
+          size='icon' 
+          onClick={goToNextDay}
+          className='h-8 w-8'
+          aria-label={t("calendar.nextDay")}
+        >
+          <ChevronRight className='h-5 w-5' />
+        </Button>
+      </div>
+      <div className='space-y-2'>
+        {hours.map(hour => {
+          if (skipCells[activeDay]?.[hour]) {
+            return null;
           }
-        }
-      })
-    })
-    return result
-  }, [scheduledActivities, dayKeys, hours])
-
-  const isSlotAvailable = (day: string, hour: number) => {
-    if (hour > 17) return false
-
-    if (draggedActivity) {
-      const draggedDuration = parseInt(String(draggedActivity.duration) || '1', 10);
-      if (!draggedDuration) return false;
-      for (let i = 0; i < draggedDuration; i++) {
-        const currentHour = hour + i
-        if (currentHour > 17) return false
-        
-        const existingActivity = scheduledActivities.find(activity => {
-          const activityDuration = parseInt(String(activity.duration) || '1', 10);
-          const activityHour = activity.hour ? parseInt(activity.hour, 10) : -1;
-          if (activity.day !== day || activity.id === draggedActivity.id || activityHour === -1 || !activityDuration) return false
-          const activityEnd = activityHour + activityDuration
-          const hasOverlap = currentHour >= activityHour && currentHour < activityEnd
-          return hasOverlap
-        })
-        
-        if (existingActivity) return false
-      }
-      return true
-    }
-
-    return !scheduledActivities.some(
-      activity => {
-        const activityDuration = parseInt(String(activity.duration) || '1', 10);
-        const activityHour = activity.hour ? parseInt(activity.hour, 10) : -1;
-        return activity.day === day && 
-        activityHour !== -1 &&
-        activityDuration &&
-        hour >= activityHour && 
-        hour < activityHour + activityDuration
-      }
-    )
-  }
-
-  const activeDayIndex = dayKeys.indexOf(activeDay)
+          const scheduled = activitiesByDayAndHour[activeDay]?.[hour];
+          const durationNum = scheduled ? parseInt(String(scheduled.duration) || '1', 10) : 1;
+          return (
+            <div key={hour} className='flex items-stretch gap-2'>
+              <div className='w-16 flex items-center justify-center bg-primary/5 rounded-lg'>
+                <div className='flex flex-col items-center'>
+                  <Clock className='h-3.5 w-3.5 text-primary' />
+                  <span className='text-sm font-medium'>{formatHour(hour)}</span>
+                </div>
+              </div>
+              {scheduled ? (
+                <div className='flex-1 relative'>
+                  <ActivityCard activity={scheduled} onRemove={handleActivityRemove} />
+                </div>
+              ) : (
+                <div className="flex-1">
+                  <DroppableCell
+                    day={activeDay}
+                    hour={hour}
+                    isAvailable={isSlotAvailable(activeDay, hour)}
+                    showUnavailable={!!draggedActivity}
+                  >
+                    <div className='h-full border-2 border-dashed border-gray-200 rounded-lg flex items-center justify-center'>
+                      {isSlotAvailable(activeDay, hour) && !draggedActivity && (
+                        <div className='text-xs text-gray-400'>
+                          {t("calendar.dropHere")}
+                        </div>
+                      )}
+                    </div>
+                  </DroppableCell>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      <div className='mt-4 flex justify-center'>
+        <div className='grid grid-cols-7 w-full gap-1 bg-gray-100 p-1 rounded-lg'>
+          {dayKeys.map((day, index) => (
+            <button
+              key={day}
+              onClick={() => setActiveDay(day)}
+              className={`px-2 py-2 text-xs font-medium rounded transition-colors ${
+                activeDay === day 
+                  ? 'bg-primary text-primary-foreground shadow-sm' 
+                  : 'text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              {days[index].substring(0, 2)}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
   
   const goToPreviousDay = () => {
     const newIndex = (activeDayIndex - 1 + dayKeys.length) % dayKeys.length
@@ -296,37 +329,34 @@ export const MobileWeeklyActivitySchedule = ({
           className='h-8 w-8'
           aria-label={t("calendar.nextDay")}
         >
+                  {formatCurrency(convert(Number(activity.price || 0), currency), currency)}
+    <div className='w-full'>
+      <div className='flex items-center justify-between mb-4 bg-primary/10 rounded-lg p-2'>
+        <Button 
+          variant='ghost' 
+          size='icon' 
+          onClick={goToPreviousDay}
+          className='h-8 w-8'
+          aria-label={t("calendar.previousDay")}
+        >
+          <ChevronLeft className='h-5 w-5' />
+        </Button>
+        
+        <div className='text-center'>
+          <h3 className='font-bold text-primary'>{days[activeDayIndex]}</h3>
+          <p className='text-xs text-muted-foreground'>{t("calendar.day")} {activeDayIndex + 1}</p>
+        </div>
+        
+        <Button 
+          variant='ghost' 
+          size='icon' 
+          onClick={goToNextDay}
+          className='h-8 w-8'
+          aria-label={t("calendar.nextDay")}
+        >
           <ChevronRight className='h-5 w-5' />
         </Button>
       </div>
-
-      <div className='space-y-2'>
-        {hours.map(hour => {
-          if (skipCells[activeDay]?.[hour]) {
-            return null;
-          }
-          const scheduled = activitiesByDayAndHour[activeDay]?.[hour];
-          const durationNum = scheduled ? parseInt(String(scheduled.duration) || '1', 10) : 1;
-
-          return (
-            <div key={hour} className='flex items-stretch gap-2'>
-              <div className='w-16 flex items-center justify-center bg-primary/5 rounded-lg'>
-                <div className='flex flex-col items-center'>
-                  <Clock className='h-3.5 w-3.5 text-primary' />
-                  <span className='text-sm font-medium'>{formatHour(hour)}</span>
-                </div>
-              </div>
-              
-              {scheduled ? (
-                <div 
-                  className='flex-1 relative'
-                  style={{ 
-                    height: `${HOUR_HEIGHT * durationNum + (durationNum > 1 ? (durationNum - 1) * 8 : 0)}px`
-                  }}
-                >
-                  <ActivityCard 
-                    activity={scheduled} 
-                    onRemove={handleActivityRemove} 
                   />
                 </div>
               ) : (

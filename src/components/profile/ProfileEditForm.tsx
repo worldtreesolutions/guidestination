@@ -14,30 +14,26 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { User, Phone } from "lucide-react";
-import { Tables } from "@/integrations/supabase/types";
-
-type CustomerProfile = Tables<"customer_profiles">;
+import { Customer } from "@/services/customerService";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ProfileEditFormProps {
-  profile: CustomerProfile & {
-    full_name?: string;
-    date_of_birth?: string;
-    avatar_url?: string;
-  };
-  onUpdate: (profile: CustomerProfile) => void;
+  customer: Customer;
+  onUpdate: (customer: Customer) => void;
 }
 
 export default function ProfileEditForm({
-  profile,
+  customer,
   onUpdate,
 }: ProfileEditFormProps) {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    first_name: profile.first_name || "",
-    last_name: profile.last_name || "",
-    phone: profile.phone || "",
+    full_name: customer.full_name || "",
+    phone: customer.phone || "",
+    email: customer.email || "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -46,27 +42,27 @@ export default function ProfileEditForm({
 
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("customer_profiles")
+      const supabaseAny = supabase as any;
+      const { data, error } = await supabaseAny
+        .from("customers")
         .update({
-          first_name: formData.first_name,
-          last_name: formData.last_name,
+          full_name: formData.full_name,
           phone: formData.phone,
-          updated_at: new Date().toISOString(),
+          email: formData.email,
         })
-        .eq("customer_id", user.id)
+        .eq("cus_id", user.id)
         .select()
         .single();
 
       if (error) throw error;
 
-      toast({ title: "Profile updated successfully!" });
+      toast({ title: t('profile.editForm.toast.updateSuccess') });
       if (data) {
-        onUpdate(data as CustomerProfile);
+        onUpdate(data as Customer);
       }
     } catch (error) {
       toast({
-        title: "Error updating profile",
+        title: t('profile.editForm.toast.updateError'),
         description: (error as Error).message,
         variant: "destructive",
       });
@@ -84,51 +80,50 @@ export default function ProfileEditForm({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <User className="h-5 w-5" />
-          Edit Profile
+          {t('profile.editForm.title')}
         </CardTitle>
-        <CardDescription>Update your personal information</CardDescription>
+        <CardDescription>{t('profile.editForm.description')}</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="first_name">First Name</Label>
-              <Input
-                id="first_name"
-                value={formData.first_name}
-                onChange={(e) => handleChange("first_name", e.target.value)}
-                placeholder="Enter your first name"
-              />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="full_name">{t('profile.editForm.fields.fullName')}</Label>
+            <Input
+              id="full_name"
+              value={formData.full_name}
+              onChange={(e) => handleChange("full_name", e.target.value)}
+              placeholder={t('profile.editForm.placeholders.fullName')}
+            />
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="last_name">Last Name</Label>
-              <Input
-                id="last_name"
-                value={formData.last_name}
-                onChange={(e) => handleChange("last_name", e.target.value)}
-                placeholder="Enter your last name"
-              />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">{t('profile.editForm.fields.email')}</Label>
+            <Input
+              id="email"
+              type="email"
+              value={formData.email}
+              onChange={(e) => handleChange("email", e.target.value)}
+              placeholder={t('profile.editForm.placeholders.email')}
+            />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="phone" className="flex items-center gap-2">
               <Phone className="h-4 w-4" />
-              Phone Number
+              {t('profile.editForm.fields.phoneNumber')}
             </Label>
             <Input
               id="phone"
               type="tel"
               value={formData.phone || ""}
               onChange={(e) => handleChange("phone", e.target.value)}
-              placeholder="Enter your phone number"
+              placeholder={t('profile.editForm.placeholders.phone')}
             />
           </div>
 
           <div className="flex gap-2 pt-4">
             <Button type="submit" disabled={loading}>
-              {loading ? "Saving..." : "Save Changes"}
+              {loading ? t('profile.editForm.buttons.saving') : t('profile.editForm.buttons.saveChanges')}
             </Button>
           </div>
         </form>

@@ -10,9 +10,9 @@ export function FloatingActionButtons() {
     <div className="fixed bottom-6 left-6 z-40 flex flex-row gap-3">
       {/* List Your Activities Button */}
       <Link href="/activity-owner">
-        <Button 
-          size="lg" 
-          className="rounded-full shadow-lg hover:shadow-xl transition-all duration-200 bg-gradient-to-r from-[#018fcd] to-[#00ac50] hover:from-[#0177b8] hover:to-[#009a47] text-white border-0 px-6 py-3 h-auto"
+        <Button
+          size="lg"
+          className="bg-gradient-to-r from-[#eb1951] to-[#faaa15] text-white hover:from-[#d01747] hover:to-[#e09a13] focus:ring-2 focus:ring-pink-400 focus:outline-none rounded-full shadow-lg px-6 py-3 h-auto font-semibold transition-all duration-200"
         >
           <Plus className="h-5 w-5 mr-2" />
           <span className="hidden sm:inline">{t("nav.listActivitiesFull")}</span>
@@ -22,9 +22,9 @@ export function FloatingActionButtons() {
 
       {/* Become a Partner Button */}
       <Link href="/partner">
-        <Button 
-          size="lg" 
-          className="rounded-full shadow-lg hover:shadow-xl transition-all duration-200 bg-gradient-to-r from-[#018fcd] to-[#00ac50] hover:from-[#0177b8] hover:to-[#009a47] text-white border-0 px-6 py-3 h-auto"
+        <Button
+          size="lg"
+          className="bg-gradient-to-r from-[#eb1951] to-[#faaa15] text-white hover:from-[#d01747] hover:to-[#e09a13] focus:ring-2 focus:ring-pink-400 focus:outline-none rounded-full shadow-lg px-6 py-3 h-auto font-semibold transition-all duration-200"
         >
           <Users className="h-5 w-5 mr-2" />
           <span className="hidden sm:inline">{t("nav.becomePartnerFull")}</span>

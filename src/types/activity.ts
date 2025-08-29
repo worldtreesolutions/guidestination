@@ -9,6 +9,20 @@ export type ActivitySchedule = Database["public"]["Tables"]["activity_schedules"
   available_spots?: number;
   capacity?: number;
   price_override?: number;
+  // Recurring schedule fields
+  status?: string;
+  is_active?: boolean;
+  availability_start_date?: string;
+  availability_end_date?: string;
+  recurrence_day_of_week?: number[];
+  recurrence_pattern?: string;
+  recurrence_interval?: number;
+  recurrence_end_date?: string | null;
+  start_time?: string;
+  end_time?: string;
+  booked_count?: number;
+  is_recurring?: boolean;
+  parent_schedule_id?: number | null;
 };
 export type BaseBooking = Database["public"]["Tables"]["bookings"]["Row"];
 export type ReviewUser = {
@@ -35,9 +49,10 @@ export interface Review {
 export type ActivityOwner = Database["public"]["Tables"]["activity_owners"]["Row"];
 
 
+
 // Extended / Custom types for the application
 export type ActivityWithDetails = Activity & {
-  categories: Category | null;
+  categories: Category[];
   activity_schedules: ActivitySchedule[];
   reviews: Review[];
   image_urls?: string[];
@@ -51,10 +66,12 @@ export type ActivityWithDetails = Activity & {
 
 export type ActivityForHomepage = Pick<
   Activity,
-  "id" | "title" | "b_price" | "image_url"
+  "id" | "title" | "final_price" | "b_price" | "image_url"
 > & {
   slug?: string | null;
   category_name: string | null;
+  category_details?: any;
+  categories?: any[];
   average_rating?: number;
   location?: string;
   currency?: string;
@@ -62,24 +79,29 @@ export type ActivityForHomepage = Pick<
 
 // Add properties that are not in the base table but are needed in the app
 export type Booking = BaseBooking & {
-  activities?: {
+ /* activities?: {
     title: string;
     description?: string;
     image_urls?: string[];
     location?: string;
     image_url?: string;
     pickup_location?: string;
-  };
+  };*/
+  activity_id: string;
   customer_name: string;
   customer_email: string;
   is_qr_booking?: boolean;
   establishment_id?: string;
-  partner_id?: string;
+  participants: number;
   total_price?: number;
-  user_id: string;
-  provider_id: string;
-  provider_amount: number;
-  platform_fee: number;
+  customer_id: string;
+  status?: string;
+  
+  //partner_id?: string;
+  
+  //provider_id: string;
+  //provider_amount: number;
+  //platform_fee: number;
 };
 
 export interface ScheduledActivity {
