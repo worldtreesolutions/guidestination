@@ -78,7 +78,12 @@ const authService = {
         throw new Error("Supabase client not initialized");
       }
 
-      const { data, error } = await supabaseAny.auth.signUp({ email, password });
+      // Send a confirmation email that redirects back to our app
+      // We intentionally avoid auto-login here; the callback will not create a session.
+      const { data, error } = await supabaseAny.auth.signUp(
+        { email, password },
+        { redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/auth/confirm-callback` : undefined }
+      );
       if (error) {
         return { user: null, session: null, error };
       }
