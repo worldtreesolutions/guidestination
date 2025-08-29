@@ -261,7 +261,7 @@ export const invoiceService = {
       const platformCommission = (booking.total_price || 0) * (commissionRate / 100);
       
       let partnerCommission = 0;
-      if (booking.partner_id) {
+      if ((booking as any).partner_id) {
         // Assuming a partner commission logic exists
         partnerCommission = platformCommission * 0.2; // Example: 20% of platform commission
       }

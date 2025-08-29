@@ -49,7 +49,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       let bookings: any[] = [];
 
       // Query bookings for this customer in the last hour
-      const cartBookingsQuery = await client
+      // Cast client to any to avoid very deep TS instantiation from supabase client chain
+      const cartBookingsQuery = await (client as any)
         .from('bookings')
         .select('id, activity_id, participants, total_amount, final_price, status, booking_date, customer_name, customer_email')
         .eq('customer_email', session.customer_details?.email ?? '')

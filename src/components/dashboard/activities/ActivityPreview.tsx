@@ -83,7 +83,7 @@ export function ActivityPreview({ activityId }: ActivityPreviewProps) {
           <div className="relative h-64 sm:h-80 w-full rounded-lg overflow-hidden">
             {activity.image_url ? (
               <Image
-                src={activity.image_url}
+                src={Array.isArray(activity.image_url) ? activity.image_url[0] || '/placeholder.svg' : activity.image_url}
                 alt={activity.title}
                 fill
                 className="object-cover"
@@ -94,11 +94,15 @@ export function ActivityPreview({ activityId }: ActivityPreviewProps) {
               </div>
             )}
             <div className="absolute bottom-4 right-4">
-              <Badge className="text-sm px-3 py-1">{activity.categories?.name || "Uncategorized"}</Badge>
+              <Badge className="text-sm px-3 py-1">{Array.isArray(activity.categories) ? (activity.categories as any)[0]?.name || 'Uncategorized' : (activity.categories as any)?.name || 'Uncategorized'}</Badge>
             </div>
-            {activity.categories?.name && (
+            {Array.isArray(activity.categories) ? (activity.categories as any)[0]?.name && (
               <Badge className="absolute top-2 left-2 bg-primary text-primary-foreground">
-                {activity.categories.name}
+                {(activity.categories as any)[0].name}
+              </Badge>
+            ) : (activity.categories as any)?.name && (
+              <Badge className="absolute top-2 left-2 bg-primary text-primary-foreground">
+                {(activity.categories as any).name}
               </Badge>
             )}
           </div>

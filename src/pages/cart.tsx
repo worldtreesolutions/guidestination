@@ -92,7 +92,7 @@ export default function CartPage() {
                       <div className="w-full sm:w-48 h-48 sm:h-auto relative bg-gray-200">
                         {item.activity.image_url ? (
                           <Image
-                            src={item.activity.image_url}
+                            src={Array.isArray(item.activity.image_url) ? item.activity.image_url[0] : item.activity.image_url}
                             alt={item.activity.title}
                             fill
                             className="object-cover"

@@ -86,7 +86,7 @@ export function ActivityList({ activities, onEdit, onView, onStatusChange }: Act
                   <TableCell>
                     <div className="flex items-center gap-4">
                       <Image
-                        src={activity.image_url || "/placeholder.svg"}
+                        src={Array.isArray(activity.image_url) ? activity.image_url[0] || "/placeholder.svg" : activity.image_url || "/placeholder.svg"}
                         alt={activity.title}
                         width={64}
                         height={64}

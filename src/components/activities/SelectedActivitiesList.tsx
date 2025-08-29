@@ -47,7 +47,7 @@ function DraggableActivityCard({ activity, onRemove }: { activity: SupabaseActiv
         <div className="relative">
           <div className="aspect-video relative overflow-hidden">
             <Image
-              src={activity.image_url || '/placeholder.svg'}
+              src={Array.isArray(activity.image_url) ? activity.image_url[0] || '/placeholder.svg' : activity.image_url || '/placeholder.svg'}
               alt={activity.title}
               width={64}
               height={36}

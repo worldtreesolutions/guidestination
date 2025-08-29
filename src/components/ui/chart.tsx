@@ -134,6 +134,7 @@ const ChartTooltipContent = React.forwardRef<
     ref
   ) => {
     const { config } = useChart()
+    const { currency, convert } = useCurrency()
 
     const tooltipLabel = React.useMemo(() => {
       if (hideLabel || !payload?.length) {
@@ -241,15 +242,12 @@ const ChartTooltipContent = React.forwardRef<
                         </span>
                       </div>
                       {item.value && (
-                        (() => {
-                          const { currency, convert } = useCurrency();
-                          const valueNum = typeof item.value === 'number' ? item.value : Number(item.value);
-                          return (
-                            <span className="font-mono font-medium tabular-nums text-foreground">
-                              {formatCurrency(convert(valueNum, currency), currency)}
-                            </span>
-                          );
-                        })()
+                        <span className="font-mono font-medium tabular-nums text-foreground">
+                          {(() => {
+                            const valueNum = typeof item.value === 'number' ? item.value : Number(item.value);
+                            return formatCurrency(convert(valueNum, currency), currency);
+                          })()}
+                        </span>
                       )}
                     </div>
                   </>

@@ -228,8 +228,8 @@ export default function ActivityBookingPage() {
 
             <div className="mb-8">
               <div className="flex items-center gap-2 mb-4">
-                <Badge variant="secondary" className="capitalize">
-                  {activity.categories?.name || "Uncategorized"}
+                  <Badge variant="secondary" className="capitalize">
+                    {Array.isArray(activity.categories) && activity.categories.length > 0 ? activity.categories[0].name : "Uncategorized"}
                 </Badge>
                 {activity.average_rating && (
                   <div className="flex items-center gap-1">
@@ -274,8 +274,8 @@ export default function ActivityBookingPage() {
                   </CardHeader>
                   <CardContent>
                     <ActivityGallery 
-                      images={activity.image_url ? [activity.image_url] : []}
-                      videos={activity.video_url ? [{url: activity.video_url, thumbnail: activity.video_thumbnail_url || undefined}] : []}
+                      images={Array.isArray(activity.image_url) ? activity.image_url : activity.image_url ? [activity.image_url] : []}
+                      videos={activity.video_url ? [{url: activity.video_url, thumbnail: Array.isArray(activity.image_url) ? activity.image_url[0] : activity.image_url || activity.video_thumbnail_url || undefined}] : []}
                       title={activity.title || ""}
                     />
                   </CardContent>

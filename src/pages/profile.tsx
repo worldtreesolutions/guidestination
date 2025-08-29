@@ -310,7 +310,7 @@ export default function ProfilePage() {
                           <div className="relative overflow-hidden rounded-lg bg-gray-200 aspect-[4/3] mb-3">
                             {activity.image_url ? (
                               <img
-                                src={activity.image_url}
+                                src={Array.isArray(activity.image_url) ? activity.image_url[0] : activity.image_url}
                                 alt={activity.title}
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                               />
