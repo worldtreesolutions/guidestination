@@ -18,10 +18,12 @@ import {
   Mail,
   Globe,
   Briefcase,
-  User
+  User,
+  Plus
 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Link from "next/link";
+import { FloatingActionButtons } from "@/components/layout/FloatingActionButtons";
 
 export default function PartnerPage() {
   const { t } = useLanguage()
@@ -94,15 +96,27 @@ export default function PartnerPage() {
           
           <Footer />
         </div>
-        <div className="fixed bottom-4 left-4 flex flex-col space-y-2 z-50">
+        <div className="fixed bottom-6 left-6 z-40 flex gap-3">
+          {/* List Your Activities Button */}
           <Link href="/activity-owner">
-            <Button variant="secondary" className="rounded-full shadow-lg">
-              <Briefcase className="mr-2 h-4 w-4" /> {t("partner.buttons.listActivity")}
+            <Button 
+              size="sm" 
+              className="rounded-full shadow-lg hover:shadow-xl transition-all duration-200 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 h-auto"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              <span className="text-sm">{t("partner.buttons.listActivity")}</span>
             </Button>
           </Link>
+
+          {/* Become a Partner Button */}
           <Link href="/partner">
-            <Button variant="secondary" className="rounded-full shadow-lg">
-              <User className="mr-2 h-4 w-4" /> {t("partner.buttons.becomePartner")}
+            <Button 
+              size="sm" 
+              variant="outline"
+              className="rounded-full shadow-lg hover:shadow-xl transition-all duration-200 bg-white hover:bg-gray-50 border-2 border-blue-600 text-blue-600 hover:text-blue-700 px-4 py-2 h-auto"
+            >
+              <Users className="h-4 w-4 mr-2" />
+              <span className="text-sm">{t("partner.buttons.becomePartner")}</span>
             </Button>
           </Link>
         </div>
@@ -269,18 +283,7 @@ export default function PartnerPage() {
         
         <Footer />
       </div>
-      <div className="fixed bottom-4 left-4 flex flex-col space-y-2 z-50">
-        <Link href="/activity-owner">
-          <Button variant="secondary" className="rounded-full shadow-lg">
-            <Briefcase className="mr-2 h-4 w-4" /> {t("partner.buttons.listActivity")}
-          </Button>
-        </Link>
-        <Link href="/partner">
-          <Button variant="secondary" className="rounded-full shadow-lg">
-            <User className="mr-2 h-4 w-4" /> {t("partner.buttons.becomePartner")}
-          </Button>
-        </Link>
-      </div>
+  <FloatingActionButtons />
     </>
   )
 }

@@ -5,10 +5,11 @@ import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ActivityOwnerRegistrationForm } from "@/components/activity-owner/ActivityOwnerRegistrationForm";
-import { Shield, Building2, Award, Clock, User, Briefcase } from "lucide-react";
+import { Shield, Building2, Award, Clock, User, Briefcase, Plus, Users } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Link from "next/link";
+import { FloatingActionButtons } from "@/components/layout/FloatingActionButtons";
 
 export default function ActivityOwnerDashboard() {
   const { user } = useAuth()
@@ -99,18 +100,7 @@ export default function ActivityOwnerDashboard() {
 
         <Footer />
       </div>
-      <div className="fixed bottom-4 left-4 flex flex-col space-y-2 z-50">
-        <Link href="/activity-owner">
-          <Button variant="secondary" className="rounded-full shadow-lg">
-            <Briefcase className="mr-2 h-4 w-4" /> List your Activity
-          </Button>
-        </Link>
-        <Link href="/partner">
-          <Button variant="secondary" className="rounded-full shadow-lg">
-            <User className="mr-2 h-4 w-4" /> Become a Partner
-          </Button>
-        </Link>
-      </div>
+  <FloatingActionButtons />
     </>
   )
 }
